@@ -313,17 +313,17 @@
     }
 
     function impact() {
-      // Pulse the images
       const images = document.querySelectorAll('.withnail-img');
-      images.forEach(img => {
-        if (Math.random() < 0.1) {
-          img.style.filter = 'brightness(3) contrast(1.5) hue-rotate(45deg)';
-          spawnLightning(img);
-          setTimeout(() => {
-            img.style.filter = '';
-          }, 150);
-        }
-      });
+      if (images.length === 0) return;
+
+      const luckyIndex = Math.floor(Math.random() * images.length);
+      const img = images[luckyIndex];
+
+      img.style.filter = 'brightness(3) contrast(1.5) hue-rotate(45deg)';
+      spawnLightning(img);
+      setTimeout(() => {
+        img.style.filter = '';
+      }, 150);
     }
 
     setInterval(launchSignal, 2000);

@@ -108,16 +108,22 @@
       z-index: 20;
     }
 
+    .withnail-link {
+      height: 100%;
+      display: block;
+      flex-shrink: 0;
+    }
+
     .withnail-img {
       height: 100%;
       width: auto;
-      flex-shrink: 0;
       filter: sepia(0.3) contrast(1.2);
       transition: transform 0.3s ease;
+      cursor: pointer;
     }
 
     .withnail-img:hover {
-      transform: translateY(-20px) scale(1.05);
+      transform: translateY(20px) scale(1.05);
       filter: sepia(0) contrast(1.5);
     }
 
@@ -151,29 +157,6 @@
       z-index: 25;
       box-shadow: 0 0 20px var(--signal-yellow);
       pointer-events: none;
-    }
-
-    /* Secret Links */
-    .secret-link {
-      position: absolute;
-      font-family: 'Bricolage Grotesque', sans-serif;
-      font-size: 0.8rem;
-      font-weight: 800;
-      color: var(--signal-yellow);
-      text-decoration: none;
-      text-transform: uppercase;
-      padding: 4px;
-      border: 1px solid var(--signal-yellow);
-      z-index: 30;
-      background: black;
-      opacity: 0;
-      transition: opacity 0.5s;
-    }
-
-    .secret-link:hover {
-      opacity: 1 !important;
-      background: var(--signal-yellow);
-      color: black;
     }
 
     .grain {
@@ -234,11 +217,17 @@
       const count = Math.ceil(window.innerWidth / 200) + 2;
       withnailRow.innerHTML = '';
       for (let i = 0; i < count; i++) {
+        const link = document.createElement('a');
+        link.href = '../../todo.html';
+        link.className = 'withnail-link';
+
         const img = document.createElement('img');
         img.src = 'withnail.jpg';
         img.className = 'withnail-img';
         img.alt = 'Hair Aerials';
-        withnailRow.appendChild(img);
+
+        link.appendChild(img);
+        withnailRow.appendChild(link);
       }
     }
     fillWithnail();
@@ -273,7 +262,7 @@
       // Pulse the images
       const images = document.querySelectorAll('.withnail-img');
       images.forEach(img => {
-        if (Math.random() > 0.5) {
+        if (Math.random() > 0.8) {
           img.style.filter = 'brightness(2) contrast(2) sepia(0)';
           setTimeout(() => {
             img.style.filter = '';
@@ -296,28 +285,6 @@
         }, 10);
         setTimeout(() => ping.remove(), 800);
       }
-
-      // Occasionally reveal a secret link
-      if (Math.random() > 0.8) {
-        spawnSecretLink();
-      }
-    }
-
-    const labels = ['FREQUENCY_7', 'COSMIC_INTAKE', 'BRAIN_DATA', 'HAIR_LINK_01', 'AERIAL_MODE', 'GOV_WATCH'];
-    function spawnSecretLink() {
-      const link = document.createElement('a');
-      link.href = '../../todo.html';
-      link.className = 'secret-link';
-      link.innerText = labels[Math.floor(Math.random() * labels.length)];
-      link.style.left = Math.random() * 80 + 10 + '%';
-      link.style.top = Math.random() * 40 + 20 + '%';
-      body.appendChild(link);
-
-      setTimeout(() => { link.style.opacity = '0.4'; }, 100);
-      setTimeout(() => {
-        link.style.opacity = '0';
-        setTimeout(() => link.remove(), 500);
-      }, 5000);
     }
 
     setInterval(launchSignal, 2000);

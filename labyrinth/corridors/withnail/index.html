@@ -146,16 +146,11 @@
       opacity: 0;
     }
 
-    /* Interaction Pings */
-    .ping {
+    .lightning {
       position: absolute;
-      width: 10px;
-      height: 10px;
-      background: var(--signal-yellow);
-      border-radius: 50%;
-      z-index: 25;
-      box-shadow: 0 0 20px var(--signal-yellow);
       pointer-events: none;
+      z-index: 25;
+      filter: drop-shadow(0 0 10px var(--signal-yellow));
     }
 
     .grain {
@@ -183,7 +178,7 @@
     <span class="quote-line" style="animation-delay: 0.5s; font-size: 1.8rem;">
       I don't advise a hair cut, man.
     </span>
-    <span class="quote-line" style="animation-delay: 1.5s;">
+    <span class="quote-line" style="animation-delay: 1.5s; font-size: 1.8rem;">
       All hairdressers are in the employment of the government.
     </span>
     <span class="quote-line" style="animation-delay: 2.5s; font-weight: 900; font-size: 4rem;">
@@ -246,7 +241,7 @@
       body.appendChild(signal);
 
       let pos = -20;
-      const targetY = window.innerHeight - (window.innerHeight * 0.25); // Target the hair line
+      const targetY = window.innerHeight - (window.innerHeight * 0.20); // Target the hair line
 
       function move() {
         pos += 8;
@@ -254,7 +249,7 @@
         signal.style.opacity = Math.random() * 0.5 + 0.2; // Flicker
 
         if (pos >= targetY) {
-          impact(pos);
+          impact();
           signal.remove();
         } else {
           requestAnimationFrame(move);
@@ -263,33 +258,72 @@
       requestAnimationFrame(move);
     }
 
-    function impact(y) {
+    function spawnLightning(img) {
+      const rect = img.getBoundingClientRect();
+
+      const startX = rect.left + rect.width / 2;
+      const startY = rect.top;
+
+      for (let i = 0; i < 3; i++) {
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svg.setAttribute("class", "lightning");
+        svg.setAttribute("width", "120");
+        svg.setAttribute("height", "300");
+        svg.setAttribute("viewBox", "0 0 120 300");
+
+        svg.style.left = (startX - 100 + (Math.random() * 60 - 30)) + 'px';
+        svg.style.top = (startY - 250) + 'px';
+        svg.style.zIndex = "19";
+
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        let d = "M60,300 ";
+        let curX = 60;
+        let curY = 300;
+        const segments = 6;
+        for (let j = 0; j < segments; j++) {
+          curX += (Math.random() * 80 - 40);
+          curY -= 50;
+          d += `L${curX},${curY} `;
+        }
+
+        path.setAttribute("d", d);
+        path.setAttribute("stroke", i === 0 ? "white" : "var(--signal-yellow)");
+        path.setAttribute("stroke-width", Math.random() * 4 + 2);
+        path.setAttribute("fill", "none");
+        path.setAttribute("stroke-linecap", "round");
+        path.setAttribute("stroke-linejoin", "round");
+
+        svg.appendChild(path);
+        body.appendChild(svg);
+
+        // Sillier animation: jitter then fade
+        let jitterCount = 0;
+        const jitter = setInterval(() => {
+          svg.style.transform = `translateX(${(Math.random() - 0.5) * 10}px)`;
+          jitterCount++;
+          if (jitterCount > 10) {
+            clearInterval(jitter);
+            svg.style.transition = "opacity 0.4s, transform 0.4s";
+            svg.style.opacity = "0";
+            svg.style.transform = "translateY(-100px) scaleX(0.2)";
+            setTimeout(() => svg.remove(), 500);
+          }
+        }, 30);
+      }
+    }
+
+    function impact() {
       // Pulse the images
       const images = document.querySelectorAll('.withnail-img');
       images.forEach(img => {
-        if (Math.random() > 0.8) {
-          img.style.filter = 'brightness(2) contrast(2) sepia(0)';
+        if (Math.random() < 0.1) {
+          img.style.filter = 'brightness(3) contrast(1.5) hue-rotate(45deg)';
+          spawnLightning(img);
           setTimeout(() => {
             img.style.filter = '';
-          }, 100);
+          }, 150);
         }
       });
-
-      // Create "pings" on the heads
-      for (let i = 0; i < 12; i++) {
-        const ping = document.createElement('div');
-        ping.className = 'ping';
-        ping.style.left = (Math.random() * window.innerWidth) + 'px';
-        ping.style.top = y + (Math.random() * 60 + 30) + 'px';
-        body.appendChild();
-
-        setTimeout(() => {
-          ping.style.transform = 'scale(5) rotate(45deg)';
-          ping.style.opacity = '0';
-          ping.style.backgroundColor = 'white';
-        }, 10);
-        setTimeout(() => ping.remove(), 800);
-      }
     }
 
     setInterval(launchSignal, 2000);

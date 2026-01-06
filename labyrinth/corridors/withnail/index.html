@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Hair are your aerials. They pick up signals from the cosmos.">
+  <title>HAIR ARE YOUR AERIALS // WITHNAIL</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@1,300;1,600&family=Bricolage+Grotesque:wght@300;800&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --sky-blue: #0080ff;
+      --cloud-white: #ffffff;
+      --cosmos-purple: #2a0845;
+      --signal-yellow: #fff33b;
+      --text-color: #fefefe;
+    }
+
+    body,
+    html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(to bottom, var(--cosmos-purple), var(--sky-blue));
+      overflow: hidden;
+      font-family: 'Crimson Pro', serif;
+    }
+
+    /* The Cloudline */
+    #clouds {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 200%;
+      height: 150px;
+      z-index: 10;
+      display: flex;
+      animation: drift 60s linear infinite;
+    }
+
+    .cloud-bottom {
+      width: 300px;
+      height: 100px;
+      background: var(--cloud-white);
+      border-radius: 0 0 150px 150px;
+      margin-right: -50px;
+      filter: blur(5px);
+      opacity: 0.8;
+      box-shadow: 0 10px 30px rgba(255, 255, 255, 0.5);
+    }
+
+    @keyframes drift {
+      from {
+        transform: translateX(0);
+      }
+
+      to {
+        transform: translateX(-50%);
+      }
+    }
+
+    /* The Quote */
+    #quote-container {
+      position: absolute;
+      top: 45%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 80%;
+      max-width: 800px;
+      text-align: center;
+      z-index: 5;
+      color: var(--text-color);
+      text-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+      pointer-events: none;
+    }
+
+    .quote-line {
+      display: block;
+      font-size: 2.2rem;
+      font-style: italic;
+      margin-bottom: 0.5rem;
+      opacity: 0;
+      animation: fadeIn 1s forwards;
+    }
+
+    @keyframes fadeIn {
+      to {
+        opacity: 1;
+        transform: translateY(-10px);
+      }
+    }
+
+    /* Repeating Withnail */
+    #withnail-row {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 30vh;
+      display: flex;
+      flex-direction: row;
+      overflow: hidden;
+      z-index: 20;
+    }
+
+    .withnail-img {
+      height: 100%;
+      width: auto;
+      flex-shrink: 0;
+      filter: sepia(0.3) contrast(1.2);
+      transition: transform 0.3s ease;
+    }
+
+    .withnail-img:hover {
+      transform: translateY(-20px) scale(1.05);
+      filter: sepia(0) contrast(1.5);
+    }
+
+    /* Radio Signals */
+    .signal {
+      position: absolute;
+      top: -20px;
+      width: 100%;
+      height: 2px;
+      background: rgba(255, 243, 59, 0.4);
+      box-shadow: 0 0 15px var(--signal-yellow);
+      z-index: 15;
+      pointer-events: none;
+    }
+
+    .signal-wave {
+      position: absolute;
+      border: 1px solid var(--signal-yellow);
+      border-radius: 50%;
+      pointer-events: none;
+      opacity: 0;
+    }
+
+    /* Interaction Pings */
+    .ping {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background: var(--signal-yellow);
+      border-radius: 50%;
+      z-index: 25;
+      box-shadow: 0 0 20px var(--signal-yellow);
+      pointer-events: none;
+    }
+
+    /* Secret Links */
+    .secret-link {
+      position: absolute;
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 800;
+      color: var(--signal-yellow);
+      text-decoration: none;
+      text-transform: uppercase;
+      padding: 4px;
+      border: 1px solid var(--signal-yellow);
+      z-index: 30;
+      background: black;
+      opacity: 0;
+      transition: opacity 0.5s;
+    }
+
+    .secret-link:hover {
+      opacity: 1 !important;
+      background: var(--signal-yellow);
+      color: black;
+    }
+
+    .grain {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48ZmlsdGVyIGlkPSJuIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iMC44NSIgbnVtT2N0YXZlcz0iMyIgc3RpdGNoVGlsZXM9InN0aXRjaCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbHRlcj0idXJsKCNuKSIvPjwvc3ZnPg==');
+      opacity: 0.1;
+      z-index: 100;
+      pointer-events: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="grain"></div>
+
+  <div id="clouds">
+    <!-- Generated clouds -->
+  </div>
+
+  <div id="quote-container">
+    <span class="quote-line" style="animation-delay: 0.5s;">"I don't advise a hair cut man."</span>
+    <span class="quote-line" style="animation-delay: 1.5s;">"All hairdressers are in the employment
+      of the government."</span>
+    <span class="quote-line" style="animation-delay: 2.5s; font-weight: 900; font-size: 3rem;">"Hair
+      are your aerials."</span>
+    <span class="quote-line" style="animation-delay: 3.5s;">"They pick up signals from the
+      cosmos..."</span>
+    <span class="quote-line" style="animation-delay: 4.5s;">"...and transmit them directly into the
+      brain."</span>
+    <span class="quote-line" style="animation-delay: 5.5s; font-size: 1.2rem; opacity: 0.7;">This is
+      the reason bald-headed men are uptight.</span>
+  </div>
+
+  <div id="withnail-row">
+    <!-- Images will repeat here -->
+  </div>
+
+  <script>
+    const cloudsContainer = document.getElementById('clouds');
+    const withnailRow = document.getElementById('withnail-row');
+    const body = document.body;
+
+    // Populate clouds
+    for (let i = 0; i < 20; i++) {
+      const c = document.createElement('div');
+      c.className = 'cloud-bottom';
+      c.style.transform = `scale(${0.8 + Math.random() * 0.5})`;
+      cloudsContainer.appendChild(c);
+    }
+
+    // Populate Withnail
+    function fillWithnail() {
+      const imgWidth = 400; // Estimated
+      const count = Math.ceil(window.innerWidth / 200) + 2;
+      withnailRow.innerHTML = '';
+      for (let i = 0; i < count; i++) {
+        const img = document.createElement('img');
+        img.src = 'withnail.jpg';
+        img.className = 'withnail-img';
+        img.alt = 'Hair Aerials';
+        withnailRow.appendChild(img);
+      }
+    }
+    fillWithnail();
+    window.addEventListener('resize', fillWithnail);
+
+    // Radio signal logic
+    function launchSignal() {
+      const signal = document.createElement('div');
+      signal.className = 'signal';
+      signal.style.left = '0px';
+      body.appendChild(signal);
+
+      let pos = -20;
+      const targetY = window.innerHeight - (window.innerHeight * 0.25); // Target the hair line
+
+      function move() {
+        pos += 8;
+        signal.style.top = pos + 'px';
+        signal.style.opacity = Math.random() * 0.5 + 0.2; // Flicker
+
+        if (pos >= targetY) {
+          impact(pos);
+          signal.remove();
+        } else {
+          requestAnimationFrame(move);
+        }
+      }
+      requestAnimationFrame(move);
+    }
+
+    function impact(y) {
+      // Pulse the images
+      const images = document.querySelectorAll('.withnail-img');
+      images.forEach(img => {
+        if (Math.random() > 0.5) {
+          img.style.filter = 'brightness(2) contrast(2) sepia(0)';
+          setTimeout(() => {
+            img.style.filter = '';
+          }, 100);
+        }
+      });
+
+      // Create "pings" on the heads
+      for (let i = 0; i < 12; i++) {
+        const ping = document.createElement('div');
+        ping.className = 'ping';
+        ping.style.left = (Math.random() * window.innerWidth) + 'px';
+        ping.style.top = y + (Math.random() * 60 - 30) + 'px';
+        body.appendChild(ping);
+
+        setTimeout(() => {
+          ping.style.transform = 'scale(5) rotate(45deg)';
+          ping.style.opacity = '0';
+          ping.style.backgroundColor = 'white';
+        }, 10);
+        setTimeout(() => ping.remove(), 800);
+      }
+
+      // Occasionally reveal a secret link
+      if (Math.random() > 0.8) {
+        spawnSecretLink();
+      }
+    }
+
+    const labels = ['FREQUENCY_7', 'COSMIC_INTAKE', 'BRAIN_DATA', 'HAIR_LINK_01', 'AERIAL_MODE', 'GOV_WATCH'];
+    function spawnSecretLink() {
+      const link = document.createElement('a');
+      link.href = '../../todo.html';
+      link.className = 'secret-link';
+      link.innerText = labels[Math.floor(Math.random() * labels.length)];
+      link.style.left = Math.random() * 80 + 10 + '%';
+      link.style.top = Math.random() * 40 + 20 + '%';
+      body.appendChild(link);
+
+      setTimeout(() => { link.style.opacity = '0.4'; }, 100);
+      setTimeout(() => {
+        link.style.opacity = '0';
+        setTimeout(() => link.remove(), 500);
+      }, 5000);
+    }
+
+    setInterval(launchSignal, 2000);
+
+    // Movement interaction
+    document.addEventListener('mousemove', (e) => {
+      const wave = document.createElement('div');
+      wave.className = 'signal-wave';
+      wave.style.left = e.clientX + 'px';
+      wave.style.top = e.clientY + 'px';
+      wave.style.width = '2px';
+      wave.style.height = '2px';
+      body.appendChild(wave);
+
+      setTimeout(() => {
+        wave.style.width = '100px';
+        wave.style.height = '100px';
+        wave.style.transform = 'translate(-50%, -50%)';
+        wave.style.opacity = '0.3';
+      }, 10);
+      setTimeout(() => {
+        wave.style.opacity = '0';
+        setTimeout(() => wave.remove(), 500);
+      }, 1000);
+    });
+
+  </script>
+</body>
+
+</html>

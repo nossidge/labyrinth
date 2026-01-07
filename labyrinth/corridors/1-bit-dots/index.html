@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+Inspired by this tweet:
+https://x.com/pietrobaudin/status/2008786024080527551/photo/1
+"halftone textures to your next project:"
+
+Pietro Baudin
+https://baudinstudio.gumroad.com/l/gnnego
+-->
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>1-Bit Dots</title>
+  <meta name="description" content="A 1-bit dot matrix display gradually losing clarity">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #222;
+      --dot-white: #fff;
+      --dot-black: #222;
+      --highlight-bg: #222;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--dot-white);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      overflow: hidden;
+      font-family: 'Space Mono', monospace;
+      cursor: crosshair;
+    }
+
+    #matrix-container {
+      display: grid;
+      padding: 20px;
+    }
+
+    .dot-group {
+      display: grid;
+      grid-template-columns: repeat(var(--group-size, 3), 1fr);
+      grid-template-rows: repeat(var(--group-size, 3), 1fr);
+      text-decoration: none;
+      padding: 2px;
+      border: 1px solid transparent;
+    }
+
+    .dot-group:hover {
+      background-color: var(--highlight-bg);
+      border: 1px solid #444;
+      z-index: 5;
+    }
+
+    /* Invert dots on hover */
+    .dot-group:hover .dot.white {
+      background-color: #000;
+      box-shadow: 0 0 2px #fff;
+    }
+
+    .dot-group:hover .dot.black {
+      background-color: #555;
+    }
+
+    .dot {
+      border-radius: 50%;
+    }
+
+    .dot.white {
+      background-color: var(--dot-white);
+    }
+
+    .dot.black {
+      background-color: var(--dot-black);
+    }
+
+    /* Scanline / CRT effect */
+    #overlays {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 100;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+      background-size: 100% 2px, 3px 100%;
+    }
+
+    /* Hidden text for screen readers */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      border: 0;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="overlays"></div>
+  <main id="matrix-container"></main>
+  <h1 class="sr-only">1-Bit Dots</h1>
+
+  <script>
+    const groupSpacing = 1;         // Pixel spacing between groups
+    const groupSquareRoot = 10;     // The number squared of dots per group
+    const dotSpacing = 9;           // Pixel spacing between dots
+    const dotSize = 8;              // Pixel size of dots
+    const dotColumns = 60;          // Should be a multiple of groupSquareRoot
+    const dotRows = 30;             // Should be a multiple of groupSquareRoot
+    const dotPercentageLoss = 1.68; // 100% at col 0, decreasing by percentage per column
+
+    const container = document.getElementById('matrix-container');
+
+    // Set CSS variable for dynamic grid layout
+    document.documentElement.style.setProperty('--group-size', groupSquareRoot);
+
+    // Logic for group layout
+    const groupCols = Math.floor(dotColumns / groupSquareRoot);
+    const groupRows = Math.floor(dotRows / groupSquareRoot);
+
+    // Grid setup
+    container.style.gridTemplateColumns = `repeat(${groupCols}, auto)`;
+    container.style.gridTemplateRows = `repeat(${groupRows}, auto)`;
+    container.style.gap = `${groupSpacing}px`;
+
+    function buildMatrix() {
+      for (let gr = 0; gr < groupRows; gr++) {
+        for (let gc = 0; gc < groupCols; gc++) {
+          const group = document.createElement('a');
+          group.href = '../../todo.html';
+          group.className = 'dot-group';
+          group.style.gap = `${dotSpacing}px`;
+
+          for (let r = 0; r < groupSquareRoot; r++) {
+            for (let c = 0; c < groupSquareRoot; c++) {
+              const actualCol = gc * groupSquareRoot + c;
+              const actualRow = gr * groupSquareRoot + r;
+
+              if (actualCol < dotColumns && actualRow < dotRows) {
+                const dot = document.createElement('div');
+                dot.className = 'dot';
+                dot.style.width = `${dotSize}px`;
+                dot.style.height = `${dotSize}px`;
+
+                const whiteChance = Math.max(0, 100 - (actualCol * dotPercentageLoss));
+                const isWhite = (Math.random() * 100) < whiteChance;
+
+                dot.classList.add(isWhite ? 'white' : 'black');
+                group.appendChild(dot);
+              }
+            }
+          }
+          container.appendChild(group);
+        }
+      }
+    }
+
+    buildMatrix();
+
+  </script>
+</body>
+
+</html>

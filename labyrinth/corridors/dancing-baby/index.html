@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+calista pop-tart
+-->
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>high on believing</title>
+  <meta name="description" content="Ooga-Chaka Ooga-Ooga">
+  <style>
+    :root {
+      --accent-color: #ff00ff;
+      --shadow-color: rgba(0, 0, 0, 0.5);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      background-color: #000;
+    }
+
+    html,
+    body {
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    /* Stretched background as requested */
+    #background {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      object-fit: fill;
+      /* Forces stretch to width and height */
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Space Grotesque', sans-serif;
+    }
+
+    .baby-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      z-index: 5;
+    }
+
+    .baby-link {
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      display: block;
+      position: relative;
+    }
+
+    .baby-link img {
+      display: block;
+      border-radius: 10px;
+      box-shadow: 0 10px 30px var(--shadow-color);
+      border: 4px solid #fff;
+    }
+
+    /* Side babies sizes */
+    .small-baby img {
+      width: 15vw;
+      min-width: 120px;
+    }
+
+    /* Middle baby size - larger than the others */
+    .large-baby img {
+      width: 25vw;
+      min-width: 250px;
+      border-color: var(--accent-color);
+    }
+
+    /* Hover effect: grow larger */
+    .baby-link:hover {
+      transform: scale(1.25);
+      z-index: 20;
+    }
+
+    /* Slightly less growth since it's already big */
+    .large-baby:hover {
+      transform: scale(1.15);
+    }
+
+    .marquee {
+      position: absolute;
+      bottom: 20px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.8);
+      border-top: 2px solid #000;
+      border-bottom: 2px solid #000;
+      padding: 5px 0;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
+    .marquee span {
+      display: inline-block;
+      padding-left: 100%;
+      animation: marquee 15s linear infinite;
+      font-weight: 700;
+      color: #000;
+      text-transform: uppercase;
+    }
+
+    @keyframes marquee {
+      0% {
+        transform: translateX(0);
+      }
+
+      100% {
+        transform: translateX(-100%);
+      }
+    }
+
+    /* Responsive Mobile Styles */
+    @media (max-width: 768px) {
+      .baby-container {
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      .small-baby img {
+        width: 30vw;
+        min-width: 100px;
+      }
+
+      .large-baby img {
+        width: 50vw;
+        min-width: 180px;
+      }
+
+      .large-baby:hover {
+        transform: scale(1.1);
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <img src="background.gif" id="background" alt="Ally McBeal in her apartment">
+
+  <main class="baby-container">
+    <a href="../../todo.html" class="baby-link small-baby">
+      <img src="sk_baby.max" alt="Dancing Baby Meme">
+    </a>
+
+    <a href="../../todo.html" class="baby-link large-baby">
+      <img src="sk_baby.max" alt="The Original Dancing Baby">
+    </a>
+
+    <a href="../../todo.html" class="baby-link small-baby">
+      <img src="sk_baby.max" alt="Dancing Baby Meme">
+    </a>
+  </main>
+
+  <div class="marquee">
+    <span>Ooga-Chaka Ooga-Ooga Ooga-Chaka Ooga-Ooga Ooga-Chaka Ooga-Ooga Ooga-Chaka Ooga-Ooga</span>
+  </div>
+
+</body>
+
+</html>

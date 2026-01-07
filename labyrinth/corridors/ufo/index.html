@@ -1,12 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
 
+<!--
+There must be an exception
+A logical way to find
+The constant paranormal
+Is nothing that can't be defined
+
+Cause she's the only one thinking it through
+She's got the shoulder pads, no nonsense attitude
+
+The truth is out there, but so are lies
+To see the world through Dana Katherine Scully's eyes
+
+A picture of composure
+She knows the facts and she won't pacify
+She wants to know what's out there
+But she needs to know why
+
+Cause she's the only one thinking it through
+She's got the shoulder pads, no nonsense attitude
+
+The truth is out there, but so are lies
+To see the through Dana Katherine Scully's eyes
+
+There's a monster every single week
+Lost time and ghosts in the machine
+There's a bee dome in the desert
+Searching for the sister forever
+
+The truth is out there, but so are lies
+To see the world through Dana Katherine Scully's eyes
+
+She owns the contradiction
+She separates the facts from fiction
+-->
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description"
-    content="A corridor of unidentified flying objects in the labyrinth. Arty 90s web design exploration.">
-  <title>UFO CORRIDOR // THE TRUTH</title>
+  <meta name="description" content="Roswell That Ends Well">
+  <title>UFO // THE TRUTH</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -71,7 +105,7 @@
       background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48ZmlsdGVyIGlkPSJuIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iMC42NSIgbnVtT2N0YXZlcz0iMyIgc3RpdGNoVGlsZXM9InN0aXRjaCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbHRlcj0idXJsKCNuKSIvPjwvc3ZnPg==');
     }
 
-    .corridor-info {
+    #observatory-info {
       position: fixed;
       top: 30px;
       left: 30px;
@@ -277,11 +311,11 @@
     }
 
     .blink {
-      animation: blink-anim 1s infinite steps(1);
+      animation: blink-anim 2s infinite steps(1);
     }
 
     @keyframes blink-anim {
-      50% {
+      80% {
         opacity: 0;
       }
     }
@@ -295,9 +329,9 @@
   <div class="scanning-line"></div>
   <div id="glitch-flash"></div>
 
-  <div class="corridor-info">
-    CORRIDOR: UFO_09<br>
-    COORD: 88.22.11<br>
+  <div id="observatory-info">
+    OBSERVATORY: 198<br>
+    COORDS: 86.11.08<br>
     <span class="blink">[ BROADCASTING ]</span>
   </div>
 
@@ -317,6 +351,23 @@
   </nav>
 
   <script>
+    // Dynamic coords based on date. Entirely arbitrary, but it's fun.
+    const now = new Date();
+    const yyy = Math.floor(now.getFullYear() / 10);
+    const yy = (now.getFullYear() % 100).toString().padStart(2, '0');
+    const mm = (now.getMonth() + 1).toString().padStart(2, '0');
+    const dd = now.getDate().toString().padStart(2, '0');
+
+    const observatory = `${yyy}`;
+    const coords = `${yy}.${mm}.${dd}`;
+
+    const observatoryInfo = document.getElementById('observatory-info');
+    observatoryInfo.innerHTML = `
+      OBSERVATORY: ${observatory}<br>
+      COORDS: ${coords}<br>
+      <span class="blink">[ BROADCASTING ]</span>
+    `;
+
     const container = document.getElementById('ufo-container');
     const radar = document.getElementById('radar');
     const flash = document.getElementById('glitch-flash');

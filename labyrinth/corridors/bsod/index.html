@@ -237,7 +237,9 @@
   <canvas id="glitch-canvas"></canvas>
 
   <div id="screen">
-    <div class="header-box">MEMORY_MANAGEMENT_FAILURE_v9.0.4</div>
+    <div class="header-box" id="header-version">
+      MEMORY_MANAGEMENT_FAILURE_v6.11.8
+    </div>
     <h1>
       A problem has been detected and your mind has been shut down to prevent damage to your psyche.
     </h1>
@@ -282,9 +284,10 @@
 
     <div class="footer-nav">
       <a href="#" class="restart">RESTART</a>
-      <a href="../../todo.html">GENERATE_DUMP</a>
-      <a href="../../todo.html">BYPASS_KERNEL</a>
-      <a href="../../todo.html">RETURN_TO_BIOS</a>
+      <a href="#" class="add-to-heap">ADD_TO_HEAP</a>
+      <a href="#" class="generate-dump">GENERATE_DUMP</a>
+      <a href="#" class="bypass-kernel">BYPASS_KERNEL</a>
+      <a href="#" class="return-to-bios">RETURN_TO_BIOS</a>
     </div>
   </div>
 
@@ -304,6 +307,12 @@
     const progressBar = document.getElementById('progress-bar');
     const screen = document.getElementById('screen');
     const linkLayer = document.getElementById('link-layer');
+    const headerVersion = document.getElementById('header-version');
+
+    // Dynamic version based on date. Entirely arbitrary, but it's fun.
+    const now = new Date();
+    const vString = `v${now.getFullYear() % 10}.${now.getMonth() + 1}.${now.getDate()}`;
+    headerVersion.innerText = `MEMORY_MANAGEMENT_FAILURE_${vString}`;
 
     // Setup canvas
     function resize() {
@@ -315,19 +324,23 @@
 
     // Progress bar simulation
     let progress = 0;
-    const roundToNearest5 = (num) => Math.round(num / 5) * 5;
+    let frameCount = 0;
+    const roundToNearest = (num, step) => Math.round(num / step) * step;
     function updateProgress() {
-      if (Math.random() > 0.95) {
-        progress = Math.max(0, progress - 5); // Glitch backwards
-      } else {
-        progress += Math.random() * 0.5;
-      }
+      frameCount++;
+      if (frameCount % 10 === 0) {
+        // 10% chance of no change
+        if (Math.random() > 0.1) {
+          progress += Math.random() * 0.5; // Stepped movement
+        }
 
-      if (progress > 100) {
-        progress = 0;
-        triggerFlicker();
+        if (progress >= 100) {
+          progress = -100;
+          spawnPopups(100);
+          setTimeout(fakeReboot, 5000);
+        }
+        progressBar.style.width = roundToNearest(progress, 0.5) + '%';
       }
-      progressBar.style.width = roundToNearest5(progress) + '%';
       requestAnimationFrame(updateProgress);
     }
     updateProgress();
@@ -375,7 +388,14 @@
       win.style.left = (x - 100) + 'px';
       win.style.top = (y - 50) + 'px';
 
-      const title = ['SYSTEM_ERROR', 'MEMORY_LEAK', 'NULL_POINTER', 'REALITY_BREACH', 'KERNEL_PANIC'][Math.floor(Math.random() * 5)];
+      const title = [
+        'SYSTEM_ERROR',
+        'MEMORY_LEAK',
+        'NULL_POINTER',
+        'ID_CLASH',
+        'KERNEL_PANIC'
+      ][Math.floor(Math.random() * 5)];
+
       const msg = [
         'The instruction at 0x0045 refers to memory that could not be read.',
         'Buffer overflow in subconscious.dll',
@@ -399,7 +419,7 @@
 
       // Auto remove after a while or if too many
       const windows = document.querySelectorAll('.floating-error');
-      if (windows.length > 15) windows[0].remove();
+      if (windows.length > 20) windows[0].remove();
     }
 
     // Create invisible floating links
@@ -437,24 +457,19 @@
       keyBuffer += e.key.toLowerCase();
       if (keyBuffer.length > 10) keyBuffer = keyBuffer.substring(1);
 
-      if (keyBuffer.includes('error')) {
-        keyBuffer = '';
-        for (let i = 0; i < 20; i++) {
-          setTimeout(() => createErrorWindow(Math.random() * window.innerWidth, Math.random() * window.innerHeight), i * 50);
-        }
-      }
-
       if (keyBuffer.includes('null')) {
         keyBuffer = '';
-        screen.style.transition = 'filter 0.5s';
-        screen.style.filter = 'blur(10px) grayscale(1)';
-        setTimeout(() => screen.style.filter = '', 2000);
+        blurScreen();
+      }
+
+      if (keyBuffer.includes('error')) {
+        keyBuffer = '';
+        spawnPopups();
       }
 
       if (keyBuffer.includes('cls')) {
         keyBuffer = '';
-        const windows = document.querySelectorAll('.floating-error');
-        windows.forEach(w => w.remove());
+        clearPopups();
       }
 
       // Add a glitch block
@@ -473,9 +488,10 @@
     // BIOS Reboot effect
     function fakeReboot() {
       screen.style.display = 'none';
+      document.querySelectorAll('.floating-error').forEach(w => w.remove());
+      progress = 0;
+
       const console = document.createElement('div');
-      console.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:black; color:white; padding:20px; font-family:monospace; z-index:1000; overflow:hidden;';
-      // Applying styles via Object.assign because .cssText is sometimes finicky
       Object.assign(console.style, {
         position: 'fixed',
         top: '0',
@@ -493,33 +509,35 @@
 
       const lines = [
         'AMIBIOS (C) 1992 American Megatrends Inc.',
-        'Labyrinth BIOS v4.51PG, An Energy Star Ally',
-        'Copyright (C) 1992-1997, Labyrinth Art Foundation',
+        'Tilde BIOS v6.118PG, An Energy Star Ally',
+        'Copyright (C) 1992-1997, Tilde Art Foundation',
         '',
         'Main Processor : Reality Engine 600MHz',
         'Memory Testing : 65536K OK',
         '',
-        'Primary Master : Labyrinth-HD 4.2GB',
-        'Primary Slave  : Imagination-CD 24X',
+        'Primary Master : Tilde-HD 300MB',
+        'Primary Slave  : youandeveryoneelse',
         '',
         'Verifying DMI Pool Data ...........',
         'Disk Boot Failure, Insert System Disk And Press Enter',
         'Booting from CD-ROM...',
         'ERROR: Reality volume unmounted.',
         'Retrying...',
+        '',
         'CRITICAL FAILURE.'
       ];
 
-      let i = 0;
+      let index = 0;
       function addLine() {
-        if (i < lines.length) {
-          const l = document.createElement('div');
-          l.innerText = lines[i];
-          console.appendChild(l);
-          i++;
+        if (index < lines.length) {
+          const line = document.createElement('div');
+          line.innerText = lines[index];
+          console.appendChild(line);
+          index++;
           setTimeout(addLine, Math.random() * 500);
         } else {
           setTimeout(() => {
+            progress = 0;
             console.remove();
             screen.style.display = 'flex';
             triggerFlicker();
@@ -529,11 +547,55 @@
       addLine();
     }
 
-    // Attach to a link
+    function blurScreen() {
+      screen.style.transition = 'filter 0.5s';
+      screen.style.filter = 'blur(10px) grayscale(1)';
+      setTimeout(() => screen.style.filter = '', 2000);
+    }
+
+    function spawnPopups(num = 20) {
+      for (let i = 0; i < num; i++) {
+        setTimeout(() => createErrorWindow(Math.random() * window.innerWidth, Math.random() * window.innerHeight), i * 50);
+      }
+    }
+
+    function clearPopups() {
+      const windows = document.querySelectorAll('.floating-error');
+      windows.forEach(w => w.remove());
+    }
+
+    document.querySelectorAll('.add-to-heap').forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        progress += 10;
+      });
+    });
+
     document.querySelectorAll('.restart').forEach(link => {
       link.addEventListener('click', (e) => {
         e.preventDefault();
         fakeReboot();
+      });
+    });
+
+    document.querySelectorAll('.generate-dump').forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        spawnPopups();
+      });
+    });
+
+    document.querySelectorAll('.bypass-kernel').forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        clearPopups();
+      });
+    });
+
+    document.querySelectorAll('.return-to-bios').forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        blurScreen();
       });
     });
 

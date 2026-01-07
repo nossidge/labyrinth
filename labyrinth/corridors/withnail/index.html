@@ -296,7 +296,6 @@
         svg.appendChild(path);
         body.appendChild(svg);
 
-        // Sillier animation: jitter then fade
         let jitterCount = 0;
         const jitter = setInterval(() => {
           svg.style.transform = `translateX(${(Math.random() - 0.5) * 10}px)`;

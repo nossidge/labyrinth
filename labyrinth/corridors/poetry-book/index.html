@@ -10,15 +10,16 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
-    href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,200;0,700;1,200&family=Bricolage+Grotesque:wght@300&family=Newsreader:ital,opsz,wght@1,6..72,200;1,6..72,400&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,200;0,400;0,700;1,200&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:wght@300;800&family=Newsreader:ital,opsz,wght@1,6..72,200;1,6..72,400&display=swap"
     rel="stylesheet">
   <style>
     :root {
-      --paper-color: #f4f1ea;
-      --ink-color: #1a1a1a;
-      --cover-color: #3d1f1f;
-      --accent-color: #8b0000;
-      --gutter-shadow: rgba(0, 0, 0, 0.1);
+      --paper-color: #ffffff;
+      --ink-color: #111111;
+      --cover-color: #8B4513;
+      /* From example */
+      --spine-color: rgba(0, 0, 0, 0.5);
+      --shadow: rgba(0, 0, 0, 0.5);
     }
 
     * {
@@ -28,37 +29,27 @@
     }
 
     body {
-      background-color: #0d0d0d;
-      background-image:
-        radial-gradient(circle at 50% 50%, #1a1a1a 0%, #000 100%),
-        url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48ZmlsdGVyIGlkPSJuIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iMC44NSIgbnVtT2N0YXZlcz0iMyIgc3RpdGNoVGlsZXM9InN0aXRjaCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbHRlcj0idXJsKCNuKSIvPjwvc3ZnPg==');
-      background-blend-mode: overlay;
+      background-color: #1d1f20;
+      color: #e5e5e5;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
       overflow: hidden;
-      font-family: 'Bricolage Grotesque', sans-serif;
+      font-family: 'Crimson Pro', serif;
     }
 
-    /* 3D Scene Setup */
-    .scene {
-      width: 400px;
-      /* Half width because we rotate from center */
-      height: 500px;
-      perspective: 2000px;
+    /* 3D Scene Wrapper */
+    #book-wrapper {
       position: relative;
-      z-index: 5;
-      transform: translateX(0);
-      /* Will shift when open */
+      width: 800px;
+      height: 550px;
+      perspective: 2000px;
       transition: transform 1s ease;
     }
 
-    .scene.open {
-      transform: translateX(200px);
-    }
-
+    /* The actual book structure */
     .book {
       position: relative;
       width: 100%;
@@ -67,18 +58,47 @@
       transition: transform 1s ease;
     }
 
-    /* Page Stacking Elements */
+    /* Cover and Spine details from example Pen */
+    .book:before {
+      content: '';
+      position: absolute;
+      top: -15px;
+      left: -15px;
+      right: -15px;
+      bottom: -15px;
+      background-color: var(--cover-color);
+      border-radius: 8px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+      z-index: -1;
+      transform: translateZ(-20px);
+    }
+
+    /* The Spine Shadow */
+    .book:after {
+      content: '';
+      position: absolute;
+      top: -15px;
+      bottom: -15px;
+      left: 50%;
+      width: 40px;
+      background: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.2) 46%, rgba(0, 0, 0, 0.5) 49%, rgba(0, 0, 0, 0.6) 50%, rgba(0, 0, 0, 0.5) 51%, rgba(0, 0, 0, 0.2) 52%, transparent 100%);
+      transform: translateX(-50%) translateZ(10px);
+      z-index: 100;
+      pointer-events: none;
+    }
+
+    /* Page Stacking */
     .page {
       position: absolute;
       top: 0;
-      left: 0;
-      width: 100%;
+      right: 0;
+      width: 50%;
       height: 100%;
       transform-origin: left;
       transform-style: preserve-3d;
       transition: transform 1s cubic-bezier(0.645, 0.045, 0.355, 1);
-      user-select: none;
       cursor: pointer;
+      user-select: none;
     }
 
     .page-side {
@@ -88,177 +108,170 @@
       width: 100%;
       height: 100%;
       backface-visibility: hidden;
-      background: var(--paper-color);
-      padding: 40px;
+      background-color: var(--paper-color);
+      padding: 50px;
       display: flex;
       flex-direction: column;
-      justify-content: center;
-      box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.05);
-      border-radius: 2px 8px 8px 2px;
+      box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.05);
     }
 
-    /* Front Side of the page */
     .page-front {
       z-index: 2;
-      background: linear-gradient(to right, #ddd 0%, var(--paper-color) 4px, var(--paper-color) 100%);
+      border-radius: 0 4px 4px 0;
+      /* Curved page effect */
+      background: linear-gradient(to right, #eee 0%, #fff 5%, #fff 100%);
     }
 
-    /* Back Side of the page */
     .page-back {
       transform: rotateY(-180deg);
-      background: linear-gradient(to left, #ddd 0%, var(--paper-color) 4px, var(--paper-color) 100%);
-      border-radius: 8px 2px 2px 8px;
-    }
-
-    /* The Spine Area */
-    .gutter {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 50px;
-      height: 100%;
-      background: linear-gradient(to right, rgba(0, 0, 0, 0.3) 0%, transparent 100%);
-      z-index: 10;
-      pointer-events: none;
-    }
-
-    .page-back .gutter {
-      left: auto;
-      right: 0;
-      background: linear-gradient(to left, rgba(0, 0, 0, 0.3) 0%, transparent 100%);
+      border-radius: 4px 0 0 4px;
+      /* Curved page effect back */
+      background: linear-gradient(to left, #eee 0%, #fff 5%, #fff 100%);
     }
 
     /* Cover Specifics */
-    .cover {
-      background-color: var(--cover-color) !important;
-      border: 2px solid rgba(0, 0, 0, 0.3);
-      border-left: 5px solid rgba(0, 0, 0, 0.5);
+    .page.cover {
+      z-index: 101 !important;
+      /* Always on top when closed */
     }
 
-    .cover-front {
+    .page-front.cover-side {
+      background: var(--cover-color);
+      color: #fff;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      color: rgba(255, 255, 255, 0.7);
-      text-align: center;
-      padding: 20px;
+      border-left: 5px solid rgba(0, 0, 0, 0.3);
     }
 
-    .cover-front h2 {
-      font-family: 'Crimson Pro', serif;
-      font-weight: 200;
+    .cover-side h1 {
+      font-family: 'Playfair Display', serif;
       font-size: 2.5rem;
-      letter-spacing: 0.2rem;
       text-transform: uppercase;
-      border-top: 1px solid rgba(255, 255, 255, 0.2);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      letter-spacing: 0.2rem;
+      border-top: 2px solid rgba(255, 255, 255, 0.2);
+      border-bottom: 2px solid rgba(255, 255, 255, 0.2);
       padding: 20px 0;
-      margin-bottom: 10px;
+      margin-bottom: 20px;
+      text-align: center;
     }
 
-    .cover-back {
-      background-color: #2e1717 !important;
-      /* Slightly darker inside cover */
+    .cover-side p {
+      font-size: 0.9rem;
+      letter-spacing: 2px;
+      opacity: 0.6;
     }
 
-    /* Content Styling */
+    /* Content inside pages */
+    header {
+      font-family: 'Playfair Display', serif;
+      font-size: 0.6rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 30px;
+      color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .poem-container {
+      flex-grow: 1;
+    }
+
+    .chapter-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.4rem;
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 1.5em;
+      padding-bottom: 0.5em;
+      background: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjxzdmcgdmVyc2lvbj0iMS4xIiBpZD0iTGF5ZXJfMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgeD0iMHB4IiB5PSIwcHgiDQoJIHZpZXdCb3g9IjAgMCA2NCA2NCIgc3R5bGU9ImVuYWJsZS1iYWNrZ3JvdW5kOm5ldyAwIDAgNjQgNjQ7IiB4bWw6c3BhY2U9InByZXNlcnZlIj4NCiAgICA8Zz4NCiAgICAJPHBhdGggZD0iTTAsMzJMMzIsMGwzMiwzMkwzMiw2NEwwLDMyeiBNOCwzMmwyNCwyNGwyNC0yNEwzMiw4TDgsMzJ6IE0xNiwzMmwxNi0xNmwxNiwxNkwzMiw0OEwxNiwzMnogTTI0LDMybDgsOGw4LThsLTgtOEwyNCwzMnoiIC8+DQogICAgPC9nPg0KPC9zdmc+) bottom center no-repeat;
+      background-size: 0.5em 0.5em;
+    }
+
     .poem-text {
-      color: var(--ink-color);
-      font-family: 'Newsreader', serif;
+      font-family: 'Crimson Pro', serif;
       font-size: 1.1rem;
-      line-height: 1.6;
+      line-height: 1.5;
+      color: var(--ink-color);
       white-space: pre-wrap;
       font-style: italic;
-      opacity: 0.9;
     }
 
-    .page-num {
-      position: absolute;
-      bottom: 20px;
-      font-size: 0.7rem;
-      opacity: 0.3;
-      letter-spacing: 2px;
+    footer {
+      margin-top: 20px;
+      font-family: 'Playfair Display', serif;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #000;
+      border-top: 1px solid rgba(0, 0, 0, 0.1);
+      padding-top: 10px;
     }
 
-    .page-front .page-num {
-      right: 40px;
+    .page-num-left {
+      text-align: left;
     }
 
-    .page-back .page-num {
-      left: 40px;
+    .page-num-right {
+      text-align: right;
     }
 
-    /* Thickness / Stack Effect */
-    .page:nth-child(1) {
-      transform: translateZ(1px);
+    /* Animation Classes */
+    .flipped {
+      transform: rotateY(-180deg);
     }
 
-    .page:nth-child(2) {
-      transform: translateZ(2px);
-    }
-
-    .page:nth-child(3) {
-      transform: translateZ(3px);
-    }
-
-    .page:nth-child(4) {
-      transform: translateZ(4px);
-    }
-
-    .page:nth-child(5) {
-      transform: translateZ(5px);
-    }
-
-    .page.flipped {
-      transform: rotateY(-180deg) translateZ(calc(var(--flip-depth, 0) * 1px));
-    }
-
-    /* Controls */
-    #controls {
-      margin-top: 40px;
+    /* UI Controls */
+    #ui-layer {
+      position: fixed;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%);
       display: flex;
       gap: 20px;
-      z-index: 20;
+      z-index: 200;
       opacity: 0;
-      transition: opacity 1s ease;
       pointer-events: none;
+      transition: opacity 0.5s ease;
     }
 
-    #controls.visible {
+    #ui-layer.visible {
       opacity: 1;
       pointer-events: auto;
     }
 
-    .btn {
-      background: transparent;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      color: rgba(255, 255, 255, 0.5);
+    .nav-btn {
+      background: rgba(0, 0, 0, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
       padding: 12px 24px;
       font-family: 'Bricolage Grotesque', sans-serif;
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       text-transform: uppercase;
-      letter-spacing: 1px;
+      letter-spacing: 0.1em;
       cursor: pointer;
       transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
     }
 
-    .btn:hover {
-      color: #fff;
-      border-color: #fff;
-      background: rgba(255, 255, 255, 0.05);
+    .nav-btn:hover {
+      background: #fff;
+      color: #000;
     }
 
-    /* Vignette & Grain */
+    /* Abstract Details */
     #vignette {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background: radial-gradient(circle, transparent 40%, rgba(0, 0, 0, 0.8) 100%);
+      background: radial-gradient(circle, transparent 40%, rgba(0, 0, 0, 0.6) 100%);
       pointer-events: none;
-      z-index: 10;
+      z-index: 150;
     }
 
     .grain {
@@ -268,8 +281,8 @@
       width: 100%;
       height: 100%;
       background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48ZmlsdGVyIGlkPSJuIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iMC44NSIgbnVtT2N0YXZlcz0iMyIgc3RpdGNoVGlsZXM9InN0aXRjaCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbHRlcj0idXJsKCNuKSIvPjwvc3ZnPg==');
-      opacity: 0.1;
-      z-index: 15;
+      opacity: 0.05;
+      z-index: 160;
       pointer-events: none;
     }
   </style>
@@ -279,28 +292,16 @@
   <div class="grain"></div>
   <div id="vignette"></div>
 
-  <div class="scene" id="scene">
-    <div class="book" id="book">
-      <!-- Cover -->
-      <div class="page cover" id="page-cover" style="--depth: 10">
-        <div class="page-side page-front cover-front">
-          <h2>Verses</h2>
-          <p
-            style="font-family: 'Newsreader', serif; font-size: 0.8rem; letter-spacing: 1px; opacity: 0.5;">
-            Collection of the Labyrinth
-          </p>
-        </div>
-        <div class="page-side page-back cover-back"></div>
-      </div>
-
-      <!-- Pages will be injected here -->
+  <div id="book-wrapper">
+    <div class="book" id="book-element">
+      <!-- Physical Pages will be injected here -->
     </div>
   </div>
 
-  <div id="controls">
-    <button class="btn" onclick="prevPage()">Previous</button>
-    <button class="btn" onclick="nextPage()">Next</button>
-    <button class="btn" onclick="randomPage()">Randomize</button>
+  <div id="ui-layer">
+    <button class="nav-btn" onclick="prevPage()">PREV_PAGE</button>
+    <button class="nav-btn" onclick="randomPage()">EXPLORE</button>
+    <button class="nav-btn" onclick="nextPage()">NEXT_PAGE</button>
   </div>
 
   <script>
@@ -311,10 +312,7 @@ When all at once I saw a crowd,
 A host, of golden daffodils;
 Beside the lake, beneath the trees,
 Fluttering and dancing in the breeze.`,
-
-      `Nothing Gold Can Stay
-
-Nature’s first green is gold,
+      `Nature’s first green is gold,
 Her hardest hue to hold.
 Her early leaf’s a flower;
 But only so an hour.
@@ -322,7 +320,6 @@ Then leaf subsides to leaf.
 So Eden sank to grief,
 So dawn goes down to day.
 Nothing gold can stay.`,
-
       `The Red Wheelbarrow
 
 so much depends
@@ -336,10 +333,7 @@ water
 
 beside the white
 chickens`,
-
-      `Ozymandias
-
-I met a traveller from an antique land,
+      `I met a traveller from an antique land,
 Who said—“Two vast and trunkless legs of stone
 Stand in the desert. . . Near them, on the sand,
 Half sunk a shattered visage lies, whose frown,
@@ -347,10 +341,7 @@ And wrinkled lip, and sneer of cold command,
 Tell that its sculptor well those passions read
 Which yet survive, stamped on these lifeless things,
 The hand that mocked them, and the heart that fed.”`,
-
-      `Fire and Ice
-
-Some say the world will end in fire,
+      `Some say the world will end in fire,
 Some say in ice.
 From what I've tasted of desire
 I hold with those who favor fire.
@@ -359,20 +350,14 @@ I think I know enough of hate
 To say that for destruction ice
 Is also great
 And would suffice.`,
-
-      `Fog
-
-The fog comes
+      `The fog comes
 on little cat feet.
 
 It sits looking
 over harbor and city
 on silent haunches
 and then moves on.`,
-
-      `The Tyger
-
-Tyger! Tyger! burning bright
+      `Tyger! Tyger! burning bright
 In the forests of the night,
 What immortal hand or eye
 Could frame thy fearful symmetry?
@@ -381,10 +366,7 @@ In what distant deeps or skies
 Burnt the fire of thine eyes?
 On what wings dare he aspire?
 What the hand dare seize the fire?`,
-
-      `Stopping by Woods on a Snowy Evening
-
-Whose woods these are I think I know.
+      `Whose woods these are I think I know.
 His house is in the village though;
 He will not see me stopping here
 To watch his woods fill up with snow.
@@ -393,10 +375,7 @@ My little horse must think it queer
 To stop without a farmhouse near
 Between the woods and frozen lake
 The darkest evening of the year.`,
-
-      `Dreams
-
-Hold fast to dreams
+      `Hold fast to dreams
 For if dreams die
 Life is a broken-winged bird
 That cannot fly.
@@ -405,10 +384,7 @@ Hold fast to dreams
 For when dreams go
 Life is a barren field
 Frozen with snow.`,
-
-      `This Is Just To Say
-
-I have eaten
+      `I have eaten
 the plums
 that were in
 the icebox
@@ -424,103 +400,131 @@ so sweet
 and so cold`
     ];
 
-    while (poems.length < 80) {
-      poems.push(`Poem No. ${poems.length + 1}\n\n[ Seeking a voice ]\n[ The page remains silent ]\n[ Waiting for your ink ]`);
-    }
+    // DEV: Add some random poems
+    // while (poems.length < 80) {
+    //   poems.push(`Fragment No. ${poems.length + 1}\n\n[ Transcription Error ]\n[ The memory is corrupted ]\n[ Return at a later sequence ]`);
+    // }
 
-    const book = document.getElementById('book');
-    const scene = document.getElementById('scene');
-    const controls = document.getElementById('controls');
-    let currentPageIndex = -1; // -1 means cover is front
+    const bookEl = document.getElementById('book-element');
+    const uiLayer = document.getElementById('ui-layer');
     const pageElements = [];
+    let currentPageIndex = -1; // -1 = closed
 
-    // We create page elements in pairs
-    function initBook() {
-      // We'll create about 41 physical pages (80 poems / 2 per physical page + cover)
-      for (let i = 0; i < 40; i++) {
-        const page = document.createElement('div');
-        page.className = 'page';
-        page.style.zIndex = 100 - i;
+    function createPage(contentFront, contentBack, index) {
+      const page = document.createElement('div');
+      page.className = 'page';
+      if (index === 0) page.classList.add('cover');
 
-        const front = document.createElement('div');
-        front.className = 'page-side page-front';
-        front.innerHTML = `<div class="gutter"></div><div class="poem-text">${poems[i * 2] || ''}</div><div class="page-num">${i * 2 + 1}</div>`;
+      page.style.zIndex = 100 - index;
 
-        const back = document.createElement('div');
-        back.className = 'page-side page-back';
-        back.innerHTML = `<div class="gutter"></div><div class="poem-text">${poems[i * 2 + 1] || ''}</div><div class="page-num">${i * 2 + 2}</div>`;
+      // Front Side
+      const front = document.createElement('div');
+      front.className = 'page-side page-front';
+      if (index === 0) front.classList.add('cover-side');
+      front.innerHTML = contentFront;
 
-        page.appendChild(front);
-        page.appendChild(back);
-        book.appendChild(page);
-        pageElements.push(page);
+      // Back Side
+      const back = document.createElement('div');
+      back.className = 'page-side page-back';
+      back.innerHTML = contentBack;
 
-        page.onclick = (e) => {
-          e.stopPropagation();
-          if (currentPageIndex === i) {
-            // Current page is flipped, clicking it should maybe do nothing or flip back?
-            // Let's use specific controls for clarity but allow clicking next.
-            nextPage();
-          } else if (currentPageIndex < i) {
-            nextPage();
-          }
-        };
-      }
+      page.appendChild(front);
+      page.appendChild(back);
+      bookEl.appendChild(page);
+      pageElements.push(page);
+
+      page.onclick = (e) => {
+        e.stopPropagation();
+        if (currentPageIndex === index - 1 || (index === 0 && currentPageIndex === -1)) {
+          nextPage();
+        } else if (currentPageIndex === index) {
+          // Click the back of a page to go back?
+          // prevPage();
+        }
+      };
     }
 
-    initBook();
+    // 1. Create Cover
+    createPage(
+      `<h1>Verses</h1><p>THE LABYRINTH ARCADE</p>`,
+      `<footer><div class="page-num-left">01</div></footer>`,
+      0
+    );
 
-    const cover = document.getElementById('page-cover');
-    cover.onclick = openBook;
+    // 2. Create Content Pages (40 physical sheets for 80 poems)
+    for (let i = 0; i < poems.length / 2; i++) {
+      const poemA = poems[i * 2];
+      const poemB = poems[i * 2 + 1];
 
-    function openBook() {
-      if (currentPageIndex === -1) {
-        cover.classList.add('flipped');
-        scene.classList.add('open');
-        controls.classList.add('visible');
-        currentPageIndex = 0;
-      }
+      createPage(
+        `<header><span>BOOK_OF_VERSES</span><span>TRANSCRIPTION_v1</span></header>
+                 <div class="poem-container"><h2 class="chapter-title">Selection ${i * 2 + 1}</h2><div class="poem-text">${poemA}</div></div>
+                 <footer><div class="page-num-right">${i * 2 + 1}</div></footer>`,
+        `<header><span>BOOK_OF_VERSES</span><span>TRANSCRIPTION_v1</span></header>
+                 <div class="poem-container"><h2 class="chapter-title">Selection ${i * 2 + 2}</h2><div class="poem-text">${poemB}</div></div>
+                 <footer><div class="page-num-left">${i * 2 + 2}</div></footer>`,
+        i + 1
+      );
     }
 
     function nextPage() {
-      if (currentPageIndex >= 0 && currentPageIndex < pageElements.length) {
-        const el = pageElements[currentPageIndex];
-        el.classList.add('flipped');
-        el.style.setProperty('--flip-depth', currentPageIndex + 1);
+      if (currentPageIndex < pageElements.length - 1) {
         currentPageIndex++;
+        pageElements[currentPageIndex].classList.add('flipped');
+        if (currentPageIndex === 0) {
+          uiLayer.classList.add('visible');
+        }
+      } else {
+        // Last page flip = close book?
+        closeBook();
       }
     }
 
     function prevPage() {
-      if (currentPageIndex === 0) {
-        cover.classList.remove('flipped');
-        scene.classList.remove('open');
-        controls.classList.remove('visible');
-        currentPageIndex = -1;
-      } else if (currentPageIndex > 0) {
+      if (currentPageIndex >= 0) {
+        pageElements[currentPageIndex].classList.remove('flipped');
         currentPageIndex--;
-        const el = pageElements[currentPageIndex];
-        el.classList.remove('flipped');
+        if (currentPageIndex === -1) {
+          uiLayer.classList.remove('visible');
+        }
       }
+    }
+
+    function closeBook() {
+      // Cascade closing
+      let i = pageElements.length - 1;
+      const interval = setInterval(() => {
+        if (i >= 0) {
+          pageElements[i].classList.remove('flipped');
+          i--;
+        } else {
+          clearInterval(interval);
+          currentPageIndex = -1;
+          uiLayer.classList.remove('visible');
+        }
+      }, 30);
     }
 
     function randomPage() {
-      const target = Math.floor(Math.random() * pageElements.length);
-
-      // Fast flip forward/backward
+      const target = Math.floor(Math.random() * (pageElements.length - 1));
       if (currentPageIndex < target) {
-        const interval = setInterval(() => {
-          if (currentPageIndex < target) nextPage();
-          else clearInterval(interval);
-        }, 50);
+        const step = () => {
+          if (currentPageIndex < target) {
+            nextPage();
+            setTimeout(step, 100);
+          }
+        };
+        step();
       } else {
-        const interval = setInterval(() => {
-          if (currentPageIndex > target) prevPage();
-          else clearInterval(interval);
-        }, 50);
+        const step = () => {
+          if (currentPageIndex > target) {
+            prevPage();
+            setTimeout(step, 100);
+          }
+        };
+        step();
       }
     }
-
   </script>
 </body>
 

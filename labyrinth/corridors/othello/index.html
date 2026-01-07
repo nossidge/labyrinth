@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Othello board flipping simulation">
+  <title>I am not what I am</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@200;800&family=JetBrains+Mono:wght@100&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --board-green: #1a4d2e;
+      --felt-green: #245e3a;
+      --wood-trim: #3d2b1f;
+      --piece-white: #f0f0f0;
+      --piece-black: #111111;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #0a0a0a;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      font-family: 'Bricolage Grotesque', sans-serif;
+      color: #fff;
+      overflow: hidden;
+    }
+
+    #ui-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 100;
+      border: 40px solid #000;
+    }
+
+    #meta-info {
+      position: absolute;
+      top: 60px;
+      left: 60px;
+      pointer-events: auto;
+    }
+
+    #meta-info h1 {
+      font-weight: 800;
+      font-size: 4rem;
+      line-height: 0.9;
+      text-transform: uppercase;
+      letter-spacing: -2px;
+      opacity: 0.8;
+      mix-blend-mode: difference;
+    }
+
+    #meta-info p {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      margin-top: 10px;
+      opacity: 0.5;
+    }
+
+    /* The Board */
+    #board-container {
+      position: relative;
+      padding: 20px;
+      background: var(--wood-trim);
+      box-shadow: 0 50px 100px rgba(0, 0, 0, 0.8), inset 0 0 20px rgba(0, 0, 0, 0.5);
+      border-radius: 4px;
+      transform: perspective(1000px) rotateX(20deg);
+      animation: breathe 10s ease-in-out infinite alternate;
+    }
+
+    @keyframes breathe {
+      from {
+        transform: perspective(1000px) rotateX(15deg) rotateY(-2deg);
+      }
+
+      to {
+        transform: perspective(1000px) rotateX(25deg) rotateY(2deg);
+      }
+    }
+
+    #board {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      grid-template-rows: repeat(8, 1fr);
+      gap: 2px;
+      background-color: var(--piece-black);
+      width: 600px;
+      height: 600px;
+      border: 2px solid var(--piece-black);
+    }
+
+    .square {
+      background-color: var(--board-green);
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      overflow: hidden;
+      background-image: radial-gradient(circle, var(--felt-green) 0%, var(--board-green) 100%);
+    }
+
+    /* The Piece */
+    .piece-anchor {
+      width: 80%;
+      height: 80%;
+      position: relative;
+      perspective: 600px;
+      text-decoration: none;
+    }
+
+    .piece {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      transform-style: preserve-3d;
+      transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      border-radius: 50%;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .piece div {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border-radius: 50%;
+    }
+
+    .side-white {
+      background: radial-gradient(circle at 30% 30%, #fff, #ccc);
+    }
+
+    .side-black {
+      background: radial-gradient(circle at 30% 30%, #444, #111);
+      transform: rotateY(180deg);
+    }
+
+    .piece.flipped {
+      transform: rotateY(180deg);
+    }
+
+    /* Abstract Elements */
+    .dust {
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48ZmlsdGVyIGlkPSJuIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iMC44NSIgbnVtT2N0YXZlcz0iMyIgc3RpdGNoVGlsZXM9InN0aXRjaCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbHRlcj0idXJsKCNuKSIvPjwvc3ZnPg==');
+      opacity: 0.15;
+      z-index: 50;
+      pointer-events: none;
+    }
+
+    #vignette {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle, transparent 30%, rgba(0, 0, 0, 0.7) 100%);
+      z-index: 60;
+      pointer-events: none;
+    }
+
+    /* Responsive */
+    @media (max-width: 700px) {
+      #board {
+        width: 320px;
+        height: 320px;
+      }
+
+      #meta-info h1 {
+        font-size: 2rem;
+      }
+
+      #meta-info {
+        top: 20px;
+        left: 20px;
+      }
+
+      #ui-overlay {
+        border-width: 10px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="dust"></div>
+  <div id="vignette"></div>
+  <div id="ui-overlay"></div>
+
+  <div id="meta-info">
+    <h1>Othello<br>SIMULATION</h1>
+    <p>ITERATION_v4.02 // NO_PLAYER_DETECTED</p>
+  </div>
+
+  <div id="board-container">
+    <div id="board">
+      <!-- 64 squares -->
+    </div>
+  </div>
+
+  <script>
+    const board = document.getElementById('board');
+    const pieces = [];
+
+    // Initialize board
+    for (let i = 0; i < 64; i++) {
+      const square = document.createElement('div');
+      square.className = 'square';
+
+      const anchor = document.createElement('a');
+      anchor.className = 'piece-anchor';
+      anchor.href = '../../todo.html';
+
+      const piece = document.createElement('div');
+      piece.className = 'piece';
+
+      // Random initial color
+      const isWhite = Math.random() > 0.5;
+      if (!isWhite) {
+        piece.classList.add('flipped');
+      }
+
+      const whiteSide = document.createElement('div');
+      whiteSide.className = 'side-white';
+
+      const blackSide = document.createElement('div');
+      blackSide.className = 'side-black';
+
+      piece.appendChild(whiteSide);
+      piece.appendChild(blackSide);
+      anchor.appendChild(piece);
+      square.appendChild(anchor);
+      board.appendChild(square);
+
+      pieces.push(piece);
+    }
+
+    // Random flip logic
+    function triggerFlips() {
+      // Decide how many pieces to flip (between 1 and 8)
+      const count = Math.floor(Math.random() * 8) + 1;
+
+      for (let i = 0; i < count; i++) {
+        const target = pieces[Math.floor(Math.random() * pieces.length)];
+        setTimeout(() => {
+          target.classList.toggle('flipped');
+        }, i * 100);
+      }
+    }
+
+    // Massive flip logic (whole board)
+    function chaosFlip() {
+      pieces.forEach((p, idx) => {
+        setTimeout(() => {
+          p.classList.toggle('flipped');
+        }, idx * 10);
+      });
+    }
+
+    // Intervals
+    setInterval(triggerFlips, 2000);  // Small flips every 2s
+    // setInterval(chaosFlip, 15000); // Full board flip every 15s maybe?
+
+    // Mouse interaction for "silly" effect
+    board.addEventListener('mousemove', (e) => {
+      if (Math.random() > 0.95) {
+        const rect = board.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        // Find nearest square
+        const col = Math.floor(x / (rect.width / 8));
+        const row = Math.floor(y / (rect.height / 8));
+        const index = row * 8 + col;
+
+        if (pieces[index]) {
+          pieces[index].classList.toggle('flipped');
+        }
+      }
+    });
+
+  </script>
+</body>
+
+</html>

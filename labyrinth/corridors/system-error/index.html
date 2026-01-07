@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description"
+    content="A system error corridor in the labyrinth. A glitchy exploitation of broken realities.">
+  <title>FATAL_ERROR // SYSTEM_COLLAPSE</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bsod-blue: #0000aa;
+      --error-red: #ff0000;
+      --text-white: #ffffff;
+      --text-gray: #aaaaaa;
+      --glitch-cyan: #00ffff;
+      --glitch-magenta: #ff00ff;
+    }
+
+    * {
+      box-sizing: border-box;
+      cursor: cell;
+    }
+
+    body,
+    html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background-color: var(--bsod-blue);
+      color: var(--text-white);
+      font-family: 'VT323', monospace;
+      font-size: 1.2rem;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    #screen {
+      padding: 40px;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      z-index: 10;
+    }
+
+    .header-box {
+      background: var(--text-white);
+      color: var(--bsod-blue);
+      padding: 0 10px;
+      display: inline-block;
+      margin-bottom: 20px;
+      font-weight: bold;
+      animation: blink 1s infinite steps(1);
+    }
+
+    @keyframes blink {
+      50% {
+        opacity: 0;
+      }
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      line-height: 1;
+      margin: 0 0 30px 0;
+      text-transform: uppercase;
+    }
+
+    p {
+      line-height: 1.4;
+      margin-bottom: 20px;
+    }
+
+    .highlight {
+      background: var(--text-white);
+      color: var(--bsod-blue);
+      padding: 0 5px;
+      text-decoration: none;
+    }
+
+    .highlight:hover {
+      background: var(--error-red);
+      color: white;
+    }
+
+    .error-code {
+      margin-top: 40px;
+      text-transform: uppercase;
+      font-weight: bold;
+    }
+
+    .memory-dump {
+      margin-top: 30px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 5px;
+      opacity: 0.7;
+    }
+
+    .dump-item {
+      color: var(--text-gray);
+      text-decoration: none;
+      font-size: 1rem;
+    }
+
+    .dump-item:hover {
+      color: var(--glitch-cyan);
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    #scanline {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(to bottom,
+          transparent 0%,
+          rgba(255, 255, 255, 0.05) 50%,
+          transparent 100%);
+      background-size: 100% 4px;
+      z-index: 100;
+      pointer-events: none;
+    }
+
+    #flicker {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: white;
+      opacity: 0;
+      z-index: 99;
+      pointer-events: none;
+    }
+
+    .floating-error {
+      position: absolute;
+      background: #c0c0c0;
+      border: 2px solid;
+      border-color: #ffffff #808080 #808080 #ffffff;
+      color: black;
+      padding: 2px;
+      min-width: 200px;
+      box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.5);
+      z-index: 50;
+    }
+
+    .error-title {
+      background: #000080;
+      color: white;
+      padding: 1px 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.9rem;
+    }
+
+    .error-content {
+      padding: 15px;
+      font-size: 1rem;
+      text-align: center;
+    }
+
+    .error-btn {
+      background: #c0c0c0;
+      border: 2px solid;
+      border-color: #ffffff #808080 #808080 #ffffff;
+      padding: 2px 10px;
+      display: inline-block;
+      margin-top: 5px;
+      cursor: pointer;
+    }
+
+    .error-btn:active {
+      border-color: #808080 #ffffff #ffffff #808080;
+    }
+
+    #glitch-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 5;
+      pointer-events: none;
+      opacity: 0.2;
+    }
+
+    .link-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 20;
+      pointer-events: none;
+    }
+
+    .invisible-link {
+      position: absolute;
+      width: 50px;
+      height: 50px;
+      pointer-events: auto;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: transparent;
+    }
+
+    .invisible-link:hover {
+      color: var(--glitch-magenta);
+      background: rgba(255, 0, 255, 0.2);
+    }
+
+    #progress-container {
+      position: fixed;
+      bottom: 20px;
+      left: 40px;
+      right: 40px;
+      height: 30px;
+      border: 2px solid white;
+      padding: 2px;
+    }
+
+    #progress-bar {
+      height: 100%;
+      background: white;
+      width: 0%;
+      /* transition: width 0.1s linear; */
+    }
+
+    .footer-nav {
+      position: fixed;
+      bottom: 60px;
+      left: 40px;
+      display: flex;
+      gap: 20px;
+    }
+
+    .footer-nav a {
+      color: white;
+      text-decoration: none;
+      border-bottom: 1px dashed white;
+    }
+
+    .footer-nav a:hover {
+      color: var(--glitch-cyan);
+    }
+  </style>
+</head>
+
+<body>
+  <div id="scanline"></div>
+  <div id="flicker"></div>
+  <canvas id="glitch-canvas"></canvas>
+
+  <div id="screen">
+    <div class="header-box">CORRIDOR_FAILURE_v9.0.4</div>
+    <h1>A problem has been detected and your corridor has been shut down to prevent damage to your computer.</h1>
+
+    <p>
+      The error appears to be caused by the following file: <a href="../../todo.html"
+        class="highlight">labyrinth.sys</a>
+    </p>
+
+    <p>
+      If this is the first time you've seen this stop error screen, <a href="#" class="highlight restart">restart
+        your consciousness</a>.
+      If this screen appears again, follow these steps:
+    </p>
+
+    <p>
+      Check to make sure any new <a href="../../todo.html" class="highlight">hardware or software</a> is properly
+      installed.
+      If this is a new installation, ask your hardware or software manufacturer for any <a href="../../todo.html"
+        class="highlight">reality updates</a> you might need.
+    </p>
+
+    <p>
+      If problems continue, disable or remove any recently installed <a href="../../todo.html"
+        class="highlight">memories or dreams</a>.
+      Disable BIOS memory options such as <a href="../../todo.html" class="highlight">caching or shadowing</a>.
+      If you need to use Safe Mode to remove or disable components, restart your computer, press <a
+        href="../../todo.html" class="highlight">F8</a>
+      to select Advanced Startup Options, and then select <a href="../../todo.html" class="highlight">Safe Mode</a>.
+    </p>
+
+    <div class="error-code">
+      Technical information:<br><br>
+      *** STOP: 0x0000008E (0xC0000005, 0xBF8F196B, 0xB7D93734, 0x00000000)<br><br>
+      *** <a href="../../todo.html" class="highlight">win32k.sys</a> - Address BF8F196B base at BF800000, DateStamp
+      3d6dd67c
+    </div>
+
+    <div class="memory-dump" id="memory-dump">
+      <!-- Generated by JS -->
+    </div>
+
+    <div class="footer-nav">
+      <a href="../../todo.html">GENERATE_DUMP</a>
+      <a href="../../todo.html">BYPASS_KERNEL</a>
+      <a href="../../todo.html">RETURN_TO_VOID</a>
+    </div>
+  </div>
+
+  <div id="progress-container">
+    <div id="progress-bar"></div>
+  </div>
+
+  <div class="link-layer" id="link-layer">
+    <!-- Floating hidden links -->
+  </div>
+
+  <script>
+    const memoryDump = document.getElementById('memory-dump');
+    const flicker = document.getElementById('flicker');
+    const canvas = document.getElementById('glitch-canvas');
+    const ctx = canvas.getContext('2d');
+    const progressBar = document.getElementById('progress-bar');
+    const screen = document.getElementById('screen');
+    const linkLayer = document.getElementById('link-layer');
+
+    // Setup canvas
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    // Generate memory dump links
+    // for (let i = 0; i < 40; i++) {
+    //   const a = document.createElement('a');
+    //   a.href = '../../todo.html';
+    //   a.className = 'dump-item';
+    //   const hex = Math.floor(Math.random() * 0xFFFFFFFF).toString(16).toUpperCase().padStart(8, '0');
+    //   a.innerText = `0x${hex}`;
+    //   memoryDump.appendChild(a);
+    // }
+
+    // Progress bar simulation
+    let progress = 0;
+    const roundToNearest5 = (num) => Math.round(num / 5) * 5;
+    function updateProgress() {
+      if (Math.random() > 0.95) {
+        progress = Math.max(0, progress - 5); // Glitch backwards
+      } else {
+        progress += Math.random() * 0.5;
+      }
+
+      if (progress > 100) {
+        progress = 0;
+        triggerFlicker();
+      }
+      progressBar.style.width = roundToNearest5(progress) + '%';
+      requestAnimationFrame(updateProgress);
+    }
+    updateProgress();
+
+    function triggerFlicker() {
+      flicker.style.opacity = '0.3';
+      setTimeout(() => flicker.style.opacity = '0', 50);
+      if (Math.random() > 0.7) {
+        setTimeout(() => {
+          flicker.style.opacity = '0.2';
+          setTimeout(() => flicker.style.opacity = '0', 30);
+        }, 100);
+      }
+    }
+
+    // Glitch effect on canvas
+    function drawGlitch() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (Math.random() > 0.9) {
+        for (let i = 0; i < 10; i++) {
+          const x = Math.random() * canvas.width;
+          const y = Math.random() * canvas.height;
+          const w = Math.random() * 100 + 50;
+          const h = Math.random() * 20 + 2;
+          ctx.fillStyle = Math.random() > 0.5 ? '#00ffff' : '#ff00ff';
+          ctx.fillRect(x, y, w, h);
+        }
+      }
+      requestAnimationFrame(drawGlitch);
+    }
+    drawGlitch();
+
+    // Floating Error Windows on Click
+    document.addEventListener('mousedown', (e) => {
+      if (e.target.tagName === 'A' || e.target.classList.contains('error-btn')) return;
+
+      createErrorWindow(e.clientX, e.clientY);
+      triggerFlicker();
+    });
+
+    function createErrorWindow(x, y) {
+      const win = document.createElement('div');
+      win.className = 'floating-error';
+      win.style.left = (x - 100) + 'px';
+      win.style.top = (y - 50) + 'px';
+
+      const title = ['SYSTEM_ERROR', 'MEMORY_LEAK', 'NULL_POINTER', 'REALITY_BREACH', 'KERNEL_PANIC'][Math.floor(Math.random() * 5)];
+      const msg = [
+        'The instruction at 0x0045 refers to memory that could not be read.',
+        'Buffer overflow in subconscious.dll',
+        'Stack trace leads to nowhere.',
+        'Invalid handle to current existence.',
+        'A critical object has been deleted.'
+      ][Math.floor(Math.random() * 5)];
+
+      win.innerHTML = `
+        <div class="error-title">
+          <span>${title}</span>
+          <span style="cursor:pointer" onclick="this.parentElement.parentElement.remove()">[X]</span>
+        </div>
+        <div class="error-content">
+          ${msg}<br>
+          <div class="error-btn" onclick="window.location.href='../../todo.html'">OK</div>
+        </div>
+      `;
+
+      document.body.appendChild(win);
+
+      // Auto remove after a while or if too many
+      const windows = document.querySelectorAll('.floating-error');
+      if (windows.length > 15) windows[0].remove();
+    }
+
+    // Create invisible floating links
+    for (let i = 0; i < 20; i++) {
+      const a = document.createElement('a');
+      a.href = '../../todo.html';
+      a.className = 'invisible-link';
+      a.style.left = Math.random() * 95 + '%';
+      a.style.top = Math.random() * 95 + '%';
+      a.innerText = '???';
+      linkLayer.appendChild(a);
+
+      // Make them move slowly
+      let vx = (Math.random() - 0.5) * 0.5;
+      let vy = (Math.random() - 0.5) * 0.5;
+      let px = parseFloat(a.style.left);
+      let py = parseFloat(a.style.top);
+
+      function moveLink() {
+        px += vx;
+        py += vy;
+        if (px < 0 || px > 95) vx *= -1;
+        if (py < 0 || py > 95) vy *= -1;
+        a.style.left = px + '%';
+        a.style.top = py + '%';
+        requestAnimationFrame(moveLink);
+      }
+      moveLink();
+    }
+
+    // Keyboard interaction
+    let keyBuffer = '';
+    document.addEventListener('keydown', (e) => {
+      triggerFlicker();
+      keyBuffer += e.key.toLowerCase();
+      if (keyBuffer.length > 10) keyBuffer = keyBuffer.substring(1);
+
+      if (keyBuffer.includes('error')) {
+        keyBuffer = '';
+        for (let i = 0; i < 20; i++) {
+          setTimeout(() => createErrorWindow(Math.random() * window.innerWidth, Math.random() * window.innerHeight), i * 50);
+        }
+      }
+
+      if (keyBuffer.includes('null')) {
+        keyBuffer = '';
+        screen.style.transition = 'filter 0.5s';
+        screen.style.filter = 'blur(10px) grayscale(1)';
+        setTimeout(() => screen.style.filter = '', 2000);
+      }
+
+      if (keyBuffer.includes('cls')) {
+        keyBuffer = '';
+        const windows = document.querySelectorAll('.floating-error');
+        windows.forEach(w => w.remove());
+      }
+
+      // Add a glitch block
+      const block = document.createElement('div');
+      block.style.position = 'fixed';
+      block.style.left = Math.random() * 100 + '%';
+      block.style.top = Math.random() * 100 + '%';
+      block.style.width = '200px';
+      block.style.height = '20px';
+      block.style.background = 'white';
+      block.style.zIndex = '1000';
+      document.body.appendChild(block);
+      setTimeout(() => block.remove(), 100);
+    });
+
+    // BIOS Reboot effect
+    function fakeReboot() {
+      screen.style.display = 'none';
+      const console = document.createElement('div');
+      console.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:black; color:white; padding:20px; font-family:monospace; z-index:1000; overflow:hidden;';
+      // Applying styles via Object.assign because .cssText is sometimes finicky
+      Object.assign(console.style, {
+        position: 'fixed',
+        top: '0',
+        left: '0',
+        width: '100%',
+        height: '100%',
+        background: 'black',
+        color: 'white',
+        padding: '20px',
+        fontFamily: 'monospace',
+        zIndex: '1000',
+        overflow: 'hidden'
+      });
+      document.body.appendChild(console);
+
+      const lines = [
+        'AMIBIOS (C) 1992 American Megatrends Inc.',
+        'Labyrinth BIOS v4.51PG, An Energy Star Ally',
+        'Copyright (C) 1992-1997, Labyrinth Art Foundation',
+        '',
+        'Main Processor : Reality Engine 600MHz',
+        'Memory Testing : 65536K OK',
+        '',
+        'Primary Master : Labyrinth-HD 4.2GB',
+        'Primary Slave  : Imagination-CD 24X',
+        '',
+        'Verifying DMI Pool Data ...........',
+        'Disk Boot Failure, Insert System Disk And Press Enter',
+        'Booting from CD-ROM...',
+        'ERROR: Reality volume unmounted.',
+        'Retrying...',
+        'CRITICAL FAILURE.'
+      ];
+
+      let i = 0;
+      function addLine() {
+        if (i < lines.length) {
+          const l = document.createElement('div');
+          l.innerText = lines[i];
+          console.appendChild(l);
+          i++;
+          setTimeout(addLine, Math.random() * 500);
+        } else {
+          setTimeout(() => {
+            console.remove();
+            screen.style.display = 'flex';
+            triggerFlicker();
+          }, 2000);
+        }
+      }
+      addLine();
+    }
+
+    // Attach to a link
+    document.querySelector('.highlight.restart').addEventListener('click', (e) => {
+      e.preventDefault();
+      fakeReboot();
+    });
+
+  </script>
+</body>
+
+</html>

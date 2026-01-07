@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description"
+    content="An archival collection of verses. Flip through the pages of the silent book.">
+  <title>THE POETRY BOOK // LABYRINTH</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,200;0,700;1,200&family=Bricolage+Grotesque:wght@300&family=Newsreader:ital,opsz,wght@1,6..72,200;1,6..72,400&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --paper-color: #f4f1ea;
+      --ink-color: #1a1a1a;
+      --cover-color: #3d1f1f;
+      --accent-color: #8b0000;
+      --shadow: rgba(0, 0, 0, 0.3);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #0f0f0f;
+      background-image:
+        radial-gradient(circle at 50% 50%, #1a1a1a 0%, #000 100%),
+        url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48ZmlsdGVyIGlkPSJuIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iMC44NSIgbnVtT2N0YXZlcz0iMyIgc3RpdGNoVGlsZXM9InN0aXRjaCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbHRlcj0idXJsKCNuKSIvPjwvc3ZnPg==');
+      background-blend-mode: overlay;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      color: var(--paper-color);
+      font-family: 'Bricolage Grotesque', sans-serif;
+    }
+
+    #vignette {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle, transparent 40%, rgba(0, 0, 0, 0.8) 100%);
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .book-container {
+      perspective: 1500px;
+      width: 800px;
+      height: 500px;
+      position: relative;
+      z-index: 5;
+      transition: transform 0.6s ease;
+    }
+
+    .book {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 1s cubic-bezier(0.645, 0.045, 0.355, 1);
+    }
+
+    .book.closed {
+      transform: rotateY(0deg);
+    }
+
+    .book.open {
+      transform: rotateY(0deg);
+    }
+
+    /* Abstract Cover */
+    .cover {
+      position: absolute;
+      width: 50%;
+      height: 100%;
+      left: 50%;
+      background-color: var(--cover-color);
+      border-radius: 0 5px 5px 0;
+      box-shadow: 10px 10px 20px var(--shadow);
+      z-index: 10;
+      transition: transform 1s cubic-bezier(0.645, 0.045, 0.355, 1);
+      transform-origin: left;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      border-left: 2px solid rgba(0, 0, 0, 0.5);
+    }
+
+    .cover-back {
+      position: absolute;
+      width: 50%;
+      height: 100%;
+      left: 0;
+      background-color: var(--cover-color);
+      border-radius: 5px 0 0 5px;
+      z-index: 1;
+    }
+
+    .cover h2 {
+      font-family: 'Crimson Pro', serif;
+      font-weight: 200;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      font-size: 1.2rem;
+      opacity: 0.6;
+      margin-right: -5px;
+    }
+
+    .book.open .cover {
+      transform: rotateY(-180deg);
+      z-index: 0;
+    }
+
+    /* Pages */
+    .page {
+      position: absolute;
+      width: 50%;
+      height: 96%;
+      top: 2%;
+      background-color: var(--paper-color);
+      padding: 40px;
+      color: var(--ink-color);
+      font-family: 'Newsreader', serif;
+      font-size: 1.1rem;
+      line-height: 1.6;
+      overflow: hidden;
+      box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.05);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .page-left {
+      left: 0;
+      border-radius: 5px 0 0 5px;
+      border-right: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .page-right {
+      left: 50%;
+      border-radius: 0 5px 5px 0;
+      border-left: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .page-content {
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+
+    .book.open .page-content {
+      opacity: 1;
+    }
+
+    .poem-text {
+      white-space: pre-wrap;
+      font-style: italic;
+    }
+
+    .poem-index {
+      position: absolute;
+      bottom: 20px;
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-size: 0.7rem;
+      opacity: 0.3;
+      letter-spacing: 2px;
+    }
+
+    .page-left .poem-index {
+      left: 40px;
+    }
+
+    .page-right .poem-index {
+      right: 40px;
+    }
+
+    /* Flip Animation Page */
+    .flipping-page {
+      position: absolute;
+      width: 50%;
+      height: 96%;
+      top: 2%;
+      left: 50%;
+      background-color: var(--paper-color);
+      transform-origin: left;
+      z-index: 5;
+      transition: transform 0.6s cubic-bezier(0.645, 0.045, 0.355, 1);
+      backface-visibility: hidden;
+      border-radius: 0 5px 5px 0;
+      box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Controls */
+    #controls {
+      margin-top: 50px;
+      display: flex;
+      gap: 30px;
+      align-items: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease;
+    }
+
+    #controls.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .btn {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: var(--paper-color);
+      padding: 10px 20px;
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+    }
+
+    .btn:hover {
+      background: var(--paper-color);
+      color: black;
+      border-color: var(--paper-color);
+    }
+
+    .btn:disabled {
+      opacity: 0.2;
+      cursor: default;
+    }
+
+    .btn-random {
+      border-radius: 20px;
+      font-weight: 700;
+    }
+
+    /* Responseive */
+    @media (max-width: 850px) {
+      .book-container {
+        width: 90vw;
+        height: 60vw;
+      }
+
+      .page {
+        padding: 20px;
+        font-size: 0.8rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="vignette"></div>
+
+  <div class="book-container">
+    <div class="book closed" id="book">
+      <div class="cover-back"></div>
+      <div class="page page-left">
+        <div class="page-content" id="content-left"></div>
+      </div>
+      <div class="page page-right">
+        <div class="page-content" id="content-right"></div>
+      </div>
+      <div class="cover" id="cover" onclick="openBook()">
+        <h2>Verses</h2>
+      </div>
+    </div>
+  </div>
+
+  <div id="controls">
+    <button class="btn" id="btn-back" onclick="prevPage()">Back</button>
+    <button class="btn btn-random" onclick="randomPage()">Random</button>
+    <button class="btn" id="btn-next" onclick="nextPage()">Next</button>
+  </div>
+
+  <script>
+    const poems = [
+      `I wandered lonely as a cloud
+That floats on high o'er vales and hills,
+When all at once I saw a crowd,
+A host, of golden daffodils;
+Beside the lake, beneath the trees,
+Fluttering and dancing in the breeze.`,
+
+      `Nothing Gold Can Stay
+
+Nature’s first green is gold,
+Her hardest hue to hold.
+Her early leaf’s a flower;
+But only so an hour.
+Then leaf subsides to leaf.
+So Eden sank to grief,
+So dawn goes down to day.
+Nothing gold can stay.`,
+
+      `The Red Wheelbarrow
+
+so much depends
+upon
+
+a red wheel
+barrow
+
+glazed with rain
+water
+
+beside the white
+chickens`,
+
+      `Ozymandias
+
+I met a traveller from an antique land,
+Who said—“Two vast and trunkless legs of stone
+Stand in the desert. . . Near them, on the sand,
+Half sunk a shattered visage lies, whose frown,
+And wrinkled lip, and sneer of cold command,
+Tell that its sculptor well those passions read
+Which yet survive, stamped on these lifeless things,
+The hand that mocked them, and the heart that fed.”`,
+
+      `Fire and Ice
+
+Some say the world will end in fire,
+Some say in ice.
+From what I've tasted of desire
+I hold with those who favor fire.
+But if it had to perish twice,
+I think I know enough of hate
+To say that for destruction ice
+Is also great
+And would suffice.`,
+
+      `Fog
+
+The fog comes
+on little cat feet.
+
+It sits looking
+over harbor and city
+on silent haunches
+and then moves on.`,
+
+      `The Tyger
+
+Tyger! Tyger! burning bright
+In the forests of the night,
+What immortal hand or eye
+Could frame thy fearful symmetry?
+
+In what distant deeps or skies
+Burnt the fire of thine eyes?
+On what wings dare he aspire?
+What the hand dare seize the fire?`,
+
+      `Stopping by Woods on a Snowy Evening
+
+Whose woods these are I think I know.
+His house is in the village though;
+He will not see me stopping here
+To watch his woods fill up with snow.
+
+My little horse must think it queer
+To stop without a farmhouse near
+Between the woods and frozen lake
+The darkest evening of the year.`,
+
+      `Dreams
+
+Hold fast to dreams
+For if dreams die
+Life is a broken-winged bird
+That cannot fly.
+
+Hold fast to dreams
+For when dreams go
+Life is a barren field
+Frozen with snow.`,
+
+      `This Is Just To Say
+
+I have eaten
+the plums
+that were in
+the icebox
+
+and which
+you were probably
+saving
+for breakfast
+
+Forgive me
+they were delicious
+so sweet
+and so cold`
+    ];
+
+    // Fill up to ~80 with some generative or placeholder ones if needed,
+    // but for now I'll use placeholders that the dev can easily replace.
+    while (poems.length < 80) {
+      poems.push(`Poem No. ${poems.length + 1}\n\n[ Seeking a voice ]\n[ The page remains silent ]\n[ Waiting for your ink ]`);
+    }
+
+    let currentPage = 0; // Each "page" is a pair of poems or one poem? Let's say one index per page view (left/right).
+    const book = document.getElementById('book');
+    const controls = document.getElementById('controls');
+    const contentLeft = document.getElementById('content-left');
+    const contentRight = document.getElementById('content-right');
+
+    function updateContent() {
+      // One poem on the left, one on the right
+      const idxLeft = currentPage * 2;
+      const idxRight = idxLeft + 1;
+
+      contentLeft.innerHTML = `
+                <div class="poem-text">${poems[idxLeft] || ''}</div>
+                <div class="poem-index">PAGE_${String(idxLeft + 1).padStart(3, '0')}</div>
+            `;
+
+      if (idxRight < poems.length) {
+        contentRight.innerHTML = `
+                    <div class="poem-text">${poems[idxRight]}</div>
+                    <div class="poem-index">PAGE_${String(idxRight + 1).padStart(3, '0')}</div>
+                `;
+      } else {
+        contentRight.innerHTML = '';
+      }
+
+      document.getElementById('btn-back').disabled = (currentPage === 0);
+    }
+
+    function openBook() {
+      book.classList.remove('closed');
+      book.classList.add('open');
+      setTimeout(() => {
+        controls.classList.add('visible');
+        updateContent();
+      }, 600);
+    }
+
+    function closeBook() {
+      controls.classList.remove('visible');
+      book.classList.remove('open');
+      book.classList.add('closed');
+    }
+
+    function nextPage() {
+      if ((currentPage + 1) * 2 >= poems.length) {
+        closeBook();
+        return;
+      }
+
+      const flip = document.createElement('div');
+      flip.className = 'flipping-page';
+      book.appendChild(flip);
+
+      setTimeout(() => {
+        flip.style.transform = 'rotateY(-180deg)';
+        currentPage++;
+        setTimeout(() => {
+          updateContent();
+          flip.remove();
+        }, 300);
+      }, 10);
+    }
+
+    function prevPage() {
+      if (currentPage === 0) return;
+
+      const flip = document.createElement('div');
+      flip.className = 'flipping-page';
+      flip.style.transform = 'rotateY(-180deg)';
+      flip.style.left = '0';
+      flip.style.transformOrigin = 'right';
+      book.appendChild(flip);
+
+      setTimeout(() => {
+        flip.style.transform = 'rotateY(0deg)';
+        currentPage--;
+        setTimeout(() => {
+          updateContent();
+          flip.remove();
+        }, 300);
+      }, 10);
+    }
+
+    function randomPage() {
+      currentPage = Math.floor(Math.random() * (poems.length / 2));
+      updateContent();
+
+      // Add a little "shimmer" to indicate change
+      contentLeft.style.opacity = 0;
+      contentRight.style.opacity = 0;
+      setTimeout(() => {
+        contentLeft.style.opacity = 1;
+        contentRight.style.opacity = 1;
+      }, 100);
+    }
+  </script>
+</body>
+
+</html>

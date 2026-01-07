@@ -306,9 +306,10 @@
     </div>
 
     <div class="footer-nav">
+      <a href="#" class="restart">RESTART</a>
       <a href="../../todo.html">GENERATE_DUMP</a>
       <a href="../../todo.html">BYPASS_KERNEL</a>
-      <a href="../../todo.html">RETURN_TO_VOID</a>
+      <a href="../../todo.html">RETURN_TO_BIOS</a>
     </div>
   </div>
 
@@ -396,7 +397,8 @@
 
     // Floating Error Windows on Click
     document.addEventListener('mousedown', (e) => {
-      if (e.target.tagName === 'A' || e.target.classList.contains('error-btn')) return;
+      // Don't spawn a new window if clicking an existing UI element or window
+      if (e.target.tagName === 'A' || e.target.classList.contains('error-btn') || e.target.closest('.floating-error')) return;
 
       createErrorWindow(e.clientX, e.clientY);
       triggerFlicker();
@@ -420,7 +422,7 @@
       win.innerHTML = `
         <div class="error-title">
           <span>${title}</span>
-          <span style="cursor:pointer" onclick="this.parentElement.parentElement.remove()">[X]</span>
+          <span style="cursor:pointer" onmousedown="event.stopPropagation()" onclick="this.closest('.floating-error').remove()">[X]</span>
         </div>
         <div class="error-content">
           ${msg}<br>
@@ -563,9 +565,11 @@
     }
 
     // Attach to a link
-    document.querySelector('.highlight.restart').addEventListener('click', (e) => {
-      e.preventDefault();
-      fakeReboot();
+    document.querySelectorAll('.restart').forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        fakeReboot();
+      });
     });
 
   </script>

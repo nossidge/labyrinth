@@ -281,18 +281,23 @@
 
     // Mouse interaction for "silly" effect
     board.addEventListener('mousemove', (e) => {
-      if (Math.random() > 0.95) {
-        const rect = board.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
+      const rect = board.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
 
-        // Find nearest square
-        const col = Math.floor(x / (rect.width / 8));
-        const row = Math.floor(y / (rect.height / 8));
-        const index = row * 8 + col;
+      // Find nearest square
+      const col = Math.floor(x / (rect.width / 8));
+      const row = Math.floor(y / (rect.height / 8));
+      const index = row * 8 + col;
 
-        if (pieces[index]) {
-          pieces[index].classList.toggle('flipped');
+      const target = pieces[index];
+      if (target) {
+        const now = Date.now();
+        const cooldown = 800; // Match the CSS transition duration
+
+        if (!target.lastFlip || (now - target.lastFlip) > cooldown) {
+          target.classList.toggle('flipped');
+          target.lastFlip = now;
         }
       }
     });

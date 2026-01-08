@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="The pieces are falling into place. Everything is connected.">
+  <title>THE TRUTH IS HERE // CORKBOARD</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@800&family=Newsreader:ital,wght@1,400;1,700&family=IBM+Plex+Mono:wght@400;700&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --red-yarn: #cc0000;
+      --note-yellow: #fff7d1;
+      --note-pink: #ffd1dc;
+      --note-blue: #d1e9ff;
+      --pin-red: #ff3e3e;
+      --pin-silver: #c0c0c0;
+    }
+
+    body,
+    html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #5d4037;
+      background-image: url('cork.png');
+      background-size: 600px;
+      overflow: hidden;
+      font-family: 'IBM Plex Mono', monospace;
+      cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>') 12 12, auto;
+    }
+
+    #corkboard {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      perspective: 1000px;
+    }
+
+    .item {
+      position: absolute;
+      background: white;
+      padding: 10px;
+      box-shadow: 2px 4px 10px rgba(0, 0, 0, 0.5);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      cursor: pointer;
+      text-decoration: none;
+      color: black;
+      display: block;
+      user-select: none;
+    }
+
+    .item:hover {
+      transform: scale(1.05) rotate(0deg) !important;
+      box-shadow: 5px 10px 20px rgba(0, 0, 0, 0.7);
+      z-index: 100 !important;
+    }
+
+    .photo {
+      border: 15px solid white;
+      border-bottom-width: 40px;
+    }
+
+    .photo img {
+      display: block;
+      width: 200px;
+      height: auto;
+      filter: Sepia(0.2) contrast(1.2);
+    }
+
+    .note {
+      width: 150px;
+      min-height: 150px;
+      padding: 20px;
+      font-family: 'Newsreader', serif;
+      font-style: italic;
+      font-size: 1.2rem;
+      line-height: 1.2;
+      word-wrap: break-word;
+    }
+
+    .note-yellow {
+      background-color: var(--note-yellow);
+    }
+
+    .note-pink {
+      background-color: var(--note-pink);
+    }
+
+    .note-blue {
+      background-color: var(--note-blue);
+    }
+
+    .document {
+      width: 300px;
+      background: #fdfdfd;
+      padding: 20px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.8rem;
+      border: 1px solid #ddd;
+    }
+
+    .document img {
+      width: 100%;
+      display: block;
+      margin-bottom: 10px;
+    }
+
+    .pin {
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      background: radial-gradient(circle at 30% 30%, var(--pin-red), #800);
+      border-radius: 50%;
+      top: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      box-shadow: 1px 2px 3px rgba(0, 0, 0, 0.5);
+      z-index: 10;
+    }
+
+    .pin.silver {
+      background: radial-gradient(circle at 30% 30%, var(--pin-silver), #444);
+    }
+
+    #strings {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    .string {
+      stroke: var(--red-yarn);
+      stroke-width: 3;
+      stroke-linecap: round;
+      opacity: 0.7;
+      filter: drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.5));
+      stroke-dasharray: 1000;
+      stroke-dashoffset: 1000;
+      animation: drawString 2s forwards ease-out;
+    }
+
+    @keyframes drawString {
+      to {
+        stroke-dashoffset: 0;
+      }
+    }
+
+    #overlay {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: rgba(0, 0, 0, 0.8);
+      color: #0f0;
+      padding: 10px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.8rem;
+      border: 1px solid #0f0;
+      pointer-events: none;
+      z-index: 200;
+    }
+
+    .label {
+      position: absolute;
+      background: black;
+      color: white;
+      padding: 2px 8px;
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-weight: 800;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      bottom: -10px;
+      left: 10px;
+      transform: rotate(-2deg);
+    }
+
+    #vignette {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle, transparent 40%, rgba(0, 0, 0, 0.4) 100%);
+      pointer-events: none;
+      z-index: 150;
+    }
+
+    .dust {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48ZmlsdGVyIGlkPSJuIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iMC42NSIgbnVtT2N0YXZlcz0iMyIgc3RpdGNoVGlsZXM9InN0aXRjaCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbHRlcj0idXJsKCNuKSIvPjwvc3ZnPg==');
+      opacity: 0.05;
+      pointer-events: none;
+      z-index: 180;
+    }
+
+    h1 {
+      position: fixed;
+      bottom: 30px;
+      left: 30px;
+      margin: 0;
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-weight: 800;
+      font-size: 4rem;
+      color: rgba(255, 255, 255, 0.1);
+      pointer-events: none;
+      text-transform: uppercase;
+      line-height: 0.9;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="vignette"></div>
+  <div class="dust"></div>
+  <div id="overlay">
+    STATUS: CONNECTED<br>
+    NODES: 12<br>
+    THREAT LEVEL: CRITICAL
+  </div>
+
+  <h1>The<br>Full<br>Picture</h1>
+
+  <div id="corkboard">
+    <svg id="strings"></svg>
+
+    <!-- Items will be generated here -->
+  </div>
+
+  <script>
+    const corkboard = document.getElementById('corkboard');
+    const svg = document.getElementById('strings');
+
+    const items = [
+      { id: 'ufo', type: 'photo', src: 'ufo.png', x: 15, y: 15, rot: -5, label: 'EVIDENCE_01' },
+      { id: 'man', type: 'photo', src: 'mystery_man.png', x: 65, y: 20, rot: 3, label: 'SUSPECT_X' },
+      { id: 'doc', type: 'document', src: 'document.png', x: 40, y: 50, rot: -2, label: 'CLASSIFIED' },
+      { id: 'note1', type: 'note', color: 'yellow', text: 'THEY ARE WATCHING FROM THE CLOUDS. DON\'T LOOK UP.', x: 10, y: 55, rot: 8 },
+      { id: 'note2', type: 'note', color: 'pink', text: '14.08.97 - THE DATE IT ALL CHANGED.', x: 75, y: 60, rot: -10 },
+      { id: 'note3', type: 'note', color: 'blue', text: 'FOLLOW THE RED BREADCRUMBS.', x: 25, y: 80, rot: 4 },
+      { id: 'note4', type: 'note', color: 'yellow', text: '48.8584° N, 2.2945° E', x: 85, y: 15, rot: 12 },
+      { id: 'note5', type: 'note', color: 'pink', text: 'WHO IS DR. ARMITAGE?', x: 55, y: 85, rot: -5 },
+      { id: 'note6', type: 'note', color: 'blue', text: 'THE SIGNAL IS GETTING STRONGER.', x: 80, y: 80, rot: 7 }
+    ];
+
+    const connections = [
+      ['ufo', 'doc'],
+      ['man', 'doc'],
+      ['note1', 'ufo'],
+      ['note2', 'man'],
+      ['note3', 'note1'],
+      ['doc', 'note5'],
+      ['note4', 'ufo'],
+      ['note6', 'note2'],
+      ['note3', 'note5']
+    ];
+
+    function createItems() {
+      items.forEach(item => {
+        const el = document.createElement('a');
+        el.href = '../../todo.html';
+        el.className = `item ${item.type} ${item.color ? 'note-' + item.color : ''}`;
+        el.id = item.id;
+        el.style.left = item.x + '%';
+        el.style.top = item.y + '%';
+        el.style.transform = `rotate(${item.rot}deg)`;
+        el.style.zIndex = Math.floor(Math.random() * 50);
+
+        const pin = document.createElement('div');
+        pin.className = 'pin' + (Math.random() > 0.5 ? ' silver' : '');
+        el.appendChild(pin);
+
+        if (item.type === 'photo') {
+          const img = document.createElement('img');
+          img.src = item.src;
+          el.appendChild(img);
+        } else if (item.type === 'document') {
+          const img = document.createElement('img');
+          img.src = item.src;
+          el.appendChild(img);
+          const text = document.createElement('div');
+          text.innerText = 'REDACTED // TOP SECRET // 1997';
+          el.appendChild(text);
+        } else if (item.type === 'note') {
+          el.innerText = item.text;
+        }
+
+        if (item.label) {
+          const label = document.createElement('div');
+          label.className = 'label';
+          label.innerText = item.label;
+          el.appendChild(label);
+        }
+
+        corkboard.appendChild(el);
+      });
+    }
+
+    function drawStrings() {
+      connections.forEach(([id1, id2], index) => {
+        const el1 = document.getElementById(id1);
+        const el2 = document.getElementById(id2);
+
+        if (el1 && el2) {
+          const rect1 = el1.getBoundingClientRect();
+          const rect2 = el2.getBoundingClientRect();
+
+          const x1 = rect1.left + rect1.width / 2;
+          const y1 = rect1.top + rect1.height / 2;
+          const x2 = rect2.left + rect2.width / 2;
+          const y2 = rect2.top + rect2.height / 2;
+
+          const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+          line.setAttribute('x1', x1);
+          line.setAttribute('y1', y1);
+          line.setAttribute('x2', x2);
+          line.setAttribute('y2', y2);
+          line.setAttribute('class', 'string');
+          line.style.animationDelay = (index * 0.2) + 's';
+
+          svg.appendChild(line);
+        }
+      });
+    }
+
+    createItems();
+    // Delay string drawing to ensure layout is ready
+    setTimeout(drawStrings, 100);
+
+    window.addEventListener('resize', () => {
+      svg.innerHTML = '';
+      drawStrings();
+    });
+
+    // Interactive movement effect
+    document.addEventListener('mousemove', (e) => {
+      const x = (e.clientX / window.innerWidth - 0.5) * 20;
+      const y = (e.clientY / window.innerHeight - 0.5) * 20;
+      corkboard.style.transform = `rotateY(${x / 2}deg) rotateX(${-y / 2}deg) translateZ(0)`;
+    });
+
+    // Random glitch effect
+    setInterval(() => {
+      if (Math.random() > 0.95) {
+        document.body.style.filter = 'invert(1)';
+        setTimeout(() => {
+          document.body.style.filter = '';
+        }, 50);
+      }
+    }, 3000);
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{rp,[t ;omlks]}</title>
+  <meta name="description" content="Bueh Whar ir gTR wjantr3e iftr fgorytghb ew;lijhe gtha?">
+  <style>
+    :root {
+      --bg-2: url('2-heads.png');
+      --bg-3: url('3-heads.png');
+    }
+
+    body {
+      background-image: var(--bg-2);
+      background-repeat: repeat;
+      background-size: 200px;
+      transition: background-image 0.4s ease-in-out;
+      margin: 0;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #000;
+      cursor: not-allowed;
+    }
+
+    img {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      max-height: 60vh;
+      transform: translate(-50%, -50%);
+      animation: zoominandout 2s ease-in-out infinite alternate;
+      filter: drop-shadow(0 0 20px rgba(0, 0, 0, 0.5));
+      transition: filter 0.3s ease;
+    }
+
+    img:hover {
+      filter: drop-shadow(0 0 40px rgba(255, 255, 255, 0.3)) hue-rotate(45deg);
+    }
+
+    /* Change background when image is hovered */
+    body:has(img:hover) {
+      background-image: var(--bg-3);
+    }
+
+    /* Preload the hover image */
+    body::after {
+      content: "";
+      display: none;
+      background-image: var(--bg-3);
+    }
+
+    @keyframes zoominandout {
+      from {
+        transform: translate(-50%, -50%) scale(1);
+      }
+
+      to {
+        transform: translate(-50%, -50%) scale(1.5);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <a href="../../todo.html">
+    <img src="head.png" alt="low-polygon head and shoulder bust of a bald man" id="central-face">
+  </a>
+</body>
+
+</html>

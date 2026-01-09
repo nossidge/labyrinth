@@ -300,7 +300,13 @@
     <!-- I'm not fully sure what to do with these, but I'll leave them here for now. -->
   </div>
 
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
   <script>
+    const currentPage = "corridors/bsod/index.html";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
     const flicker = document.getElementById('flicker');
     const canvas = document.getElementById('glitch-canvas');
     const ctx = canvas.getContext('2d');
@@ -411,7 +417,7 @@
         </div>
         <div class="error-content">
           ${msg}<br>
-          <div class="error-btn" onclick="window.location.href='../../todo.html'">OK</div>
+          <div class="error-btn" onclick="window.location.href=pageRandomiser.nextOne()">OK</div>
         </div>
       `;
 
@@ -425,7 +431,7 @@
     // Create invisible floating links
     for (let i = 0; i < 20; i++) {
       const a = document.createElement('a');
-      a.href = '../../todo.html';
+      a.href = pageRandomiser.nextOne();
       a.className = 'invisible-link';
       a.style.left = Math.random() * 95 + '%';
       a.style.top = Math.random() * 95 + '%';

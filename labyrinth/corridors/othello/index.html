@@ -178,7 +178,13 @@
     </div>
   </div>
 
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
   <script>
+    const currentPage = "corridors/othello/index.html";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
     const board = document.getElementById('board');
     const pieces = [];
 
@@ -189,7 +195,7 @@
 
       const anchor = document.createElement('a');
       anchor.className = 'piece-anchor';
-      anchor.href = '../../todo.html';
+      anchor.href = pageRandomiser.nextOne();
 
       const piece = document.createElement('div');
       piece.className = 'piece';

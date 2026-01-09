@@ -117,7 +117,13 @@ https://baudinstudio.gumroad.com/l/gnnego
   <main id="matrix-container"></main>
   <h1 class="sr-only">1-Bit Dots</h1>
 
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
   <script>
+    const currentPage = "corridors/1-bit-dots/index.html";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
     const groupSpacing = 1;         // Pixel spacing between groups
     const groupSquareRoot = 10;     // The number squared of dots per group
     const dotSpacing = 9;           // Pixel spacing between dots
@@ -144,7 +150,7 @@ https://baudinstudio.gumroad.com/l/gnnego
       for (let gr = 0; gr < groupRows; gr++) {
         for (let gc = 0; gc < groupCols; gc++) {
           const group = document.createElement('a');
-          group.href = '../../todo.html';
+          group.href = pageRandomiser.nextOne();
           group.className = 'dot-group';
           group.style.gap = `${dotSpacing}px`;
 

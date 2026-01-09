@@ -239,7 +239,13 @@
     <!-- Items will be generated here -->
   </div>
 
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
   <script>
+    const currentPage = "corridors/corkboard/index.html";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
     const corkboard = document.getElementById('corkboard');
     const svg = document.getElementById('strings');
 
@@ -270,7 +276,7 @@
     function createItems() {
       items.forEach(item => {
         const el = document.createElement('a');
-        el.href = '../../todo.html';
+        el.href = pageRandomiser.nextOne();
         el.className = `item ${item.type} ${item.color ? 'note-' + item.color : ''}`;
         el.id = item.id;
         el.style.left = item.x + '%';

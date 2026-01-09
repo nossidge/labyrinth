@@ -199,7 +199,13 @@
     <!-- Images will repeat here -->
   </div>
 
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
   <script>
+    const currentPage = "corridors/withnail/index.html";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
     const cloudsContainer = document.getElementById('clouds');
     const withnailRow = document.getElementById('withnail-row');
     const body = document.body;
@@ -218,7 +224,7 @@
       withnailRow.innerHTML = '';
       for (let i = 0; i < count; i++) {
         const link = document.createElement('a');
-        link.href = '../../todo.html';
+        link.href = pageRandomiser.nextOne();
         link.className = 'withnail-link';
 
         const img = document.createElement('img');

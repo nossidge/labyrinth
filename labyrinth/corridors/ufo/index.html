@@ -350,7 +350,13 @@ She separates the facts from fiction
     <a href="../../todo.html" class="nav-item">EVACUATE</a>
   </nav>
 
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
   <script>
+    const currentPage = "corridors/ufo/index.html";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
     // Dynamic coords based on date. Entirely arbitrary, but it's fun.
     const now = new Date();
     const yyy = Math.floor(now.getFullYear() / 10);
@@ -449,7 +455,7 @@ She separates the facts from fiction
         flash.style.opacity = '0.8';
         addData(`CRITICAL_ERROR: ABDUCTION_SEQUENCE_START`);
         setTimeout(() => { flash.style.opacity = '0'; }, 100);
-        setTimeout(() => { window.location.href = '../../todo.html'; }, 300);
+        setTimeout(() => { window.location.href = pageRandomiser.nextOne(); }, 300);
       });
 
       container.appendChild(wrap);

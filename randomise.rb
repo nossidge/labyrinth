@@ -78,13 +78,22 @@ html_files.each do |file|
   prefix = "../" * depth
 
   # Replace todo.html links
+  # Filter out current page to avoid self-linking
+  possible_corridors = corridors.reject { |c| c == relative_path }
+
+  # For fallback if everything is filtered (shouldn't happen with reject, but just in case)
+  possible_corridors = corridors.dup if possible_corridors.empty?
+
+  buffer = possible_corridors.shuffle
+
   new_content = content.gsub(/['"][^'"]*todo\.html['"]/) do |match|
     quote = match[0]
-    # Filter out current corridor to avoid self-linking
-    current_corridor = relative_path.split('/')[1] # e.g., "ufo"
-    possible_corridors = corridors.reject { |c| c.include?(current_corridor) }
 
-    random_corridor = possible_corridors.sample || corridors.sample
+    if buffer.empty?
+      buffer = possible_corridors.shuffle
+    end
+
+    random_corridor = buffer.pop
     "#{quote}#{prefix}#{random_corridor}#{quote}"
   end
 

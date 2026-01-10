@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+Do Re Mi Ti La
+Do Re Mi So Fa Do Re Do
+-->
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ivory tower</title>
+  <meta name="description" content="In tune with the tuneless">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --piano-body: #2c1a12;
+      --white-key: #fdfdfd;
+      --white-key-shadow: #e0e0e0;
+      --black-key: #111;
+      --black-key-shadow: #222;
+      --gold-accent: #d4af37;
+      --bg-color: #0d0d0d;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      background-image: radial-gradient(circle at top, #1a1a1a 0%, #000 100%);
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      font-family: 'Bricolage Grotesque', sans-serif;
+    }
+
+    #stage {
+      flex-grow: 1;
+      width: 100%;
+      position: relative;
+      perspective: 1000px;
+      overflow: visible;
+    }
+
+    .note-bubble {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(5px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 50px;
+      text-decoration: none;
+      font-size: 1.5rem;
+      font-weight: 800;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+      transition: transform 0.3s ease, background 0.3s ease;
+      pointer-events: auto;
+      z-index: 100;
+      user-select: none;
+    }
+
+    .note-bubble:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: scale(1.1);
+      border-color: var(--gold-accent);
+    }
+
+    #piano-container {
+      width: 100%;
+      max-width: 1200px;
+      background: var(--piano-body);
+      padding: 40px 20px 20px;
+      border-radius: 10px 10px 0 0;
+      position: relative;
+      box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.8), inset 0 2px 10px rgba(255, 255, 255, 0.1);
+      border: 2px solid #3d2b1f;
+      z-index: 10;
+    }
+
+    #piano-brand {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: var(--gold-accent);
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 1.2rem;
+      letter-spacing: 2px;
+      opacity: 0.6;
+    }
+
+    #keyboard {
+      display: flex;
+      position: relative;
+      height: 300px;
+      background: #000;
+      border: 5px solid #111;
+    }
+
+    .white-key {
+      flex: 1;
+      background: linear-gradient(to bottom, #eee 0%, var(--white-key) 5%, var(--white-key) 95%, #999 100%);
+      border: 1px solid #ccc;
+      border-radius: 0 0 5px 5px;
+      position: relative;
+      cursor: pointer;
+      transition: transform 0.1s;
+      transform-origin: top;
+      z-index: 1;
+    }
+
+    .white-key:active,
+    .white-key.pressed {
+      transform: rotateX(-5deg) scaleY(0.98);
+      background: linear-gradient(to bottom, #ddd 0%, #eee 90%, #777 100%);
+    }
+
+    .black-key {
+      width: 4%;
+      height: 60%;
+      background: linear-gradient(to bottom, #444 0%, var(--black-key) 10%, var(--black-key) 90%, #000 100%);
+      position: absolute;
+      z-index: 2;
+      border-radius: 0 0 3px 3px;
+      cursor: pointer;
+      transition: transform 0.1s;
+      transform-origin: top;
+      box-shadow: 2px 5px 10px rgba(0, 0, 0, 0.5);
+    }
+
+    .black-key:active,
+    .black-key.pressed {
+      transform: rotateX(-10deg) scaleY(0.95);
+      background: linear-gradient(to bottom, #222 0%, #000 100%);
+    }
+
+    /* Note labels hidden on keys but stored for JS */
+    .key-label {
+      display: none;
+    }
+
+    @keyframes popOut {
+      0% {
+        transform: translate(0, 0) scale(0);
+        opacity: 0;
+      }
+
+      50% {
+        transform: translate(var(--tx), var(--ty)) scale(1.2);
+        opacity: 1;
+      }
+
+      100% {
+        transform: translate(var(--fx), var(--fy)) scale(1);
+        opacity: 1;
+      }
+    }
+
+    /* Drifting animation for bubbles */
+    @keyframes drift {
+      from {
+        transform: translate(var(--fx), var(--fy));
+      }
+
+      to {
+        transform: translate(calc(var(--fx) + 10px), calc(var(--fy) - 20px));
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="stage"></div>
+
+  <div id="piano-container">
+    <div id="piano-brand">Tilde & Sons</div>
+    <div id="keyboard">
+      <!-- Keys will be generated by JS -->
+    </div>
+  </div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const stage = document.getElementById('stage');
+    const keyboard = document.getElementById('keyboard');
+
+    const currentPage = "corridors/piano/index.html";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const whiteKeysCount = 15; // 2 octaves + C
+    const notes = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
+    const isBlackKey = (noteName) => noteName.includes('#') || noteName.includes('b');
+
+    function createKeyboard() {
+      let whiteKeyIndex = 0;
+      for (let i = 0; i < 25; i++) { // roughly 2 octaves
+        const noteIndex = i % 12;
+        const noteName = notes[noteIndex];
+        const isBlack = isBlackKey(noteName);
+        const octave = Math.floor(i / 12) + 1;
+
+        if (!isBlack) {
+          const key = document.createElement('div');
+          key.className = 'white-key';
+          key.dataset.noteBase = noteName;
+          key.dataset.noteFull = noteName + octave;
+          key.addEventListener('mousedown', () => playNote(key));
+          keyboard.appendChild(key);
+
+          // Check if black key follows
+          const nextNoteIndex = (i + 1) % 12;
+          const blackNoteName = isBlackKey(notes[nextNoteIndex]);
+          if (notes[nextNoteIndex] && blackNoteName && whiteKeyIndex < whiteKeysCount - 1) {
+            const blackKey = document.createElement('div');
+            blackKey.className = 'black-key';
+            blackKey.dataset.noteBase = notes[nextNoteIndex];
+            blackKey.dataset.noteFull = notes[nextNoteIndex] + octave;
+
+            // Position black key
+            const offset = (whiteKeyIndex * (100 / whiteKeysCount)) + (100 / whiteKeysCount * 0.7);
+            blackKey.style.left = `${offset}%`;
+
+            blackKey.addEventListener('mousedown', (e) => {
+              e.stopPropagation();
+              playNote(blackKey);
+            });
+            keyboard.appendChild(blackKey);
+          }
+          whiteKeyIndex++;
+        }
+
+        if (whiteKeyIndex >= whiteKeysCount) break;
+      }
+    }
+
+    function playNote(keyEl) {
+      const noteBase = keyEl.dataset.noteBase;
+      keyEl.classList.add('pressed');
+      setTimeout(() => keyEl.classList.remove('pressed'), 200);
+
+      spawnNoteBubble(noteBase, keyEl);
+    }
+
+    function spawnNoteBubble(noteText, keyEl) {
+      const bubble = document.createElement('a');
+      bubble.className = 'note-bubble';
+      bubble.innerText = noteText;
+      bubble.href = pageRandomiser.nextOne();
+
+      const rect = keyEl.getBoundingClientRect();
+      const startX = rect.left + rect.width / 2;
+      const startY = rect.top;
+
+      bubble.style.left = `${startX}px`;
+      bubble.style.top = `${startY}px`;
+
+      // Random landing position in the stage
+      const tx = (Math.random() - 0.5) * 400;
+      const ty = -200 - Math.random() * 300;
+      const fx = tx + (Math.random() - 0.5) * 100;
+      const fy = ty + (Math.random() - 0.5) * 50;
+
+      bubble.style.setProperty('--tx', `${tx}px`);
+      bubble.style.setProperty('--ty', `${ty}px`);
+      bubble.style.setProperty('--fx', `${fx}px`);
+      bubble.style.setProperty('--fy', `${fy}px`);
+
+      bubble.style.animation = 'popOut 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards';
+
+      stage.appendChild(bubble);
+
+      // Subtle float effect after landing
+      bubble.addEventListener('animationend', () => {
+        bubble.style.animation = `drift ${5 + Math.random() * 5}s ease-in-out infinite alternate`;
+      });
+    }
+
+    createKeyboard();
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>tilde trine</title>
+  <meta name="description" content="tilde trine">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,200..900;1,200..900&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #0a0a0c;
+      --accent-color: #e0e0e0;
+      --line-color: rgba(255, 255, 255, 0.1);
+      --wave-speed: 3s;
+      --background-text-color: rgba(255, 255, 255, 0.03);
+      --background-text-accent: rgba(255, 255, 255, 0.08);
+    }
+
+    body,
+    html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background-color: var(--bg-color);
+      color: var(--accent-color);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      font-family: 'Crimson Pro', serif;
+    }
+
+    #container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .tilde {
+      position: absolute;
+      user-select: none;
+      transition: all 1.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 200px;
+      height: 200px;
+      z-index: 10;
+    }
+
+    .tilde img {
+      display: block;
+      width: 100%;
+      height: auto;
+      animation: rotate var(--wave-speed) linear infinite;
+      filter: invert(60%);
+    }
+
+    @keyframes rotate {
+      from {
+        transform: rotate(0deg);
+      }
+
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .line {
+      position: absolute;
+      background: linear-gradient(90deg, transparent, var(--accent-color), transparent);
+      height: 4px;
+      opacity: 0;
+      transition: opacity 2s ease-in-out;
+      pointer-events: none;
+      z-index: 5;
+      transform-origin: left center;
+    }
+
+    /* Initial star state */
+    .tilde-1 {
+      transform: rotate(0deg) translateY(-60px);
+    }
+
+    .tilde-2 {
+      transform: rotate(120deg) translateY(-60px);
+    }
+
+    .tilde-3 {
+      transform: rotate(240deg) translateY(-60px);
+    }
+
+    /* Pyramid state */
+    body.pyramid .tilde-1 {
+      transform: translate(0, -28vmin) rotate(0deg);
+    }
+
+    body.pyramid .tilde-2 {
+      transform: translate(30vmin, 24vmin) rotate(120deg);
+    }
+
+    body.pyramid .tilde-3 {
+      transform: translate(-30vmin, 24vmin) rotate(240deg);
+    }
+
+    /* Removed pause - tildes keep spinning */
+
+    body.pyramid #container::before {
+      content: '';
+      position: absolute;
+      width: 80vmin;
+      height: 80vmin;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 0%, transparent 70%);
+      z-index: 1;
+      animation: pulse 4s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        transform: scale(1);
+        opacity: 0.3;
+      }
+
+      50% {
+        transform: scale(1.1);
+        opacity: 0.6;
+      }
+    }
+
+    body.pyramid #background-text {
+      color: var(--background-text-accent);
+      transition: color 2s ease;
+    }
+
+    body.pyramid .line {
+      opacity: 0.4;
+    }
+
+    #background-text {
+      position: absolute;
+      font-size: 0.8rem;
+      color: var(--background-text-color);
+      white-space: pre-wrap;
+      pointer-events: none;
+      z-index: 1;
+      padding: 20px;
+      line-height: 1.2;
+      text-align: justify;
+      width: 100vmin;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .hidden-link {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 100;
+      display: none;
+    }
+
+    body.pyramid .hidden-link {
+      display: block;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="background-text"></div>
+
+  <div id="container">
+    <div class="line" id="line12"></div>
+    <div class="line" id="line23"></div>
+    <div class="line" id="line31"></div>
+
+    <a href="#" class="tilde tilde-1" id="t1">
+      <img src="tilde.png" alt="tilde">
+    </a>
+    <a href="#" class="tilde tilde-2" id="t2">
+      <img src="tilde.png" alt="tilde">
+    </a>
+    <a href="#" class="tilde tilde-3" id="t3">
+      <img src="tilde.png" alt="tilde">
+    </a>
+  </div>
+
+  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script>
+    const currentPage = "corridors/trine/index.html";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const tildes = document.querySelectorAll('.tilde');
+    const lines = {
+      line12: document.getElementById('line12'),
+      line23: document.getElementById('line23'),
+      line31: document.getElementById('line31')
+    };
+
+    function updateLines() {
+      const p1 = document.getElementById('t1').getBoundingClientRect();
+      const p2 = document.getElementById('t2').getBoundingClientRect();
+      const p3 = document.getElementById('t3').getBoundingClientRect();
+
+      const c1 = { x: p1.left + p1.width / 2, y: p1.top + p1.height / 2 };
+      const c2 = { x: p2.left + p2.width / 2, y: p2.top + p2.height / 2 };
+      const c3 = { x: p3.left + p3.width / 2, y: p3.top + p3.height / 2 };
+
+      setupLine(lines.line12, c1, c2);
+      setupLine(lines.line23, c2, c3);
+      setupLine(lines.line31, c3, c1);
+    }
+
+    function setupLine(line, p1, p2) {
+      const dist = Math.sqrt((p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2);
+      const angle = Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI;
+
+      line.style.width = dist + 'px';
+      line.style.left = p1.x + 'px';
+      line.style.top = p1.y + 'px';
+      line.style.transform = `rotate(${angle}deg)`;
+    }
+
+    let activated = false;
+
+    tildes.forEach(tilde => {
+      tilde.addEventListener('click', () => {
+        if (!activated) {
+          activated = true;
+          document.body.classList.add('pyramid');
+
+          // Give it a moment to animate before updating lines accurately
+          setTimeout(() => {
+            updateLines();
+            window.addEventListener('resize', updateLines);
+          }, 50);
+
+          // Add links after animation
+          setTimeout(() => {
+            tildes.forEach(t => {
+              const link = pageRandomiser.nextOne();
+              t.href = link;
+            });
+          }, 1500);
+        }
+      });
+    });
+
+    // Background mystery text
+    const bgText = document.getElementById('background-text');
+    const words = "the power of the three. resonance within the void. approximate the triangle. find the exit. seek the truth. the labyrinth pulse. three tildes. cyclic motion. infinite loop. power pyramid. ancient terminal. resonance. frequency. trinity. power. knowledge. void. waves. signals. echoes.";
+    const wordCount = 2000;
+    let bgContent = "";
+    for (let i = 0; i < wordCount; i++) {
+      bgContent += words.split(' ')[Math.floor(Math.random() * words.split(' ').length)] + " ";
+    }
+    bgText.textContent = bgContent;
+
+    // Interval to keep lines updated during transition
+    let updateInterval = setInterval(() => {
+      if (activated) updateLines();
+    }, 50);
+
+    // Stop interval after transition
+    setTimeout(() => {
+      if (activated) clearInterval(updateInterval);
+    }, 3000);
+
+  </script>
+</body>
+
+</html>

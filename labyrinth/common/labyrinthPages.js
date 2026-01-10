@@ -10,6 +10,7 @@ const labyrinthPages = [
   "../../corridors/othello/index.html",
   "../../corridors/piano/index.html",
   "../../corridors/polygon-face/index.html",
+  "../../corridors/trine/index.html",
   "../../corridors/ufo/index.html",
   "../../corridors/withnail/index.html",
 ];

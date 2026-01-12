@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pink dreams | Iron will</title>
+  <meta name="description"
+    content="A convergence of pink glitter and camo paint. Choose your destiny.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Pacifico&family=Black+Ops+One&family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=IBM+Plex+Mono:wght@400;700&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --barbie-pink: #ff007f;
+      --barbie-light: #ff66b2;
+      --action-green: #4b5320;
+      --action-dark: #2b3d2b;
+      --divider: #000;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body,
+    html {
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      font-family: 'Bricolage Grotesque', sans-serif;
+      background: #000;
+    }
+
+    /* Scanline Overlay */
+    body::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
+      background-size: 100% 3px, 3px 100%;
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    .container {
+      display: flex;
+      height: 100vh;
+      width: 100vw;
+      position: relative;
+    }
+
+    /* Divider */
+    .divider {
+      width: 30px;
+      background: var(--divider);
+      height: 100%;
+      z-index: 100;
+      box-shadow: 0 0 40px rgba(0, 0, 0, 0.8);
+      position: relative;
+      cursor: ew-resize;
+    }
+
+    .divider::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 4px;
+      height: 100%;
+      background: linear-gradient(to bottom, transparent, #fff, transparent);
+      opacity: 0.3;
+    }
+
+    /* Sides */
+    .side {
+      flex: 1;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .side-scroll-area {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 4rem 2rem;
+      position: relative;
+    }
+
+    /* Barbie Side */
+    .barbie-side {
+      background-color: var(--barbie-pink);
+      background-image:
+        radial-gradient(circle at 20% 30%, var(--barbie-light) 0%, transparent 40%),
+        radial-gradient(circle at 80% 70%, var(--barbie-light) 0%, transparent 40%),
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.15'/%3E%3C/svg%3E");
+      color: #fff;
+      text-align: center;
+      cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='%23ff66b2'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E"), auto;
+    }
+
+    .barbie-side h1 {
+      font-family: 'Pacifico', cursive;
+      font-size: 6rem;
+      text-shadow: 6px 6px 0px #c70062, 10px 10px 20px rgba(0, 0, 0, 0.3);
+      margin-bottom: 2rem;
+      animation: float 4s ease-in-out infinite;
+      filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.8));
+    }
+
+    @keyframes float {
+
+      0%,
+      100% {
+        transform: translateY(0) rotate(-3deg);
+      }
+
+      50% {
+        transform: translateY(-30px) rotate(3deg);
+      }
+    }
+
+    .glitter-box {
+      border: 8px double #fff;
+      padding: 2.5rem;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(8px);
+      margin: 2rem auto;
+      max-width: 500px;
+      border-radius: 40px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Action Man Side */
+    .action-side {
+      background-color: var(--action-green);
+      background-image:
+        linear-gradient(45deg, var(--action-dark) 25%, transparent 25%),
+        linear-gradient(-45deg, var(--action-dark) 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, var(--action-dark) 75%),
+        linear-gradient(-45deg, transparent 75%, var(--action-dark) 75%),
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.03' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.4'/%3E%3C/svg%3E");
+      background-size: 120px 120px, 120px 120px, 120px 120px, 120px 120px, auto;
+      color: #d4d4d4;
+      text-transform: uppercase;
+      cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%230f0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cline x1='22' y1='12' x2='18' y2='12'/%3E%3Cline x1='6' y1='12' x2='2' y2='12'/%3E%3Cline x1='12' y1='6' x2='12' y2='2'/%3E%3Cline x1='12' y1='22' x2='12' y2='18'/%3E%3C/svg%3E"), auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .action-side h1 {
+      font-family: 'Black Ops One', cursive;
+      font-size: 5rem;
+      letter-spacing: 8px;
+      color: #fff;
+      text-shadow: 6px 6px 0px #000;
+      margin-bottom: 2rem;
+      position: relative;
+    }
+
+    .action-side h1::before {
+      content: "TOP SECRET";
+      position: absolute;
+      top: -20px;
+      left: 0;
+      font-size: 1rem;
+      background: #ff0000;
+      color: #fff;
+      padding: 2px 10px;
+      letter-spacing: 2px;
+    }
+
+    .bunker {
+      border: 4px solid #000;
+      background: #0a0a0a;
+      color: #0f0;
+      font-family: 'IBM Plex Mono', monospace;
+      padding: 2rem;
+      margin: 2rem 0;
+      text-align: left;
+      box-shadow: inset 0 0 30px #000, 0 5px 15px rgba(0, 0, 0, 0.5);
+      line-height: 1.5;
+    }
+
+    /* Links */
+    a {
+      display: inline-block;
+      margin: 15px;
+      padding: 15px 30px;
+      text-decoration: none;
+      font-weight: bold;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .barbie-side a {
+      background: #fff;
+      color: var(--barbie-pink);
+      font-size: 1.2rem;
+      border-radius: 100px;
+      box-shadow: 0 8px 0px #c70062, 0 15px 20px rgba(0, 0, 0, 0.1);
+      border: 2px solid transparent;
+    }
+
+    .barbie-side a:hover {
+      transform: scale(1.15) rotate(4deg);
+      background: #ffe6f2;
+      border-color: #ff66b2;
+      box-shadow: 0 4px 0px #c70062, 0 8px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .action-side a {
+      background: #222;
+      color: #0f0;
+      border: 2px solid #0f0;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 1.1rem;
+      text-shadow: 0 0 5px #0f0;
+      box-shadow: 3px 3px 0px #000;
+    }
+
+    .action-side a:hover {
+      background: #0f0;
+      color: #000;
+      box-shadow: 0 0 30px #0f0, 6px 6px 0px #000;
+      transform: translate(-3px, -3px);
+    }
+
+    /* MARQUEE */
+    .marquee-container {
+      width: 100%;
+      overflow: hidden;
+      white-space: nowrap;
+      background: rgba(0, 0, 0, 0.8);
+      border-top: 2px solid #333;
+      border-bottom: 2px solid #333;
+      padding: 10px 0;
+      position: relative;
+      z-index: 50;
+      flex-shrink: 0;
+    }
+
+    .marquee-content {
+      display: inline-block;
+      padding-left: 100%;
+      animation: marquee 25s linear infinite;
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+
+    @keyframes marquee {
+      0% {
+        transform: translate(0, 0);
+      }
+
+      100% {
+        transform: translate(-100%, 0);
+      }
+    }
+
+    /* 90s Badges */
+    .badge {
+      width: 88px;
+      height: 31px;
+      background: #ccc;
+      border: 2px outset #eee;
+      color: #000;
+      font-family: "MS Sans Serif", sans-serif;
+      font-size: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 20px auto;
+      text-transform: none;
+      font-weight: normal;
+    }
+
+    /* Decorations */
+    .heart-float {
+      position: absolute;
+      color: rgba(255, 255, 255, 0.4);
+      pointer-events: none;
+      animation: heart-fall 10s linear infinite;
+    }
+
+    @keyframes heart-fall {
+      0% {
+        transform: translateY(-100vh) rotate(0deg);
+        opacity: 0;
+      }
+
+      10% {
+        opacity: 1;
+      }
+
+      90% {
+        opacity: 1;
+      }
+
+      100% {
+        transform: translateY(100vh) rotate(360deg);
+        opacity: 0;
+      }
+    }
+
+    .camo-blob {
+      position: absolute;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 50%;
+      filter: blur(20px);
+      pointer-events: none;
+      z-index: 1;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <!-- BARBIE SIDE -->
+    <div class="side barbie-side">
+      <div class="side-scroll-area">
+        <div id="barbie-decorations"
+          style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; z-index: 1;">
+        </div>
+        <div style="position: relative; z-index: 10;">
+          <h1 id="barbie-title">Barbie World</h1>
+
+          <div style="margin-top: 2rem;">
+            <a href="../../todo.html" class="barbie-link" data-section="collection">COLLECTION</a>
+            <a href="../../todo.html" class="barbie-link" data-section="dreamhouse">DREAMHOUSE</a>
+            <a href="../../todo.html" class="barbie-link" data-section="ken">KEN'S CORNER</a>
+            <br>
+            <a href="../../todo.html" class="barbie-link" data-section="tips">FASHION TIPS</a>
+            <a href="../../todo.html" class="barbie-link" data-section="guestbook">GUESTBOOK</a>
+          </div>
+
+          <div class="glitter-box" id="barbie-content">
+            <p style="font-size: 1.5rem; margin-bottom: 1rem;">♥ Hi Barbie! ♥</p>
+            <p>Welcome to the ultimate fan page for the most fabulous doll ever made!</p>
+            <div class="badge netscape-badge"
+              style="background: linear-gradient(to bottom, #003399, #000066); color: #fff; border: 2px solid #fff;">
+              Best viewed in<br>Netscape Navigator</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="marquee-container"
+        style="background: rgba(255, 20, 147, 0.4); color: #fff; z-index: 20;">
+        <div class="marquee-content">
+          BE BRIGHT ★ BE BOLD ★ BE BARBIE ★ NEW PINK CONVERTIBLE ARRIVING AT TOY STORES NEAR YOU ★
+          CLICK EVERYTHING! ★
+        </div>
+      </div>
+    </div>
+
+    <!-- DIVIDER -->
+    <div class="divider"></div>
+
+    <!-- ACTION MAN SIDE -->
+    <div class="side action-side">
+      <div class="side-scroll-area">
+        <h1>Action Man</h1>
+
+        <div style="margin-top: 2rem;">
+          <a href="../../todo.html" class="action-link" data-section="recruit">[ RECRUIT ]</a>
+          <a href="../../todo.html" class="action-link" data-section="armory">[ ARMORY ]</a>
+          <a href="../../todo.html" class="action-link" data-section="deployment">[ DEPLOYMENT ]</a>
+          <a href="../../todo.html" class="action-link" data-section="secret">[ TOP SECRET ]</a>
+        </div>
+
+        <div class="bunker" id="action-content">
+          <p style="color: #ff0000; font-weight: bold;">>> SYSTEM ALERT: INVASION IMMINENT</p>
+          <p>SUBJECT: AM-001 "THE HERO"</p>
+          <p>GEAR: SCUBA SQUAD / POLAR MISSION</p>
+          <p>--------------------------------</p>
+          <p>IF YOU CAN'T STAND THE HEAT, STAY OUT OF THE BUNKER.</p>
+          <div class="badge" style="background: #333; color: #0f0; border-color: #0f0;">VET.
+            APPROVED
+          </div>
+        </div>
+      </div>
+
+      <div class="marquee-container"
+        style="background: rgba(0, 50, 0, 0.8); color: #0f0; font-family: 'IBM Plex Mono';">
+        <div class="marquee-content">
+          MISSION STATUS: GREEN // ALL SYSTEMS GO // SECURE THE PERIMETER // NO SURRENDER // NO
+          RETREAT //
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const barbieData = {
+      collection: `
+            <h3>♥ My Collection ♥</h3>
+            <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 10px;">
+                <div style="text-align: center; width: 80px;">
+                    <img src="barbie-toys/graphics-barbie-dolls-298333.gif" style="width: 100%; border: 2px solid #fff;">
+                    <p style="font-size: 10px;">Neon Sparkle</p>
+                </div>
+                <div style="text-align: center; width: 80px;">
+                    <img src="barbie-toys/graphics-barbie-dolls-361502.gif" style="width: 100%; border: 2px solid #fff;">
+                    <p style="font-size: 10px;">Disco Queen</p>
+                </div>
+                <div style="text-align: center; width: 80px;">
+                    <img src="barbie-toys/graphics-barbie-dolls-378883.gif" style="width: 100%; border: 2px solid #fff;">
+                    <p style="font-size: 10px;">Pastel Dream</p>
+                </div>
+            </div>
+            <p style="margin-top: 10px; font-size: 12px;">Over 500 dolls and counting! My favorite is the 1992 Totally Hair Barbie. I brush her hair every single day!</p>
+        `,
+      dreamhouse: `
+            <h3>🏠 The Dreamhouse</h3>
+            <p style="margin: 10px 0;">It has 3 floors, a working elevator, and a slide that goes right into the pool! It's where all the magic happens.</p>
+            <img src="barbie-toys/graphics-barbie-dolls-613617.gif" style="width: 120px; border: 3px solid #ff66b2; border-radius: 10px;">
+            <p style="font-size: 12px; font-style: italic;">"Wait for me, Ken! The party is starting!"</p>
+        `,
+      ken: `
+            <h3>👱‍♂️ Ken's Corner</h3>
+            <p>He's more than just an accessory! Ken loves surfing, driving the camper van, and matching his outfits to mine.</p>
+            <div style="margin: 15px 0;">
+                <img src="barbie-toys/graphics-barbie-dolls-077155.gif" style="width: 60px;">
+                <img src="barbie-toys/graphics-barbie-dolls-043115.gif" style="width: 60px;">
+            </div>
+            <p style="font-size: 11px;">Current Crush: Sun Sensation Ken (He looks so good in gold!)</p>
+        `,
+      tips: `
+            <h3>👗 Fashion Tips</h3>
+            <ul style="list-style: none; padding: 0; font-size: 13px;">
+                <li>1. Pink goes with EVERYTHING.</li>
+                <li>2. If it doesn't sparkle, add more glitter.</li>
+                <li>3. High heels are a lifestyle, not just shoes.</li>
+                <li>4. Always match your bag to your convertible.</li>
+            </ul>
+            <img src="barbie-toys/graphics-barbie-dolls-021938.gif" style="width: 100px; margin-top: 10px;">
+        `,
+      guestbook: `
+            <h3>📖 Guestbook</h3>
+            <div style="text-align: left; font-size: 11px; background: rgba(255,255,255,0.2); padding: 10px; border-radius: 5px;">
+                <p><b>Stacy98:</b> OMG LOVE THE PAGE! SO PINK! 💖</p>
+                <p><b>DollFanatic:</b> Do you have the holiday 1997 edition??</p>
+                <p><b>PinkPrincess:</b> Staying sparkly! XOXO</p>
+            </div>
+            <p style="font-size: 12px; margin-top: 10px;">[ Sign My Guestbook ]</p>
+        `
+    };
+
+    const actionData = {
+      recruit: `
+            <p style="color: #0f0;">>> RECRUITMENT STATUS: OPEN</p>
+            <p>--------------------------------</p>
+            <p>WE NEED THE BEST. WE NEED THE BRAVE.</p>
+            <p>REQUIREMENTS:</p>
+            <p>- KUNG FU GRIP MASTERY</p>
+            <p>- PARACHUTE DEPLOYMENT CERTIFIED</p>
+            <p>- ZERO FEAR OF THE DARK</p>
+            <div style="margin-top: 10px;">
+                <img src="action-man-toys/graphics-army-197134.gif" style="width: 40px; filter: sepia(100%) saturate(300%) hue-rotate(60deg);">
+                <img src="action-man-toys/graphics-army-576934.gif" style="width: 40px; filter: sepia(100%) saturate(300%) hue-rotate(60deg);">
+            </div>
+        `,
+      armory: `
+            <p style="color: #0f0;">>> ARMORY INVENTORY</p>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin: 10px 0; font-size: 12px;">
+                <div style="border: 1px solid #333; padding: 5px;">
+                    <img src="action-man-toys/graphics-army-071754.gif" style="width: 30px;"><br>
+                    SNIPER RIFLE MKII
+                </div>
+                <div style="border: 1px solid #333; padding: 5px;">
+                    <img src="action-man-toys/graphics-army-136370.gif" style="width: 30px;"><br>
+                    TACTICAL GRENADE
+                </div>
+                <div style="border: 1px solid #333; padding: 5px;">
+                    <img src="action-man-toys/graphics-army-175703.gif" style="width: 30px;"><br>
+                    COMMS RADIOPACK
+                </div>
+                <div style="border: 1px solid #333; padding: 5px;">
+                    <img src="action-man-toys/graphics-army-178556.gif" style="width: 30px;"><br>
+                    SURVIVAL KNIFE
+                </div>
+            </div>
+            <p style="font-size: 10px; color: #666;">ALL GEAR IS FIELD-TESTED AND DR. X PROOF.</p>
+        `,
+      deployment: `
+            <p style="color: #0f0;">>> RECENT DEPLOYMENTS</p>
+            <p>--------------------------------</p>
+            <p>1. OPERATION SNOWSTORM (Arctic Sector)</p>
+            <p>2. JUNGLE EXTRACTION (Sector 7)</p>
+            <p>3. DEEP SEA DEFENSE (Atlantic Trench)</p>
+            <div style="text-align: center; margin: 15px 0;">
+                <img src="action-man-toys/graphics-army-947821.gif" style="width: 100px; border: 1px solid #0f0; box-shadow: 0 0 10px #0f0;">
+            </div>
+            <p style="font-size: 10px;">ACTION MAN IS ALWAYS READY FOR THE NEXT MISSION.</p>
+        `,
+      secret: `
+            <p style="color: #ff0000; font-weight: bold; background: #300; padding: 5px;">!!! CLASSIFIED: LEVEL 10 ONLY !!!</p>
+            <p style="font-size: 11px; margin-top: 10px;">THE IDENTITY OF THE COMMANDER IS UNKNOWN. SOURCES SUGGEST HE OPERATES FROM A SUBMERGED BASE IN THE PACIFIC.</p>
+            <p style="font-size: 11px;">BEWARE OF THE SHADOW CELL. TRUST NO ONE BUT YOUR SQUAD.</p>
+            <div style="margin-top: 15px; opacity: 0.5;">
+                <img src="action-man-toys/graphics-army-594435.gif" style="width: 60px;">
+                <img src="action-man-toys/graphics-army-647714.gif" style="width: 60px;">
+            </div>
+        `
+    };
+
+    function initInteractivity() {
+      const barbieSide = document.querySelector('.barbie-side');
+      const actionSide = document.querySelector('.action-side');
+      const barbieContent = document.getElementById('barbie-content');
+      const actionContent = document.getElementById('action-content');
+
+      // Barbie Link Clicks
+      document.querySelectorAll('.barbie-link').forEach(link => {
+        link.addEventListener('click', (e) => {
+          e.preventDefault();
+          const section = link.getAttribute('data-section');
+          barbieContent.innerHTML = barbieData[section];
+        });
+      });
+
+      // Action Link Clicks
+      document.querySelectorAll('.action-link').forEach(link => {
+        link.addEventListener('click', (e) => {
+          e.preventDefault();
+          const section = link.getAttribute('data-section');
+          actionContent.innerHTML = actionData[section];
+        });
+      });
+
+      // Barbie floating hearts
+      setInterval(() => {
+        const decor = document.getElementById('barbie-decorations');
+        if (!decor) return;
+        const heart = document.createElement('div');
+        heart.className = 'heart-float';
+        heart.innerHTML = '♥';
+        heart.style.left = Math.random() * 95 + '%';
+        heart.style.fontSize = (Math.random() * 30 + 10) + 'px';
+        heart.style.animationDuration = (Math.random() * 5 + 5) + 's';
+        decor.appendChild(heart);
+        setTimeout(() => heart.remove(), 10000);
+      }, 500);
+
+      // Action Man ammo/crosshair effects
+      actionSide.addEventListener('mousedown', (e) => {
+        const flash = document.createElement('div');
+        flash.style.position = 'absolute';
+        flash.style.left = (e.clientX - actionSide.offsetLeft - 10) + 'px';
+        flash.style.top = e.clientY + 'px';
+        flash.style.width = '20px';
+        flash.style.height = '20px';
+        flash.style.background = '#fff';
+        flash.style.borderRadius = '50%';
+        flash.style.zIndex = '100';
+        flash.style.boxShadow = '0 0 40px #fff';
+        actionSide.appendChild(flash);
+        setTimeout(() => flash.remove(), 50);
+      });
+
+      // Random "glitch" for Action Man title
+      const actionTitle = actionSide.querySelector('h1');
+      setInterval(() => {
+        if (Math.random() > 0.95) {
+          actionTitle.style.transform = `translateX(${Math.random() * 10 - 5}px)`;
+          setTimeout(() => actionTitle.style.transform = 'none', 100);
+        }
+      }, 200);
+    }
+
+    initInteractivity();
+  </script>
+</body>
+
+</html>

@@ -52,7 +52,8 @@ https://objkt.com/users/tz1TUdvDnKN77H4M5bnmffSunwQ1vQ8BWLWY
       border-radius: 50%;
       border: 2px solid var(--outline-color);
       display: block;
-      transition: left 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+      transition:
+        left 0.6s cubic-bezier(0.4, 0, 0.2, 1),
         top 0.6s cubic-bezier(0.4, 0, 0.2, 1),
         transform 0.3s ease;
       position: absolute;
@@ -83,9 +84,10 @@ https://objkt.com/users/tz1TUdvDnKN77H4M5bnmffSunwQ1vQ8BWLWY
       height: 100vh;
       pointer-events: none;
       z-index: 100;
-      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%),
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%),
         linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 255, 0, 0.03));
-      background-size: 100% 3px, 3px 100%;
+      background-size: 100% 2px, 3px 100%;
     }
 
     .sr-only {
@@ -129,18 +131,6 @@ https://objkt.com/users/tz1TUdvDnKN77H4M5bnmffSunwQ1vQ8BWLWY
         x: col * (cellSide + gap),
         y: row * (cellSide + gap)
       };
-    }
-
-    function getTriangularNumber(n) {
-      return (n * (n + 1)) / 2;
-    }
-
-    function getManhattanDist(idx1, idx2) {
-      const r1 = Math.floor(idx1 / gridSize);
-      const c1 = idx1 % gridSize;
-      const r2 = Math.floor(idx2 / gridSize);
-      const c2 = idx2 % gridSize;
-      return Math.abs(r1 - r2) + Math.abs(c1 - c2);
     }
 
     function createGrid() {

@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+This is all very approximate, as constellations have multiple interpretations.
+Lines can pretty much be drawn between any stars, and there are no "official" constellations.
+So I've just settled on a source that can be easily calculated.
+Luckily, some lovely person has made all these in SVG format.
+
+Constellation paths sourced from these SVGs by eukisuri:
+https://thenounproject.com/browse/collection-icon/stars-and-planets-173402/
+https://thenounproject.com/icon/capricorn-constellation-5421417/
+https://x.com/eukisuri
+https://www.instagram.com/eukisuri/
+
+Background stars by
+https://oldwww.tumblr.com/post/673223302462013440
+-->
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zodiac (2007)</title>
+  <meta name="description" content="Starring Jake Gyllenhaal, Mark Ruffalo, and Robert Downey Jr.">
+  <style>
+    :root {
+      --bg-color: #02040a;
+      --star-color: #fffae0;
+      --line-color: rgba(255, 255, 0, 0.5);
+      --highlight-color: #ffff00;
+      --highlight-glow: rgba(255, 255, 0, 0.8);
+      --text-color: #e0e0e0;
+    }
+
+    body,
+    html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: #000 url('stars.webp') repeat;
+      color: var(--text-color);
+      font-family: monospace;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .constellation-map {
+      position: relative;
+      width: 85vw;
+      aspect-ratio: 1000 / 800;
+      max-width: 1200px;
+      max-height: 960px;
+      transition: transform 0.1s ease-out;
+    }
+
+    svg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      overflow: visible;
+    }
+
+    .constellation-line {
+      stroke: var(--line-color);
+      stroke-width: 1.5;
+      transition: stroke 0.4s ease, stroke-width 0.4s ease, filter 0.4s ease;
+      stroke-linecap: round;
+    }
+
+    .constellation-line.highlight {
+      stroke: var(--highlight-color);
+      stroke-width: 3;
+      filter: drop-shadow(0 0 8px var(--highlight-glow));
+    }
+
+    .star {
+      position: absolute;
+      text-decoration: none;
+      font-size: 32px;
+      cursor: pointer;
+      z-index: 5;
+      transform: translate(-50%, -50%);
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.3s ease;
+      user-select: none;
+      animation: twinkle var(--twinkle-duration, 3s) infinite ease-in-out;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .star-name-tag {
+      position: fixed;
+      pointer-events: none;
+      color: var(--highlight-color);
+      font-family: monospace;
+      font-size: 2.8rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: 100;
+      text-shadow: 0 0 10px var(--highlight-glow);
+    }
+
+    .star:hover {
+      transform: translate(-50%, -50%) scale(1.5);
+      filter: drop-shadow(0 0 10px var(--highlight-glow));
+    }
+
+    @keyframes twinkle {
+
+      0%,
+      100% {
+        opacity: 0.8;
+        transform: translate(-50%, -50%) scale(1);
+      }
+
+      50% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.1);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="constellation-map" id="map">
+    <svg id="lines-svg" viewBox="0 0 1000 800" preserveAspectRatio="xMidYMid meet"></svg>
+    <!-- Stars will be injected here -->
+  </div>
+
+  <div id="star-tag" class="star-name-tag"></div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/zodiac/index.html";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const CONSTELLATIONS = {
+      'Aries': {
+        id: 1,
+        name: 'Aries',
+        description: 'The Ram of the Golden Fleece',
+        date: { start: { m: 3, d: 21 }, end: { m: 4, d: 19 } },
+        stars: [
+          { id: '01', x: 310, y: 322, name: '01', connections: ['02'] },
+          { id: '02', x: 486, y: 264, name: '02', connections: ['01', '03'] },
+          { id: '03', x: 648, y: 408, name: '03', connections: ['02', '04'] },
+          { id: '04', x: 694, y: 473, name: '04', connections: ['03', '05'] },
+          { id: '05', x: 695, y: 522, name: '05', connections: ['04'] },
+        ]
+      },
+      'Taurus': {
+        id: 2,
+        name: 'Taurus',
+        description: 'The Bull of Heaven',
+        date: { start: { m: 4, d: 20 }, end: { m: 5, d: 20 } },
+        stars: [
+          { id: '01', x: 240, y: 218, name: '01', connections: ['02'] },
+          { id: '02', x: 430, y: 316, name: '02', connections: ['01', '03'] },
+          { id: '03', x: 484, y: 365, name: '03', connections: ['02', '04'] },
+          { id: '04', x: 522, y: 402, name: '04', connections: ['03', '05'] },
+          { id: '05', x: 539, y: 432, name: '05', connections: ['04', '06'] },
+          { id: '06', x: 503, y: 429, name: '06', connections: ['05', '07'] },
+          { id: '07', x: 422, y: 409, name: '07', connections: ['06', '08'] },
+          { id: '08', x: 179, y: 336, name: '08', connections: ['07'] },
+          { id: '09', x: 633, y: 483, name: '09', connections: ['05', '10', '14'] },
+          { id: '10', x: 773, y: 471, name: '10', connections: ['09', '11'] },
+          { id: '11', x: 794, y: 516, name: '11', connections: ['10', '12'] },
+          { id: '12', x: 819, y: 541, name: '12', connections: ['11'] },
+          { id: '13', x: 604, y: 584, name: '13', connections: ['14'] },
+          { id: '14', x: 563, y: 539, name: '14', connections: ['09', '13'] },
+        ]
+      },
+      'Gemini': {
+        id: 3,
+        name: 'Gemini',
+        description: 'The Celestial Twins',
+        date: { start: { m: 5, d: 21 }, end: { m: 6, d: 20 } },
+        stars: [
+          { id: '01', x: 381, y: 200, name: '01', connections: ['03'] },
+          { id: '02', x: 595, y: 207, name: '02', connections: ['03'] },
+          { id: '03', x: 481, y: 256, name: '03', connections: ['01', '02', '04', '09'] },
+          { id: '04', x: 395, y: 281, name: '04', connections: ['05', '03'] },
+          { id: '05', x: 335, y: 289, name: '05', connections: ['04', '06', '07', '08'] },
+          { id: '06', x: 292, y: 252, name: '06', connections: ['05'] },
+          { id: '07', x: 274, y: 317, name: '07', connections: ['05'] },
+          { id: '08', x: 381, y: 401, name: '08', connections: ['05', '14', '15'] },
+          { id: '09', x: 595, y: 375, name: '09', connections: ['03', '10', '12'] },
+          { id: '10', x: 690, y: 439, name: '10', connections: ['09', '11'] },
+          { id: '11', x: 741, y: 440, name: '11', connections: ['10'] },
+          { id: '12', x: 648, y: 480, name: '12', connections: ['09'] },
+          { id: '13', x: 583, y: 535, name: '13', connections: ['14'] },
+          { id: '14', x: 462, y: 435, name: '14', connections: ['08', '13'] },
+          { id: '15', x: 359, y: 496, name: '15', connections: ['08', '16'] },
+          { id: '16', x: 519, y: 599, name: '16', connections: ['15'] },
+        ]
+      },
+      'Cancer': {
+        id: 4,
+        name: 'Cancer',
+        description: 'The Great Crab',
+        date: { start: { m: 6, d: 21 }, end: { m: 7, d: 22 } },
+        stars: [
+          { id: '01', x: 476, y: 190, name: '01', connections: ['02'] },
+          { id: '02', x: 497, y: 352, name: '02', connections: ['01', '03'] },
+          { id: '03', x: 487, y: 431, name: '03', connections: ['02', '04', '05  '] },
+          { id: '04', x: 394, y: 565, name: '04', connections: ['03'] },
+          { id: '05', x: 682, y: 621, name: '05', connections: ['03'] },
+          { id: '06', x: 741, y: 260, name: '06', connections: [] },
+          { id: '07', x: 774, y: 190, name: '07', connections: [] },
+          { id: '08', x: 231, y: 524, name: '08', connections: [] },
+        ]
+      },
+      'Leo': {
+        id: 5,
+        name: 'Leo',
+        description: 'The Nemean Lion',
+        date: { start: { m: 7, d: 23 }, end: { m: 8, d: 22 } },
+        stars: [
+          { id: '01', x: 604, y: 402, name: '01', connections: ['04', '05', '08'] },
+          { id: '02', x: 792, y: 336, name: '02', connections: ['06'] },
+          { id: '03', x: 685, y: 526, name: '03', connections: ['04', '07'] },
+          { id: '04', x: 699, y: 446, name: '04', connections: ['01', '03'] },
+          { id: '05', x: 628, y: 333, name: '05', connections: ['01', '06'] },
+          { id: '06', x: 738, y: 279, name: '06', connections: ['02', '05'] },
+          { id: '07', x: 371, y: 482, name: '07', connections: ['03', '09'] },
+          { id: '08', x: 347, y: 401, name: '08', connections: ['01', '09'] },
+          { id: '09', x: 215, y: 506, name: '09', connections: ['07', '08'] },
+        ]
+      },
+      'Virgo': {
+        id: 6,
+        name: 'Virgo',
+        description: 'The Maiden of Justice',
+        date: { start: { m: 8, d: 23 }, end: { m: 9, d: 22 } },
+        stars: [
+          { id: '01', x: 406, y: 318, name: '01', connections: ['02'] },
+          { id: '02', x: 500, y: 343, name: '02', connections: ['03', '06'] },
+          { id: '03', x: 576, y: 331, name: '03', connections: ['02', '04', '07'] },
+          { id: '04', x: 593, y: 272, name: '04', connections: ['03', '05'] },
+          { id: '05', x: 594, y: 201, name: '05', connections: ['04'] },
+          { id: '06', x: 504, y: 435, name: '06', connections: ['02', '11', '12'] },
+          { id: '07', x: 583, y: 414, name: '07', connections: ['03', '12'] },
+          { id: '08', x: 558, y: 554, name: '08', connections: ['12', '13'] },
+          { id: '09', x: 485, y: 599, name: '09', connections: ['13'] },
+          { id: '10', x: 377, y: 564, name: '10', connections: ['11'] },
+          { id: '11', x: 443, y: 474, name: '11', connections: ['06', '10'] },
+          { id: '12', x: 627, y: 473, name: '12', connections: ['06', '07', '08'] },
+          { id: '13', x: 520, y: 540, name: '13', connections: ['08', '09'] },
+        ]
+      },
+      'Libra': {
+        id: 7,
+        name: 'Libra',
+        description: 'The Scales of Balance',
+        date: { start: { m: 9, d: 23 }, end: { m: 10, d: 22 } },
+        stars: [
+          { id: '01', x: 627, y: 339, name: '01', connections: ['02', '08'] },
+          { id: '02', x: 496, y: 261, name: '02', connections: ['01', '03', '08'] },
+          { id: '03', x: 445, y: 340, name: '03', connections: ['02', '04'] },
+          { id: '04', x: 427, y: 381, name: '04', connections: ['03', '05'] },
+          { id: '05', x: 373, y: 382, name: '05', connections: ['04'] },
+          { id: '06', x: 500, y: 543, name: '06', connections: ['07'] },
+          { id: '07', x: 495, y: 504, name: '07', connections: ['06', '08'] },
+          { id: '08', x: 591, y: 472, name: '08', connections: ['01', '02', '07'] },
+        ]
+      },
+      'Scorpio': {
+        id: 8,
+        name: 'Scorpio',
+        description: 'The Scorpion of Orion',
+        date: { start: { m: 10, d: 23 }, end: { m: 11, d: 21 } },
+        stars: [
+          { id: '01', x: 738, y: 187, name: '01', connections: ['04'] },
+          { id: '02', x: 756, y: 238, name: '02', connections: ['04'] },
+          { id: '03', x: 757, y: 304, name: '03', connections: ['04'] },
+          { id: '04', x: 645, y: 291, name: '04', connections: ['01', '02', '03', '05'] },
+          { id: '05', x: 601, y: 307, name: '05', connections: ['04', '06'] },
+          { id: '06', x: 567, y: 334, name: '06', connections: ['05', '07'] },
+          { id: '07', x: 497, y: 444, name: '07', connections: ['06', '08'] },
+          { id: '08', x: 470, y: 591, name: '08', connections: ['07', '09'] },
+          { id: '09', x: 398, y: 606, name: '09', connections: ['08', '10'] },
+          { id: '10', x: 293, y: 610, name: '10', connections: ['09', '11'] },
+          { id: '11', x: 243, y: 559, name: '11', connections: ['10', '12'] },
+          { id: '12', x: 294, y: 502, name: '12', connections: ['11', '13'] },
+          { id: '13', x: 331, y: 499, name: '13', connections: ['12'] },
+        ]
+      },
+      'Sagittarius': {
+        id: 9,
+        name: 'Sagittarius',
+        description: 'The Centaur Archer',
+        date: { start: { m: 11, d: 22 }, end: { m: 12, d: 21 } },
+        stars: [
+          { id: '01', x: 373, y: 300, name: '01', connections: ['06', '16'] },
+          { id: '02', x: 483, y: 196, name: '02', connections: ['19'] },
+          { id: '03', x: 703, y: 292, name: '03', connections: ['13'] },
+          { id: '04', x: 740, y: 414, name: '04', connections: ['12'] },
+          { id: '05', x: 639, y: 497, name: '05', connections: ['18'] },
+          { id: '06', x: 262, y: 349, name: '06', connections: ['01', '08'] },
+          { id: '07', x: 270, y: 477, name: '07', connections: ['08', '09'] },
+          { id: '08', x: 262, y: 452, name: '08', connections: ['06', '07'] },
+          { id: '09', x: 301, y: 584, name: '09', connections: ['07', '09', '10'] },
+          { id: '10', x: 433, y: 564, name: '10', connections: ['09'] },
+          { id: '11', x: 433, y: 606, name: '11', connections: ['09'] },
+          { id: '12', x: 688, y: 395, name: '12', connections: ['04', '13', '18'] },
+          { id: '13', x: 653, y: 334, name: '13', connections: ['03', '12', '14'] },
+          { id: '14', x: 568, y: 360, name: '14', connections: ['13', '15', '17'] },
+          { id: '15', x: 508, y: 387, name: '15', connections: ['14', '16'] },
+          { id: '16', x: 469, y: 360, name: '16', connections: ['01', '15', '17'] },
+          { id: '17', x: 524, y: 332, name: '17', connections: ['14', '16', '19'] },
+          { id: '18', x: 609, y: 463, name: '18', connections: ['05', '12'] },
+          { id: '19', x: 512, y: 257, name: '19', connections: ['02', '17'] },
+        ]
+      },
+      'Capricorn': {
+        id: 10,
+        name: 'Capricorn',
+        description: 'The Sea Goat',
+        date: { start: { m: 12, d: 22 }, end: { m: 1, d: 19 } },
+        stars: [
+          { id: '01', x: 105, y: 310, name: '01', connections: ['02', '10'] },
+          { id: '02', x: 183, y: 314, name: '02', connections: ['01', '03'] },
+          { id: '03', x: 321, y: 317, name: '03', connections: ['02', '04'] },
+          { id: '04', x: 471, y: 319, name: '04', connections: ['03', '05'] },
+          { id: '05', x: 861, y: 209, name: '05', connections: ['04', '06'] },
+          { id: '06', x: 902, y: 194, name: '06', connections: ['05', '07'] },
+          { id: '07', x: 861, y: 270, name: '07', connections: ['06', '08'] },
+          { id: '08', x: 644, y: 552, name: '08', connections: ['07', '09'] },
+          { id: '09', x: 588, y: 601, name: '09', connections: ['08', '10'] },
+          { id: '10', x: 300, y: 480, name: '10', connections: ['01', '09'] },
+        ]
+      },
+      'Aquarius': {
+        id: 11,
+        name: 'Aquarius',
+        description: 'The Water Bearer',
+        date: { start: { m: 1, d: 20 }, end: { m: 2, d: 18 } },
+        stars: [
+          { id: '01', x: 130, y: 346, name: '01', connections: ['07', '11'] },
+          { id: '02', x: 509, y: 248, name: '02', connections: ['03', '05', '12'] },
+          { id: '03', x: 692, y: 359, name: '03', connections: ['02', '04'] },
+          { id: '04', x: 868, y: 403, name: '04', connections: ['03'] },
+          { id: '05', x: 450, y: 396, name: '05', connections: ['02', '13'] },
+          { id: '06', x: 411, y: 237, name: '06', connections: ['11', '12'] },
+          { id: '07', x: 225, y: 393, name: '07', connections: ['01', '08'] },
+          { id: '08', x: 250, y: 456, name: '08', connections: ['07', '09'] },
+          { id: '09', x: 179, y: 560, name: '09', connections: ['08'] },
+          { id: '10', x: 486, y: 491, name: '10', connections: ['13'] },
+          { id: '11', x: 362, y: 245, name: '11', connections: ['01', '06'] },
+          { id: '12', x: 435, y: 264, name: '12', connections: ['02', '06'] },
+          { id: '13', x: 468, y: 463, name: '13', connections: ['05', '10'] },
+        ]
+      },
+      'Pisces': {
+        id: 12,
+        name: 'Pisces',
+        description: 'The Two Fish',
+        date: { start: { m: 2, d: 19 }, end: { m: 3, d: 20 } },
+        stars: [
+          { id: '01', x: 164, y: 421, name: '01', connections: ['08', '07'] },
+          { id: '02', x: 227, y: 579, name: '02', connections: ['10', '11'] },
+          { id: '03', x: 92, y: 172, name: '03', connections: ['04'] },
+          { id: '04', x: 91, y: 221, name: '04', connections: ['05', '03'] },
+          { id: '05', x: 125, y: 239, name: '05', connections: ['04', '07'] },
+          { id: '06', x: 215, y: 268, name: '06', connections: ['07'] },
+          { id: '07', x: 171, y: 293, name: '07', connections: ['06', '05'] },
+          { id: '08', x: 171, y: 512, name: '08', connections: ['09', '01'] },
+          { id: '09', x: 145, y: 658, name: '09', connections: ['10', '08'] },
+          { id: '10', x: 202, y: 620, name: '10', connections: ['02', '09'] },
+          { id: '11', x: 388, y: 517, name: '11', connections: ['19', '02'] },
+          { id: '12', x: 697, y: 468, name: '12', connections: ['13', '18'] },
+          { id: '13', x: 730, y: 403, name: '13', connections: ['12', '16'] },
+          { id: '14', x: 854, y: 431, name: '14', connections: ['17', '16'] },
+          { id: '15', x: 913, y: 395, name: '15', connections: ['14'] },
+          { id: '16', x: 808, y: 399, name: '16', connections: ['14', '13'] },
+          { id: '17', x: 846, y: 484, name: '17', connections: ['14', '18'] },
+          { id: '18', x: 761, y: 511, name: '18', connections: ['12', '17'] },
+          { id: '19', x: 443, y: 509, name: '19', connections: ['11', '20'] },
+          { id: '20', x: 608, y: 470, name: '20', connections: ['12', '19'] },
+        ]
+      },
+    };
+
+    // Show the current sign for today's date
+    function getCurrentSignKey() {
+      const now = new Date();
+      const m = now.getMonth() + 1;
+      const d = now.getDate();
+
+      for (const key in CONSTELLATIONS) {
+        const sign = CONSTELLATIONS[key];
+        const start = sign.date.start;
+        const end = sign.date.end;
+
+        // Handle year wrap (Capricorn: Dec 22 - Jan 19)
+        if (start.m > end.m) {
+          if ((m === start.m && d >= start.d) || (m === end.m && d <= end.d) || (m < end.m) || (m > start.m)) {
+            return key;
+          }
+        } else {
+          if ((m > start.m || (m === start.m && d >= start.d)) && (m < end.m || (m === end.m && d <= end.d))) {
+            return key;
+          }
+        }
+      }
+      return 'Capricorn'; // Fallback
+    }
+
+    function drawConstellation(key) {
+      const sign = CONSTELLATIONS[key];
+      const starsData = sign.stars;
+
+      // During dev this was useful, so I'm leaving it in (but commented out) just in case
+      // starsData.forEach(star => { star.x = star.x - 100; console.log(star.x); });
+      // starsData.forEach(star => { star.y = star.y - 100; console.log(star.y); });
+
+      // Update UI
+      document.title = key + ': ' + sign.description;
+      const mapElement = document.getElementById('map');
+      const svgElement = document.getElementById('lines-svg');
+      const starTag = document.getElementById('star-tag');
+
+      // Clear existing
+      mapElement.querySelectorAll('.star').forEach(s => s.remove());
+      svgElement.innerHTML = '';
+
+      // Create stars
+      starsData.forEach(star => {
+        const el = document.createElement('a');
+        el.href = pageRandomiser.nextOne();
+        el.className = 'star';
+        el.style.left = `${(star.x / 1000) * 100}%`;
+        el.style.top = `${(star.y / 800) * 100}%`;
+        el.dataset.id = star.id;
+        el.innerHTML = ['✨', '⭐', '🌟'][Math.floor(Math.random() * 3)];
+        el.style.setProperty('--twinkle-duration', (2 + Math.random() * 3) + 's');
+
+        // TODO: Possibly never, but it might be nice...
+        // This `starTag` stuff is all to do with star names.
+        // But it's so much effort to find these, so just leave it for now.
+        el.addEventListener('mouseenter', (e) => {
+          highlight(star.id);
+          starTag.innerText = star.name;
+          starTag.style.opacity = 0;
+        });
+        el.addEventListener('mousemove', (e) => {
+          starTag.style.left = (e.clientX + 25) + 'px';
+          starTag.style.top = (e.clientY + 10) + 'px';
+        });
+        el.addEventListener('mouseleave', () => {
+          unhighlight();
+          starTag.style.opacity = 0;
+        });
+
+        mapElement.appendChild(el);
+      });
+
+      // Create lines
+      const processedConnections = new Set();
+      starsData.forEach(star => {
+        star.connections.forEach(targetId => {
+          const target = starsData.find(s => s.id === targetId);
+          if (target) {
+            const pairId = [star.id, targetId].sort().join('-');
+            if (!processedConnections.has(pairId)) {
+              const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+              line.setAttribute('x1', star.x);
+              line.setAttribute('y1', star.y);
+              line.setAttribute('x2', target.x);
+              line.setAttribute('y2', target.y);
+              line.classList.add('constellation-line');
+              line.dataset.stars = `${star.id} ${targetId}`;
+              svgElement.appendChild(line);
+              processedConnections.add(pairId);
+            }
+          }
+        });
+      });
+    }
+
+    // Highlight lines connected to a star
+    function highlight(starId) {
+      const lines = document.querySelectorAll('.constellation-line');
+      lines.forEach(line => {
+        if (line.dataset.stars.split(' ').includes(starId)) {
+          line.classList.add('highlight');
+        } else {
+          line.classList.remove('highlight');
+        }
+      });
+    }
+
+    // Remove highlight from all lines
+    function unhighlight() {
+      const lines = document.querySelectorAll('.constellation-line');
+      lines.forEach(line => {
+        line.classList.remove('highlight');
+      });
+    }
+
+    // Dev mode for those who know the secret key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === '`') {
+        if (document.getElementById('dev-nav')) return;
+
+        const nav = document.createElement('div');
+        nav.id = 'dev-nav';
+        nav.style.position = 'fixed';
+        nav.style.top = '20px';
+        nav.style.left = '20px';
+        nav.style.zIndex = '1000';
+        nav.style.background = 'rgba(0,0,0,0.8)';
+        nav.style.padding = '10px';
+        nav.style.border = '1px solid yellow';
+
+        const keys = Object.keys(CONSTELLATIONS).sort((a, b) => CONSTELLATIONS[a].id - CONSTELLATIONS[b].id);
+        let idx = keys.indexOf(currentSignKey);
+
+        const update = (dir) => {
+          idx = (idx + dir + keys.length) % keys.length;
+          currentSignKey = keys[idx];
+          drawConstellation(currentSignKey);
+        };
+
+        const prevBtn = document.createElement('button');
+        prevBtn.innerText = 'PREV';
+        prevBtn.onclick = () => update(-1);
+
+        const nextBtn = document.createElement('button');
+        nextBtn.innerText = 'NEXT';
+        nextBtn.onclick = () => update(1);
+
+        nav.appendChild(prevBtn);
+        nav.appendChild(nextBtn);
+        document.body.appendChild(nav);
+      }
+    });
+
+    // Get today's sign constellation and draw it
+    let currentSignKey = getCurrentSignKey();
+    drawConstellation(currentSignKey);
+
+  </script>
+</body>
+
+</html>

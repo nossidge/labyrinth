@@ -5,6 +5,7 @@ const labyrinthPages = [
   "../../corridors/1-bit-dots/index.html",
   "../../corridors/blade-runner/index.html",
   "../../corridors/bsod/index.html",
+  "../../corridors/cow/index.html",
   "../../corridors/crash-test-dummies/index.html",
   "../../corridors/dancing-baby/index.html",
   "../../corridors/happy/index.html",

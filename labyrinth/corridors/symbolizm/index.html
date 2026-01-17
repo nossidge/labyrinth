@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="cataclyzm">
+  <title>symbolizm</title>
+  <style>
+    :root {
+      --bg-color: #050505;
+      --text-color: #00ff41;
+      --highlight: #ff00ff;
+      --flicker-speed: 0.12s;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body,
+    html {
+      width: 100%;
+      height: 100%;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: monospace;
+      overflow: hidden;
+    }
+
+    /* CRT Scanline Effect */
+    body::before {
+      content: " ";
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      right: 0;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+      z-index: 2;
+      background-size: 100% 2px, 3px 100%;
+      pointer-events: none;
+    }
+
+    #grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+      grid-template-rows: repeat(auto-fill, minmax(80px, 1fr));
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+      z-index: 1;
+    }
+
+    .cell {
+      border: 1px solid rgba(0, 255, 65, 0.1);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 16px;
+      transition: all 0.4s ease;
+      text-decoration: none;
+      color: var(--text-color);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cell:hover {
+      background-color: var(--text-color);
+      color: var(--bg-color);
+      transform: scale(0.9) rotate(2deg);
+      z-index: 10;
+      border: none;
+    }
+
+    .cell.tilde {
+      font-weight: bold;
+      font-family: sans-serif;
+      text-transform: uppercase;
+      font-size: 24px;
+    }
+
+    .cell.tilde:hover,
+    .cell.tilde.flash {
+      background-color: var(--highlight);
+      box-shadow: 0 0 20px var(--highlight);
+      color: var(--bg-color);
+    }
+
+    /* Glitch Animation */
+    @keyframes flicker {
+      0% {
+        opacity: 0.8;
+      }
+
+      50% {
+        opacity: 1;
+      }
+
+      100% {
+        opacity: 0.9;
+      }
+    }
+
+    .flicker {
+      animation: flicker var(--flicker-speed) infinite alternate;
+    }
+
+    .inverted {
+      filter: invert(1);
+    }
+  </style>
+</head>
+
+<body class="flicker">
+  <div id="grid"></div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/symbolizm/index.html";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const grid = document.getElementById('grid');
+    const characters = "01$!@#%^&*()_+-=[]{}|;:,.<>?/\\";
+
+    // Large number to fill most screens (not perfect, but it's fine)
+    const cellCount = 420;
+
+    // Make a bunch of cells, with tildes and non-tilde cells
+    // Tildes are hyperlinks to other pages
+    // Non-tilde cells are random characters
+    function createCells() {
+      grid.innerHTML = "";
+      for (let _i = 0; _i < cellCount; _i++) {
+        let cell;
+
+        if (Math.random() > 0.9) {
+          // For tilde cells
+          cell = document.createElement('a');
+          cell.classList.add('tilde');
+          cell.innerText = '~';
+          cell.href = pageRandomiser.nextOne();
+
+        } else {
+          // For non-tilde cells
+          cell = document.createElement('div');
+          cell.innerText = characters[Math.floor(Math.random() * characters.length)];
+          cell.style.cursor = 'pointer';
+
+          // On click, change background color to something dark and recreate cells
+          cell.onclick = () => {
+            const min = 0;
+            const max = 50;
+            const r = Math.floor(Math.random() * (max - min) + min);
+            const g = Math.floor(Math.random() * (max - min) + min);
+            const b = Math.floor(Math.random() * (max - min) + min);
+            document.documentElement.style.setProperty('--bg-color', `rgb(${r},${g},${b})`);
+
+            createCells();
+            flashTildes();
+          };
+        }
+
+        cell.className += ' cell';
+        cell.style.animationDelay = Math.random() + 's';
+        grid.appendChild(cell);
+      }
+    }
+
+    // Random cell updates
+    function glitchCells() {
+      const cells = document.querySelectorAll('.cell:not(.tilde)');
+      const luckyCell = cells[Math.floor(Math.random() * cells.length)];
+      if (luckyCell) {
+        luckyCell.innerText = characters[Math.floor(Math.random() * characters.length)];
+        const min = 0.3;
+        const max = 1.0;
+        const randomValue = Math.random() * (max - min) + min;
+        luckyCell.style.opacity = randomValue;
+      }
+      setTimeout(glitchCells, 50);
+    }
+
+    // Flash tilde cells, to hint to the user that these are special cells
+    // We want them to figure out that tildes are clickable hyperlinks
+    function flashTildes() {
+      const tildes = document.querySelectorAll('.cell.tilde');
+      tildes.forEach(t => t.classList.add('flash'));
+      setTimeout(() => {
+        tildes.forEach(t => t.classList.remove('flash'));
+      }, 340);
+    }
+
+    createCells();
+    glitchCells();
+
+  </script>
+</body>
+
+</html>

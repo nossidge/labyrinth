@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+Don't read too much into this, I didn't spend that long on it.
+I'm really not a games developer, just a web developer.
+No gameplay thought whatsoever, just a fun little experiment.
+All the values were just picked to make it feel good enough.
+Also, MP and mompster EX does nothing at the moment.
+-->
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="You gotsta get ridda all dem mompsters!">
+  <title>Mompster quest</title>
+  <style>
+    :root {
+      --bg: #1b1b1b;
+      --panel: #2a2420;
+      --border: #6b5b4a;
+      --text: #e6dccf;
+      --muted: #b8aa97;
+      --party-hp: #4caf50;
+      --party-mp: #3b6fd6;
+      --party-xp: #b9ac32;
+      --enemy-hp: #4caf50;
+      --enemy-mp: #3b6fd6;
+      --enemy-xp: #b9ac32;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      font-family: monospace;
+      color: var(--text);
+    }
+
+    .screen {
+      width: 900px;
+      height: 600px;
+      background:
+        linear-gradient(#444, #111);
+      border: 8px solid #000;
+      position: relative;
+      padding: 12px;
+    }
+
+    /* Area title */
+    .area {
+      position: absolute;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--panel);
+      border: 3px solid var(--border);
+      padding: 6px 12px;
+      font-size: 20px;
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      min-width: 320px;
+      justify-content: space-between;
+    }
+
+    .area button {
+      background: var(--border);
+      border: 2px solid #000;
+      color: var(--text);
+      font-family: monospace;
+      font-weight: bold;
+      cursor: pointer;
+      padding: 2px 8px;
+    }
+
+    .area button:hover {
+      background: var(--muted);
+      color: #000;
+    }
+
+    .area button:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    #area-name {
+      flex-grow: 1;
+      text-align: center;
+      font-size: 16px;
+    }
+
+    /* Main grid */
+    .battle {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 54px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 3px solid var(--border);
+      padding: 8px;
+    }
+
+    .panel h2 {
+      margin: 0 0 8px 0;
+      font-size: 16px;
+      color: var(--muted);
+    }
+
+    .member {
+      display: grid;
+      grid-template-columns: 48px 1fr;
+      gap: 8px;
+      margin-bottom: 8px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #3a322b;
+    }
+
+    .member:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .avatar {
+      width: 48px;
+      height: 48px;
+      background: #555;
+      border: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .avatar:hover {
+      background: #777;
+      border-color: var(--muted);
+    }
+
+    .name {
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+
+    .bar {
+      height: 8px;
+      background: #333;
+      border: 1px solid #000;
+      margin-bottom: 4px;
+      position: relative;
+    }
+
+    .bar>span {
+      display: block;
+      height: 100%;
+    }
+
+    .hp>span {
+      background: var(--party-hp);
+      width: 80%;
+    }
+
+    .mp>span {
+      background: var(--party-mp);
+      width: 60%;
+    }
+
+    .xp>span {
+      background: var(--party-xp);
+      width: 60%;
+    }
+
+    .enemy .hp>span {
+      background: var(--enemy-hp);
+    }
+
+    .enemy .mp>span {
+      background: var(--enemy-mp);
+    }
+
+    .enemy .xp>span {
+      background: var(--enemy-xp);
+    }
+
+    .stats {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .boss .avatar {
+      border-color: #ffd700;
+      box-shadow: 0 0 10px #ff0000;
+      background: #4a0000;
+    }
+
+    .boss .name {
+      color: #ff4500;
+      font-weight: bold;
+    }
+
+    /* Battle log */
+    .log {
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      bottom: 12px;
+      background: var(--panel);
+      border: 3px solid var(--border);
+      padding: 5px 8px 1px 8px;
+      font-size: 14px;
+      height: 198px;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) var(--panel);
+    }
+
+    .log p {
+      margin: 4px 2px;
+      border-bottom: 1px solid #3a322b;
+      padding-bottom: 2px;
+    }
+
+    .log p:last-child {
+      border-bottom: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="screen">
+    <div class="area">
+      <button id="prev-area" onclick="changeArea(-1)"></button>
+      <span id="area-name">Training Area</span>
+      <button id="next-area" onclick="changeArea(1)">+</button>
+    </div>
+
+    <div class="battle">
+      <!-- PC Party -->
+      <div class="panel" id="player-party">
+        <h2>Adventurers</h2>
+        <!-- Dynamic content -->
+      </div>
+
+      <!-- Enemy Party -->
+      <div class="panel enemy" id="enemy-party">
+        <h2>Mompsters</h2>
+        <!-- Dynamic content -->
+      </div>
+    </div>
+
+    <div class="log" id="battle-log">
+      <!-- Dynamic content -->
+    </div>
+  </div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/mompster-quest/index.html";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const AREAS = [
+      { level: 0, name: "Training Area", monsters: 1, pwr: 0 },
+      { level: 1, name: "Shadow Woods", monsters: 2, pwr: 1 },
+      { level: 2, name: "Damp Cave", monsters: 2, pwr: 2 },
+      { level: 3, name: "Graveyard", monsters: 3, pwr: 3 },
+      { level: 4, name: "Forgotten Ruins", monsters: 3, pwr: 5 },
+      { level: 5, name: "Desolate Keep", monsters: 3, pwr: 8 },
+    ];
+
+    const PLAYER_NAME_POOL = [
+      "Alice", "Betty", "Carol", "David", "Edwin", "Fiona", "Grace", "Holly", "Irvin", "Julie",
+      "Kathy", "Laura", "Megan", "Nancy", "Ollie", "Penny", "Quinn", "Riley", "Sandy", "Tommy",
+      "Unity", "Vicky", "Wendy", "Xenia", "Yulie", "Zooey"
+    ];
+    const PLAYER_ICON_POOL = ["🙂", "😎", "🤠", "🧙", "🥷", "🧚", "🏹", "🛡️"];
+
+    const MONSTER_POOL = [
+      { name: "Bat", icon: "🦇", hp: 12, mp: 0 },
+      { name: "Crab", icon: "🦀", hp: 30, mp: 0 },
+      { name: "Dark Cube", icon: "🕋", hp: 60, mp: 10 },
+      { name: "Drake", icon: "🐲", hp: 50, mp: 20 },
+      { name: "Evil Cloud", icon: "☁️", hp: 15, mp: 25 },
+      { name: "Ghost", icon: "👻", hp: 20, mp: 20 },
+      { name: "Goblin", icon: "👺", hp: 22, mp: 8 },
+      { name: "Imp", icon: "👿", hp: 18, mp: 15 },
+      { name: "Living Cactus", icon: "🌵", hp: 32, mp: 0 },
+      { name: "Scorpion", icon: "🦂", hp: 20, mp: 0 },
+      { name: "Serpent", icon: "🐍", hp: 24, mp: 0 },
+      { name: "Skeleton", icon: "💀", hp: 25, mp: 10 },
+      { name: "Slime", icon: "👾", hp: 18, mp: 5 },
+      { name: "Spider", icon: "🕷️", hp: 15, mp: 0 },
+      { name: "Watcher", icon: "👁️", hp: 40, mp: 30 },
+      { name: "Wolf", icon: "🐺", hp: 28, mp: 0 },
+      { name: "Zombie", icon: "🧟", hp: 35, mp: 0 },
+    ];
+
+    const BOSS_POOL = [
+      { name: "Abyssal Terror", icon: "🐙", hp: 250, mp: 50 },
+      { name: "Elder Dragon", icon: "🐉", hp: 200, mp: 100 },
+      { name: "Evil Overlord", icon: "🧙‍♂️", hp: 180, mp: 150 },
+      { name: "Living Fortress", icon: "🏛️", hp: 350, mp: 0 },
+      { name: "Nightmare General", icon: "👹", hp: 220, mp: 80 },
+    ];
+
+    let currentAreaIdx = 0;
+    let players = [];
+    let enemies = [];
+    let turnQueue = [];
+    let battleOver = true;
+    let turnTimeout = null;
+    let gameWon = false;
+
+    function createChar(name, icon, maxHp, maxMp, team, id, level = 1, isBoss = false) {
+      return {
+        id: id,
+        name: name,
+        icon: icon,
+        team: team,
+        level: level,
+        hp: { current: maxHp, max: maxHp },
+        mp: { current: maxMp, max: maxMp },
+        xp: { current: 0, max: 100 * level },
+        alive: true,
+        isBoss: isBoss
+      };
+    }
+
+    function renderMember(container, char) {
+      const hpPct = (char.hp.current / char.hp.max) * 100;
+      const mpPct = char.mp.max > 0 ? (char.mp.current / char.mp.max) * 100 : 0;
+      const xpPct = (char.xp.current / char.xp.max) * 100;
+
+      const memberDiv = document.createElement('div');
+      memberDiv.className = 'member' + (char.isBoss ? ' boss' : '');
+      memberDiv.id = `char-${char.id}`;
+      memberDiv.innerHTML = `
+        <a href="${pageRandomiser.nextOne()}" class="avatar">${char.icon}</a>
+        <div>
+          <div class="name">${char.name} <span class="lvl" id="lvl-${char.id}">Lv.${char.level}</span></div>
+          <div class="bar hp"><span id="hp-bar-${char.id}" style="width: ${hpPct}%"></span></div>
+          <div class="bar mp"><span id="mp-bar-${char.id}" style="width: ${mpPct}%"></span></div>
+          <div class="bar xp"><span id="xp-bar-${char.id}" style="width: ${xpPct}%"></span></div>
+          <div class="stats" id="stats-${char.id}">HP ${char.hp.current}/${char.hp.max} · MP ${char.mp.current}/${char.mp.max} · XP ${char.xp.current}/${char.xp.max}</div>
+        </div>
+      `;
+      container.appendChild(memberDiv);
+    }
+
+    function updateCharUI(char) {
+      const hpPct = Math.max(0, (char.hp.current / char.hp.max) * 100);
+      const mpPct = char.mp.max > 0 ? (char.mp.current / char.mp.max) * 100 : 0;
+      const xpPct = (char.xp.current / char.xp.max) * 100;
+
+      document.getElementById(`hp-bar-${char.id}`).style.width = `${hpPct}%`;
+      document.getElementById(`mp-bar-${char.id}`).style.width = `${mpPct}%`;
+      document.getElementById(`xp-bar-${char.id}`).style.width = `${xpPct}%`;
+      document.getElementById(`stats-${char.id}`).innerText = `HP ${Math.max(0, char.hp.current)}/${char.hp.max} · MP ${char.mp.current}/${char.mp.max} · XP ${char.xp.current}/${char.xp.max}`;
+      document.getElementById(`lvl-${char.id}`).innerText = `Lv.${char.level}`;
+
+      const el = document.getElementById(`char-${char.id}`);
+      if (!char.alive) {
+        el.style.opacity = '0.4';
+        el.style.filter = 'grayscale(1)';
+      } else {
+        el.style.opacity = '1';
+        el.style.filter = 'none';
+      }
+    }
+
+    function addLog(msg) {
+      const log = document.getElementById('battle-log');
+      const p = document.createElement('p');
+      p.innerText = msg;
+      log.appendChild(p);
+      log.scrollTop = log.scrollHeight;
+    }
+
+    function getTargets(team) {
+      return team === 'players' ? enemies.filter(e => e.alive) : players.filter(p => p.alive);
+    }
+
+    function processTurn() {
+      if (battleOver || gameWon) return;
+
+      const activeChar = turnQueue.shift();
+      if (!activeChar || !activeChar.alive) {
+        if (turnQueue.length > 100) turnQueue = turnQueue.filter(c => c.alive); // Cleanup
+        if (turnQueue.length === 0) rebuildQueue();
+        turnTimeout = setTimeout(processTurn, 100);
+        return;
+      }
+
+      let targets = getTargets(activeChar.team);
+      if (targets.length === 0) {
+        endBattle(activeChar.team === 'players');
+        return;
+      }
+
+      // Action
+      const area = AREAS[currentAreaIdx];
+      const target = targets[Math.floor(Math.random() * targets.length)];
+
+      let damage = 0;
+      if (activeChar.team === 'players') {
+        damage = Math.floor(Math.random() * (4 + activeChar.level)) + 4;
+      } else {
+        const baseDmg = activeChar.isBoss ? 15 : area.pwr;
+        damage = area.pwr > 0 ? Math.floor(Math.random() * arenaPwr()) + baseDmg : 0;
+      }
+
+      target.hp.current -= damage;
+      addLog(`${activeChar.icon} ${activeChar.name} attacks ${target.name} for ${damage} damage!`);
+
+      if (target.hp.current <= 0) {
+        target.hp.current = 0;
+        target.alive = false;
+        addLog(`💀 ${target.name} has been slain!`);
+      }
+
+      updateCharUI(target);
+      turnQueue.push(activeChar);
+      turnTimeout = setTimeout(processTurn, 1000);
+    }
+
+    function arenaPwr() {
+      return Math.max(1, AREAS[currentAreaIdx].pwr * 2);
+    }
+
+    function endBattle(victory) {
+      battleOver = true;
+      clearTimeout(turnTimeout);
+
+      if (victory) {
+        addLog("Victory! The area is cleared.");
+
+        // Final Win condition
+        if (currentAreaIdx === AREAS.length - 1) {
+          gameWon = true;
+          addLog("*************************************");
+          addLog("CONGRATULATIONS, YOU HAVE WON!");
+          addLog("The Desolate Keep has been liberated.");
+          addLog("The Labyrinth holds no more terrors.");
+          addLog("*************************************");
+          document.getElementById('area-name').innerText = "FINAL VICTORY";
+          document.querySelectorAll('.area button').forEach(b => b.hidden = true);
+          return;
+        }
+
+        const xpReward = (currentAreaIdx + 1) * 25;
+        players.forEach(p => {
+          if (p.alive) {
+            p.xp.current += xpReward;
+            addLog(`${p.name} gains ${xpReward} XP.`);
+            while (p.xp.current >= p.xp.max) {
+              p.level++;
+              p.xp.current -= p.xp.max;
+              p.xp.max = p.level * 100;
+              p.hp.max += 10;
+              p.hp.current = p.hp.max;
+              addLog(`🌟 ${p.name} LEVELED UP to ${p.level}!`);
+            }
+          }
+          updateCharUI(p);
+        });
+        setTimeout(startBattle, 3000);
+      } else {
+        addLog('Defeat... The party retreats to training.');
+        currentAreaIdx = 0;
+        players.forEach(p => {
+          p.alive = true;
+          p.hp.current = Math.floor(p.hp.max * 0.2); // Recover a bit
+          updateCharUI(p);
+        });
+        setTimeout(startBattle, 3000);
+      }
+    }
+
+    function changeArea(dir) {
+      if (gameWon) return;
+      let next = currentAreaIdx + dir;
+      if (next < 0 || next >= AREAS.length) return;
+      currentAreaIdx = next;
+      startBattle();
+    }
+
+    function startBattle() {
+      if (gameWon) return;
+      battleOver = true;
+      clearTimeout(turnTimeout);
+
+      const area = AREAS[currentAreaIdx];
+      document.getElementById('area-name').innerText = area.name;
+      document.getElementById('prev-area').disabled = currentAreaIdx === 0;
+      document.getElementById('next-area').disabled = currentAreaIdx === AREAS.length - 1;
+
+      const enemyContainer = document.getElementById('enemy-party');
+      enemyContainer.innerHTML = '<h2>Mompsters</h2>';
+      enemies = [];
+
+      // Boss logic for final area (Idx 5: Desolate Keep)
+      if (currentAreaIdx === AREAS.length - 1) {
+        addLog("A foul presence emerges...");
+
+        const m1Base = MONSTER_POOL[Math.floor(Math.random() * MONSTER_POOL.length)];
+        const m1 = createChar(m1Base.name, m1Base.icon, m1Base.hp + 50, m1Base.mp, 'enemies', `e0-${Date.now()}`, 5);
+
+        const bBase = BOSS_POOL[Math.floor(Math.random() * BOSS_POOL.length)];
+        const boss = createChar(bBase.name, bBase.icon, bBase.hp, bBase.mp, 'enemies', `boss-${Date.now()}`, 10, true);
+
+        const m2Base = MONSTER_POOL[Math.floor(Math.random() * MONSTER_POOL.length)];
+        const m2 = createChar(m2Base.name, m2Base.icon, m2Base.hp + 50, m2Base.mp, 'enemies', `e2-${Date.now()}`, 5);
+
+        enemies = [m1, boss, m2];
+        enemies.forEach(e => renderMember(enemyContainer, e));
+      } else {
+        for (let i = 0; i < area.monsters; i++) {
+          const mBase = MONSTER_POOL[Math.floor(Math.random() * MONSTER_POOL.length)];
+          const m = createChar(mBase.name, mBase.icon, mBase.hp + (area.pwr * 10), mBase.mp, 'enemies', `e${i}-${Date.now()}`, 1 + area.pwr);
+          enemies.push(m);
+          renderMember(enemyContainer, m);
+        }
+      }
+
+      rebuildQueue();
+      battleOver = false;
+      addLog(`Entered ${area.name}. A new battle begins!`);
+      turnTimeout = setTimeout(processTurn, 1000);
+    }
+
+    function rebuildQueue() {
+      // Sort to give high level characters a slight edge maybe? Or just keep it simple.
+      turnQueue = [...players.filter(p => p.alive), ...enemies.filter(e => e.alive)];
+    }
+
+    function initGame() {
+      const playerContainer = document.getElementById('player-party');
+      const shuffledNames = [...PLAYER_NAME_POOL].sort(() => 0.5 - Math.random());
+      const shuffledIcons = [...PLAYER_ICON_POOL].sort(() => 0.5 - Math.random());
+
+      // Create players
+      for (let i = 0; i < 3; i++) {
+        const p = createChar(shuffledNames[i], shuffledIcons[i], 30, 10, 'players', `p${i}`);
+        players.push(p);
+        renderMember(playerContainer, p);
+      }
+
+      // Regen loop
+      setInterval(() => {
+        if (gameWon) return;
+        players.forEach(p => {
+          if (p.alive && p.hp.current < p.hp.max) {
+            const regen = Math.floor(Math.random() * 5) + p.level;
+            p.hp.current = Math.min(p.hp.max, p.hp.current + regen);
+            addLog(`${p.icon} ${p.name} regenerates for ${regen} HP!`);
+            updateCharUI(p);
+          }
+        });
+      }, 5000);
+
+      startBattle();
+    }
+
+    window.onload = initGame;
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Vertical lines">
+  <title>Vertical lines</title>
+  <style>
+    body {
+      background-color: #000;
+      color: #fff;
+      font-family: 'Courier New', monospace;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .lines-wrapper {
+      display: flex;
+      gap: 10px;
+      white-space: nowrap;
+    }
+
+    .line-link {
+      display: inline-block;
+      color: #fff;
+      text-decoration: none;
+      font-size: 80px;
+      font-weight: bold;
+      transform: scaleY(25);
+      transition: color 0.1s;
+    }
+
+    .line-link:hover {
+      color: #ff00ff;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .spacer {
+      display: inline-block;
+      width: 40px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="lines" class="lines-wrapper">
+    <!-- Lines will be injected here -->
+  </div>
+
+  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script>
+    const currentPage = "corridors/vertical-lines/index.html";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const container = document.getElementById('lines');
+
+    // This pattern is inpired by my bedroom curtains :-)
+    const basePattern = '|      || | | | | | ||      ||      || | | | | | ||      ||      || | | | | | ||      |';
+
+    // Repeat pattern to fill width
+    const pattern = (basePattern + basePattern).split('');
+
+    pattern.forEach(char => {
+      if (char === '|') {
+        const a = document.createElement('a');
+        a.href = pageRandomiser.nextOne();
+        a.className = 'line-link';
+        a.textContent = '|';
+
+        // Add random variation to height for a more distorted look
+        // This won't really be visible unless they zoom out, so it's a nice lil easter egg
+        const scale = 20 + Math.random() * 40;
+        a.style.transform = `scaleY(${scale})`;
+
+        // Wider hit area
+        a.style.padding = '0 5px';
+        container.appendChild(a);
+
+      } else if (char === ' ') {
+        const span = document.createElement('span');
+        span.className = 'spacer';
+        container.appendChild(span);
+      }
+    });
+  </script>
+</body>
+
+</html>

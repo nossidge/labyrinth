@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="In my heart of hearts">
+  <title>i feel love</title>
+  <style>
+    :root {
+      --heart-color: #ff0055;
+      --bg-color: #220000;
+      --hover-color: #ffffff;
+      --ripple-color: #ff0055;
+      --heartbeat-duration: 3s;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-color);
+      color: var(--heart-color);
+      font-family: "Courier New", Courier, monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      overflow: hidden;
+      cursor: crosshair;
+      animation: bg-pulse var(--heartbeat-duration) infinite ease-in-out;
+    }
+
+    @keyframes bg-pulse {
+
+      0%,
+      100% {
+        background-color: #200;
+      }
+
+      15% {
+        background-color: #500;
+      }
+
+      30% {
+        background-color: #200;
+      }
+
+      45% {
+        background-color: #400;
+      }
+    }
+
+    .ripple {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border: 5px solid var(--ripple-color);
+      border-radius: 50%;
+      opacity: 0;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .ripple-1 {
+      animation: ripple-out var(--heartbeat-duration) infinite cubic-bezier(0, 0.2, 0.8, 1);
+    }
+
+    .ripple-2 {
+      animation: ripple-out var(--heartbeat-duration) infinite cubic-bezier(0, 0.2, 0.8, 1) 0.3s;
+    }
+
+    @keyframes ripple-out {
+      0% {
+        width: 0;
+        height: 0;
+        opacity: 0.8;
+        border-width: 40px;
+      }
+
+      100% {
+        width: 250vmax;
+        height: 250vmax;
+        opacity: 0;
+        border-width: 1px;
+      }
+    }
+
+    .container {
+      position: relative;
+      animation: heart-thump var(--heartbeat-duration) infinite ease-in-out;
+    }
+
+    @keyframes heart-thump {
+
+      0%,
+      100% {
+        transform: scale(1);
+      }
+
+      15% {
+        transform: scale(1.15);
+      }
+
+      30% {
+        transform: scale(1);
+      }
+
+      45% {
+        transform: scale(1.08);
+      }
+    }
+
+    pre {
+      font-size: 3vw;
+      line-height: 1.1;
+      text-align: left;
+      user-select: none;
+      filter: drop-shadow(0 0 10px rgba(255, 0, 85, 0.5));
+    }
+
+    a {
+      display: inline-block;
+      color: inherit;
+      text-decoration: none;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      position: relative;
+    }
+
+    a:hover {
+      color: var(--hover-color);
+      transform: rotate(-90deg) scale(1.5);
+      text-shadow: 0 0 20px var(--heart-color);
+      z-index: 10;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="ripple ripple-1"></div>
+  <div class="ripple ripple-2"></div>
+
+  <div class="container">
+    <pre>   <a href="../../todo.html">&lt;3</a><a href="../../todo.html">&lt;3</a>  <a href="../../todo.html">&lt;3</a><a href="../../todo.html">&lt;3</a>
+ <a href="../../todo.html">&lt;3</a>    <a href="../../todo.html">&lt;3</a>    <a href="../../todo.html">&lt;3</a>
+<a href="../../todo.html">&lt;3</a>            <a href="../../todo.html">&lt;3</a>
+<a href="../../todo.html">&lt;3</a>            <a href="../../todo.html">&lt;3</a>
+ <a href="../../todo.html">&lt;3</a>          <a href="../../todo.html">&lt;3</a>
+   <a href="../../todo.html">&lt;3</a>      <a href="../../todo.html">&lt;3</a>
+     <a href="../../todo.html">&lt;3</a>  <a href="../../todo.html">&lt;3</a>
+       <a href="../../todo.html">&lt;3</a></pre>
+  </div>
+</body>
+
+</html>

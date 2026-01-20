@@ -3,6 +3,7 @@
 // Those other pages will be ignored when the links are randomly generated via randomise.rb
 const labyrinthPages = [
   "../../corridors/1-bit-dots/index.html",
+  "../../corridors/ant-colony/index.html",
   "../../corridors/blade-runner/index.html",
   "../../corridors/bsod/index.html",
   "../../corridors/cow/index.html",

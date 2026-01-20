@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Beyond Good and Knievel.">
+  <title>Cool Beans</title>
+  <style>
+    :root {
+      --sky-top: #eb9332;
+      --sky-bottom: #e63946;
+      --ground-color: #332211;
+      --ramp-color: #ffcc00;
+      --text-color: #ffffff;
+    }
+
+    body,
+    html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(to bottom, var(--sky-top), var(--sky-bottom));
+      overflow: hidden;
+      font-family: 'Courier New', Courier, monospace;
+    }
+
+    #world {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+
+    #ground {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 10vh;
+      background-color: var(--ground-color);
+      border-top: 4px solid #000;
+      z-index: 10;
+    }
+
+    #ramp {
+      position: absolute;
+      bottom: 10vh;
+      left: 30%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 200px solid transparent;
+      border-right: 0px solid transparent;
+      /* Right-aligned ramp */
+      border-bottom: 80px solid var(--ramp-color);
+      z-index: 5;
+    }
+
+    /* Alternative ramp design: a simple triangle */
+    #ramp::after {
+      content: '';
+      position: absolute;
+      bottom: -80px;
+      right: 0;
+      width: 4px;
+      height: 80px;
+      background: #000;
+    }
+
+    .vehicle {
+      position: absolute;
+      font-size: 50px;
+      text-decoration: none;
+      user-select: none;
+      z-index: 20;
+      display: inline-block;
+      transition: none;
+      /* We'll handle positioning in JS */
+    }
+
+    .message {
+      position: absolute;
+      color: yellow;
+      font-weight: bold;
+      font-size: 24px;
+      text-transform: uppercase;
+      pointer-events: none;
+      z-index: 30;
+      text-shadow: 2px 2px #000;
+      animation: message-pop 0.5s ease-out forwards;
+    }
+
+    @keyframes message-pop {
+      0% {
+        transform: scale(0.5) rotate(-10deg);
+        opacity: 0;
+      }
+
+      50% {
+        transform: scale(1.2) rotate(10deg);
+        opacity: 1;
+      }
+
+      100% {
+        transform: scale(1) rotate(0deg);
+        opacity: 0;
+        transform: translateY(-50px);
+      }
+    }
+
+    #sun {
+      position: absolute;
+      top: 10%;
+      left: 10%;
+      width: 80px;
+      height: 80px;
+      background: #ffff66;
+      border-radius: 50%;
+      box-shadow: 0 0 40px #ffff00;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="world">
+    <a href="../../todo.html" id="sun"></a>
+    <a href="../../todo.html" id="ramp"></a>
+    <div id="ground"></div>
+  </div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script>
+    const VEHICLES_POOL = [
+      { emoji: '🏍️', direction: 'left' },
+      { emoji: '🏎️', direction: 'left' },
+      { emoji: '🚌', direction: 'left' },
+      { emoji: '🚐', direction: 'left' },
+      { emoji: '🚒', direction: 'left' },
+      { emoji: '🚓', direction: 'left' },
+      { emoji: '🚕', direction: 'left' },
+      { emoji: '🚗', direction: 'left' },
+      { emoji: '🚜', direction: 'left' },
+      { emoji: '🚲', direction: 'left' },
+      { emoji: '🛵', direction: 'left' },
+      { emoji: '🛺', direction: 'left' },
+    ];
+    const MESSAGES_POOL = [
+      'AMAZING!',
+      'BANK!',
+      'BOING!',
+      'BONK!',
+      'COOL!',
+      'CRASH!',
+      'CRAZY!',
+      'DUDE!',
+      'EPIC!',
+      'EXCELLENT!',
+      'FLIP!',
+      'GLORIOUS!',
+      'GOLLY!',
+      'GOSH!',
+      'HOORAY!',
+      'MEGA!',
+      'NICE!',
+      'OUCH!',
+      'RADICAL!',
+      'STUNTING!',
+      'TERRIFIC!',
+      'WALLOP!',
+      'WHIZZ!',
+      'WICKED!',
+      'WOO!',
+      'WOW!',
+      'WOWZERS!',
+      'YES!',
+    ];
+    const vehicleRandomiser = new CyclicRandomiser(VEHICLES_POOL);
+    const messageRandomiser = new CyclicRandomiser(MESSAGES_POOL);
+
+    const world = document.getElementById('world');
+    const ramp = document.getElementById('ramp');
+
+    const rampWidth = 200;
+    const rampHeight = 80;
+    const groundY = window.innerHeight * 0.9;
+    const rampLeft = window.innerWidth * 0.3 - 150;
+    const rampJumpPoint = window.innerWidth * 0.3 + 100;
+
+    function spawnMessage(x, y) {
+      const msg = document.createElement('div');
+      msg.className = 'message';
+      msg.innerText = messageRandomiser.nextOne();
+      msg.style.left = x + 'px';
+      msg.style.top = y + 'px';
+      world.appendChild(msg);
+      setTimeout(() => msg.remove(), 1000);
+    }
+
+    class StuntVehicle {
+      constructor() {
+        const vehicleData = vehicleRandomiser.nextOne();
+        this.el = document.createElement('span');
+        this.el.className = 'vehicle';
+        this.el.innerText = vehicleData.emoji;
+        this.flip = vehicleData.direction === 'left';
+
+        this.x = -100;
+        this.y = groundY - 40;
+        this.vx = 6 + Math.random() * 6;
+        this.vy = 0;
+        this.rotation = 0;
+        this.vRotate = 0;
+        this.isJumping = false;
+        this.gravity = 0.3;
+
+        world.appendChild(this.el);
+        this.update();
+      }
+
+      update() {
+        this.x += this.vx;
+
+        // Ground/Ramp/Air logic
+        if (!this.isJumping) {
+          if (this.x > rampLeft && this.x < rampJumpPoint) {
+            // Going up the ramp
+            const progress = (this.x - rampLeft) / rampWidth;
+            this.y = (groundY - 40) - (progress * rampHeight);
+            this.rotation = -Math.atan2(rampHeight, rampWidth) * (180 / Math.PI);
+          } else if (this.x >= rampJumpPoint) {
+            // Jump!
+            this.isJumping = true;
+            this.vy = -12 - Math.random() * 8; // Launch velocity
+            this.vRotate = 15 + Math.random() * 25; // Flip speed
+          } else {
+            // Flat ground before ramp
+            this.y = groundY - 40;
+            this.rotation = 0;
+          }
+        } else {
+          // In the air
+          this.y += this.vy;
+          this.vy += this.gravity;
+          this.rotation += this.vRotate;
+
+          if (this.y > groundY - 40) {
+            // Landed or Bounced
+            this.y = groundY - 40;
+
+            if (Math.abs(this.vy) > 2) {
+              spawnMessage(this.x, this.y - 40);
+              this.vy *= -0.5; // Bounce back up
+              this.vRotate *= 0.6; // Slow down the flip
+            } else {
+              this.vy = 0;
+              this.rotation = 0;
+              this.vRotate = 0;
+              this.isJumping = false;
+            }
+          }
+        }
+
+        this.el.style.left = this.x + 'px';
+        this.el.style.top = this.y + 'px';
+        const flipStr = this.flip ? ' scaleX(-1)' : '';
+        this.el.style.transform = `rotate(${this.rotation}deg)${flipStr}`;
+
+        if (this.x > window.innerWidth + 100) {
+          this.el.remove();
+          return false;
+        }
+        return true;
+      }
+    }
+
+    const activeVehicles = [];
+
+    function loop() {
+      if (Math.random() < 0.02) {
+        activeVehicles.push(new StuntVehicle());
+      }
+
+      for (let i = activeVehicles.length - 1; i >= 0; i--) {
+        if (!activeVehicles[i].update()) {
+          activeVehicles.splice(i, 1);
+        }
+      }
+
+      requestAnimationFrame(loop);
+    }
+
+    loop();
+
+    // Handle window resize
+    window.addEventListener('resize', () => {
+      location.reload();
+    });
+  </script>
+</body>
+
+</html>

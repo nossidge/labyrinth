@@ -25,5 +25,6 @@ const labyrinthPages = [
   "../../corridors/trine/index.html",
   "../../corridors/vertical-lines/index.html",
   "../../corridors/withnail/index.html",
+  "../../corridors/zeno/index.html",
   "../../corridors/zodiac/index.html",
 ];

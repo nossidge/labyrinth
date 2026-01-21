@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description"
+    content="Half a league, half a half-league, half a half-half-league onward.">
+  <title>Asymptote</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap"
+    rel="stylesheet">
+  <style>
+    /* Windows 95/98 Aesthetic */
+    :root {
+      --win-gray: #c0c0c0;
+      --win-white: #ffffff;
+      --win-dark: #808080;
+      --win-black: #0a0a0a;
+      --win-blue: #000080;
+      --win-light-blue: #1084d0;
+    }
+
+    body {
+      background-color: #008080;
+      /* Classic Teal Desktop */
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Share Tech Mono', 'Courier New', monospace;
+      image-rendering: pixelated;
+      overflow: hidden;
+      /* Dithered background pattern */
+      background-image: radial-gradient(#004040 1px, transparent 1px);
+      background-size: 4px 4px;
+    }
+
+    .window {
+      background: var(--win-gray);
+      width: 450px;
+      border: 2px solid;
+      border-color: var(--win-white) var(--win-black) var(--win-black) var(--win-white);
+      box-shadow: 1px 1px 0 0 var(--win-white) inset, -1px -1px 0 0 var(--win-dark) inset;
+      padding: 3px;
+      position: relative;
+      cursor: default;
+    }
+
+    .title-bar {
+      background: linear-gradient(90deg, var(--win-blue), var(--win-light-blue));
+      padding: 3px 2px 3px 3px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: white;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .title-bar-text {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .title-bar-controls {
+      display: flex;
+    }
+
+    .control-button {
+      width: 16px;
+      height: 14px;
+      background: var(--win-gray);
+      border: 1px solid;
+      border-color: var(--win-white) var(--win-black) var(--win-black) var(--win-white);
+      box-shadow: 1px 1px 0 0 var(--win-white) inset, -1px -1px 0 0 var(--win-dark) inset;
+      font-size: 9px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: black;
+      margin-left: 2px;
+      cursor: pointer;
+      font-family: sans-serif;
+      text-decoration: none;
+    }
+
+    .control-button:active {
+      border-color: var(--win-black) var(--win-white) var(--win-white) var(--win-black);
+      box-shadow: none;
+    }
+
+    .window-body {
+      padding: 20px;
+      font-size: 13px;
+      color: black;
+    }
+
+    .dialog-icon {
+      float: left;
+      margin-right: 20px;
+      font-size: 32px;
+    }
+
+    .status-text {
+      margin-bottom: 20px;
+      line-height: 1.4;
+    }
+
+    .progress-container {
+      height: 22px;
+      background: var(--win-white);
+      border: 1px solid;
+      border-color: var(--win-dark) var(--win-white) var(--win-white) var(--win-dark);
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 15px;
+    }
+
+    #progress-bar {
+      height: calc(100% - 4px);
+      margin: 2px;
+      background: var(--win-blue);
+      width: 0%;
+      display: flex;
+    }
+
+    /* Win95 segmented progress look */
+    #progress-bar::after {
+      content: "";
+      width: 100%;
+      height: 100%;
+      background-image: linear-gradient(90deg, transparent 90%, var(--win-white) 90%);
+      background-size: 15px 100%;
+    }
+
+    .details-row {
+      display: grid;
+      grid-template-columns: 100px 1fr;
+      gap: 5px;
+      margin-bottom: 5px;
+    }
+
+    .buttons-row {
+      margin-top: 25px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .win-button {
+      min-width: 80px;
+      padding: 4px 12px;
+      background: var(--win-gray);
+      border: 1px solid;
+      border-color: var(--win-white) var(--win-black) var(--win-black) var(--win-white);
+      box-shadow: 1px 1px 0 0 var(--win-white) inset, -1px -1px 0 0 var(--win-dark) inset;
+      font-family: inherit;
+      font-size: 13px;
+      cursor: pointer;
+      text-align: center;
+      color: black;
+      text-decoration: none;
+    }
+
+    .win-button:active {
+      border-color: var(--win-black) var(--win-white) var(--win-white) var(--win-black);
+      box-shadow: none;
+    }
+
+    .win-button:focus {
+      outline: 1px dotted black;
+      outline-offset: -4px;
+    }
+
+    .icon {
+      position: absolute;
+      width: 70px;
+      text-align: center;
+      color: white;
+      font-size: 12px;
+      text-decoration: none;
+      padding: 5px;
+    }
+
+    .icon:hover .icon-img {
+      filter: brightness(1.2);
+    }
+
+    .icon:focus {
+      background-color: rgba(0, 0, 128, 0.5);
+      outline: 1px dotted white;
+    }
+
+    .icon-img {
+      font-size: 32px;
+      display: block;
+      margin: 0 auto 5px;
+    }
+
+    .blink {
+      animation: blinker 1s step-start infinite;
+    }
+
+    @keyframes blinker {
+      50% {
+        opacity: 0;
+      }
+    }
+
+    #footer-taskbar {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      background: var(--win-gray);
+      border-top: 1px solid var(--win-white);
+      padding: 2px 5px;
+      font-size: 11px;
+      color: black;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    #taskbar-start {
+      font-weight: bold;
+      border: 1px solid;
+      border-color: var(--win-white) var(--win-black) var(--win-black) var(--win-white);
+      padding: 0 5px;
+      margin: 0 3px;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    #taskbar-clock {
+      margin: 0 5px;
+    }
+  </style>
+</head>
+
+<body>
+  <a href="../../todo.html" class="icon" style="top: 20px; left: 20px;">
+    <span class="icon-img">📂</span>
+    <span>Axioms</span>
+  </a>
+  <a href="../../todo.html" class="icon" style="top: 110px; left: 20px;">
+    <span class="icon-img">💽</span>
+    <span>Tortoise</span>
+  </a>
+  <a href="../../todo.html" class="icon" style="top: 200px; left: 20px;">
+    <span class="icon-img">🏹</span>
+    <span>Achilles</span>
+  </a>
+  <a href="../../todo.html" class="icon" style="top: 290px; left: 20px;">
+    <span class="icon-img">🗑️</span>
+    <span>Recycle Bin</span>
+  </a>
+
+  <div class="window">
+    <div class="title-bar">
+      <div class="title-bar-text">
+        <span>⌛</span> Downloading Eternity...
+      </div>
+      <div class="title-bar-controls">
+        <a href="../../todo.html" class="control-button">_</a>
+        <a href="../../todo.html" class="control-button">□</a>
+        <a href="../../todo.html" class="control-button">X</a>
+      </div>
+    </div>
+    <div class="window-body">
+      <div class="dialog-icon">💾</div>
+      <div class="status-text">
+        <div>
+          Fetching: &nbsp;<code>paradox.dll</code>
+        </div>
+        <div>
+          Remaining: <span id="distance-info">Halfway there...</span>
+        </div>
+      </div>
+
+      <div class="progress-container">
+        <div id="progress-bar"></div>
+      </div>
+
+      <div class="details-row">
+        <span>Completed:</span>
+        <span id="transfer-percentage">0.00%</span>
+      </div>
+      <div class="details-row">
+        <span>Rate:</span>
+        <span id="transfer-rate">0.00 bits/year</span>
+      </div>
+      <div class="details-row">
+        <span>Time:</span>
+        <span id="estimated-time">Unknown</span>
+      </div>
+      <div class="details-row">
+        <span>Status:</span>
+        <span id="status-desc" class="blink">Waiting for infinity...</span>
+      </div>
+
+      <div class="buttons-row">
+        <a href="../../todo.html" class="win-button" id="more-info">More Info</a>
+        <a href="../../todo.html" class="win-button" id="cancel">Cancel</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="footer-taskbar">
+    <div id="taskbar-start">🪟 Start</div>
+    <div id="taskbar-clock">00:00</div>
+  </div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script>
+    const RATES_POOL = [
+      "0.0001 atoms/sec",
+      "Planck length/day",
+      "Receding at c",
+      "Speed of tortoise",
+    ];
+    const TIMES_POOL = [
+      "Tomorrow",
+      "Forever + 1 day",
+      "Heat death of universe",
+      "Very close",
+      "Getting there",
+      "Soon™",
+      "Unknown",
+    ];
+    const DESCRIPTIONS_POOL = [
+      "Dividing space...",
+      "Halving reality...",
+      "Infinite regression...",
+      "Counting every grain of sand",
+      "Adding rice to chessboard",
+      "Waiting for Achilles",
+      "Reticulating splines",
+    ];
+    const rateRandomiser = new CyclicRandomiser(RATES_POOL);
+    const timeRandomiser = new CyclicRandomiser(TIMES_POOL);
+    const descriptionRandomiser = new CyclicRandomiser(DESCRIPTIONS_POOL);
+
+    const progressBar = document.getElementById('progress-bar');
+    const transferPercentage = document.getElementById('transfer-percentage');
+    const transferRate = document.getElementById('transfer-rate');
+    const estimatedTime = document.getElementById('estimated-time');
+    const statusDesc = document.getElementById('status-desc');
+    const distanceInfo = document.getElementById('distance-info');
+    const taskbarClock = document.getElementById('taskbar-clock');
+
+    const progressTickTime = 4000;
+    let progress = 0;
+    let iterations = 0;
+    let currentPrecision = 2;
+
+    function update() {
+      iterations++;
+
+      // Zeno's Paradox: Move half the remaining distance
+      const remaining = 100 - progress;
+      const jump = remaining / 2;
+      progress += jump;
+
+      // Make it never look like it's totally full
+      progressBar.style.width = Math.min(progress, 97) + '%';
+
+      // Update percentage with increasing precision gradually.
+      // If the current precision results in a rounded "100" or a string of nines,
+      // we budge the precision up by one to reveal the next decimal frontier.
+      // Yes this will eventually overflow the div, but that's part of the fun :-)
+      let displayProgress = progress.toFixed(currentPrecision);
+      let parts = displayProgress.split('.');
+      let integerPart = parts[0];
+      let decimalPart = parts[1] || "";
+
+      if (integerPart === "100" || (decimalPart.length > 0 && /^[9]+$/.test(decimalPart))) {
+        currentPrecision = Math.min(currentPrecision + 1, 100);
+        displayProgress = progress.toFixed(currentPrecision);
+        parts = displayProgress.split('.');
+        integerPart = parts[0];
+        decimalPart = parts[1] || "";
+      }
+
+      // Paradox insurance: If floating point limits make progress exactly 100,
+      // we manually override it to 99.[many nines] to preserve the illusion.
+      if (integerPart === "100") {
+        integerPart = "99";
+        decimalPart = "9".repeat(currentPrecision);
+      }
+
+      // Update metadata
+      transferPercentage.innerHTML = `${integerPart}.${decimalPart}%`;
+      transferRate.innerText = rateRandomiser.nextOne();
+      estimatedTime.innerText = timeRandomiser.nextOne();
+      statusDesc.innerText = descriptionRandomiser.nextOne();
+      distanceInfo.innerText = `1/${Math.pow(2, iterations)} of infinity`;
+
+      setTimeout(update, progressTickTime);
+    }
+
+    // Taskbar clock
+    function updateClock() {
+      const now = new Date();
+      const hour = now.getHours().toString().padStart(2, '0');
+      const minute = now.getMinutes().toString().padStart(2, '0');
+      taskbarClock.innerText = `${hour}:${minute}`;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // Start the paradox
+    setTimeout(update, progressTickTime);
+
+  </script>
+</body>
+
+</html>

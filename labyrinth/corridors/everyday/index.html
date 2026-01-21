@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="I think about you every day">
+  <title>I think about you every day</title>
+  <style>
+    :root {
+      --bg: #121212;
+      --text: #c0c0c0;
+      --accent: #555555;
+      --link: #bbbbbb;
+      --cell-bg: #1a1a1a;
+      --cell-border: #333333;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: "Courier New", Courier, monospace;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .grain {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48ZmlsdGVyIGlkPSJuIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iMC44NSIgbnVtT2N0YXZlcz0iMyIgc3RpdGNoVGlsZXM9InN0aXRjaCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbHRlcj0idXJsKCNuKSIvPjwvc3ZnPg==');
+      opacity: 0.08;
+      z-index: 100;
+      pointer-events: none;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      width: 90vw;
+      max-width: 1000px;
+      text-align: center;
+    }
+
+    h1 {
+      font-weight: normal;
+      font-size: 1.2rem;
+      margin-bottom: 20px;
+      letter-spacing: 0.2rem;
+      text-transform: uppercase;
+      opacity: 0.7;
+    }
+
+    .controls {
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      align-items: center;
+    }
+
+    .btn {
+      background: none;
+      border: 1px solid var(--accent);
+      color: var(--text);
+      padding: 5px 10px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 1rem;
+      transition: all 0.2s;
+    }
+
+    .btn:hover {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    #current-view {
+      font-weight: bold;
+      min-width: 180px;
+    }
+
+    .calendar {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    .calendar th,
+    .calendar td {
+      border: 1px solid var(--cell-border);
+      height: 12vh;
+      min-height: 80px;
+      vertical-align: top;
+      text-align: right;
+      padding: 8px;
+      position: relative;
+      background: var(--cell-bg);
+    }
+
+    .calendar th {
+      height: auto;
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--accent);
+      text-transform: uppercase;
+    }
+
+    .day-number {
+      font-size: 0.9rem;
+      opacity: 0.5;
+    }
+
+    .day-content {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 100%;
+      text-align: center;
+    }
+
+    .you-link {
+      display: inline-block;
+      color: var(--link);
+      text-decoration: none;
+      font-size: 1.4rem;
+      transition: transform 0.2s;
+    }
+
+    .you-link:hover {
+      transform: scale(1.2);
+      text-decoration: underline;
+      color: #fff;
+    }
+
+    .empty {
+      background: transparent;
+      border: 1px dashed var(--cell-border);
+    }
+
+    .past {
+      opacity: 0.65;
+      filter: saturate(0.5);
+    }
+
+    .past .you-link {
+      color: var(--accent);
+    }
+
+    @media (max-width: 600px) {
+
+      .calendar th,
+      .calendar td {
+        height: 80px;
+        padding: 4px;
+      }
+
+      .you-link {
+        font-size: 1rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="grain"></div>
+
+  <div class="container">
+    <h1>I think about you every day</h1>
+
+    <div class="controls">
+      <button class="btn" onclick="changeYear(-1)">&lt;&lt;</button>
+      <button class="btn" onclick="changeMonth(-1)">&lt;</button>
+      <span id="current-view"></span>
+      <button class="btn" onclick="changeMonth(1)">&gt;</button>
+      <button class="btn" onclick="changeYear(1)">&gt;&gt;</button>
+    </div>
+
+    <table class="calendar" id="calendar-table">
+      <thead>
+        <tr>
+          <th>Mon</th>
+          <th>Tue</th>
+          <th>Wed</th>
+          <th>Thu</th>
+          <th>Fri</th>
+          <th>Sat</th>
+          <th>Sun</th>
+        </tr>
+      </thead>
+      <tbody id="calendar-body">
+        <!-- Calendar days injected here -->
+      </tbody>
+    </table>
+  </div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/everyday/index.html";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    let currentDate = new Date();
+
+    function renderCalendar() {
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth();
+
+      const monthFmt = new Intl.DateTimeFormat('en-GB', { month: 'long' }).format(currentDate);
+      document.getElementById('current-view').textContent = `${monthFmt} ${year}`;
+
+      const rawFirstDay = new Date(year, month, 1).getDay();
+      const firstDay = (rawFirstDay + 6) % 7; // Monday = 0, Sunday = 6
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+      const tbody = document.getElementById('calendar-body');
+      tbody.innerHTML = '';
+
+      const realToday = new Date();
+      realToday.setHours(0, 0, 0, 0);
+
+      let dateCounter = 1;
+      for (let i = 0; i < 6; i++) {
+        const row = document.createElement('tr');
+        let anyDateInRow = false;
+
+        for (let j = 0; j < 7; j++) {
+          const cell = document.createElement('td');
+          const gridIndex = i * 7 + j;
+          const dayOffset = gridIndex - firstDay + 1;
+          const cellDate = new Date(year, month, dayOffset);
+          cellDate.setHours(0, 0, 0, 0);
+
+          if (cellDate < realToday) {
+            cell.classList.add('past');
+          }
+
+          if (dayOffset < 1 || dayOffset > daysInMonth) {
+            cell.className += ' empty';
+          } else {
+            anyDateInRow = true;
+            cell.innerHTML = `
+              <div class="day-number">${dayOffset}</div>
+              <div class="day-content">
+                <a href="${pageRandomiser.nextOne()}" class="you-link">You</a>
+              </div>
+            `;
+          }
+          row.appendChild(cell);
+        }
+
+        if (anyDateInRow || i < 5) {
+          tbody.appendChild(row);
+        }
+      }
+    }
+
+    function changeMonth(delta) {
+      currentDate.setMonth(currentDate.getMonth() + delta);
+      renderCalendar();
+    }
+
+    function changeYear(delta) {
+      currentDate.setFullYear(currentDate.getFullYear() + delta);
+      renderCalendar();
+    }
+
+    renderCalendar();
+  </script>
+</body>
+
+</html>

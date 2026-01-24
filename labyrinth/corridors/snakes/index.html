@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+THEY TOLD YOU NOT TO ENTER
+YOU, AN EXPLORER DIDN'T LISTEN
+"I WILL FIND OUT THE MYSTERY OF SNAKES"
+
+Background:
+https://www.shutterstock.com/video/clip-1046255161-hieroglyphics-on-ancient-egyptian-stone-carving-background
+-->
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Asps. Very dangerous. You go first.">
+  <title>Snakes. Why did it have to be snakes?</title>
+  <style>
+    :root {
+      --pit-black: #0a0805;
+      --sand-gold: #c5a059;
+      --rope-brown: #4a3728;
+      --snake-green: #2d5a27;
+    }
+
+    body,
+    html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--pit-black) url('bg.jpg');
+      background-size: auto 100%;
+      overflow: hidden;
+      color: var(--sand-gold);
+    }
+
+    #rope-container {
+      position: absolute;
+      width: 100px;
+      margin-left: -50px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 5;
+      transform-origin: top center;
+      pointer-events: none;
+    }
+
+    #rope {
+      width: 8px;
+      height: 400px;
+      background: repeating-linear-gradient(to bottom,
+          var(--rope-brown),
+          var(--rope-brown) 10px,
+          #33261c 10px,
+          #33261c 20px);
+      box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
+    }
+
+    #indy {
+      font-size: 5rem;
+      margin-top: -10px;
+      filter: drop-shadow(5px 5px 10px #000);
+      cursor: grab;
+      user-select: none;
+      transform-origin: top center;
+      pointer-events: auto;
+    }
+
+    #pit {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      height: 200px;
+      background: linear-gradient(to top, rgba(0, 0, 0, 1), transparent);
+      z-index: 2;
+    }
+
+    .snake {
+      position: absolute;
+      font-size: 3rem;
+      bottom: 10px;
+      transition: all 0.5s ease-in-out;
+      cursor: pointer;
+      z-index: 3;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .snake:hover {
+      filter: drop-shadow(0 0 10px var(--snake-green));
+    }
+
+    #torch {
+      position: fixed;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(197, 160, 89, 0.15) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 1;
+      mix-blend-mode: screen;
+    }
+
+    @keyframes wriggle {
+      0% {
+        transform: translateX(0) rotate(0);
+      }
+
+      33% {
+        transform: translateX(10px) rotate(5deg);
+      }
+
+      66% {
+        transform: translateX(-10px) rotate(-5deg);
+      }
+
+      100% {
+        transform: translateX(0) rotate(0);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="torch"></div>
+
+  <div id="rope-container">
+    <div id="rope"></div>
+    <div id="indy">🤠</div>
+  </div>
+
+  <div id="pit">
+    <!-- This is where all the snakes live -->
+  </div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/snakes/index.html";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const pit = document.getElementById('pit');
+    const torch = document.getElementById('torch');
+    const ropeContainer = document.getElementById('rope-container');
+    const rope = document.getElementById('rope');
+    const indy = document.getElementById('indy');
+
+    // Physics state
+    let anchorX = window.innerWidth / 2;
+    const anchorY = -10; // Fixed off-screen anchor point
+
+    let indyX = anchorX;
+    let indyY = 200;
+    let velX = 0;
+    let velY = 0;
+
+    const k = 0.01; // Spring constant
+    const damping = 0.99;
+    const gravity = 0.4;
+    const naturalLength = 400;
+
+    let isDragging = false;
+    let lastMouseX = 0;
+    let lastMouseY = 0;
+
+    // Light effect, like a torch in the darkness.
+    // But I've added the hieroglyphic background now...
+    // So maybe a torch effect is not necessary any more...
+    // Well, I've coded it now, so I'm just going to leave it.
+    document.addEventListener('mousemove', (e) => {
+      torch.style.left = (e.clientX - 200) + 'px';
+      torch.style.top = (e.clientY - 200) + 'px';
+
+      if (isDragging) {
+        velX = e.clientX - indyX;
+        velY = e.clientY - indyY;
+        indyX = e.clientX;
+        indyY = e.clientY;
+      }
+    });
+
+    // Dragging
+    indy.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      indy.style.cursor = 'grabbing';
+      e.preventDefault();
+    });
+
+    // Dropping
+    document.addEventListener('mouseup', () => {
+      if (isDragging) {
+        isDragging = false;
+        indy.style.cursor = 'grab';
+      }
+    });
+
+    // Touch support (untested!)
+    indy.addEventListener('touchstart', (e) => {
+      isDragging = true;
+      e.preventDefault();
+    });
+
+    document.addEventListener('touchend', () => {
+      isDragging = false;
+    });
+
+    document.addEventListener('touchmove', (e) => {
+      if (isDragging) {
+        const touch = e.touches[0];
+        indyX = touch.clientX;
+        indyY = touch.clientY;
+      }
+    });
+
+    // All this physics stuff is super janky, but it sort of works.
+    // I can't be bothered to make it better :-)
+    function update() {
+      if (!isDragging) {
+        // Physics
+        const dx = indyX - anchorX;
+        const dy = indyY - anchorY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        // Spring force
+        const force = (distance - naturalLength) * k;
+        const fx = (dx / distance) * force;
+        const fy = (dy / distance) * force;
+
+        velX -= fx;
+        velY -= fy;
+        velY += gravity;
+
+        velX *= damping;
+        velY *= damping;
+
+        indyX += velX;
+        indyY += velY;
+      }
+
+      // Update visuals
+      const dx = indyX - anchorX;
+      const dy = indyY - anchorY;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      const angle = Math.atan2(dy, dx) * (180 / Math.PI) - 90;
+
+      ropeContainer.style.left = anchorX + 'px';
+      ropeContainer.style.top = anchorY + 'px';
+      ropeContainer.style.transform = `rotate(${angle}deg)`;
+
+      rope.style.height = distance + 'px';
+
+      requestAnimationFrame(update);
+    }
+
+    requestAnimationFrame(update);
+
+    // Spawn snakes (and also a lizard, hey why not?)
+    const snakeEmojis = ['🐍', '🐍', '🐍', '🐍', '🦎'];
+    const snakeCount = 30;
+
+    for (let i = 0; i < snakeCount; i++) {
+      createSnake();
+    }
+
+    function createSnake() {
+      const s = document.createElement('a');
+      s.className = 'snake';
+      s.href = pageRandomiser.nextOne();
+      s.innerText = snakeEmojis[Math.floor(Math.random() * snakeEmojis.length)];
+
+      const x = Math.random() * 100;
+      const duration = 2 + Math.random() * 3;
+
+      s.style.left = x + '%';
+      s.style.bottom = (Math.random() * 50) + 'px';
+      s.style.animation = `wriggle ${duration}s ease-in-out infinite alternate`;
+
+      pit.appendChild(s);
+    }
+
+    window.addEventListener('resize', () => {
+      anchorX = window.innerWidth / 2;
+    });
+
+  </script>
+</body>
+
+</html>

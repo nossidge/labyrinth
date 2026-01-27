@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Tyger Tyger, burning bright">
+  <title>The Forests of the Night</title>
+  <style>
+    body,
+    html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #021a02;
+      overflow: hidden;
+      font-family: serif;
+    }
+
+    /* Rainforest atmosphere */
+    #atmosphere {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at center, transparent 30%, rgba(0, 0, 0, 0.8) 100%);
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .tree {
+      position: absolute;
+      user-select: none;
+      filter: contrast(0.8) brightness(0.7);
+      will-change: transform;
+    }
+
+    /* Just for the spooky eyes */
+    .interactive-layer {
+      z-index: 1;
+    }
+
+    .bg-layer {
+      z-index: 1;
+    }
+
+    .mid-layer {
+      z-index: 2;
+    }
+
+    .tiger-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    .tiger {
+      font-size: 12rem;
+      display: inline-block;
+      user-select: none;
+      text-decoration: none;
+      filter: drop-shadow(0 0 30px #ff6600);
+      pointer-events: auto;
+      transition: filter 0.3s ease;
+      animation: tiger-run 0.6s infinite ease-in-out;
+    }
+
+    /* Bobbing run animation */
+    @keyframes tiger-run {
+
+      0%,
+      100% {
+        transform: scaleX(-1) translateY(0) rotate(0);
+      }
+
+      25% {
+        transform: scaleX(-1) translateY(-15px) rotate(-2deg);
+      }
+
+      50% {
+        transform: scaleX(-1) translateY(0) rotate(0);
+      }
+
+      75% {
+        transform: scaleX(-1) translateY(-10px) rotate(2deg);
+      }
+    }
+
+    .tiger:hover {
+      filter: drop-shadow(0 0 50px #ffcc00) brightness(1.2);
+    }
+
+    .fg-layer {
+      z-index: 4;
+    }
+
+    @keyframes tree-move {
+      from {
+        transform: translateX(100vw);
+      }
+
+      to {
+        transform: translateX(-50vw);
+      }
+    }
+
+    /* Small glowing "eyes" in the dark */
+    .eyes {
+      position: absolute;
+      width: 10px;
+      height: 4px;
+      background: #ffff00;
+      border-radius: 50%;
+      box-shadow: 0 0 10px #ffff00, 20px 0 10px #ffff00, 20px 0 0 #ffff00;
+      opacity: 0;
+      pointer-events: none;
+      text-decoration: none;
+    }
+
+    /* Hitbox for easier clicking */
+    .eyes::after {
+      content: '';
+      position: absolute;
+      top: -15px;
+      left: -15px;
+      right: -35px;
+      bottom: -15px;
+    }
+
+    .eyes.revealed {
+      animation: blink 10s infinite;
+      pointer-events: auto;
+    }
+
+    .eyes.dev-mode {
+      opacity: 1 !important;
+      z-index: 5;
+    }
+
+    .eyes.dev-mode::after {
+      border: 1px solid red;
+      pointer-events: auto;
+    }
+
+    @keyframes blink {
+
+      0%,
+      90%,
+      100% {
+        opacity: 0;
+      }
+
+      92%,
+      98% {
+        opacity: 0.8;
+      }
+    }
+
+    #flicker {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #fff;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 1000;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="flicker"></div>
+  <div id="atmosphere"></div>
+
+  <div class="layer bg-layer" id="bg-layer"></div>
+  <div class="layer mid-layer" id="mid-layer"></div>
+
+  <div class="tiger-layer">
+    <a href="../../todo.html" class="tiger" id="the-tiger">🐅</a>
+  </div>
+
+  <div class="layer fg-layer" id="fg-layer"></div>
+
+  <div class="layer" id="interactive-layer"></div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/tyger/index.html";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    document.getElementById('the-tiger').href = pageRandomiser.nextOne();
+
+    const treeEmojis = ['🌲', '🌳', '🌴', '🌿', '🌱', '🎋', '🍃', '🎍'];
+
+    // Calculate a speed ratio based on a reference width of 2300px
+    // This ensures that 1.5vw distance travels at the same pixel-per-second speed
+    // regardless of screen size.
+    function getWidthRatio() {
+      return window.innerWidth / 2300;
+    }
+
+    function spawnTree(containerId, speed, sizeRange, blurValue, initialX = null) {
+      const container = document.getElementById(containerId);
+      const tree = document.createElement('div');
+      tree.className = 'tree';
+      tree.innerText = treeEmojis[Math.floor(Math.random() * treeEmojis.length)];
+
+      const size = sizeRange[0] + Math.random() * (sizeRange[1] - sizeRange[0]);
+      tree.style.fontSize = size + 'rem';
+
+      // Random vertical position
+      const min = 10;
+      const max = 40;
+      const randomValue = Math.random() * (max - min) + min;
+      tree.style.top = randomValue + 'vh';
+
+      if (blurValue) {
+        tree.style.filter = `blur(${blurValue}px) brightness(0.6)`;
+      }
+
+      // If initialX is provided, we use it for the start-of-page population
+      const startX = initialX !== null ? initialX : 100;
+
+      // We'll use JS animation for more precise control and cleanup
+      const duration = speed * 1000 * getWidthRatio();
+      const startTime = performance.now();
+
+      // Adjust start time if we are spawning mid-screen
+      const adjustedStartTime = initialX !== null ? startTime - (duration * (100 - initialX) / 150) : startTime;
+
+      function update(currentTime) {
+        const elapsed = currentTime - adjustedStartTime;
+        const progress = elapsed / duration;
+
+        if (progress >= 1) {
+          tree.remove();
+          return;
+        }
+
+        // Move from 100vw to -50vw
+        const x = 100 - (progress * 150);
+        tree.style.transform = `translateX(${x}vw)`;
+        requestAnimationFrame(update);
+      }
+
+      container.appendChild(tree);
+      requestAnimationFrame(update);
+    }
+
+    // Initial population scaled by screen width
+    // Reference: foregroundCount = 8 at 2300px
+    const baseForegroundCount = 8;
+    const foregroundCount = Math.max(2, Math.round(baseForegroundCount * getWidthRatio()));
+    const midgroundCount = foregroundCount * 3;
+    const backgroundCount = foregroundCount * 6;
+
+    for (let i = 0; i < backgroundCount; i++) {
+      spawnTree('bg-layer', 30 + Math.random() * 10, [4, 8], 2, Math.random() * 100);
+    }
+    for (let i = 0; i < midgroundCount; i++) {
+      spawnTree('mid-layer', 15 + Math.random() * 5, [10, 15], 1, Math.random() * 100);
+    }
+    for (let i = 0; i < foregroundCount; i++) {
+      spawnTree('fg-layer', 6 + Math.random() * 2, [20, 30], 0, Math.random() * 100);
+    }
+
+    // Continuous spawning to maintain density
+    // To have N trees in the visible 100vw span, we need to spawn every:
+    // (duration * (100/150)) / N
+    const bgInterval = (35 * (100 / 150) * 1000 * getWidthRatio()) / backgroundCount;
+    const midInterval = (18 * (100 / 150) * 1000 * getWidthRatio()) / midgroundCount;
+    const fgInterval = (7 * (100 / 150) * 1000 * getWidthRatio()) / foregroundCount;
+
+    setInterval(() => spawnTree('bg-layer', 35, [4, 8], 2), bgInterval);
+    setInterval(() => spawnTree('mid-layer', 18, [10, 15], 1), midInterval);
+    setInterval(() => spawnTree('fg-layer', 7, [20, 30], 0), fgInterval);
+
+    // State for eyes
+    let eyesVisible = false;
+    let devMode = false;
+
+    // Add random eyes that move with the forest and act as hidden links
+    function spawnEyes() {
+      const container = document.getElementById('interactive-layer');
+      const eye = document.createElement('a');
+      eye.className = 'eyes';
+      if (eyesVisible) eye.classList.add('revealed');
+      if (devMode) eye.classList.add('dev-mode');
+
+      eye.href = pageRandomiser.nextOne();
+      eye.title = '???';
+
+      const min = 10;
+      const max = 90;
+      const startY = Math.random() * (max - min) + min;
+      eye.style.top = startY + 'vh';
+
+      const duration = (30 + Math.random() * 10) * 1000 * getWidthRatio();
+      const startTime = performance.now();
+
+      function update(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = elapsed / duration;
+        if (progress >= 1) { eye.remove(); return; }
+        const x = 100 - (progress * 150);
+
+        // Hide if too close to tiger in the center
+        const dx = x - 50;
+        const dy = startY - 50;
+        const currentDist = Math.sqrt(dx * dx + dy * dy);
+
+        const exclusionRadius = 20; // 20vw
+        if (currentDist < exclusionRadius) {
+          eye.style.visibility = 'hidden';
+          eye.style.pointerEvents = 'none';
+        } else {
+          eye.style.visibility = 'visible';
+          if (eyesVisible || devMode) eye.style.pointerEvents = 'auto';
+        }
+
+        eye.style.transform = `translateX(${x}vw)`;
+        requestAnimationFrame(update);
+      }
+
+      container.appendChild(eye);
+      requestAnimationFrame(update);
+    }
+
+    // Scale eye spawn rate by width as well
+    const eyeInterval = Math.min(2000, 400 / getWidthRatio());
+    setInterval(spawnEyes, eyeInterval);
+
+    // Keyboard interaction
+    let keyBuffer = '';
+    const flickerEl = document.getElementById('flicker');
+
+    function triggerFlicker() {
+      flickerEl.style.opacity = '0.1';
+      setTimeout(() => flickerEl.style.opacity = '0', 50);
+    }
+
+    function showEyes() {
+      eyesVisible = true;
+      document.querySelectorAll('.eyes').forEach(el => el.classList.add('revealed'));
+    }
+
+    document.addEventListener('keydown', (e) => {
+      triggerFlicker();
+
+      if (e.key === '`') {
+        devMode = !devMode;
+        document.querySelectorAll('.eyes').forEach(el => {
+          if (devMode) el.classList.add('dev-mode');
+          else el.classList.remove('dev-mode');
+        });
+        return;
+      }
+
+      keyBuffer += e.key.toLowerCase();
+      if (keyBuffer.length > 10) keyBuffer = keyBuffer.substring(1);
+
+      if (keyBuffer.includes('eyes')) {
+        keyBuffer = '';
+        showEyes();
+      }
+    });
+  </script>
+</body>
+
+</html>

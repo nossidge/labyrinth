@@ -18,6 +18,7 @@ const labyrinthPages = [
   "../../corridors/mompster-quest/index.html",
   "../../corridors/othello/index.html",
   "../../corridors/piano/index.html",
+  "../../corridors/pills/index.html",
   "../../corridors/poem-fragments/index.html",
   "../../corridors/polygon-face/index.html",
   "../../corridors/snakes/index.html",

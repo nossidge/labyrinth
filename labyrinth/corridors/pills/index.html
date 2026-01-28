@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="It feels so good swimming in your stomach.">
+  <title>Jagged and little</title>
+  <style>
+    :root {
+      --bg-color: #1a1a1a;
+      --text-color: #00ff00;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      overflow: hidden;
+      font-family: "Courier New", Courier, monospace;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    #container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background-image:
+        linear-gradient(rgba(0, 255, 0, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 255, 0, 0.05) 1px, transparent 1px);
+      background-size: 50px 50px;
+    }
+
+    .pill-link {
+      position: absolute;
+      display: block;
+      text-decoration: none;
+      z-index: 10;
+      top: -150px;
+      /* Start off-screen */
+      animation-fill-mode: backwards;
+      /* Apply 0% state during delay */
+    }
+
+    .pill {
+      position: relative;
+      box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.5);
+      transition: transform 0.2s ease-in-out;
+      border: 1px solid rgba(0, 0, 0, 0.2);
+    }
+
+    .pill-link:hover .pill {
+      transform: scale(1.2) rotate(15deg);
+      filter: brightness(1.2);
+    }
+
+    /* Capsule shape */
+    .capsule {
+      width: 30px;
+      height: 70px;
+      border-radius: 15px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .capsule .top {
+      height: 50%;
+      width: 100%;
+    }
+
+    .capsule .bottom {
+      height: 50%;
+      width: 100%;
+    }
+
+    /* Round tablet shape */
+    .tablet {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .tablet::after {
+      content: "";
+      position: absolute;
+      width: 100%;
+      height: 1px;
+      background: rgba(0, 0, 0, 0.2);
+    }
+
+    /* Text on pills */
+    .pill-text {
+      position: absolute;
+      font-size: 8px;
+      font-weight: bold;
+      color: rgba(0, 0, 0, 0.4);
+      pointer-events: none;
+      text-transform: uppercase;
+      width: 100%;
+      text-align: center;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    @keyframes fall {
+      0% {
+        transform: translateY(-100px) rotate(0deg);
+      }
+
+      100% {
+        transform: translateY(120vh) rotate(360deg);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="container"></div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/pills/index.html";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const container = document.getElementById('container');
+
+    const pillColors = [
+      { top: '#ff3366', bottom: '#ffffff' }, // Pink/White
+      { top: '#33ccff', bottom: '#ffffff' }, // Blue/White
+      { top: '#ffff33', bottom: '#ff9900' }, // Yellow/Orange
+      { top: '#ffffff', bottom: '#ffffff' }, // All White
+      { top: '#33ff33', bottom: '#006600' }, // Green/Dark Green
+      { top: '#9933ff', bottom: '#ffffff' }, // Purple/White
+      { top: '#ff0000', bottom: '#ffff00' }, // Red/Yellow
+      { top: '#cccccc', bottom: '#666666' }, // Grey/Dark Grey
+    ];
+
+    const pillTexts = ['XAN', 'PRO', '50mg', '20mg', 'RX', 'TAB', 'ZLO', 'VAL', 'AMB'];
+
+    function createPill() {
+      const link = document.createElement('a');
+      link.href = pageRandomiser.nextOne();
+      link.className = 'pill-link';
+
+      const type = Math.random() > 0.4 ? 'capsule' : 'tablet';
+      const colors = pillColors[Math.floor(Math.random() * pillColors.length)];
+
+      const pill = document.createElement('div');
+      pill.className = `pill ${type}`;
+
+      if (type === 'capsule') {
+        const top = document.createElement('div');
+        top.className = 'top';
+        top.style.backgroundColor = colors.top;
+
+        const bottom = document.createElement('div');
+        bottom.className = 'bottom';
+        bottom.style.backgroundColor = colors.bottom;
+
+        pill.appendChild(top);
+        pill.appendChild(bottom);
+      } else {
+        pill.style.backgroundColor = colors.top;
+      }
+
+      if (Math.random() > 0.3) {
+        const text = document.createElement('div');
+        text.className = 'pill-text';
+        text.innerText = pillTexts[Math.floor(Math.random() * pillTexts.length)];
+        pill.appendChild(text);
+      }
+
+      link.style.left = Math.random() * 100 + '%';
+
+      const duration = 5 + Math.random() * 10;
+      const delay = (Math.random() * 10) - 10; // A negative delay means it starts mid-fall
+      link.style.animation = `fall ${duration}s linear ${delay}s infinite`;
+
+      // Random scale
+      const scale = 0.5 + Math.random();
+      link.style.transform = `scale(${scale})`;
+
+      link.appendChild(pill);
+      container.appendChild(link);
+    }
+
+    // Spawn the pills
+    const pillCount = 60;
+    for (let i = 0; i < pillCount; i++) {
+      createPill();
+    }
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+This game is not exhaustively tested.
+I've no idea if every combination can be won.
+Seems to work for the most part though.
+Let me know if you find a layout that is impossible to win.
+-->
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="description" content="Sam is the hero next door">
+  <title>🚒 💦 🔥</title>
+  <style>
+    body {
+      background-color: #000;
+      background-image:
+        linear-gradient(rgba(0, 255, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 255, 255, 0.05) 1px, transparent 1px);
+      background-size: 20px 20px;
+      color: #888;
+      font-family: "Courier New", Courier, monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      overflow: hidden;
+    }
+
+    #ui-container {
+      border: 3px solid #444;
+      background: #111;
+      padding: 10px;
+      position: relative;
+    }
+
+    #grid {
+      display: grid;
+      grid-template-columns: repeat(12, 40px);
+      grid-template-rows: repeat(12, 40px);
+      background: #000;
+      border: 1px solid #333;
+    }
+
+    .cell {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      line-height: 1;
+      user-select: none;
+      position: relative;
+    }
+
+    .pipe-cell {
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+
+    .pipe-cell:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .pipe-char {
+      display: inline-block;
+      transform: scaleX(1.5);
+      font-weight: bold;
+      pointer-events: none;
+      transition: color 0.1s;
+    }
+
+    .active .pipe-char {
+      color: #00ddee;
+      text-shadow: 0 0 8px rgba(0, 221, 238, 0.8);
+    }
+
+    .building {
+      font-size: 24px;
+    }
+
+    .building-link {
+      text-decoration: none;
+      color: inherit;
+      display: block;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .building-link:hover {
+      filter: brightness(1.5) drop-shadow(0 0 5px rgba(255, 255, 255, 0.5));
+    }
+
+    /* The fire engine emoji needs to be flipped */
+    .source {
+      transform: scaleX(-1);
+    }
+
+    #status {
+      margin-top: 20px;
+      height: 20px;
+      font-weight: bold;
+      text-align: center;
+      visibility: hidden;
+    }
+
+    #status.success {
+      color: #0f0;
+    }
+
+    #status.failure {
+      color: #f00;
+      text-shadow: 0 0 5px #f00;
+    }
+
+    .fire-ovl {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      font-size: 24px;
+      animation: fire-flicker 0.3s infinite alternate;
+      z-index: 5;
+    }
+
+    @keyframes fire-flicker {
+      from {
+        transform: scale(0.9) translateY(0);
+        filter: drop-shadow(0 0 2px orange);
+      }
+
+      to {
+        transform: scale(1.1) translateY(-2px);
+        filter: drop-shadow(0 0 8px red);
+      }
+    }
+
+    .building {
+      position: relative;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="ui-container">
+    <div id="grid"></div>
+  </div>
+
+  <div id="status"></div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/fire-brigade/index.html";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const PIPES_CONFIG = {
+      '─': { n: 0, s: 0, e: 1, w: 1, rotate: '│' },
+      '│': { n: 1, s: 1, e: 0, w: 0, rotate: '─' },
+      '┌': { n: 0, s: 1, e: 1, w: 0, rotate: '┐' },
+      '┐': { n: 0, s: 1, e: 0, w: 1, rotate: '┘' },
+      '┘': { n: 1, s: 0, e: 0, w: 1, rotate: '└' },
+      '└': { n: 1, s: 0, e: 1, w: 0, rotate: '┌' },
+      '├': { n: 1, s: 1, e: 1, w: 0, rotate: '┬' },
+      '┬': { n: 0, s: 1, e: 1, w: 1, rotate: '┤' },
+      '┤': { n: 1, s: 1, e: 0, w: 1, rotate: '┴' },
+      '┴': { n: 1, s: 0, e: 1, w: 1, rotate: '├' }
+    };
+    const PIPE_CHARS = Object.keys(PIPES_CONFIG);
+
+    const BUILDINGS_POOL = [
+      '🏠', '🏢', '🏭', '🏥', '🏤', '🏨', '🏦', '🏪', '🏫', '🏛️', '🏚️', '🏗️'
+    ];
+    const buildingsRandomiser = new CyclicRandomiser(BUILDINGS_POOL);
+
+    const GRID_SIZE = 12;
+    const INNER_START = 1;
+    const INNER_END = GRID_SIZE - 2;
+
+    function randomDestination() {
+      const min = (INNER_END / 2) + 2;
+      const max = INNER_END;
+      const halfWayValue = Math.floor(Math.random() * (max - min) + min);
+      return { r: halfWayValue, c: GRID_SIZE - 1 };
+    }
+
+    function randomSource() {
+      const min = 1;
+      const max = INNER_END / 2;
+      const halfWayValue = Math.floor(Math.random() * (max - min) + min);
+      return { r: halfWayValue, c: 0 };
+    }
+
+    const sourceEmoji = '🚒';
+    const destEmoji = '🔥';
+
+    const TURNS_TO_SPREAD = 8;
+    let totalTurns = 0;
+    let gridData = [];
+
+    function initGrid() {
+      const gridEl = document.getElementById('grid');
+      for (let r = 0; r < GRID_SIZE; r++) {
+        gridData[r] = [];
+        for (let c = 0; c < GRID_SIZE; c++) {
+          const cell = document.createElement('div');
+          cell.className = 'cell';
+
+          if (r === sourcePos.r && c === sourcePos.c) {
+            cell.innerHTML = `<a href="${pageRandomiser.nextOne()}" class="building-link">${sourceEmoji}</a>`;
+            cell.classList.add('building', 'source');
+            gridData[r][c] = { type: 'source', r, c };
+          } else if (r === destPos.r && c === destPos.c) {
+            const emoji = buildingsRandomiser.nextOne();
+            cell.innerHTML = `<a href="${pageRandomiser.nextOne()}" class="building-link">${emoji}</a><div class="fire-ovl">🔥</div>`;
+            cell.classList.add('building');
+            gridData[r][c] = { type: 'building', r, c, onFire: true };
+          } else if (r >= INNER_START && r <= INNER_END && c >= INNER_START && c <= INNER_END) {
+            let char;
+            if (r === sourcePos.r && c === sourcePos.c + 1) {
+              // There's a very small edge case that we need to account for.
+              // When the source is in the top left we cannot have this pipe be straight.
+              // Otherwise it would never be able to hose down the building at right angles to it.
+              // So ensure first pipe connects to source (needs 'w').
+              let connectingPipes = PIPE_CHARS.filter(p => PIPES_CONFIG[p].w === 1);
+              if (r === 1 && c === 1) {
+                connectingPipes = connectingPipes.filter(p => p !== '─');
+              }
+              char = connectingPipes[Math.floor(Math.random() * connectingPipes.length)];
+            } else {
+              char = PIPE_CHARS[Math.floor(Math.random() * PIPE_CHARS.length)];
+            }
+            cell.innerHTML = `<span class="pipe-char">${char}</span>`;
+            cell.classList.add('pipe-cell');
+            gridData[r][c] = { type: 'pipe', r, c, char: char };
+            cell.onclick = () => rotatePipe(r, c, cell);
+          } else if (r === 0 || r === GRID_SIZE - 1 || c === 0 || c === GRID_SIZE - 1) {
+            const isCorner = (r === 0 || r === GRID_SIZE - 1) && (c === 0 || c === GRID_SIZE - 1);
+            if (!isCorner) {
+              const emoji = buildingsRandomiser.nextOne();
+              cell.innerHTML = `<a href="${pageRandomiser.nextOne()}" class="building-link">${emoji}</a>`;
+              cell.classList.add('building');
+              gridData[r][c] = { type: 'building', r, c, onFire: false };
+            } else {
+              gridData[r][c] = { type: 'empty', r, c };
+            }
+          } else {
+            gridData[r][c] = { type: 'empty', r, c };
+          }
+
+          gridEl.appendChild(cell);
+          gridData[r][c].el = cell;
+        }
+      }
+      updateWaterFlow();
+    }
+
+    function rotatePipe(r, c, el) {
+      totalTurns++;
+      const pipe = gridData[r][c];
+      pipe.char = PIPES_CONFIG[pipe.char].rotate;
+      el.querySelector('.pipe-char').innerHTML = pipe.char;
+
+      updateWaterFlow();
+
+      if (totalTurns % TURNS_TO_SPREAD === 0) {
+        spreadFire();
+      }
+    }
+
+    function getNeighbors(r, c) {
+      const n = [];
+      const deltas = [[-1, 0, 'n', 's'], [1, 0, 's', 'n'], [0, 1, 'e', 'w'], [0, -1, 'w', 'e']];
+      for (const [dr, dc, dir, opp] of deltas) {
+        const nr = r + dr, nc = c + dc;
+        if (nr >= 0 && nr < GRID_SIZE && nc >= 0 && nc < GRID_SIZE) {
+          n.push({ r: nr, c: nc, dir, opp });
+        }
+      }
+      return n;
+    }
+
+    function spreadFire() {
+      const newFires = [];
+      for (let r = 0; r < GRID_SIZE; r++) {
+        for (let c = 0; c < GRID_SIZE; c++) {
+          const cell = gridData[r][c];
+          if (cell.type === 'building' && !cell.onFire && !cell.active) {
+            // Check 8 neighbors (including diagonals) for fire spread
+            let neighborOnFire = false;
+            for (let dr = -1; dr <= 1; dr++) {
+              for (let dc = -1; dc <= 1; dc++) {
+                if (dr === 0 && dc === 0) continue;
+                const nr = r + dr, nc = c + dc;
+                if (nr >= 0 && nr < GRID_SIZE && nc >= 0 && nc < GRID_SIZE) {
+                  if (gridData[nr][nc].onFire) neighborOnFire = true;
+                }
+              }
+            }
+
+            if (neighborOnFire) {
+              newFires.push(cell);
+            }
+          }
+        }
+      }
+
+      newFires.forEach(cell => {
+        cell.onFire = true;
+        if (!cell.el.querySelector('.fire-ovl')) {
+          const fire = document.createElement('div');
+          fire.className = 'fire-ovl';
+          fire.innerHTML = '🔥';
+          cell.el.appendChild(fire);
+        }
+      });
+
+      checkWin();
+    }
+
+    function updateWaterFlow() {
+      for (let r = 0; r < GRID_SIZE; r++) {
+        for (let c = 0; c < GRID_SIZE; c++) {
+          gridData[r][c].el.classList.remove('active');
+          gridData[r][c].active = false;
+        }
+      }
+
+      const queue = [{ r: sourcePos.r, c: sourcePos.c }];
+      gridData[sourcePos.r][sourcePos.c].active = true;
+      const visited = new Set();
+
+      while (queue.length > 0) {
+        const { r, c } = queue.shift();
+        const key = `${r},${c}`;
+        if (visited.has(key)) continue;
+        visited.add(key);
+
+        const current = gridData[r][c];
+        current.active = true;
+        current.el.classList.add('active');
+
+        // Extinguish fire if water reaches it
+        if (current.onFire && current.active) {
+          current.onFire = false;
+          const fire = current.el.querySelector('.fire-ovl');
+          if (fire) fire.remove();
+        }
+
+        const neighbors = getNeighbors(r, c);
+        for (const { r: nr, c: nc, dir, opp } of neighbors) {
+          const neighbor = gridData[nr][nc];
+          let canExit = false;
+          if (current.type === 'source' && dir === 'e') canExit = true;
+          else if (current.type === 'pipe' && PIPES_CONFIG[current.char][dir]) canExit = true;
+
+          let canEnter = false;
+          if (neighbor.type === 'building' && opp === 'w' && neighbor.c === 11) canEnter = true;
+          else if (neighbor.type === 'building' && opp === 'e' && neighbor.c === 0) canEnter = true;
+          else if (neighbor.type === 'building' && opp === 'n' && neighbor.r === 11) canEnter = true;
+          else if (neighbor.type === 'building' && opp === 's' && neighbor.r === 0) canEnter = true;
+          else if (neighbor.type === 'pipe' && PIPES_CONFIG[neighbor.char][opp]) canEnter = true;
+
+          if (canExit && canEnter && !neighbor.active) {
+            queue.push({ r: nr, c: nc });
+          }
+        }
+      }
+
+      checkWin();
+    }
+
+    function checkWin() {
+      let anyFire = false;
+      let onFireCount = 0;
+      let buildingCount = 0;
+
+      for (let r = 0; r < GRID_SIZE; r++) {
+        for (let c = 0; c < GRID_SIZE; c++) {
+          const cell = gridData[r][c];
+          if (cell.type === 'building') {
+            buildingCount++;
+            if (cell.onFire) {
+              anyFire = true;
+              onFireCount++;
+            }
+          }
+        }
+      }
+
+      const statusElement = document.getElementById('status');
+      if (!anyFire) {
+        statusElement.innerHTML = 'FIRE CONTAINED!';
+        statusElement.className = 'success';
+        statusElement.style.visibility = 'visible';
+      } else if (onFireCount === buildingCount && buildingCount > 0) {
+        statusElement.innerHTML = 'THE CITY IS IN ASHES. YOU HAVE FAILED UTTERLY.';
+        statusElement.className = 'failure';
+        statusElement.style.visibility = 'visible';
+      } else {
+        statusElement.style.visibility = 'hidden';
+      }
+    }
+
+    const sourcePos = randomSource();
+    const destPos = randomDestination();
+
+    initGrid();
+
+  </script>
+</body>
+
+</html>

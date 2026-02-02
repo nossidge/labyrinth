@@ -24,6 +24,7 @@ const labyrinthPages = [
   "../../corridors/poem-fragments/index.html",
   "../../corridors/polygon-face/index.html",
   "../../corridors/snakes/index.html",
+  "../../corridors/spider-box/index.html",
   "../../corridors/stuntman/index.html",
   "../../corridors/substack/index.html",
   "../../corridors/swapping-circles/index.html",

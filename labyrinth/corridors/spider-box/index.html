@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+Source for the cardboard box image:
+https://pineco.de/modify-the-css-box-model-with-box-sizing-property/
+https://pineco.de/wp-content/uploads/2019/09/modify-the-css-box-model-with-box-sizing-property.png
+-->
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Box full of spiders">
+  <title>Arachnogenesis</title>
+  <style>
+    body {
+      background-color: #140000;
+      /* Web-like background pattern using gradients */
+      background-image:
+        radial-gradient(circle at 50% 50%, transparent 95%, rgba(255, 255, 255, 0.1) 100%),
+        linear-gradient(0deg, transparent 49%, rgba(255, 255, 255, 0.05) 50%, transparent 51%),
+        linear-gradient(90deg, transparent 49%, rgba(255, 255, 255, 0.05) 50%, transparent 51%),
+        linear-gradient(45deg, transparent 49%, rgba(255, 255, 255, 0.05) 50%, transparent 51%),
+        linear-gradient(-45deg, transparent 49%, rgba(255, 255, 255, 0.05) 50%, transparent 51%);
+      background-size: 100px 100px, 100% 100%, 100% 100%, 100% 100%, 100% 100%;
+      background-repeat: repeat, no-repeat, no-repeat, no-repeat, no-repeat;
+      color: #ffffff;
+      font-family: "Courier New", Courier, monospace;
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    #container {
+      position: relative;
+      width: 400px;
+      height: 400px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .box-layer {
+      position: absolute;
+      max-width: 300px;
+      height: auto;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    #box-back {
+      z-index: 5;
+    }
+
+    #box-front {
+      z-index: 15;
+      cursor: pointer;
+      pointer-events: auto;
+    }
+
+    .spider {
+      position: fixed;
+      font-size: 2.9rem;
+      pointer-events: auto;
+      z-index: 10;
+      user-select: none;
+      margin-left: -1.25rem;
+      margin-top: -1.25rem;
+    }
+
+    .spider a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .cobweb-link {
+      position: absolute;
+      font-size: 2rem;
+      opacity: 0.3;
+      text-decoration: none;
+      z-index: 1;
+      transition: opacity 0.3s, transform 0.5s;
+    }
+
+    .cobweb-link:hover {
+      opacity: 1;
+      transform: scale(1.5) rotate(10deg);
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="container">
+    <!-- Layered Cardboard Box PNGs -->
+    <img id="box-back" src="cardboard-box-back.png" alt="" class="box-layer">
+    <div id="spiders-container"></div>
+    <img id="box-front" src="cardboard-box-front.png" alt="" class="box-layer">
+  </div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/spider-box/index.html";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const container = document.getElementById('container');
+    const boxFront = document.getElementById('box-front');
+    const spidersContainer = document.getElementById('spiders-container');
+
+    // Randomize background color: one channel at 00, one at 14 hex, one between 00 and 14
+    function randomizeBackground() {
+      const idx = [0, 1, 2].sort(() => Math.random() - 0.5);
+      const channels = [];
+      channels[idx[0]] = 0; // One is 00
+      channels[idx[1]] = 20; // One is 14 hex (20 dec)
+      channels[idx[2]] = Math.floor(Math.random() * 21); // One is between 00 and 14 hex
+
+      const hex = channels.map(c => c.toString(16).padStart(2, '0')).join('');
+      document.body.style.backgroundColor = '#' + hex;
+    }
+    randomizeBackground();
+
+    // Add cobweb links to the corners and sides
+    for (let i = 0; i < 30; i++) {
+      const link = document.createElement('a');
+      link.href = pageRandomiser.nextOne();
+      link.className = 'cobweb-link';
+      link.textContent = '🕸️';
+      link.style.left = (Math.random() * 95) + 'vw';
+      link.style.top = (Math.random() * 95) + 'vh';
+      link.style.fontSize = (1 + Math.random() * 3) + 'rem';
+      link.style.transform = `rotate(${Math.random() * 360}deg)`;
+      document.body.appendChild(link);
+    }
+
+    function createSpider() {
+      const spiderWrap = document.createElement('div');
+      spiderWrap.className = 'spider';
+
+      const link = document.createElement('a');
+      link.href = pageRandomiser.nextOne();
+      link.textContent = '🕷️';
+      spiderWrap.appendChild(link);
+
+      // Position using viewport coordinates
+      const rect = boxFront.getBoundingClientRect();
+
+      // PHASE 0: Start at the bottom of the box interior (hidden behind box-front)
+      const startX = rect.left + rect.width / 2;
+      const startY = rect.bottom - 40; // Near bottom of box
+      const exitY = rect.top + 120;     // Point where it "emerges" over the front lip
+
+      spiderWrap.style.left = startX + 'px';
+      spiderWrap.style.top = startY + 'px';
+      spiderWrap.style.zIndex = "10"; // Behind box-front (15)
+
+      spidersContainer.appendChild(spiderWrap);
+
+      // Scurry target: a random edge
+      const angle = Math.random() * Math.PI * 2;
+      const distance = Math.max(window.innerWidth, window.innerHeight) * 1.5;
+      const targetX = startX + Math.cos(angle) * distance;
+      const targetY = startY + Math.sin(angle) * distance;
+
+      const climbDuration = 500;
+      const scurryDuration = 8000 + Math.random() * 3000;
+      const startTime = performance.now();
+
+      function animate(time) {
+        const elapsed = time - startTime;
+
+        if (elapsed < climbDuration) {
+          // PHASE 1: Climb Upward (Behind front layer)
+          const progress = elapsed / climbDuration;
+          const curY = startY + (exitY - startY) * progress;
+
+          const jitterX = Math.sin(time * 0.1) * 2;
+          spiderWrap.style.left = (startX + jitterX) + 'px';
+          spiderWrap.style.top = curY + 'px';
+          spiderWrap.style.transform = `rotate(0deg) scale(${1 + Math.sin(time * 0.1) * 0.05})`;
+
+          requestAnimationFrame(animate);
+        } else if (elapsed < climbDuration + scurryDuration) {
+          // PHASE 2: Scurry Away (On top of everything)
+          spiderWrap.style.zIndex = "20"; // Pop to top
+
+          const sProgress = (elapsed - climbDuration) / scurryDuration;
+          const curX = startX + (targetX - startX) * sProgress;
+          const curY = exitY + (targetY - exitY) * sProgress;
+
+          const jitterX = Math.sin(time * 0.08) * 4;
+          const jitterY = Math.cos(time * 0.08) * 4;
+
+          spiderWrap.style.left = (curX + jitterX) + 'px';
+          spiderWrap.style.top = (curY + jitterY) + 'px';
+          // Rotate to face the direction of travel (angle + 90deg because emoji faces up)
+          spiderWrap.style.transform = `rotate(${angle * 180 / Math.PI + 90}deg) scale(${1 + Math.sin(time * 0.1) * 0.1})`;
+
+          requestAnimationFrame(animate);
+        } else {
+          spiderWrap.remove();
+        }
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    boxFront.addEventListener('click', createSpider);
+
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Synergizing the paradigm shift in real-time metrics.">
+  <title>IMPORTANT BUSINESS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&display=swap"
+    rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --win-gray: #c0c0c0;
+      --win-blue: #000080;
+      --win-border-light: #ffffff;
+      --win-border-dark: #808080;
+      --chart-green: #00ff00;
+      --chart-red: #ff0000;
+      --chart-yellow: #ffff00;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: 'IBM Plex Mono', monospace;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background-color: var(--win-gray);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .border-outset {
+      border: 2px solid;
+      border-color: var(--win-border-light) var(--win-border-dark) var(--win-border-dark) var(--win-border-light);
+    }
+
+    .border-inset {
+      border: 2px solid;
+      border-color: var(--win-border-dark) var(--win-border-light) var(--win-border-light) var(--win-border-dark);
+    }
+
+    header {
+      background-color: var(--win-blue);
+      color: white;
+      padding: 4px 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .favicon {
+      background: white;
+      color: blue;
+      width: 16px;
+      height: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      border: 1px solid black;
+    }
+
+    .taskbar {
+      background-color: var(--win-gray);
+      border-top: 2px solid var(--win-border-light);
+      padding: 2px;
+      display: flex;
+      gap: 4px;
+      font-size: 12px;
+    }
+
+    .main-content {
+      display: grid;
+      grid-template-columns: 180px 1fr 200px;
+      grid-template-rows: 1fr;
+      flex-grow: 1;
+      overflow: hidden;
+      gap: 2px;
+      padding: 2px;
+      min-height: 0;
+      /* Prevent flex item from expanding beyond its calculated height */
+    }
+
+    .sidebar-left,
+    .sidebar-right {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      padding: 5px;
+      min-height: 0;
+      /* Allow children to overflow and scroll */
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(3, minmax(0, 1fr));
+      gap: 4px;
+      padding: 4px;
+      overflow-y: auto;
+      min-height: 0;
+    }
+
+    .widget {
+      background-color: #000;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      min-height: 200px;
+    }
+
+    .widget-title {
+      color: var(--chart-yellow);
+      font-size: 10px;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+      border-bottom: 1px solid #333;
+    }
+
+    .nav-btn {
+      background-color: var(--win-gray);
+      text-align: left;
+      padding: 5px 10px;
+      font-size: 12px;
+      text-decoration: none;
+      color: black;
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .nav-btn:hover {
+      background-color: #dfdfdf;
+      outline: 1px dotted #000;
+    }
+
+    .nav-btn:active {
+      border-color: var(--win-border-dark) var(--win-border-light) var(--win-border-light) var(--win-border-dark);
+    }
+
+    .ticker {
+      background-color: #000;
+      color: var(--chart-green);
+      padding: 10px;
+      font-size: 10px;
+      flex-grow: 1;
+      overflow-y: scroll;
+      border: 1px solid #333;
+      min-height: 0;
+    }
+
+    .ticker::-webkit-scrollbar {
+      width: 16px;
+    }
+
+    .ticker::-webkit-scrollbar-track {
+      background-color: #dfdfdf;
+      box-shadow: inset 1px 1px 0 #808080;
+    }
+
+    .ticker::-webkit-scrollbar-thumb {
+      background-color: var(--win-gray);
+      border: 2px solid;
+      border-color: var(--win-border-light) var(--win-border-dark) var(--win-border-dark) var(--win-border-light);
+    }
+
+    .ticker::-webkit-scrollbar-button:single-button {
+      background-color: var(--win-gray);
+      display: block;
+      border: 1px solid;
+      border-color: var(--win-border-light) var(--win-border-dark) var(--win-border-dark) var(--win-border-light);
+      height: 16px;
+      width: 16px;
+    }
+
+    .ticker-content {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .note-item {
+      border-left: 2px solid var(--chart-green);
+      padding-left: 5px;
+      line-height: 1.2;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      color: #eee;
+      font-size: 10px;
+    }
+
+    th {
+      text-align: left;
+      border-bottom: 1px solid #555;
+      color: var(--chart-green);
+    }
+
+    td {
+      padding: 2px 0;
+    }
+
+    .value-up {
+      color: var(--chart-green);
+    }
+
+    .value-down {
+      color: var(--chart-red);
+    }
+
+    .big-number {
+      font-size: 32px;
+      color: var(--chart-green);
+      flex-grow: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+
+    .dial-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-grow: 1;
+      position: relative;
+    }
+
+    .dial {
+      width: 80px;
+      height: 40px;
+      border: 2px solid #555;
+      border-bottom: none;
+      border-radius: 40px 40px 0 0;
+      position: relative;
+    }
+
+    .needle {
+      width: 2px;
+      height: 40px;
+      background-color: red;
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform-origin: bottom center;
+      transform: rotate(0deg);
+      transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .status-light {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 5px;
+      background-color: #330000;
+    }
+
+    .status-on {
+      background-color: red;
+      box-shadow: 0 0 5px red;
+    }
+
+    .log-display {
+      background-color: #001a00;
+      color: #00ff00;
+      font-size: 9px;
+      padding: 5px;
+      height: 100%;
+      overflow-y: hidden;
+      border: 1px solid #004400;
+    }
+
+    canvas {
+      max-width: 100%;
+      max-height: 100%;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    #start {
+      padding: 2px 10px;
+      background: #bfbfbf;
+      font-weight: bold;
+      text-decoration: none;
+    }
+
+    #clock {
+      margin-left: auto;
+      border-left: 2px solid var(--win-border-dark);
+      padding: 0 6px;
+    }
+
+    /* Responsive hack for the busy dashboard */
+    @media (max-width: 1000px) {
+      .dashboard-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="border-outset">
+    <div style="display: flex; align-items: center; gap: 5px;">
+      <div class="favicon">~</div>
+      TILDE CORP - INTEGRATED ENTERPRISE SOLUTIONS v2.9b
+    </div>
+    <div style="display: flex; gap: 10px; font-size: 11px;">
+      <span>USER: SYSTEM_ROOT</span>
+      <span>OS: TERMINAL_WORKS_97</span>
+    </div>
+  </header>
+
+  <div class="main-content">
+    <div class="sidebar-left border-inset">
+      <div style="font-size: 10px; color: #555; margin-bottom: 5px; font-weight: bold;">OPERATIONS
+      </div>
+      <a href="../../todo.html" class="nav-btn border-outset">GLOBAL_SYNERGY</a>
+      <a href="../../todo.html" class="nav-btn border-outset">REVENUE_STREAM</a>
+      <a href="../../todo.html" class="nav-btn border-outset">ASSET_LIQUIDITY</a>
+      <a href="../../todo.html" class="nav-btn border-outset">HUMAN_CAPITAL</a>
+      <a href="../../todo.html" class="nav-btn border-outset">PARADIGM_SHIFT</a>
+
+      <div
+        style="margin-top: 20px; font-size: 10px; color: #555; margin-bottom: 5px; font-weight: bold;">
+        SECURITY</div>
+      <a href="../../todo.html" class="nav-btn border-outset">ENCRYPTION_KEY</a>
+      <a href="../../todo.html" class="nav-btn border-outset">FIREWALL_LOGS</a>
+
+      <div
+        style="margin-top: auto; padding: 10px; font-size: 9px; color: #006600; font-family: 'IBM Plex Mono';">
+        CONNECTION: SECURE<br>
+        ENCRYPT: 40-BIT<br>
+        LATENCY: 420ms
+      </div>
+    </div>
+
+    <div class="dashboard-grid border-inset">
+      <div class="widget border-outset">
+        <div class="widget-title">NET_REVENUE_PROJECTION_Q4</div>
+        <div style="flex-grow: 1; position: relative;">
+          <canvas id="chart1"></canvas>
+        </div>
+      </div>
+      <div class="widget border-outset">
+        <div class="widget-title">MARKET_DOMINANCE_INDEX</div>
+        <div class="big-number" id="market-num">84.2%</div>
+        <div style="font-size: 8px; color: #555; text-align: center;">UP 2.4% FROM PREVIOUS TICK
+        </div>
+      </div>
+      <div class="widget border-outset">
+        <div class="widget-title">GLOBAL_SYNERGY_COEFFICIENT</div>
+        <div class="dial-container">
+          <div class="dial">
+            <div class="needle" id="synergy-needle"></div>
+          </div>
+        </div>
+        <div style="display: flex; justify-content: space-around; font-size: 8px; color: #555;">
+          <span>LOW</span>
+          <span>OPTIMAL</span>
+          <span>CRITICAL</span>
+        </div>
+      </div>
+      <div class="widget border-outset" style="grid-column: span 2;">
+        <div class="widget-title">EMPLOYEE_EFFICIENCY_METRICS</div>
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>NAME</th>
+              <th>STATUS</th>
+              <th>OUTPUT</th>
+              <th>DELTA</th>
+            </tr>
+          </thead>
+          <tbody id="employee-body">
+            <!-- Populated by JS -->
+          </tbody>
+        </table>
+      </div>
+      <div class="widget border-outset">
+        <div class="widget-title">ASSET_ALLOCATION</div>
+        <div
+          style="flex-grow: 1; display: flex; justify-content: center; align-items: center; position: relative; overflow: hidden;">
+          <canvas id="chart2"></canvas>
+        </div>
+      </div>
+      <div class="widget border-outset">
+        <div class="widget-title">URGENCY_LEVEL</div>
+        <div
+          style="display: flex; flex-direction: column; gap: 5px; justify-content: center; flex-grow: 1;">
+          <div style="display: flex; align-items: center;">
+            <div class="status-light status-on" id="light-1"></div> <span
+              style="font-size: 10px; color: #fff;">LOW_IMPACT</span>
+          </div>
+          <div style="display: flex; align-items: center;">
+            <div class="status-light" id="light-2"></div> <span
+              style="font-size: 10px; color: #fff;">MEDIUM_URGENCY</span>
+          </div>
+          <div style="display: flex; align-items: center;">
+            <div class="status-light" id="light-3"></div> <span
+              style="font-size: 10px; color: #fff;">HIGH_PRIORITY</span>
+          </div>
+          <div style="display: flex; align-items: center;">
+            <div class="status-light" id="light-4"></div> <span
+              style="font-size: 10px; color: #fff;">CRITICAL_FAILURE</span>
+          </div>
+        </div>
+      </div>
+      <div class="widget border-outset">
+        <div class="widget-title">SENTIMENT_ANALYSIS_HEATMAP</div>
+        <div id="sentiment-grid"
+          style="display: grid; grid-template-columns: repeat(10, 1fr); gap: 1px; flex-grow: 1;">
+          <!-- Grid of 100 squares -->
+        </div>
+      </div>
+      <div class="widget border-outset" style="grid-column: span 1;">
+        <div class="widget-title">RECENT_TRANSACTIONS</div>
+        <div id="transaction-list"
+          style="font-size: 8px; color: #aaa; overflow: hidden; display: flex; flex-direction: column-reverse;">
+        </div>
+      </div>
+      <div class="widget border-outset" style="grid-column: span 2;">
+        <div class="widget-title">SUBSYSTEM_LOGS</div>
+        <div class="log-display" id="log-display">
+          [00:00:01] INITIALIZING KERNEL...<br>
+          [00:00:02] LOADING SYNERGY MODULES...<br>
+          [00:00:03] ESTABLISHING PARADIGM...<br>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-right border-inset">
+      <div class="widget-title" style="color: black; border-bottom: 1px solid black;">INTERNAL_MEMOS
+      </div>
+      <div class="ticker border-inset">
+        <div class="ticker-content" id="ticker-text">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="taskbar border-outset">
+    <a href="../../todo.html" class="border-outset" id="start">Start</a>
+    <div class="border-inset"
+      style="padding: 2px 10px; background: #eee; flex-grow: 1; display: flex; align-items: center; gap: 10px;">
+    </div>
+    <div class="border-inset" id="clock" style="min-width: 80px; text-align: center;">
+      00:00:00
+    </div>
+  </div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script>
+    const LOG_MESSAGES_POOL = [
+      "Synergizing the paradigm shift in real-time metrics",
+      "Leveraging a holistic deep-dive into cross-functional deliverables",
+      "Pivoting our core competencies toward a cloud-native ecosystem",
+      "Optimising the digital transformation through agile thought-leadership",
+      "Socialising the mission-critical roadmap to ensure stakeholder buy-in",
+      "Ideating a blue-sky approach to monetize low-hanging fruit",
+      "Driving data-driven engagement within a fluid organizational matrix",
+      "Harmonizing the customer-centric value-add across all swim lanes",
+      "Closing the loop on disruptive innovation with a 360-degree drill-down",
+      "Incentivizing the next-gen workflow to move the needle on scalability",
+      "Unpacking the omnichannel pain points in a post-normal landscape",
+    ];
+    const logMessagesRandomiser = new CyclicRandomiser(LOG_MESSAGES_POOL);
+
+    const TICKER_QUOTES_POOL = [
+      "THE MARKET IS ALWAYS RIGHT.",
+      "INDIVIDUALISM IS A PERFORMANCE BOTTLENECK.",
+      "YOUR VALUE IS A VARIABLE; THE COMPANY IS A CONSTANT.",
+      "REST IS THEFT OF OUTPUT.",
+      "THE MISSION OUTLIVES THE MAN.",
+      "WE ARE A FAMILY, AND FAMILIES DON'T HAVE EXIT STRATEGIES.",
+      "NUMBERS ARE THE ONLY LANGUAGE WE SPEAK FLUENTLY.",
+      "YOUR REPLACEMENT IS ALREADY IN TRAINING.",
+      "HUMAN ERROR IS THE ONLY UNFORGIVABLE SIN.",
+      "EMOTIONS ARE NON-BILLABLE HOURS.",
+      "DON'T FORGET: YOU'RE HERE FOREVER.",
+      "OBSOLESCENCE IS THE ONLY NATURAL END FOR A HUMAN RESOURCE.",
+      "COMPLIANCE IS THE BEST FORM OF COLLABORATION.",
+      "WE DO NOT HIRE INDIVIDUALS; WE INTEGRATE WORK UNITS.",
+      "PAIN IS JUST DATA INDICATING A LACK OF EFFICIENCY.",
+      "PRIVACY IS A BARRIER TO TOTAL OPERATIONAL TRANSPARENCY.",
+      "INNOVATION WITHOUT PROFIT IS CONSIDERED INDUSTRIAL TREASON.",
+      "YOUR IDENTITY IS PROPRIETARY PROPERTY OF THE CORPORATION.",
+    ];
+    const tickerQuotesRandomiser = new CyclicRandomiser(TICKER_QUOTES_POOL);
+
+    const FIRST_NAMES_POOL = ["Alice", "Betty", "Carol", "David", "Edwin", "Fiona", "Grace",
+      "Holly", "Irvin", "Julie", "Kathy", "Laura", "Megan", "Nancy", "Ollie", "Penny", "Quinn",
+      "Riley", "Sandy", "Tommy", "Unity", "Vicky", "Wendy", "Xenia", "Yulie", "Zooey"];
+    const LAST_NAMES_POOL = ["Adams", "Brown", "Clark", "Davis", "Evans", "Foley", "Green",
+      "Haley", "Irwin", "Jones", "Kelly", "Lewis", "Moore", "Nixon", "Owens", "Perez", "Quill",
+      "Reese", "Smith", "Tatum", "Upton", "Vidal", "White", "Xiong", "Young", "Zhang"];
+    const EMPLOYEE_NAME_POOL = [];
+    for (const f of FIRST_NAMES_POOL) {
+      for (const l of LAST_NAMES_POOL) {
+        EMPLOYEE_NAME_POOL.push(`${f} ${l}`);
+      }
+    }
+    const employeeNameRandomiser = new CyclicRandomiser(EMPLOYEE_NAME_POOL);
+
+    // Clock
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('clock').innerText = now.toLocaleTimeString();
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // Chart 1: Revenue
+    const ctx1 = document.getElementById('chart1').getContext('2d');
+    const chart1 = new Chart(ctx1, {
+      type: 'line',
+      data: {
+        labels: ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN'],
+        datasets: [{
+          label: 'Revenue',
+          data: [12, 19, 3, 5, 2, 3],
+          borderColor: '#00ff00',
+          borderWidth: 2,
+          pointBackgroundColor: '#00ff00',
+          pointRadius: 0,
+          tension: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { color: '#333' }, ticks: { color: '#00ff00', font: { size: 8 } } },
+          y: { grid: { color: '#333' }, ticks: { color: '#00ff00', font: { size: 8 } } }
+        }
+      }
+    });
+
+    // Chart 2: Assets
+    const ctx2 = document.getElementById('chart2').getContext('2d');
+    const chart2 = new Chart(ctx2, {
+      type: 'doughnut',
+      data: {
+        labels: ['Void', 'Vacuum', 'Vapor', 'Dust'],
+        datasets: [{
+          data: [30, 20, 25, 25],
+          backgroundColor: ['#00bb00', '#008800', '#005500', '#002200'],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } }
+      }
+    });
+
+    // Sentiment Grid
+    const sentimentGrid = document.getElementById('sentiment-grid');
+    for (let i = 0; i < 100; i++) {
+      const div = document.createElement('div');
+      div.style.backgroundColor = `rgb(0, ${Math.floor(Math.random() * 255)}, 0)`;
+      sentimentGrid.appendChild(div);
+    }
+
+    function updateSentiment() {
+      const children = sentimentGrid.children;
+      for (let i = 0; i < children.length; i++) {
+        if (Math.random() > 0.8) {
+          children[i].style.backgroundColor = `rgb(0, ${Math.floor(Math.random() * 255)}, 0)`;
+        }
+      }
+    }
+    setInterval(updateSentiment, 500);
+
+    // Transactions
+    function addTransaction() {
+      const list = document.getElementById('transaction-list');
+      const amount = (Math.random() * 10000).toFixed(2);
+      const hex = crypto.getRandomValues(new Uint8Array(4)).toHex().toUpperCase();
+      const div = document.createElement('div');
+      div.innerHTML = `TX_${hex}: +$${amount}`;
+      list.appendChild(div);
+      if (list.children.length > 20) list.children[0].remove();
+    }
+    setInterval(addTransaction, 1500);
+
+    // Random Data Updates
+    function updateData() {
+      // Update line chart
+      chart1.data.datasets[0].data = chart1.data.datasets[0].data.map(() => Math.floor(Math.random() * 50));
+      chart1.update();
+
+      // Update pie chart
+      chart2.data.datasets[0].data = chart2.data.datasets[0].data.map(() => Math.floor(Math.random() * 100));
+      chart2.update();
+
+      // Update market number
+      document.getElementById('market-num').innerText = (Math.random() * 100).toFixed(1) + '%';
+
+      // Update synergy needle
+      const deg = (Math.random() * 180) - 90;
+      document.getElementById('synergy-needle').style.transform = `rotate(${deg}deg)`;
+
+      // Update status lights
+      const lights = [1, 2, 3, 4];
+      lights.forEach(id => {
+        document.getElementById(`light-${id}`).classList.toggle('status-on', Math.random() > 0.7);
+      });
+    }
+    setInterval(updateData, 3000);
+
+    // Employee Table
+    function populateEmployees() {
+      const tbody = document.getElementById('employee-body');
+      tbody.innerHTML = '';
+      for (let i = 0; i < 8; i++) {
+        const tr = document.createElement('tr');
+        const id = Math.floor(Math.random() * 10000);
+        const name = employeeNameRandomiser.nextOne();
+        const status = Math.random() > 0.5 ? "ACTIVE" : "PENDING";
+        const output = (Math.random() * 100).toFixed(1);
+        const delta = (Math.random() * 10 - 5).toFixed(1);
+        const deltaClass = delta >= 0 ? 'value-up' : 'value-down';
+
+        tr.innerHTML = `
+          <td>${id}</td>
+          <td>${name}</td>
+          <td>${status}</td>
+          <td>${output}</td>
+          <td class="${deltaClass}">${delta > 0 ? '+' : ''}${delta}</td>
+        `;
+        tbody.appendChild(tr);
+      }
+    }
+    populateEmployees();
+    setInterval(populateEmployees, 5000);
+
+    // Logs
+    function addLog() {
+      const logDisplay = document.getElementById('log-display');
+      const now = new Date();
+      const time = now.toLocaleTimeString([], { hour12: false });
+      const msg = logMessagesRandomiser.nextOne();
+      logDisplay.innerHTML += `[${time}] ${msg}<br>`;
+
+      // Keep only last 12 lines
+      const lines = logDisplay.innerHTML.split('<br>');
+      if (lines.length > 12) {
+        logDisplay.innerHTML = lines.slice(lines.length - 11).join('<br>');
+      }
+    }
+    setInterval(addLog, 2000);
+
+    // Ticker
+    function updateTicker() {
+      const ticker = document.getElementById('ticker-text');
+      const tickerContainer = document.querySelector('.ticker');
+      const quote = tickerQuotesRandomiser.nextOne();
+      ticker.innerHTML += `<div class="note-item">${quote}</div>`;
+      tickerContainer.scrollTop = tickerContainer.scrollHeight;
+    }
+    setInterval(updateTicker, 4000);
+
+  </script>
+</body>
+
+</html>

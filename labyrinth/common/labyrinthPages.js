@@ -16,6 +16,7 @@ const labyrinthPages = [
   "../../corridors/happy/index.html",
   "../../corridors/heart-of-hearts/index.html",
   "../../corridors/i-luv-u/index.html",
+  "../../corridors/important-business/index.html",
   "../../corridors/in-utero/index.html",
   "../../corridors/mompster-quest/index.html",
   "../../corridors/othello/index.html",

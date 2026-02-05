@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+Forget it Jake, it's Lesothoburg
+Forget it Jake, it's Nigeriaville
+Forget it Jake, it's Tongaborough
+-->
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Lesothoburg, Nigeriaville, Tongaborough">
+  <title>Forget it Jake</title>
+  <style>
+    :root {
+      --bg-color: #0c0c0c;
+      --text-color: #f0f0f0;
+      --subtitle-yellow: #ffed00;
+      --font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body,
+    html {
+      height: 100%;
+      overflow: hidden;
+      color: var(--text-color);
+      font-family: var(--font-family);
+      user-select: none;
+      background: black;
+    }
+
+    .background {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url("data:image/jpeg;base64,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");
+      background-size: cover;
+      background-position: center;
+      z-index: 1;
+    }
+
+    @keyframes noise {
+      0% {
+        transform: translate(0, 0)
+      }
+
+      10% {
+        transform: translate(-1%, -1%)
+      }
+
+      20% {
+        transform: translate(-2%, 1%)
+      }
+
+      30% {
+        transform: translate(1%, -2%)
+      }
+
+      40% {
+        transform: translate(-1%, 3%)
+      }
+
+      50% {
+        transform: translate(-2%, 1%)
+      }
+
+      60% {
+        transform: translate(3%, 0)
+      }
+
+      70% {
+        transform: translate(0, 2%)
+      }
+
+      80% {
+        transform: translate(-3%, 1%)
+      }
+
+      90% {
+        transform: translate(1%, 3%)
+      }
+
+      100% {
+        transform: translate(1%, 1%)
+      }
+    }
+
+    .letterbox {
+      position: fixed;
+      left: 0;
+      width: 100%;
+      height: 10vh;
+      background: black;
+      z-index: 3;
+    }
+
+    .top {
+      top: 0;
+    }
+
+    .bottom {
+      bottom: 0;
+    }
+
+    .content {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: center;
+      padding-bottom: 14vh;
+      text-align: center;
+      position: relative;
+      z-index: 5;
+    }
+
+    .subtitle {
+      font-size: clamp(1.5rem, 5vw, 3.5rem);
+      font-weight: 700;
+      color: var(--subtitle-yellow);
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8),
+        -1px -1px 0 rgba(0, 0, 0, 1),
+        1px -1px 0 rgba(0, 0, 0, 1),
+        -1px 1px 0 rgba(0, 0, 0, 1),
+        1px 1px 0 rgba(0, 0, 0, 1);
+      max-width: 90%;
+      line-height: 1.2;
+      transition: opacity 0.3s ease-in-out, transform 0.3s ease-out;
+      opacity: 1;
+    }
+
+    .subtitle.fade-out {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+
+    a {
+      text-decoration: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="background"></div>
+  <div class="letterbox top"></div>
+  <div class="letterbox bottom"></div>
+
+  <div class="content" id="clickArea">
+    <a href="#" class="subtitle" id="phrase">
+      Forget it Jake, it's Chinatown
+    </a>
+  </div>
+
+  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script>
+    const currentPage = "corridors/chinatown/index.html";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const COUNTRIES_POOL = [
+      "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan", "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei Darussalam", "Bulgaria", "Burkina Faso", "Burundi", "Cabo Verde", "Cambodia", "Cameroon", "Canada", "Central African Republic", "Chad", "Chile", "Colombia", "Comoros", "Democratic Republic of the Congo", "Republic of the Congo", "Costa Rica", "Côte D'ivoire", "Croatia", "Cuba", "Cyprus", "Czech Republic", "Denmark", "Djibouti", "Dominica", "Dominican Republic", "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini", "Ethiopia", "Fiji", "Finland", "France", "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Grenada", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana", "Haiti", "Holy See", "Honduras", "Hungary", "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy", "Jamaica", "Japan", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Kuwait", "Kyrgyzstan", "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein", "Lithuania", "Luxembourg", "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Marshall Islands", "Mauritania", "Mauritius", "Mexico", "Micronesia", "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar", "Namibia", "Nauru", "Nepal", "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria", "North Korea", "North Macedonia", "Norway", "Oman", "Pakistan", "Palau", "Palestine", "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Poland", "Portugal", "Qatar", "Romania", "Russia", "Rwanda", "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent and the Grenadines", "Samoa", "San Marino", "Sao Tome and Principe", "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Slovakia", "Slovenia", "Solomon Islands", "Somalia", "South Africa", "South Korea", "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden", "Switzerland", "Syria", "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo", "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan", "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "United States", "Uruguay", "Uzbekistan", "Vanuatu", "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"
+    ];
+    const countriesRandomiser = new CyclicRandomiser(COUNTRIES_POOL);
+
+    const SETTLEMENTS_POOL = [
+      "town", "city", "metropolis", "megalopolis", "hamlet", "village", "burg", "borough", "township", "settlement", "outpost", "colony", "municipality", "parish", "commune", "quarter", "precinct", "ward", "district", "canton", "prefecture", "province", "shire", "steading", "enclave", "hub", "port", "harbour", "haven", "retreat", "bastion", "citadel", "fortress", "keep", "manor", "estate", "plantation", "farm", "ranch", "grange", "croft", "thorp", "wick", "ville", "metropolitan area", "conurbation", "exurb", "megacity", "microcity"
+    ];
+    const settlementsRandomiser = new CyclicRandomiser(SETTLEMENTS_POOL);
+
+    const phraseElement = document.getElementById('phrase');
+
+    function generateNewPhrase() {
+      const country = countriesRandomiser.nextOne();
+      const settlement = settlementsRandomiser.nextOne();
+
+      return `Forget it Jake, it's ${country}${settlement}`;
+    }
+
+    function updateDisplay() {
+      phraseElement.classList.add('fade-out');
+      phraseElement.href = pageRandomiser.nextOne();
+
+      setTimeout(() => {
+        phraseElement.textContent = generateNewPhrase();
+        phraseElement.classList.remove('fade-out');
+      }, 300);
+    }
+
+    phraseElement.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
+
+    document.body.addEventListener('click', () => {
+      updateDisplay();
+    });
+
+    document.addEventListener('keydown', () => {
+      updateDisplay();
+    });
+
+    phraseElement.href = pageRandomiser.nextOne();
+
+  </script>
+</body>
+
+</html>

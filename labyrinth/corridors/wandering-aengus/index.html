@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+Silver apple:
+https://pngtree.com/so/silver-apples
+https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQql-irY0_4U_limHsIosImiPt5GkZJVrEjsg&s
+
+Golden apple:
+https://www.vecteezy.com/png/47076315-golden-apple-on-transparent-background
+https://static.vecteezy.com/system/resources/previews/047/076/315/non_2x/golden-apple-on-transparent-background-free-png.png
+-->
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="someone called me by my name">
+  <title>a fire was in my head</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body,
+    html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+      color: #fff;
+      font-family: "Times New Roman", serif;
+    }
+
+    #game-container {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      background: linear-gradient(to bottom, #001, #003);
+    }
+
+    #poem-background {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      z-index: 1;
+      text-align: center;
+    }
+
+    .line {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .word {
+      font-size: 2.22rem;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      text-shadow: 2px 2px #000;
+      white-space: nowrap;
+      color: inherit;
+      pointer-events: none;
+    }
+
+    .word.visible {
+      opacity: 0.7;
+      pointer-events: auto;
+    }
+
+    body.won .word.visible {
+      opacity: 1;
+      transition: opacity 3s ease;
+    }
+
+    body.won #celestials,
+    body.won #basket,
+    body.won .apple {
+      opacity: 0;
+      transition: opacity 2s ease;
+      pointer-events: none;
+    }
+
+    #celestials {
+      position: absolute;
+      top: 20px;
+      width: 100%;
+      height: 100px;
+      z-index: 5;
+    }
+
+    .celestial {
+      position: absolute;
+      font-size: 60px;
+      user-select: none;
+    }
+
+    #moon {
+      left: 20%;
+    }
+
+    #sun {
+      right: 20%;
+    }
+
+    #basket {
+      position: absolute;
+      bottom: 50px;
+      left: 50%;
+      width: 100px;
+      height: 40px;
+      background: #8B4513;
+      border: 4px solid #5D2E0C;
+      border-radius: 0 0 20px 20px;
+      transform: translateX(-50%);
+      z-index: 10;
+    }
+
+    .apple {
+      position: absolute;
+      z-index: 8;
+    }
+
+    .apple-silver {
+      width: 60px;
+    }
+
+    .apple-golden {
+      width: 60px;
+    }
+
+    #win-screen {
+      display: none;
+    }
+
+    #basket::after {
+      content: "🧺";
+      position: absolute;
+      top: -50px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 80px;
+    }
+
+    #basket {
+      background: transparent;
+      border: none;
+    }
+
+    a {
+      text-decoration: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="game-container">
+    <div id="poem-background"></div>
+    <div id="celestials">
+      <a href="../../todo.html" class="celestial" id="moon">🌙</a>
+      <a href="../../todo.html" class="celestial" id="sun">☀️</a>
+    </div>
+    <a href="../../todo.html" id="basket"></a>
+  </div>
+
+  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script>
+    const currentPage = "corridors/wandering-aengus/index.html";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const gameContainer = document.getElementById('game-container');
+    const poemBackground = document.getElementById('poem-background');
+    const basket = document.getElementById('basket');
+    const moon = document.getElementById('moon');
+    const sun = document.getElementById('sun');
+    const winScreen = document.getElementById('win-screen');
+    const winPoem = document.getElementById('win-poem');
+
+    const stanzaLines = [
+      ["Though", "I", "am", "old", "with", "wandering"],
+      ["Through", "hollow", "lands", "and", "hilly", "lands,"],
+      ["I", "will", "find", "out", "where", "she", "has", "gone,"],
+      ["And", "kiss", "her", "lips", "and", "take", "her", "hands;"],
+      ["And", "walk", "among", "long", "dappled", "grass,"],
+      ["And", "pluck", "till", "time", "and", "times", "are", "done,"],
+      ["The", "silver", "apples", "of", "the", "moon,"],
+      ["The", "golden", "apples", "of", "the", "sun."]
+    ];
+
+    const stanza = stanzaLines.flat();
+
+    let currentWordIndex = -1;
+    let isWon = false;
+
+    // Initialize poem background
+    let wordCounter = 0;
+    stanzaLines.forEach((line) => {
+      const lineDiv = document.createElement('div');
+      lineDiv.className = 'line';
+      line.forEach((word) => {
+        const a = document.createElement('a');
+        a.className = 'word';
+        a.textContent = word;
+        a.id = `word-${wordCounter++}`;
+        a.href = pageRandomiser.nextOne();
+        lineDiv.appendChild(a);
+      });
+      poemBackground.appendChild(lineDiv);
+    });
+
+    // Basket movement
+    document.addEventListener('mousemove', (e) => {
+      const x = e.clientX;
+      basket.style.left = `${x}px`;
+    });
+
+    // Dev mode for those who know the secret key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === '`') {
+        catchApple();
+      }
+    });
+
+    // Celestial movement
+    let moonX = 20;
+    let sunX = 80;
+    let moonDir = 0.1;
+    let sunDir = -0.1;
+
+    function moveCelestials() {
+      if (isWon) return;
+      moonX += moonDir;
+      sunX += sunDir;
+
+      if (Math.random() < 0.02) moonDir *= -1;
+      if (Math.random() < 0.02) sunDir *= -1;
+
+      // Boundaries, so they don't go off screen or too close to each other
+      if (moonX < 5 || moonX > 45) moonDir *= -1;
+      if (sunX < 55 || sunX > 95) sunDir *= -1;
+
+      moon.style.left = `${moonX}%`;
+      sun.style.left = `${sunX}%`;
+
+      requestAnimationFrame(moveCelestials);
+    }
+    moveCelestials();
+
+    // Spawn apples
+    function spawnApple(type) {
+      const apple = document.createElement('img');
+      apple.src = type === 'silver' ? 'silver.png' : 'golden.png';
+      apple.className = `apple apple-${type}`;
+
+      const source = type === 'silver' ? moon : sun;
+      const rect = source.getBoundingClientRect();
+
+      apple.style.left = `${rect.left + rect.width / 2}px`;
+      apple.style.top = `${rect.bottom}px`;
+
+      gameContainer.appendChild(apple);
+
+      let top = rect.bottom;
+      let rotation = 0;
+      const speed = 2 + Math.random() * 3;
+      const rotSpeed = (Math.random() - 0.5) * 10;
+
+      function fall() {
+        if (isWon) return;
+
+        top += speed;
+        rotation += rotSpeed;
+        apple.style.top = `${top}px`;
+        apple.style.transform = `rotate(${rotation}deg)`;
+
+        const appleRect = apple.getBoundingClientRect();
+        const basketRect = basket.getBoundingClientRect();
+
+        // Collision check.
+        // Basket has transparent background but the 🧺 emoji is what we visually see.
+        // Use the basket div as the hit area. It's roughly 100px wide.
+        if (
+          appleRect.bottom > basketRect.top &&
+          appleRect.top < basketRect.bottom &&
+          appleRect.right > basketRect.left &&
+          appleRect.left < basketRect.right
+        ) {
+          catchApple();
+          apple.remove();
+          return;
+        }
+
+        if (top > window.innerHeight) {
+          if (!isWon) missApple();
+          apple.remove();
+          return;
+        }
+
+        requestAnimationFrame(fall);
+      }
+      fall();
+    }
+
+    function catchApple() {
+      if (currentWordIndex < stanza.length - 1) {
+        currentWordIndex++;
+        document.getElementById(`word-${currentWordIndex}`).classList.add('visible');
+
+        if (currentWordIndex === stanza.length - 1) {
+          win();
+        }
+      }
+    }
+
+    function missApple() {
+      if (currentWordIndex >= 0) {
+        document.getElementById(`word-${currentWordIndex}`).classList.remove('visible');
+        currentWordIndex--;
+      }
+    }
+
+    function win() {
+      isWon = true;
+      document.body.classList.add('won');
+    }
+
+    // Interval to spawn apples
+    setInterval(() => {
+      if (currentWordIndex < stanza.length - 1) {
+        if (Math.random() > 0.5) {
+          spawnApple('silver');
+        } else {
+          spawnApple('golden');
+        }
+      }
+    }, 800);
+
+  </script>
+</body>
+
+</html>

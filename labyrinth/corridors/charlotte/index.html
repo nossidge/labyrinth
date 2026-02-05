@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Some spider...">
+  <title>Charlotte's Webpage</title>
+  <style>
+    :root {
+      --bg-color: #0a0a0a;
+      --web-color: rgba(255, 255, 255, 0.15);
+      --text-glow: 0 0 15px rgba(255, 255, 255, 0.4);
+    }
+
+    body,
+    html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background-color: var(--bg-color);
+      color: white;
+      font-family: 'Courier New', Courier, monospace;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    #canvas-background {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    #web-container {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      align-items: center;
+      animation: float 6s ease-in-out infinite;
+    }
+
+    .phrase-row {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .letter-grid {
+      text-decoration: none;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 2px;
+      transition: transform 0.2s ease-in-out;
+    }
+
+    .letter-grid:hover {
+      transform: scale(1.05);
+    }
+
+    .pixel {
+      width: 22px;
+      height: 22px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 20px;
+      opacity: 0;
+      transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+    }
+
+    .pixel.on {
+      opacity: 1;
+      text-shadow: var(--text-glow);
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        transform: scale(1);
+      }
+
+      50% {
+        transform: scale(1.15);
+      }
+    }
+
+    @keyframes float {
+
+      0%,
+      100% {
+        transform: translateY(0) rotate(0.5deg);
+      }
+
+      50% {
+        transform: translateY(-15px) rotate(-0.5deg);
+      }
+    }
+
+    @media (max-width: 600px) {
+      .pixel {
+        width: 8px;
+        height: 8px;
+        font-size: 7px;
+      }
+
+      .letter-grid {
+        gap: 1px;
+      }
+
+      .phrase-row {
+        gap: 5px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="canvas-background"></canvas>
+  <div id="web-container"></div>
+
+  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script>
+    const currentPage = "corridors/charlotte/index.html";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const phrases = [
+      "SOME PIG",
+      "TERRIFIC",
+      "RADIANT",
+      "HUMBLE"
+    ];
+
+    let currentPhraseIndex = 0;
+
+    // 5x5 Font Data
+    const font = {
+      'A': [0, 1, 1, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1],
+      'B': [1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0],
+      'C': [0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0],
+      'D': [1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0],
+      'E': [1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1],
+      'F': [1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+      'G': [0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0],
+      'H': [1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1],
+      'I': [0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0],
+      'J': [0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 1, 0, 0],
+      'K': [1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1],
+      'L': [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1],
+      'M': [1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1],
+      'N': [1, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 1],
+      'O': [0, 1, 1, 1, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0],
+      'P': [1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+      'R': [1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0],
+      'S': [0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0],
+      'T': [1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
+      'U': [1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0],
+      'V': [1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0],
+      'W': [1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1],
+      'X': [1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1],
+      'Y': [1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
+      'Z': [1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1],
+      ' ': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    };
+
+    const container = document.getElementById('web-container');
+    const canvas = document.getElementById('canvas-background');
+    const ctx = canvas.getContext('2d');
+
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      drawWebBackground();
+    }
+
+    function drawWebBackground() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+      ctx.lineWidth = 0.8;
+
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+
+      // Draw radial lines
+      for (let i = 0; i < 12; i++) {
+        const angle = (i / 12) * Math.PI * 2;
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.lineTo(
+          centerX + Math.cos(angle) * canvas.width,
+          centerY + Math.sin(angle) * canvas.height
+        );
+        ctx.stroke();
+      }
+
+      // Draw concentric polygons
+      for (let r = 50; r < Math.max(canvas.width, canvas.height); r += 50) {
+        ctx.beginPath();
+        for (let i = 0; i <= 12; i++) {
+          const angle = (i / 12) * Math.PI * 2;
+          const x = centerX + Math.cos(angle) * r;
+          const y = centerY + Math.sin(angle) * r;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      }
+    }
+
+    function renderPhrase(phrase) {
+      container.innerHTML = '';
+
+      const words = phrase.split(' ');
+
+      words.forEach(word => {
+        const row = document.createElement('div');
+        row.className = 'phrase-row';
+
+        for (const char of word) {
+          const letterGrid = document.createElement('a');
+          letterGrid.className = 'letter-grid';
+          letterGrid.href = pageRandomiser.nextOne();
+
+          // Prevents phrase change being triggered just before the page change
+          letterGrid.addEventListener('click', (e) => {
+            e.stopPropagation();
+          });
+
+          const data = font[char.toUpperCase()] || font[' '];
+          data.forEach((bit, index) => {
+            const pixel = document.createElement('div');
+            pixel.className = 'pixel';
+            if (bit) {
+              pixel.classList.add('on');
+              pixel.textContent = '🕸️';
+              pixel.style.animation = `pulse ${2 + Math.random() * 2}s ease-in-out infinite`;
+              pixel.style.animationDelay = `${Math.random() * 2}s`;
+            }
+            letterGrid.appendChild(pixel);
+          });
+
+          row.appendChild(letterGrid);
+        }
+        container.appendChild(row);
+      });
+    }
+
+    function nextPhrase() {
+      currentPhraseIndex = (currentPhraseIndex + 1) % phrases.length;
+      renderPhrase(phrases[currentPhraseIndex]);
+    }
+
+    window.addEventListener('resize', resize);
+    window.addEventListener('click', nextPhrase);
+    window.addEventListener('keydown', nextPhrase);
+
+    resize();
+    renderPhrase(phrases[0]);
+  </script>
+</body>
+
+</html>

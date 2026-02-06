@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="The eyes have it.">
+  <title>Panopticon</title>
+  <style>
+    body,
+    html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #0c0014;
+      background-image:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+      background-size: 100% 4px, 3px 100%;
+      overflow: hidden;
+      font-family: 'Courier New', Courier, monospace;
+    }
+
+    #eyes-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .eye {
+      position: absolute;
+      width: 40px;
+      height: 40px;
+      background: #fdfdfd;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.1s ease-out;
+      box-shadow: 4px 4px 0px #000;
+      border: 3px solid #000;
+    }
+
+    .pupil {
+      width: 15px;
+      height: 15px;
+      background: #000;
+      border-radius: 50%;
+      position: relative;
+    }
+
+    .reflection {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 4px;
+      height: 4px;
+      background: #fff;
+      border-radius: 50%;
+    }
+
+    #static {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48ZmlsdGVyIGlkPSJuIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iMC44NSIgbnVtT2N0YXZlcz0iMyIgc3RpdGNoVGlsZXM9InN0aXRjaCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbHRlcj0idXJsKCNuKSIvPjwvc3ZnPg==');
+      opacity: 0.15;
+      pointer-events: none;
+      z-index: 100;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="static"></div>
+  <div id="eyes-container"></div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/panopticon/index.html";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const container = document.getElementById('eyes-container');
+    const eyes = [];
+
+    function createEye() {
+      const eye = document.createElement('a');
+      eye.href = pageRandomiser.nextOne();
+      eye.className = 'eye';
+
+      const pupil = document.createElement('div');
+      pupil.className = 'pupil';
+      const reflection = document.createElement('div');
+      reflection.className = 'reflection';
+
+      pupil.appendChild(reflection);
+      eye.appendChild(pupil);
+
+      const x = Math.random() * (window.innerWidth - 50);
+      const y = Math.random() * (window.innerHeight - 50);
+
+      eye.style.left = x + 'px';
+      eye.style.top = y + 'px';
+
+      const scale = 2 + Math.random() * 2;
+      eye.style.transform = `scale(${scale})`;
+      eye.dataset.baseScale = scale;
+
+      container.appendChild(eye);
+      return { el: eye, pupil: pupil, x: x + 20, y: y + 20 };
+    }
+
+    let lastMouseX = window.innerWidth / 2;
+    let lastMouseY = window.innerHeight / 2;
+
+    function updateGaze(x, y) {
+      eyes.forEach(eye => {
+        const dx = x - eye.x;
+        const dy = y - eye.y;
+        const angle = Math.atan2(dy, dx);
+        const distance = Math.min(Math.sqrt(dx * dx + dy * dy), 10);
+
+        const px = Math.cos(angle) * distance;
+        const py = Math.sin(angle) * distance;
+
+        eye.pupil.style.transform = `translate(${px}px, ${py}px)`;
+      });
+    }
+
+    function init() {
+      container.innerHTML = '';
+      eyes.length = 0;
+      for (let i = 0; i < 30; i++) {
+        eyes.push(createEye());
+      }
+      updateGaze(lastMouseX, lastMouseY);
+    }
+
+    document.addEventListener('mousemove', (e) => {
+      lastMouseX = e.clientX;
+      lastMouseY = e.clientY;
+      updateGaze(lastMouseX, lastMouseY);
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.eye')) {
+        init();
+      }
+    });
+
+    init();
+
+  </script>
+</body>
+
+</html>

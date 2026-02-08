@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="A close shave">
+  <title>Tonsorial artistry</title>
+  <style>
+    body {
+      background-color: #d3d3d3;
+      color: #333;
+      font-family: "Courier New", Courier, monospace;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    #shaving-room {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: #eee;
+      border: 5px double #888;
+      padding: 30px;
+      box-shadow: 10px 10px 0px rgba(0, 0, 0, 0.2);
+      margin-bottom: 50px;
+    }
+
+    #face-container {
+      position: relative;
+      width: 400px;
+      height: 400px;
+      background: #fff;
+      border: 1px solid #ccc;
+      cursor: crosshair;
+      user-select: none;
+    }
+
+    .shave-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    #controls {
+      margin-top: 20px;
+    }
+
+    button {
+      background: #ccc;
+      border: 2px outset #eee;
+      padding: 10px 20px;
+      font-family: inherit;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:active {
+      border-style: inset;
+    }
+
+    #gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 20px;
+      width: 100%;
+      max-width: 1000px;
+      border-top: 1px dashed #666;
+      padding-top: 20px;
+    }
+
+    .gallery-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-decoration: none;
+      color: #000;
+    }
+
+    .gallery-item div {
+      width: 100px;
+      height: 100px;
+      border: 1px solid #999;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .gallery-item span {
+      font-size: 10px;
+      margin-top: 5px;
+    }
+
+    .grain {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48ZmlsdGVyIGlkPSJuIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iMC44NSIgbnVtT2N0YXZlcz0iMyIgc3RpdGNoVGlsZXM9InN0aXRjaCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbHRlcj0idXJsKCNuKSIvPjwvc3ZnPg==');
+      opacity: 0.05;
+      z-index: 100;
+      pointer-events: none;
+    }
+
+    .flash-overlay {
+      position: fixed;
+      pointer-events: none;
+      z-index: 1000;
+      animation: flash 0.3s ease-out forwards;
+    }
+
+    @keyframes flash {
+      0% {
+        background-color: #fff;
+      }
+
+      100% {
+        background-color: transparent;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="grain"></div>
+
+  <div id="shaving-room">
+    <div id="face-container">
+      <!-- Active face SVG and canvas layer -->
+    </div>
+
+    <div id="controls">
+      <button id="done-btn">
+        Smile for the camera!
+      </button>
+    </div>
+  </div>
+
+  <div id="gallery">
+    <!-- Gallery of shaved faces -->
+  </div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/barbershop/index.html";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const faceContainer = document.getElementById('face-container');
+    const doneBtn = document.getElementById('done-btn');
+    const gallery = document.getElementById('gallery');
+
+    let currentFaceProps = null;
+    let shaveCanvas = null;
+    let shaveCtx = null;
+    let isMouseDown = false;
+
+    const skins = ['#f5d0c5', '#e8beac', '#d29a7d', '#b07b5a', '#8d5524', '#c68642', '#e0ac69', '#f1c27d', '#ffdbac'];
+    const eyeColors = ['#634e34', '#2e536f', '#3d671d', '#1c1c1c', '#4b2d1c'];
+    const hairColors = ['#090806', '#2c222b', '#71635a', '#b8a33c', '#d6b37d', '#a56b46', '#91553d', '#533d32', '#3b3024', '#eeeeee'];
+
+    function generateRandomFace() {
+      return {
+        id: Math.random().toString(36).substr(2, 9),
+        skin: skins[Math.floor(Math.random() * skins.length)],
+        eyeColor: eyeColors[Math.floor(Math.random() * eyeColors.length)],
+        hairColor: hairColors[Math.floor(Math.random() * hairColors.length)],
+        faceShape: ['round', 'square', 'long', 'pointy'][Math.floor(Math.random() * 4)],
+        eyeType: ['circle', 'oval', 'line'][Math.floor(Math.random() * 3)],
+        eyeSize: 4 + Math.random() * 8,
+        noseType: ['pointy', 'round', 'flat'][Math.floor(Math.random() * 3)],
+        noseWidth: 10 + Math.random() * 20,
+        mouthType: ['smile', 'frown', 'flat', 'surprised'][Math.floor(Math.random() * 4)],
+        mouthWidth: 20 + Math.random() * 50,
+        mouthCurve: Math.random() * 20 - 10,
+        beardType: Math.floor(Math.random() * 5), // 0: full, 1: goatee, 2: stash, 3: mutton, 4: patch
+        hairType: Math.floor(Math.random() * 4), // 0: afro, 1: flat, 2: spike, 3: bald
+        hasGlasses: Math.random() > 0.8
+      };
+    }
+
+    function createFaceSVG(props, size = 400) {
+      const scale = size / 400;
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('viewBox', '0 0 400 400');
+      svg.setAttribute('width', size);
+      svg.setAttribute('height', size);
+      svg.style.position = 'absolute';
+      svg.style.top = '0';
+      svg.style.left = '0';
+
+      // Face base
+      const face = document.createElementNS('http://www.w3.org/2000/svg', (props.faceShape === 'round' || props.faceShape === 'long') ? 'ellipse' : 'rect');
+      if (props.faceShape === 'round') {
+        face.setAttribute('cx', '200');
+        face.setAttribute('cy', '200');
+        face.setAttribute('rx', '120');
+        face.setAttribute('ry', '140');
+      } else if (props.faceShape === 'long') {
+        face.setAttribute('cx', '200');
+        face.setAttribute('cy', '200');
+        face.setAttribute('rx', '90');
+        face.setAttribute('ry', '170');
+      } else if (props.faceShape === 'square') {
+        face.setAttribute('x', '90');
+        face.setAttribute('y', '70');
+        face.setAttribute('width', '220');
+        face.setAttribute('height', '260');
+        face.setAttribute('rx', '20');
+      } else { // pointy
+        face.setAttribute('x', '100');
+        face.setAttribute('y', '60');
+        face.setAttribute('width', '200');
+        face.setAttribute('height', '280');
+        face.setAttribute('rx', '100');
+      }
+      face.setAttribute('fill', props.skin);
+      face.setAttribute('stroke', 'rgba(0,0,0,0.2)');
+      svg.appendChild(face);
+
+      // Eyes
+      const eyeY = 160;
+      const eyeXOffset = 45;
+
+      const drawEye = (x) => {
+        if (props.eyeType === 'line') {
+          const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+          line.setAttribute('x1', x - props.eyeSize);
+          line.setAttribute('y1', eyeY);
+          line.setAttribute('x2', x + props.eyeSize);
+          line.setAttribute('y2', eyeY);
+          line.setAttribute('stroke', props.eyeColor);
+          line.setAttribute('stroke-width', '3');
+          svg.appendChild(line);
+        } else {
+          const eye = document.createElementNS('http://www.w3.org/2000/svg', props.eyeType === 'oval' ? 'ellipse' : 'circle');
+          eye.setAttribute('cx', x);
+          eye.setAttribute('cy', eyeY);
+          if (props.eyeType === 'oval') {
+            eye.setAttribute('rx', props.eyeSize * 1.5);
+            eye.setAttribute('ry', props.eyeSize);
+          } else {
+            eye.setAttribute('r', props.eyeSize);
+          }
+          eye.setAttribute('fill', props.eyeColor);
+          svg.appendChild(eye);
+
+          const pupil = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          pupil.setAttribute('cx', x + 2);
+          pupil.setAttribute('cy', eyeY - 2);
+          pupil.setAttribute('r', props.eyeSize / 3);
+          pupil.setAttribute('fill', 'white');
+          svg.appendChild(pupil);
+        }
+      };
+
+      drawEye(200 - eyeXOffset);
+      drawEye(200 + eyeXOffset);
+
+      // Glasses
+      if (props.hasGlasses) {
+        const g1 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        g1.setAttribute('cx', 200 - eyeXOffset);
+        g1.setAttribute('cy', eyeY);
+        g1.setAttribute('r', props.eyeSize * 2.5);
+        g1.setAttribute('fill', 'none');
+        g1.setAttribute('stroke', '#333');
+        g1.setAttribute('stroke-width', '2');
+        svg.appendChild(g1);
+
+        const g2 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        g2.setAttribute('cx', 200 + eyeXOffset);
+        g2.setAttribute('cy', eyeY);
+        g2.setAttribute('r', props.eyeSize * 2.5);
+        g2.setAttribute('fill', 'none');
+        g2.setAttribute('stroke', '#333');
+        g2.setAttribute('stroke-width', '2');
+        svg.appendChild(g2);
+
+        const bridge = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        bridge.setAttribute('x1', 200 - eyeXOffset + props.eyeSize * 2.5);
+        bridge.setAttribute('y1', eyeY);
+        bridge.setAttribute('x2', 200 + eyeXOffset - props.eyeSize * 2.5);
+        bridge.setAttribute('y2', eyeY);
+        bridge.setAttribute('stroke', '#333');
+        bridge.setAttribute('stroke-width', '2');
+        svg.appendChild(bridge);
+      }
+
+      // Nose
+      const nose = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      if (props.noseType === 'pointy') {
+        nose.setAttribute('d', `M 200 ${eyeY + 10} L ${200 - props.noseWidth / 2} ${eyeY + 60} L ${200 + props.noseWidth / 2} ${eyeY + 60} Z`);
+      } else if (props.noseType === 'round') {
+        nose.setAttribute('d', `M 190 ${eyeY + 40} Q 200 ${eyeY + 80} 210 ${eyeY + 40}`);
+      } else {
+        nose.setAttribute('d', `M 185 ${eyeY + 50} L 215 ${eyeY + 50} L 205 ${eyeY + 65} L 195 ${eyeY + 65} Z`);
+      }
+      nose.setAttribute('fill', 'rgba(0,0,0,0.1)');
+      svg.appendChild(nose);
+
+      // Mouth
+      const mouthY = 270;
+      const mw = props.mouthWidth / 2;
+      const mouth = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+
+      let d = '';
+      if (props.mouthType === 'smile') {
+        d = `M ${200 - mw} ${mouthY} Q 200 ${mouthY + 30} ${200 + mw} ${mouthY}`;
+      } else if (props.mouthType === 'frown') {
+        d = `M ${200 - mw} ${mouthY + 20} Q 200 ${mouthY - 10} ${200 + mw} ${mouthY + 20}`;
+      } else if (props.mouthType === 'surprised') {
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+        circle.setAttribute('cx', '200');
+        circle.setAttribute('cy', mouthY + 10);
+        circle.setAttribute('rx', mw / 2);
+        circle.setAttribute('ry', '15');
+        circle.setAttribute('fill', 'rgba(0,0,0,0.2)');
+        svg.appendChild(circle);
+      } else {
+        d = `M ${200 - mw} ${mouthY + 10} L ${200 + mw} ${mouthY + 10}`;
+      }
+
+      if (d) {
+        mouth.setAttribute('d', d);
+        mouth.setAttribute('stroke', 'rgba(0,0,0,0.4)');
+        mouth.setAttribute('stroke-width', '3');
+        mouth.setAttribute('fill', 'none');
+        mouth.setAttribute('stroke-linecap', 'round');
+        svg.appendChild(mouth);
+      }
+
+      return svg;
+    }
+
+    function initShaveCanvas() {
+      shaveCanvas = document.createElement('canvas');
+      shaveCanvas.width = 400;
+      shaveCanvas.height = 400;
+      shaveCanvas.className = 'shave-layer';
+      shaveCtx = shaveCanvas.getContext('2d');
+
+      // Draw hair on canvas
+      shaveCtx.fillStyle = currentFaceProps.hairColor;
+
+      // Top hair
+      const ht = currentFaceProps.hairType;
+      shaveCtx.beginPath();
+      if (ht === 0) { // Afro
+        shaveCtx.arc(200, 100, 140, 0, Math.PI * 2);
+      } else if (ht === 1) { // Flat
+        shaveCtx.rect(90, 40, 220, 80);
+      } else if (ht === 2) { // Spike
+        shaveCtx.moveTo(80, 150);
+        for (let i = 0; i < 10; i++) {
+          shaveCtx.lineTo(90 + i * 24, 20 + (i % 2) * 40);
+        }
+        shaveCtx.lineTo(320, 150);
+      } else { // Bald
+        // No top hair
+      }
+      shaveCtx.fill();
+
+      // Beard
+      const bt = currentFaceProps.beardType;
+      shaveCtx.beginPath();
+      if (bt === 0) { // Full
+        shaveCtx.arc(200, 240, 120, 0, Math.PI);
+        shaveCtx.fill();
+      } else if (bt === 1) { // Goatee
+        shaveCtx.ellipse(200, 310, 60, 60, 0, 0, Math.PI * 2);
+        shaveCtx.fill();
+      } else if (bt === 2) { // Stash
+        shaveCtx.fillRect(140, 240, 120, 25);
+      } else if (bt === 3) { // Mutton
+        shaveCtx.fillRect(80, 150, 40, 100);
+        shaveCtx.fillRect(280, 150, 40, 100);
+      } else { // Patch
+        shaveCtx.arc(200, 320, 20, 0, Math.PI * 2);
+        shaveCtx.fill();
+      }
+
+      // Add noise/texture to hair
+      shaveCtx.globalAlpha = 0.2;
+      for (let i = 0; i < 5000; i++) {
+        shaveCtx.fillStyle = Math.random() > 0.5 ? '#fff' : '#000';
+        shaveCtx.fillRect(Math.random() * 400, Math.random() * 400, 1, 1);
+      }
+      shaveCtx.globalAlpha = 1.0;
+
+      faceContainer.appendChild(shaveCanvas);
+
+      // Events
+      shaveCanvas.onmousedown = (e) => { isMouseDown = true; shave(e); };
+      window.onmouseup = () => { isMouseDown = false; };
+      shaveCanvas.onmousemove = (e) => { if (isMouseDown) shave(e); };
+
+      // Touch events
+      shaveCanvas.ontouchstart = (e) => { isMouseDown = true; shave(e.touches[0]); e.preventDefault(); };
+      shaveCanvas.ontouchend = (e) => { isMouseDown = false; };
+      shaveCanvas.ontouchmove = (e) => { if (isMouseDown) shave(e.touches[0]); e.preventDefault(); };
+    }
+
+    function shave(e) {
+      const rect = shaveCanvas.getBoundingClientRect();
+      const x = (e.clientX - rect.left) * (400 / rect.width);
+      const y = (e.clientY - rect.top) * (400 / rect.height);
+
+      shaveCtx.globalCompositeOperation = 'destination-out';
+      shaveCtx.beginPath();
+      shaveCtx.arc(x, y, 20, 0, Math.PI * 2);
+      shaveCtx.fill();
+    }
+
+    function setNewFace() {
+      faceContainer.innerHTML = '';
+      currentFaceProps = generateRandomFace();
+      const svg = createFaceSVG(currentFaceProps);
+      faceContainer.appendChild(svg);
+      initShaveCanvas();
+    }
+
+    function addToGallery() {
+      const item = document.createElement('a');
+      item.href = pageRandomiser.nextOne();
+      item.className = 'gallery-item';
+
+      const wrap = document.createElement('div');
+      wrap.style.position = 'relative';
+      wrap.style.width = '100px';
+      wrap.style.height = '100px';
+
+      // Face SVG
+      const svg = createFaceSVG(currentFaceProps, 100);
+      wrap.appendChild(svg);
+
+      // Hair Snapshot
+      const hairData = shaveCanvas.toDataURL();
+      const hairImg = document.createElement('img');
+      hairImg.src = hairData;
+      hairImg.style.position = 'absolute';
+      hairImg.style.top = '0';
+      hairImg.style.left = '0';
+      hairImg.style.width = '100px';
+      hairImg.style.height = '100px';
+      hairImg.style.pointerEvents = 'none';
+      wrap.appendChild(hairImg);
+
+      item.appendChild(wrap);
+
+      const text = document.createElement('span');
+      text.innerText = 'SHAVED #' + Math.floor(Math.random() * 9000 + 1000);
+      item.appendChild(text);
+
+      gallery.prepend(item);
+    }
+
+    doneBtn.onclick = () => {
+      // Create flash over the face area to look like a camera flash
+      const rect = faceContainer.getBoundingClientRect();
+      const flash = document.createElement('div');
+      flash.className = 'flash-overlay';
+      flash.style.left = rect.left + 'px';
+      flash.style.top = rect.top + 'px';
+      flash.style.width = rect.width + 'px';
+      flash.style.height = rect.height + 'px';
+
+      document.body.appendChild(flash);
+      setTimeout(() => flash.remove(), 400);
+
+      addToGallery();
+      setNewFace();
+    };
+
+    // Initial faces (already shaved)
+    for (let i = 0; i < 5; i++) {
+      const fakeProps = generateRandomFace();
+      const item = document.createElement('a');
+      item.href = pageRandomiser.nextOne();
+      item.className = 'gallery-item';
+      const wrap = document.createElement('div');
+      wrap.style.position = 'relative';
+      wrap.style.width = '100px';
+      wrap.style.height = '100px';
+      wrap.appendChild(createFaceSVG(fakeProps, 100));
+      item.appendChild(wrap);
+      const text = document.createElement('span');
+      text.innerText = 'SHAVED #' + Math.floor(Math.random() * 9000 + 1000);
+      item.appendChild(text);
+      gallery.prepend(item);
+    }
+
+    setNewFace();
+
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="cataclyzmo">
+  <title>symbolizmo</title>
+  <style>
+    :root {
+      --bg: #050510;
+      --fg: #e0e0d0;
+      --accent: #ff00ff;
+      --scanline: rgba(0, 0, 0, 0.15);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body,
+    html {
+      width: 100%;
+      height: 100%;
+      background-color: var(--bg);
+      color: var(--fg);
+      font-family: serif;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      user-select: none;
+    }
+
+    /* CRT Scanline Effect */
+    body::before {
+      content: " ";
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      right: 0;
+      background: linear-gradient(var(--scanline) 50%, transparent 50%);
+      background-size: 100% 4px;
+      z-index: 1000;
+      pointer-events: none;
+    }
+
+    #constellation {
+      position: relative;
+      width: 800px;
+      height: 800px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .orb {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      padding-bottom: 4px;
+      border-radius: 50%;
+      border: 1px solid rgba(224, 224, 208, 0.2);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-decoration: none;
+      color: var(--fg);
+      font-size: 20px;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      background-color: rgba(0, 0, 0, 0.3);
+    }
+
+    .orb:hover {
+      background-color: var(--accent);
+      color: #fff;
+      border-color: #fff;
+      transform: scale(1.2);
+      z-index: 100;
+      box-shadow: 0 0 20px var(--accent), 0 0 40px var(--accent);
+    }
+
+    .orb.pulsing {
+      animation: pulse 2s infinite alternate ease-in-out;
+    }
+
+    @keyframes pulse {
+      from {
+        transform: scale(1);
+        opacity: 0.7;
+      }
+
+      to {
+        transform: scale(1.1);
+        opacity: 1;
+      }
+    }
+
+    #background-gradient {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle, transparent 40%, rgba(0, 0, 0, 0.8) 100%);
+      pointer-events: none;
+      z-index: 500;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="background-gradient"></div>
+  <div id="constellation"></div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/symbolizmo/index.html";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const constellation = document.getElementById('constellation');
+    const SYMBOLS_POOL = "○◌◍●◐◑◒◓◔◕◯◴◵◶◷⚆⚇⚈⚉✪❂❍⦵⦶⦷⦸⦹⦺⦻⦾⦿⨁⨂".split('');
+    const symbolsRandomiser = new CyclicRandomiser(SYMBOLS_POOL);
+
+    function createLayers() {
+      const layerCount = 6;
+      const radiusStep = 70;
+      const layers = [];
+      for (let i = 0; i < layerCount; i++) {
+        layers.push({
+          level: i,
+          radius: i * radiusStep,
+          count: Math.max(1, i * 6),
+        });
+      }
+
+      layers.forEach((layer, layerIdx) => {
+        for (let i = 0; i < layer.count; i++) {
+          const angle = (i / layer.count) * 2 * Math.PI;
+          const x = Math.cos(angle) * layer.radius;
+          const y = Math.sin(angle) * layer.radius;
+
+          const orb = document.createElement('a');
+          orb.href = pageRandomiser.nextOne();
+          orb.className = 'orb';
+          orb.style.left = `calc(50% + ${x}px - 30px)`;
+          orb.style.top = `calc(50% + ${y}px - 30px)`;
+
+          // Randomly assign a symbol
+          orb.innerText = symbolsRandomiser.nextOne();
+
+          // Randomness to appearance so they all look different
+          orb.style.opacity = 0.5 + Math.random() * 0.5;
+          orb.classList.add('pulsing');
+          orb.style.animationDelay = (Math.random() * 2) + 's';
+
+          constellation.appendChild(orb);
+        }
+      });
+    }
+
+    function rotateConstellation() {
+      let angle = 0;
+      function animate() {
+        angle += 0.05;
+        constellation.style.transform = `rotate(${angle}deg)`;
+        requestAnimationFrame(animate);
+      }
+      animate();
+    }
+
+    createLayers();
+    rotateConstellation();
+
+    // Click background to scramble symbols
+    document.body.onclick = (e) => {
+      if (!e.target.classList.contains('orb')) {
+        const orbs = document.querySelectorAll('.orb');
+        orbs.forEach(orb => {
+          orb.innerText = symbolsRandomiser.nextOne();
+        });
+      }
+    };
+
+  </script>
+</body>
+
+</html>

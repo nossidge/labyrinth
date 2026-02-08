@@ -365,11 +365,16 @@ Fragments from poems with no context.
     let mouseY = window.innerHeight / 2;
     let targetX = mouseX;
     let targetY = mouseY;
+    let isMouseDown = false;
 
     document.addEventListener('mousemove', (e) => {
       targetX = e.clientX;
       targetY = e.clientY;
     });
+
+    document.addEventListener('mousedown', () => isMouseDown = true);
+    document.addEventListener('mouseup', () => isMouseDown = false);
+    document.addEventListener('mouseleave', () => isMouseDown = false);
 
     function mergeWords(idxA, idxB) {
       const a = wordActors[idxA];
@@ -482,6 +487,13 @@ Fragments from poems with no context.
 
           if (!obj.isExplosion) {
             const t = getToroidalDistance(obj.x, obj.y, mouseX, mouseY);
+
+            // Global attraction when mouse is down
+            if (isMouseDown) {
+              obj.vx -= t.dx * 0.00002;
+              obj.vy -= t.dy * 0.00002;
+            }
+
             if (t.dist < 250) {
               const force = (250 - t.dist) / 250;
               obj.vx -= t.dx * force * 0.002;

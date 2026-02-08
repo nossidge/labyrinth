@@ -142,10 +142,9 @@ https://pineco.de/wp-content/uploads/2019/09/modify-the-css-box-model-with-box-s
       const spiderWrap = document.createElement('div');
       spiderWrap.className = 'spider';
 
-      const link = document.createElement('a');
-      link.href = pageRandomiser.nextOne();
-      link.textContent = '🕷️';
-      spiderWrap.appendChild(link);
+      const spiderInner = document.createElement('div');
+      spiderInner.textContent = '🕷️';
+      spiderWrap.appendChild(spiderInner);
 
       // Position using viewport coordinates
       const rect = boxFront.getBoundingClientRect();
@@ -153,11 +152,11 @@ https://pineco.de/wp-content/uploads/2019/09/modify-the-css-box-model-with-box-s
       // PHASE 0: Start at the bottom of the box interior (hidden behind box-front)
       const startX = rect.left + rect.width / 2;
       const startY = rect.bottom - 40; // Near bottom of box
-      const exitY = rect.top + 120;     // Point where it "emerges" over the front lip
+      const exitY = rect.top + 120;    // Point where it "emerges" over the front lip
 
       spiderWrap.style.left = startX + 'px';
       spiderWrap.style.top = startY + 'px';
-      spiderWrap.style.zIndex = "10"; // Behind box-front (15)
+      spiderWrap.style.zIndex = '10'; // Behind box-front (15)
 
       spidersContainer.appendChild(spiderWrap);
 
@@ -187,7 +186,7 @@ https://pineco.de/wp-content/uploads/2019/09/modify-the-css-box-model-with-box-s
           requestAnimationFrame(animate);
         } else if (elapsed < climbDuration + scurryDuration) {
           // PHASE 2: Scurry Away (On top of everything)
-          spiderWrap.style.zIndex = "20"; // Pop to top
+          spiderWrap.style.zIndex = '20'; // Pop to top
 
           const sProgress = (elapsed - climbDuration) / scurryDuration;
           const curX = startX + (targetX - startX) * sProgress;

@@ -88,7 +88,7 @@
       pointer-events: none;
       z-index: 30;
       text-shadow: 2px 2px #000;
-      animation: message-pop 0.5s ease-out forwards;
+      animation: message-pop 0.8s ease-out forwards;
     }
 
     @keyframes message-pop {
@@ -146,34 +146,35 @@
       { emoji: '🛺', direction: 'left' },
     ];
     const MESSAGES_POOL = [
+      'ACE!',
       'AMAZING!',
-      'BANK!',
-      'BOING!',
-      'BONK!',
+      'AWESOME!',
+      'BALLER!',
+      'BODACIOUS!',
+      'BOSS!',
       'COOL!',
-      'CRASH!',
-      'CRAZY!',
+      'DOPE!',
       'DUDE!',
       'EPIC!',
       'EXCELLENT!',
-      'FLIP!',
-      'GLORIOUS!',
-      'GOLLY!',
-      'GOSH!',
-      'HOORAY!',
+      'FAR OUT!',
+      'FIRE!',
+      'GNARLY!',
+      'GROOVY!',
+      'KILLER!',
+      'LEGENDARY!',
+      'MASSIVE!',
       'MEGA!',
       'NICE!',
-      'OUCH!',
+      'PHAT!',
       'RADICAL!',
+      'SICK!',
+      'STELLAR!',
       'STUNTING!',
-      'TERRIFIC!',
-      'WALLOP!',
-      'WHIZZ!',
+      'SUPREME!',
+      'SWEET!',
+      'TUBULAR!',
       'WICKED!',
-      'WOO!',
-      'WOW!',
-      'WOWZERS!',
-      'YES!',
     ];
     const vehicleRandomiser = new CyclicRandomiser(VEHICLES_POOL);
     const messageRandomiser = new CyclicRandomiser(MESSAGES_POOL);
@@ -194,7 +195,7 @@
       msg.style.left = x + 'px';
       msg.style.top = y + 'px';
       world.appendChild(msg);
-      setTimeout(() => msg.remove(), 1000);
+      setTimeout(() => msg.remove(), 2000);
     }
 
     class StuntVehicle {
@@ -245,7 +246,7 @@
           this.rotation += this.vRotate;
 
           if (this.y > groundY - 40) {
-            // Landed or Bounced
+            // Landed or bounced
             this.y = groundY - 40;
 
             if (Math.abs(this.vy) > 2) {

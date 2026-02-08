@@ -42,7 +42,7 @@
       text-decoration: none;
       user-select: none;
       pointer-events: auto;
-      transition: transform 0.2s, filter 0.2s;
+      transition: transform 0.2s, filter 0.2s, opacity 1s;
       filter: drop-shadow(2px 2px 2px rgba(0, 0, 0, 0.5));
     }
 
@@ -256,16 +256,57 @@
         item.style.transform = `rotate(${Math.random() * 360}deg)`;
 
         setTimeout(() => {
-          item.style.transition = 'transform 0.2s, filter 0.2s';
+          item.style.transition = 'transform 0.2s, filter 0.2s, opacity 1s';
           pileEl.appendChild(item);
           itemCount++;
           countEl.textContent = itemCount;
 
+          scheduleFadeAway(item);
+
           if (pileEl.children.length > 60) {
-            pileEl.removeChild(pileEl.firstChild);
+            const oldest = pileEl.querySelector('.item:not([data-fading])');
+            if (oldest) fadeAndRemove(oldest);
           }
         }, 500);
       }, 10);
+    }
+
+    function scheduleFadeAway(el) {
+      const lifetime = 10000 + Math.random() * 20000; // 10-30 seconds
+      setTimeout(() => {
+        fadeAndRemove(el);
+      }, lifetime);
+    }
+
+    function fadeAndRemove(el) {
+      if (el.dataset.fading) return;
+      el.dataset.fading = "true";
+      el.style.opacity = '0';
+      setTimeout(() => {
+        el.remove();
+      }, 1000);
+    }
+
+    // Initialize the pile with static items that have already been placed by previous ants
+    for (let i = 0; i < 20; i++) {
+      const itemData = itemRandomiser.nextOne();
+      const item = document.createElement('a');
+      item.className = 'item';
+      item.textContent = itemData.emoji;
+      item.href = itemData.link;
+
+      const tx = (Math.random() - 0.5) * 150;
+      const ty = (Math.random() - 0.5) * 150;
+
+      item.style.left = `calc(50% + ${tx}px)`;
+      item.style.top = `calc(50% + ${ty}px)`;
+      item.style.transform = `rotate(${Math.random() * 360}deg)`;
+
+      pileEl.appendChild(item);
+      itemCount++;
+      countEl.textContent = itemCount;
+
+      scheduleFadeAway(item);
     }
 
     setInterval(createAnt, 1500);

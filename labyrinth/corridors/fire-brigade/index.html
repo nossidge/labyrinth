@@ -120,6 +120,11 @@ Let me know if you find a layout that is impossible to win.
       text-shadow: 0 0 5px #f00;
     }
 
+    #status.flooded {
+      color: #00ddee;
+      text-shadow: 0 0 5px #00ddee;
+    }
+
     .fire-ovl {
       position: absolute;
       top: 0;
@@ -167,6 +172,8 @@ Let me know if you find a layout that is impossible to win.
     const currentPage = "corridors/fire-brigade/index.html";
     const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
     const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const statusElement = document.getElementById('status');
 
     const PIPES_CONFIG = {
       '─': { n: 0, s: 0, e: 1, w: 1, rotate: '│' },
@@ -382,8 +389,10 @@ Let me know if you find a layout that is impossible to win.
       }
 
       checkWin();
+      checkAllPipesFullOfWater();
     }
 
+    // Check if the fire is out, or if the fire is citywide
     function checkWin() {
       let anyFire = false;
       let onFireCount = 0;
@@ -402,7 +411,6 @@ Let me know if you find a layout that is impossible to win.
         }
       }
 
-      const statusElement = document.getElementById('status');
       if (!anyFire) {
         statusElement.innerHTML = 'FIRE CONTAINED!';
         statusElement.className = 'success';
@@ -413,6 +421,28 @@ Let me know if you find a layout that is impossible to win.
         statusElement.style.visibility = 'visible';
       } else {
         statusElement.style.visibility = 'hidden';
+      }
+    }
+
+    // Check if all pipes are full of water
+    function checkAllPipesFullOfWater() {
+      let totalPipes = 0;
+      let activePipes = 0;
+      for (let r = 0; r < GRID_SIZE; r++) {
+        for (let c = 0; c < GRID_SIZE; c++) {
+          if (gridData[r][c].type === 'pipe') {
+            totalPipes++;
+            if (gridData[r][c].active) {
+              activePipes++;
+            }
+          }
+        }
+      }
+
+      if (totalPipes > 0 && activePipes === totalPipes) {
+        statusElement.innerHTML = 'YOU FOOL! YOU HAVE FLOODED THE CITY!';
+        statusElement.className = 'flooded';
+        statusElement.style.visibility = 'visible';
       }
     }
 

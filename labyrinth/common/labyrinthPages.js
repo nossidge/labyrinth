@@ -22,6 +22,7 @@ const labyrinthPages = [
   "../../corridors/important-business/index.html",
   "../../corridors/in-utero/index.html",
   "../../corridors/mompster-quest/index.html",
+  "../../corridors/oblique-strategies/index.html",
   "../../corridors/othello/index.html",
   "../../corridors/panopticon/index.html",
   "../../corridors/parklife/index.html",

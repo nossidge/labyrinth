@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+"Oblique Strategies" (subtitled "Over One Hundred Worthwhile Dilemmas") is a
+card-based method for promoting creativity jointly created by musician/artist
+Brian Eno and multimedia artist Peter Schmidt, first published in 1975.
+
+Physically, it takes the form of a deck of 7-by-9-centimetre (2.8 in × 3.5 in)
+printed cards in a black box.
+
+Each card offers a challenging constraint intended to help artists (particularly
+musicians) break creative blocks by encouraging lateral thinking.
+-->
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Over One Hundred Worthwhile Dilemmas">
+  <title>Oblique Strategies</title>
+  <style>
+    body {
+      background-color: #050505;
+      color: #d0d0d0;
+      margin: 0;
+      padding: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      font-family: "Courier New", Courier, monospace;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding-top: 60px;
+      /* Simulated grain */
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3BaseFilter id='noiseFilter'%3BfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+    }
+
+    #deck-container {
+      position: relative;
+      width: 320px;
+      height: 100px;
+      perspective: 1000px;
+      z-index: 1000000;
+    }
+
+    .deck {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      border: 1px solid #999;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+      user-select: none;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      outline: none;
+    }
+
+    .deck:focus {
+      border-color: #fff;
+      transform: scale(1.02);
+    }
+
+    .deck:hover {
+      transform: scale(1.02) translateY(-2px);
+    }
+
+    .deck:active {
+      transform: scale(0.98) translateY(1px);
+    }
+
+    .deck::after {
+      content: "OBLIQUE STRATEGIES";
+      font-size: 24px;
+      letter-spacing: 4px;
+      color: #ccc;
+      text-align: center;
+      width: 80%;
+    }
+
+    .card {
+      position: absolute;
+      width: 400px;
+      height: 286px;
+      background: #e8e8e8;
+      color: #111;
+      border-radius: 4px;
+      box-shadow: 2px 2px 15px rgba(0, 0, 0, 0.4);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 30px;
+      box-sizing: border-box;
+      text-align: center;
+      font-size: 1.2rem;
+      line-height: 1.4;
+      pointer-events: auto;
+      text-decoration: none;
+      transition: transform 0.8s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.5s ease;
+      z-index: 1;
+    }
+
+    .card.revealed {
+      cursor: pointer;
+    }
+
+    .card.revealed:hover {
+      filter: brightness(1.1);
+      z-index: 1000;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      right: 10px;
+      bottom: 10px;
+      border: 1px solid #ccc;
+      pointer-events: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="deck-container">
+    <div class="deck" id="deck" tabindex="0" title="Click or press any key to draw a card"></div>
+  </div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/oblique-strategies/index.html";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const STRATEGIES_POOL = [
+      "(Organic) machinery",
+      "A line has two sides",
+      "A very small object - its centre",
+      "Abandon desire",
+      "Abandon normal instructions",
+      "Accept advice",
+      "Accretion",
+      "Adding on",
+      "Allow an easement (an easement is the abandonment of a stricture)",
+      "Always give yourself credit for having more than personality",
+      "Always the first steps",
+      "Animal noises",
+      "Are there sections? Consider transitions",
+      "Ask a computer program to repeat your last action",
+      "Ask people to work against their better judgement",
+      "Ask your body",
+      "Assemble some of the elements in a group and treat the group",
+      "Back up a few steps. What else could you have done?",
+      "Balance the consistency principle with the inconsistency principle",
+      "Be dirty",
+      "Be extravagant",
+      "Be less critical more often",
+      "Breathe more deeply",
+      "Build bridges",
+      "Burn bridges",
+      "Call your mother and ask her what to do",
+      "Cascades",
+      "Change ambiguities to specifics",
+      "Change instrument roles",
+      "Change nothing and continue with immaculate consistency",
+      "Change specifics to ambiguities",
+      "Children's voices singing",
+      "Children's voices speaking",
+      "Cluster analysis",
+      "Consider different fading systems",
+      "Consider transitions",
+      "Consult other promising sources",
+      "Consult other unpromising sources",
+      "Convert a melodic element into a rhythmic element",
+      "Courage!",
+      "Credibility of intentions",
+      "Cut a virtual connection",
+      "Cut a vital connection",
+      "Decorate, decorate",
+      "Define an area as \"safe\" and use it as an anchor",
+      "Describe the landscape in which this belongs",
+      "Destroy nothing",
+      "Discard an axiom",
+      "Disciplined self-indulgence",
+      "Disconnect from desire",
+      "Discover the recipes you are using and abandon them",
+      "Discover your formulas and abandon them",
+      "Display your talent",
+      "Distorting time",
+      "Do nothing for as long as possible",
+      "Do something boring",
+      "Do something sudden, destructive and unpredictable",
+      "Do the last thing first",
+      "Do the washing up",
+      "Do the words need changing?",
+      "Do we need holes?",
+      "Don't avoid what is easy",
+      "Don't be afraid of things because they're easy to do",
+      "Don't be frightened of cliches",
+      "Don't be frightened to display your talents",
+      "Don't break the silence",
+      "Don't stress one thing more than another",
+      "Earth",
+      "Emphasize differences",
+      "Emphasize repetitions",
+      "Emphasize the flaws",
+      "Faced with a choice, do both!",
+      "Feed the recording back out of the medium",
+      "Feedback recordings into an acoustic situation",
+      "Fill every beat with something",
+      "Fire",
+      "First work alone, then work in unusual pairs",
+      "From nothing to more than nothing",
+      "Get your neck massaged",
+      "Ghost echoes",
+      "Give the game away",
+      "Give way to your worst impulse",
+      "Go outside. Shut the door",
+      "Go slowly all the way round the outside",
+      "Go to an extreme, move back to a more comfortable place",
+      "Heart",
+      "How is it similar?",
+      "How would someone else do it?",
+      "How would you explain this to your parents?",
+      "How would you have done it?",
+      "Humanize something that is free of error",
+      "Humility of intentions",
+      "Idiot glee",
+      "Imagine the music as a moving chain or caterpillar",
+      "Imagine the music as a series of disconnected events",
+      "In a very large room, very quietly",
+      "In total darkness",
+      "Infinitesimal gradations",
+      "Instead of changing the thing, change the world around it",
+      "Is it finished?",
+      "Is something missing?",
+      "Is the style right?",
+      "Is the tuning appropriate?",
+      "It is quite possible (after all)",
+      "It is simply a matter or work",
+      "Just carry on",
+      "Left channel, right channel, centre channel",
+      "List the qualities it has List those you'd like",
+      "Listen in a very large room, very quietly",
+      "Listen in total darkness",
+      "Listen to the quiet voice",
+      "Look at a very small object, look at its centre",
+      "Look at the order in which you do things",
+      "Look closely at the most embarrassing details and amplify",
+      "Lost in useless territory",
+      "Lowest common denominator check: single beat; single note; single riff",
+      "Magnify the most difficult details",
+      "Make a blank valuable by putting it in an exquisite frame",
+      "Make a sudden, destructive unpredictable action. Incorporate",
+      "Make an exhaustive list of everything you might do and do the last thing on the list",
+      "Make it more banal",
+      "Make it more sensual",
+      "Make what's perfect more human",
+      "Mechanize something idiosyncratic",
+      "Move towards the impossible",
+      "Move towards the unimportant",
+      "Mute and continue",
+      "Nobility of intentions",
+      "Not building a wall but making a brick",
+      "Now, what do you do best?",
+      "Once the search is in progress, something will be found",
+      "Only a part, not the whole",
+      "Only one element of each kind",
+      "Overtly resist change",
+      "Pay attention to distractions",
+      "Picture of a man spotlighted",
+      "Put in earplugs",
+      "Question the heroic approach",
+      "Rearrange",
+      "Remember those quiet evenings",
+      "Remove a restriction",
+      "Remove ambiguities and convert to specifics",
+      "Remove specifics and convert to ambiguities",
+      "Remove the middle, extend the edges",
+      "Repetition is a form of change",
+      "Retrace your steps",
+      "Revaluation (a warm feeling)",
+      "Reverse",
+      "Short circuit",
+      "Shut the door and listen from outside",
+      "Simple subtraction",
+      "Simply a matter of work",
+      "Slow preparation, fast execution",
+      "Spectrum analysis",
+      "State the problem in words as simply as possible",
+      "Steal a solution",
+      "Take a break",
+      "Take away as much mystery as possible. What is left?",
+      "Take away the elements in order of apparent non-importance",
+      "Take away the important parts",
+      "Tape your mouth",
+      "The inconsistency principle",
+      "The most important thing is the thing most easily forgotten",
+      "The tape is now the music",
+      "Think inside the work",
+      "Think of the radio",
+      "Think outside the work",
+      "Tidy up",
+      "Towards the insignificant",
+      "Trust in the you of now",
+      "Try faking it",
+      "Turn it upside down",
+      "Twist the spine",
+      "Use \"unqualified\" people",
+      "Use an old idea",
+      "Use an unacceptable color",
+      "Use cliches",
+      "Use fewer notes",
+      "Use filters",
+      "Use something nearby as a model",
+      "Use your own ideas",
+      "Voice your suspicions",
+      "Water",
+      "What are the sections sections of?",
+      "What can you learn from it?",
+      "What context would look right?",
+      "What could you take from it?",
+      "What do you do?",
+      "What else is this like?",
+      "What is the reality of the situation?",
+      "What is the simplest solution?",
+      "What mistakes did you make last time?",
+      "What most recently impressed you?",
+      "What to increase? What to reduce? What to maintain?",
+      "What were the branch points in the evolution of this entity?",
+      "What were you really thinking about just now? Incorporate",
+      "What would make this really successful?",
+      "What would your closest friend do?",
+      "What wouldn't you do? Do that",
+      "When is it for?",
+      "Where is the edge?",
+      "Which parts can be grouped?",
+      "Who is it for?",
+      "Who would make this really successful?",
+      "Wind",
+      "Work at a different speed",
+      "Would anyone want it?",
+      "You are an engineer",
+      "You can only make one dot at a time",
+      "You don't have to be ashamed of using your own ideas",
+      "Your mistake was a hidden intention",
+      " ",
+    ];
+    const strategyRandomiser = new CyclicRandomiser(STRATEGIES_POOL);
+
+    const container = document.body;
+    const deck = document.getElementById('deck');
+    let maxZ = 1;
+
+    function drawCard() {
+      const phrase = strategyRandomiser.nextOne();
+      const card = document.createElement('a');
+      card.className = 'card';
+      card.href = pageRandomiser.nextOne();
+      card.innerText = phrase;
+
+      // Initial strategy: newly created cards go on top of old ones
+      card.style.zIndex = `${maxZ++}`;
+
+      // Bring to front on hover and keep it there
+      card.addEventListener('mouseenter', () => {
+        card.style.zIndex = `${maxZ++}`;
+      });
+
+      // Random end position (anywhere on the screen, independent of deck location)
+      const targetX = Math.random() * (window.innerWidth - 400);
+      const targetY = Math.random() * (window.innerHeight - 300);
+      const rotate = (Math.random() - 0.5) * 40;
+
+      // Start at deck position
+      const deckRect = deck.getBoundingClientRect();
+      const startX = deckRect.left + deckRect.width / 2 - 200;
+      const startY = deckRect.top + deckRect.height / 2 - 150;
+
+      card.style.left = `${startX}px`;
+      card.style.top = `${startY}px`;
+      card.style.transform = `translate(0, 0) rotate(0deg) scale(0.2)`;
+      card.style.opacity = '0';
+
+      // Calculate final translation delta
+      const x = targetX - startX;
+      const y = targetY - startY;
+
+      container.appendChild(card);
+
+      // Use nested requestAnimationFrame (double rAF) to ensure the browser paints the
+      // card's initial state at the deck before applying the transformation. Without
+      // this, the browser might batch the styles and skip the transition animation.
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          card.style.opacity = '1';
+          card.style.transform = `translate(${x}px, ${y}px) rotate(${rotate}deg) scale(0.8)`;
+          card.classList.add('revealed');
+        });
+      });
+    }
+
+    deck.addEventListener('click', drawCard);
+
+    // Draw card on any key press (except when interacting with the deck specifically)
+    window.addEventListener('keydown', (e) => {
+      // Ignore if user is tabbing
+      if (e.key === 'Tab') {
+        return;
+      }
+      // Ignore if a modifier key is pressed (e.g., Ctrl, Alt, Meta, Shift)
+      if (e.ctrlKey || e.altKey || e.metaKey || e.shiftKey) {
+        return;
+      }
+      drawCard();
+    });
+
+  </script>
+</body>
+
+</html>

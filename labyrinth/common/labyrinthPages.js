@@ -42,6 +42,7 @@ const labyrinthPages = [
   "../../corridors/symbolizma/index.html",
   "../../corridors/symbolizmo/index.html",
   "../../corridors/trine/index.html",
+  "../../corridors/turtles/index.html",
   "../../corridors/tyger/index.html",
   "../../corridors/vertical-lines/index.html",
   "../../corridors/wandering-aengus/index.html",

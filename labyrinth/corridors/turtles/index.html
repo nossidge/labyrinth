@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+https://en.wikipedia.org/wiki/Turtles_all_the_way_down
+-->
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="You have broken me">
+  <title>All the way down</title>
+  <style>
+    body,
+    html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #c0c0c0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: "Courier New", Courier, monospace;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    #turtles-container {
+      width: 600px;
+      height: 600px;
+      max-width: 90vw;
+      max-height: 90vw;
+      background-color: #fff;
+      border: 4px inset #dfdfdf;
+      display: grid;
+      position: relative;
+      grid-template-columns: repeat(var(--square-number, 4), 1fr);
+      grid-template-rows: repeat(var(--square-number, 4), 1fr);
+    }
+
+    .turtle {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 80px;
+      position: relative;
+      box-sizing: border-box;
+      cursor: pointer;
+    }
+
+    .turtle:not(.splitting):hover {
+      background-color: #f0f0f0;
+    }
+
+    .sub-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      grid-template-rows: repeat(2, 1fr);
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      opacity: 0;
+      transition: opacity 0.5s ease-in;
+      pointer-events: none;
+    }
+
+    .sub-grid.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .turtle-emoji {
+      pointer-events: none;
+      transition: opacity 0.5s ease-out;
+    }
+
+    #footer {
+      position: fixed;
+      bottom: 10px;
+      width: 100%;
+      text-align: center;
+      font-size: 32px;
+      color: #444;
+    }
+
+    #footer a {
+      color: #70843D;
+      font-weight: bold;
+      text-decoration: none;
+    }
+
+    #footer a:hover {
+      color: #444;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="turtles-container">
+    <!-- This is where all the turtles will live -->
+  </div>
+
+  <div id="footer">
+    <a href="../../todo.html">It's</a>
+    <a href="../../todo.html">turtles</a>
+    <a href="../../todo.html">all</a>
+    <a href="../../todo.html">the</a>
+    <a href="../../todo.html">way</a>
+    <a href="../../todo.html">down</a>
+  </div>
+
+  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script>
+    const currentPage = "corridors/turtles/index.html";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    // Currently I just want one nice big turtle in the middle
+    // Alter this to start with any number of initial turtles
+    const squareNumber = 1;
+
+    const container = document.getElementById('turtles-container');
+    container.style.setProperty('--square-number', squareNumber);
+
+    function createTurtle(parent, level) {
+      const turtle = document.createElement('div');
+      turtle.className = 'turtle';
+
+      // Scale font size based on level and initial grid density
+      const fontSize = Math.max((320 / squareNumber) / Math.pow(2, level), 2);
+      turtle.style.fontSize = fontSize + 'px';
+
+      const emoji = document.createElement('span');
+      emoji.className = 'turtle-emoji';
+      emoji.innerText = '🐢';
+      turtle.appendChild(emoji);
+
+      turtle.addEventListener('click', (e) => {
+        e.stopPropagation();
+
+        // The 'splitting' class acts as a guard to prevent
+        // redundant clicks while the recursion is in progress
+        if (turtle.classList.contains('splitting')) return;
+        turtle.classList.add('splitting');
+
+        // Fade out old turtle emoji
+        emoji.style.opacity = '0';
+
+        // Create sub-grid
+        const subGrid = document.createElement('div');
+        subGrid.className = 'sub-grid';
+
+        for (let i = 0; i < 4; i++) {
+          createTurtle(subGrid, level + 1);
+        }
+
+        turtle.appendChild(subGrid);
+
+        // Start fading in sub-grid
+        setTimeout(() => {
+          subGrid.classList.add('active');
+        }, 50);
+
+        setTimeout(() => {
+          // We don't remove the parent because we need it to hold the subgrid
+          // But we need to hide the emoji
+          emoji.style.display = 'none';
+
+          // And make the turtle no longer clickable itself (so subgrid can be clicked)
+          turtle.style.pointerEvents = 'none';
+
+          // We must ensure the subgrid is clickable
+          subGrid.style.pointerEvents = 'auto';
+        }, 500);
+      });
+
+      parent.appendChild(turtle);
+    }
+
+    // Initialize grid
+    for (let i = 0; i < squareNumber * squareNumber; i++) {
+      createTurtle(container, 0);
+    }
+
+  </script>
+</body>
+
+</html>

@@ -12,6 +12,7 @@ const labyrinthPages = [
   "../../corridors/bsod/index.html",
   "../../corridors/charlotte/index.html",
   "../../corridors/chinatown/index.html",
+  "../../corridors/chromaphilia/index.html",
   "../../corridors/city-fireworks/index.html",
   "../../corridors/cloudflare/index.html",
   "../../corridors/cow/index.html",

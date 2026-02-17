@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Chromaphilia">
+  <title>Chromaphilia</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #000;
+      color: #777;
+      font-family: "Courier New", Courier, monospace;
+      overflow: hidden;
+      user-select: none;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #mixer {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .circle {
+      position: absolute;
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+      mix-blend-mode: screen;
+      cursor: grab;
+      filter: blur(5px);
+    }
+
+    .circle:active {
+      cursor: grabbing;
+    }
+
+    #red {
+      background-color: #ff0000;
+    }
+
+    #green {
+      background-color: #00ff00;
+    }
+
+    #blue {
+      background-color: #0000ff;
+    }
+
+    .color-nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      padding: 10px;
+      box-sizing: border-box;
+      z-index: 100;
+    }
+
+    .color-btn {
+      pointer-events: auto;
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      font-weight: 900;
+      color: #000;
+      transition: transform 0.2s, opacity 0.5s, filter 0.5s;
+      filter: blur(3px);
+      border-radius: 50%;
+      font-size: 1.5rem;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .color-btn.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .color-btn:hover {
+      filter: blur(1px);
+      transform: scale(1.1);
+    }
+
+    .color-btn:active {
+      transform: scale(0.9);
+      opacity: 0.8;
+    }
+
+    #btn-r {
+      background-color: #ff0000;
+      justify-self: start;
+      align-self: start;
+    }
+
+    #btn-y {
+      background-color: #ffff00;
+      justify-self: center;
+      align-self: start;
+    }
+
+    #btn-g {
+      background-color: #00ff00;
+      justify-self: end;
+      align-self: start;
+    }
+
+    #btn-m {
+      background-color: #ff00ff;
+      justify-self: start;
+      align-self: end;
+    }
+
+    #btn-b {
+      background-color: #0000ff;
+      justify-self: center;
+      align-self: end;
+      color: #fff;
+    }
+
+    #btn-c {
+      background-color: #00ffff;
+      justify-self: end;
+      align-self: end;
+    }
+
+    #noise {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 50;
+      opacity: 0.05;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    }
+
+    #scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 60;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
+      background-size: 100% 4px;
+      opacity: 0.2;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="noise"></div>
+  <div id="scanlines"></div>
+
+  <div id="mixer">
+    <div id="red" class="circle"></div>
+    <div id="green" class="circle"></div>
+    <div id="blue" class="circle"></div>
+  </div>
+
+  <div class="color-nav">
+    <a href="../../todo.html" class="color-btn" id="btn-r">R</a>
+    <a href="../../todo.html" class="color-btn" id="btn-y">Y</a>
+    <a href="../../todo.html" class="color-btn" id="btn-g">G</a>
+    <a href="../../todo.html" class="color-btn" id="btn-m">M</a>
+    <a href="../../todo.html" class="color-btn" id="btn-b">B</a>
+    <a href="../../todo.html" class="color-btn" id="btn-c">C</a>
+  </div>
+
+  <script>
+    const mixer = document.getElementById('mixer');
+    const red = document.getElementById('red');
+    const green = document.getElementById('green');
+    const blue = document.getElementById('blue');
+
+    const btnR = document.getElementById('btn-r');
+    const btnY = document.getElementById('btn-y');
+    const btnG = document.getElementById('btn-g');
+    const btnM = document.getElementById('btn-m');
+    const btnB = document.getElementById('btn-b');
+    const btnC = document.getElementById('btn-c');
+
+    // Initial positions
+    const centerX = window.innerWidth / 2;
+    const centerY = window.innerHeight / 2;
+
+    const circles = [
+      { id: 'red', el: red, x: centerX - 100, y: centerY - 60 },
+      { id: 'green', el: green, x: centerX + 100, y: centerY - 60 },
+      { id: 'blue', el: blue, x: centerX, y: centerY + 80 }
+    ];
+
+    const radius = 150;
+
+    function updateCirclePositions() {
+      circles.forEach(c => {
+        c.el.style.left = (c.x - radius) + 'px';
+        c.el.style.top = (c.y - radius) + 'px';
+      });
+      checkOverlaps();
+    }
+
+    function checkOverlaps() {
+      const redCircle = circles.find(c => c.id === 'red');
+      const greenCircle = circles.find(c => c.id === 'green');
+      const blueCircle = circles.find(c => c.id === 'blue');
+
+      const dist = (c1, c2) => Math.sqrt(Math.pow(c1.x - c2.x, 2) + Math.pow(c1.y - c2.y, 2));
+
+      const redGreen = dist(redCircle, greenCircle) < radius * 2;
+      const redBlue = dist(redCircle, blueCircle) < radius * 2;
+      const greenBlue = dist(greenCircle, blueCircle) < radius * 2;
+
+      // Primary colors always visible
+      btnR.classList.add('visible');
+      btnG.classList.add('visible');
+      btnB.classList.add('visible');
+
+      // Secondary colors based on overlaps
+      btnY.classList.toggle('visible', redGreen);
+      btnM.classList.toggle('visible', redBlue);
+      btnC.classList.toggle('visible', greenBlue);
+    }
+
+    updateCirclePositions();
+
+    let activeCircle = null;
+    let offsetX = 0;
+    let offsetY = 0;
+
+    function handleStart(e) {
+      if (e.target.classList.contains('circle')) {
+        activeCircle = circles.find(c => c.el === e.target);
+        const clientX = e.clientX || e.touches[0].clientX;
+        const clientY = e.clientY || e.touches[0].clientY;
+
+        const rect = activeCircle.el.getBoundingClientRect();
+        offsetX = clientX - (rect.left + rect.width / 2);
+        offsetY = clientY - (rect.top + rect.height / 2);
+
+        // Bring to front while dragging
+        activeCircle.el.style.zIndex = 40;
+      }
+    }
+
+    function handleMove(e) {
+      if (activeCircle) {
+        const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+        const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+
+        if (clientX === undefined) return;
+
+        activeCircle.x = clientX - offsetX;
+        activeCircle.y = clientY - offsetY;
+
+        activeCircle.el.style.left = (activeCircle.x - radius) + 'px';
+        activeCircle.el.style.top = (activeCircle.y - radius) + 'px';
+
+        checkOverlaps();
+      }
+    }
+
+    function handleEnd() {
+      if (activeCircle) {
+        activeCircle.el.style.zIndex = '';
+        activeCircle = null;
+      }
+    }
+
+    mixer.addEventListener('mousedown', handleStart);
+    window.addEventListener('mousemove', handleMove);
+    window.addEventListener('mouseup', handleEnd);
+
+    mixer.addEventListener('touchstart', handleStart);
+    window.addEventListener('touchmove', handleMove);
+    window.addEventListener('touchend', handleEnd);
+
+  </script>
+</body>
+
+</html>

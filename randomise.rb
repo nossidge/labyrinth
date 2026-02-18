@@ -1,98 +1,104 @@
 require 'fileutils'
 
 # Configuration
-SOURCE_DIR = 'labyrinth'
-TARGET_DIR = 'final'
-COMMON_DIR = File.join(SOURCE_DIR, 'common')
-PAGES_JS = File.join(COMMON_DIR, 'labyrinthPages.js')
+SOURCE_DIR = 'private'
+TARGET_DIR = 'public'
+WIP_DIR = 'wip'
 
-# 1. Gather all corridors, excluding those with .wip files
-all_corridor_dirs = Dir.glob(File.join(SOURCE_DIR, 'corridors', '*/'))
-active_corridors = all_corridor_dirs.reject do |dir|
-  File.exist?(File.join(dir, '.wip'))
+def get_formatted_title(dir_path)
+  File.basename(dir_path).split('-').map(&:capitalize).join(' ')
 end
 
-corridors = active_corridors.map do |path|
-  "#{path.sub("#{SOURCE_DIR}/", '')}index.html"
+def generate_dir_files(dir_path)
+  all_corridor_dirs = Dir.glob(File.join(dir_path, 'corridors', '*/')).sort
+  corridor_dirs = all_corridor_dirs.reject do |d|
+    File.exist?(File.join(d, '.wip'))
+  end
+
+  all_room_dirs = Dir.glob(File.join(dir_path, 'rooms', '*/')).sort
+  room_dirs = all_room_dirs.reject do |d|
+    File.exist?(File.join(d, '.wip'))
+  end
+
+  # Corridors for JS (relative to common/labyrinthPages.js, i.e., ../../corridors/...)
+  corridors_for_js = corridor_dirs.map { |d| d.sub("#{dir_path}/", '') + "index.html" }
+
+  # 1. Generate common/labyrinthPages.js
+  js_path = File.join(dir_path, 'common', 'labyrinthPages.js')
+  js_content = <<~JSCRIPT
+    // Contains the list of all pages, that are ready to go.
+    // There are other pages that are not ready to go, but are referenced in the code.
+    // Those other pages will be ignored when the links are randomly generated via randomise.rb
+    const labyrinthPages = [
+    #{corridors_for_js.map { |p| "  \"../../#{p}\"," }.join("\n")}
+    ];
+  JSCRIPT
+  FileUtils.mkdir_p(File.dirname(js_path))
+  File.write(js_path, js_content)
+  puts "Generated #{js_path}"
+
+  # 2. Generate index.html
+  template = File.read('template.html')
+
+  corridor_links = corridor_dirs.map do |d|
+    title = get_formatted_title(d)
+    rel_path = d.sub("#{dir_path}/", '') + "index.html"
+    "      <li><a href=\"#{rel_path}\">#{title}</a></li>"
+  end.join("\n")
+
+  room_links = room_dirs.map do |d|
+    title = get_formatted_title(d)
+    rel_path = d.sub("#{dir_path}/", '') + "index.html"
+    "      <li><a href=\"#{rel_path}\">#{title}</a></li>"
+  end.join("\n")
+
+  index_content = template.gsub('{{CORRIDOR_LINKS}}', corridor_links)
+  index_content.gsub!('{{ROOM_LINKS}}', room_links)
+
+  File.write(File.join(dir_path, 'index.html'), index_content)
+  puts "Generated #{File.join(dir_path, 'index.html')}"
+
+  # Return the corridors for randomization mapping
+  corridors_for_js
 end
 
-puts "Found #{corridors.length} active corridors (skipped #{all_corridor_dirs.length - active_corridors.length} WIPs)."
+# 1. Housekeeping
+puts "Housekeeping WIP directory..."
+generate_dir_files(WIP_DIR)
 
-# 2. Generate labyrinthPages.js
-# We'll use the relative path from a corridor page (../../) as requested by the user.
-js_content = <<~JSCRIPT
-  // Contains the list of all pages, that are ready to go.
-  // There are other pages that are not ready to go, but are referenced in the code.
-  // Those other pages will be ignored when the links are randomly generated via randomise.rb
-  const labyrinthPages = [
-  #{corridors.map { |c| "  \"../../#{c}\"," }.join("\n")}
-  ];
-JSCRIPT
+puts "Housekeeping PRIVATE directory..."
+corridors = generate_dir_files(SOURCE_DIR)
 
-File.write(PAGES_JS, js_content)
-puts "Generated #{PAGES_JS}"
-
-# 3. Create final directory
+# 2. Create public directory (clean copy of private, excluding WIPs)
+puts "Generating #{TARGET_DIR}..."
 FileUtils.rm_rf(TARGET_DIR)
 FileUtils.cp_r(SOURCE_DIR, TARGET_DIR)
 
-# Remove WIP directories from final/
-skipped_corridors = []
-all_corridor_dirs.each do |dir|
-  if File.exist?(File.join(dir, '.wip'))
-    wip_name = dir.sub("#{SOURCE_DIR}/corridors/", '')
-    skipped_corridors << wip_name
-    wip_target = File.join(TARGET_DIR, dir.sub("#{SOURCE_DIR}/", ''))
-    FileUtils.rm_rf(wip_target)
-    puts "Removed WIP corridor: #{wip_target}"
-  end
+# Remove any lingering WIP directories from public (if they were in private with .wip file)
+Dir.glob(File.join(TARGET_DIR, '**/.wip')).each do |wip_file|
+  wip_dir = File.dirname(wip_file)
+  FileUtils.rm_rf(wip_dir)
+  puts "Removed WIP corridor from public: #{wip_dir}"
 end
 
-# Remove WIP links from final/index.html
-final_index = File.join(TARGET_DIR, 'index.html')
-if File.exist?(final_index)
-  index_content = File.read(final_index)
-  skipped_corridors.each do |wip_path|
-    wip_name = wip_path.chomp('/')
-    # Match the <li> line that contains the WIP corridor link
-    index_content.gsub!(/^\s*<li>.*corridors\/#{Regexp.escape(wip_name)}\/.*<\/li>.*?\n/, '')
-  end
-  File.write(final_index, index_content)
-  puts "Cleaned up WIP links in #{final_index}"
-end
-
-puts "Copied #{SOURCE_DIR} to #{TARGET_DIR}"
-
-# 4. Randomise links in final/
-# We need to find all HTML files in final/
+# 3. Randomise links in public/
 html_files = Dir.glob(File.join(TARGET_DIR, '**/*.html'))
 
 html_files.each do |file|
   next unless File.exist?(file)
   content = File.read(file)
-
-  # Determine the depth to adjust the relative path
   relative_path = file.sub("#{TARGET_DIR}/", '')
   depth = relative_path.count('/')
-
   prefix = "../" * depth
 
-  # Replace todo.html links
   # Filter out current page to avoid self-linking
   possible_corridors = corridors.reject { |c| c == relative_path }
-
-  # For fallback if everything is filtered (shouldn't happen with reject, but just in case)
   possible_corridors = corridors.dup if possible_corridors.empty?
-
   buffer = possible_corridors.shuffle
 
   new_content = content.gsub(/['"][^'"]*todo\.html['"]/) do |match|
     quote = match[0]
-
-    if buffer.empty?
-      buffer = possible_corridors.shuffle
-    end
-
+    buffer = possible_corridors.shuffle if buffer.empty?
     random_corridor = buffer.pop
     "#{quote}#{prefix}#{random_corridor}#{quote}"
   end

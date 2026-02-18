@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Index</title>
+  <style>
+    body {
+      background-color: #1a1a1a;
+      color: #a5a5a5;
+    }
+
+    a:visited {
+      color: #a5a5a5;
+    }
+
+    a {
+      color: #606060;
+    }
+
+    ol {
+      column-width: 200px;
+      column-gap: 40px;
+      list-style-position: inside;
+      padding-left: 0;
+    }
+
+    li {
+      margin-bottom: 0.5em;
+      break-inside: avoid;
+    }
+  </style>
+</head>
+
+<body>
+  <div>
+    <h1>Corridors</h1>
+    <ol>
+{{CORRIDOR_LINKS}}
+    </ol>
+  </div>
+  <div>
+    <h1>Rooms</h1>
+    <ol>
+{{ROOM_LINKS}}
+    </ol>
+  </div>
+</body>
+
+</html>

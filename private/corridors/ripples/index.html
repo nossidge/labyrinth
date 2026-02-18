@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Enjoy the Galaxy® range of Ripple® bars">
+  <title>Ripple Galaxy</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #000;
+      color: #0f0;
+      font-family: "Courier New", Courier, monospace;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    #canvas-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      cursor: crosshair;
+    }
+
+    #ui {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      pointer-events: none;
+      z-index: 10;
+      text-shadow: 2px 2px #000;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      letter-spacing: 0.2rem;
+      margin: 0;
+      padding: 0;
+    }
+
+    .hint {
+      font-size: 0.8rem;
+      opacity: 0.7;
+    }
+
+    canvas {
+      image-rendering: pixelated;
+    }
+
+    /* Scanline effect */
+    #scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
+      background-size: 100% 2px, 3px 100%;
+      pointer-events: none;
+      z-index: 5;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="scanlines"></div>
+  <div id="ui">
+    <h1>RIPPLES</h1>
+    <p class="hint">CLICK TO DISTURB</p>
+  </div>
+  <div id="canvas-container">
+    <canvas id="liquidCanvas"></canvas>
+  </div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const canvas = document.getElementById('liquidCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const currentPage = "corridors/ripples/index.html";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    let width, height;
+    let scale = 4; // Low res for lo-fi look
+    let cols, rows;
+    let buffer1, buffer2;
+    let damping = 0.98;
+
+    function init() {
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = width / scale;
+      canvas.height = height / scale;
+      canvas.style.width = width + 'px';
+      canvas.style.height = height + 'px';
+
+      cols = canvas.width;
+      rows = canvas.height;
+
+      buffer1 = new Float32Array(cols * rows);
+      buffer2 = new Float32Array(cols * rows);
+    }
+
+    window.addEventListener('resize', init);
+    init();
+
+    function dropAt(x, y, strength) {
+      x = Math.floor(x / scale);
+      y = Math.floor(y / scale);
+
+      if (x > 0 && x < cols - 1 && y > 0 && y < rows - 1) {
+        buffer1[x + y * cols] = strength;
+      }
+    }
+
+    canvas.addEventListener('mousedown', (e) => {
+      dropAt(e.clientX, e.clientY, 512);
+
+      // Randomly navigate sometimes or based on specific conditions?
+      // Actually, usually in this project, there are specific links or a global click.
+      // Let's make it so if you click near the edges or something, it navigates.
+      // Or just add some "links" that are invisible.
+      if (Math.random() > 0.8) {
+        window.location.href = pageRandomiser.nextOne();
+      }
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+      if (e.buttons === 1) {
+        dropAt(e.clientX, e.clientY, 256);
+      }
+    });
+
+    function update() {
+      for (let i = cols; i < cols * rows - cols; i++) {
+        // Skip edges
+        if (i % cols === 0 || i % cols === cols - 1) continue;
+
+        buffer2[i] = (
+          buffer1[i - 1] +
+          buffer1[i + 1] +
+          buffer1[i - cols] +
+          buffer1[i + cols]
+        ) / 2 - buffer2[i];
+        buffer2[i] *= damping;
+      }
+
+      // Swap buffers
+      let temp = buffer1;
+      buffer1 = buffer2;
+      buffer2 = temp;
+    }
+
+    function draw() {
+      const imageData = ctx.createImageData(cols, rows);
+      const data = imageData.data;
+
+      for (let i = 0; i < cols * rows; i++) {
+        let val = Math.abs(buffer1[i]);
+
+        // 90s electric water aesthetic
+        let r, g, b;
+        if (val > 0.1) {
+          // Map height to a hue
+          // Hue shifts from blue (200) to cyan (180) to magenta (300)
+          let hue = (200 + val * 0.5) % 360;
+          let sat = 80;
+          let light = Math.min(val * 0.5 + 5, 80);
+
+          // Simple HSL to RGB conversion for the "arty" feel
+          const h = hue / 60;
+          const s = sat / 100;
+          const l = light / 100;
+          const c = (1 - Math.abs(2 * l - 1)) * s;
+          const x = c * (1 - Math.abs(h % 2 - 1));
+          const m = l - c / 2;
+          let r1 = 0,
+            g1 = 0,
+            b1 = 0;
+          if (h >= 0 && h < 1) {
+            r1 = c;
+            g1 = x;
+          } else if (h >= 1 && h < 2) {
+            r1 = x;
+            g1 = c;
+          } else if (h >= 2 && h < 3) {
+            g1 = c;
+            b1 = x;
+          } else if (h >= 3 && h < 4) {
+            g1 = x;
+            b1 = c;
+          } else if (h >= 4 && h < 5) {
+            r1 = x;
+            b1 = c;
+          } else if (h >= 5 && h < 6) {
+            r1 = c;
+            b1 = x;
+          }
+          r = (r1 + m) * 255;
+          g = (g1 + m) * 255;
+          b = (b1 + m) * 255;
+        } else {
+          r = 0;
+          g = 10;
+          b = 20; // Deep water background
+        }
+
+        const px = i * 4;
+        data[px] = r;
+        data[px + 1] = g;
+        data[px + 2] = b;
+        data[px + 3] = 255;
+      }
+
+      ctx.putImageData(imageData, 0, 0);
+    }
+
+    function loop() {
+      update();
+      draw();
+      requestAnimationFrame(loop);
+    }
+
+    loop();
+
+    // Add some random ripples
+    setInterval(() => {
+      if (Math.random() > 0.95) {
+        dropAt(Math.random() * width, Math.random() * height, 256);
+      }
+    }, 100);
+
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Coma-overdose and I'm in the zone">
+  <title>Running in a cyclone</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #000;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    #cyclone-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .cyclone-emoji {
+      position: absolute;
+      transition: filter 0.2s;
+      display: inline-block;
+      line-height: 1;
+      text-decoration: none;
+    }
+
+    .cyclone-emoji:hover {
+      filter: brightness(1.5) drop-shadow(0 0 10px rgba(0, 255, 255, 0.8));
+    }
+  </style>
+</head>
+
+<body>
+  <div id="cyclone-container"></div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/cyclone/index.html";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const container = document.getElementById('cyclone-container');
+    const spawnRate = 10;
+    const expansionSpeed = 0.8;
+    const rotationSpeed = 0.015;
+    const scaleFactor = 0.15;
+
+    let emojis = [];
+    let frameCount = 0;
+
+    function createEmoji() {
+      const el = document.createElement('a');
+      el.className = 'cyclone-emoji';
+      el.innerHTML = '🌀';
+      el.style.fontSize = '100px';
+      el.href = pageRandomiser.nextOne();
+
+      // Base angle for the spiral
+      // This could maybe be randomised?
+      const baseAngle = 0;
+
+      const emojiObj = {
+        dom: el,
+        age: 0,
+        baseAngle: baseAngle,
+        spinSpeed: 0.08
+      };
+
+      container.appendChild(el);
+      emojis.push(emojiObj);
+    }
+
+    function animate() {
+      frameCount++;
+
+      if (frameCount % spawnRate === 0) {
+        createEmoji();
+      }
+
+      const centerX = window.innerWidth / 2;
+      const centerY = window.innerHeight / 2;
+      const maxRadius = Math.max(window.innerWidth, window.innerHeight) * 1.2;
+
+      for (let i = emojis.length - 1; i >= 0; i--) {
+        const obj = emojis[i];
+        obj.age++;
+
+        const radius = obj.age * expansionSpeed;
+        const angle = obj.age * rotationSpeed + obj.baseAngle;
+
+        const x = Math.cos(angle) * radius;
+        const y = Math.sin(angle) * radius;
+
+        // Scale starts very small (0.01) and grows
+        const scale = Math.max(0.01, radius * scaleFactor / 100);
+
+        // Combine translation, scaling, and a fast local spin
+        obj.dom.style.transform = `translate(${x}px, ${y}px) scale(${scale}) rotate(${obj.age * obj.spinSpeed}rad)`;
+
+        if (radius > maxRadius) {
+          container.removeChild(obj.dom);
+          emojis.splice(i, 1);
+        }
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    // Initialize with some already out so it's not empty on load
+    const initialCount = 600
+    for (let i = 0; i < initialCount; i++) {
+      createEmoji();
+
+      // i=0 is oldest, i=initialCount-1 is youngest.
+      // Starting at age 1 ensures the first new spawn follows perfectly.
+      emojis[emojis.length - 1].age = (initialCount - 1 - i) * spawnRate + 1;
+    }
+
+    animate();
+
+  </script>
+</body>
+
+</html>

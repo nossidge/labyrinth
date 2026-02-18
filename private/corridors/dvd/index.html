@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="digital video digital">
+  <title>digital video digital</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: #bbc;
+      transition: background-color 0.1s ease;
+      user-select: none;
+    }
+
+    #dvd-link {
+      position: absolute;
+      display: block;
+      cursor: pointer;
+      z-index: 10;
+    }
+
+    #dvd-logo {
+      display: block;
+      width: 250px;
+      height: auto;
+    }
+
+    .scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%,
+          rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg,
+          rgba(255, 0, 0, 0.03),
+          rgba(0, 255, 0, 0.01),
+          rgba(0, 0, 255, 0.03));
+      background-size: 100% 4px, 3px 100%;
+      pointer-events: none;
+      z-index: 100;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="scanlines"></div>
+  <a id="dvd-link" href="#">
+    <img id="dvd-logo" src="dvd-logo.png" alt="DVD">
+  </a>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/dvd/index.html";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const link = document.getElementById('dvd-link');
+    const logo = document.getElementById('dvd-logo');
+    const body = document.body;
+
+    let x = 0;
+    let y = 0;
+    let dx = 3.5;
+    let dy = 3.5;
+    let logoWidth = 0;
+    let logoHeight = 0;
+
+    // Black text in foreground, so we want light colors
+    const colors = [
+      '#ff9999', '#99ff99', '#9999ff', '#ffff99', '#99ffff', '#ff99ff',
+      '#f0e68c', '#e6e6fa', '#ffe4e1', '#f5f5dc', '#fafad2', '#d3d3d3'
+    ];
+    const colorRandomiser = new CyclicRandomiser(colors);
+
+    function resize() {
+      logoWidth = link.offsetWidth;
+      logoHeight = link.offsetHeight;
+
+      // Keep it in bounds if window resized
+      if (x + logoWidth > window.innerWidth) x = window.innerWidth - logoWidth;
+      if (y + logoHeight > window.innerHeight) y = window.innerHeight - logoHeight;
+    }
+
+    function init() {
+      link.href = pageRandomiser.nextOne();
+
+      // Random start position
+      x = Math.random() * (window.innerWidth - 250);
+      y = Math.random() * (window.innerHeight - 150);
+
+      // 45 degree angle: absolute dx and dy are equal
+      const speed = 3.5;
+      dx = (Math.random() > 0.5 ? 1 : -1) * speed;
+      dy = (Math.random() > 0.5 ? 1 : -1) * speed;
+
+      logo.onload = () => {
+        resize();
+        requestAnimationFrame(animate);
+      };
+
+      // Fallback in case image is already cached/loaded
+      if (logo.complete) {
+        resize();
+        requestAnimationFrame(animate);
+      }
+    }
+
+    function animate() {
+      x += dx;
+      y += dy;
+
+      let hitX = false;
+      let hitY = false;
+
+      if (x <= 0) {
+        x = 0;
+        hitX = true;
+      } else if (x + logoWidth >= window.innerWidth) {
+        x = window.innerWidth - logoWidth;
+        hitX = true;
+      }
+
+      if (y <= 0) {
+        y = 0;
+        hitY = true;
+      } else if (y + logoHeight >= window.innerHeight) {
+        y = window.innerHeight - logoHeight;
+        hitY = true;
+      }
+
+      if (hitX || hitY) {
+        if (hitX) dx = -dx;
+        if (hitY) dy = -dy;
+
+        body.style.backgroundColor = colorRandomiser.nextOne();
+        link.href = pageRandomiser.nextOne();
+      }
+
+      link.style.left = x + 'px';
+      link.style.top = y + 'px';
+
+      requestAnimationFrame(animate);
+    }
+
+    window.addEventListener('resize', resize);
+
+    init();
+
+  </script>
+</body>
+
+</html>

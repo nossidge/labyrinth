@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Round and round she goes, where she stops, nobody knows.">
+  <title>The Wheel of Fortune</title>
+  <style>
+    :root {
+      --wood-color: #5d4037;
+      --wood-dark: #3e2723;
+      --wood-grain: rgba(0, 0, 0, 0.2);
+      --brass: #d4af37;
+      --rim-width: 15px;
+    }
+
+    body,
+    html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #2e1a12;
+      background-image:
+        repeating-linear-gradient(90deg, var(--wood-grain) 0px, var(--wood-grain) 1px, transparent 1px, transparent 40px),
+        repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.05) 0px, rgba(0, 0, 0, 0.05) 2px, transparent 2px, transparent 100px);
+      font-family: 'Courier New', Courier, monospace;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .grain {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48ZmlsdGVyIGlkPSJuIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iMC44NSIgbnVtT2N0YXZlcz0iMyIgc3RpdGNoVGlsZXM9InN0aXRjaCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbHRlcj0idXJsKCNuKSIvPjwvc3ZnPg==');
+      opacity: 0.12;
+      z-index: 100;
+      pointer-events: none;
+    }
+
+    #stage {
+      position: relative;
+      width: 600px;
+      height: 800px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .base {
+      position: absolute;
+      bottom: 0;
+      width: 500px;
+      height: 60px;
+      background-color: var(--wood-dark);
+      border: 4px solid #1a0f0a;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), inset 0 2px 5px rgba(255, 255, 255, 0.1);
+      z-index: 5;
+    }
+
+    .struct {
+      position: absolute;
+      bottom: 60px;
+      width: 30px;
+      height: 500px;
+      background-color: var(--wood-color);
+      border: 3px solid #2a1b15;
+      box-shadow: 5px 0 15px rgba(0, 0, 0, 0.5);
+      z-index: 2;
+    }
+
+    .struct.left {
+      left: 140px;
+      transform: rotate(-5deg);
+    }
+
+    .struct.right {
+      right: 140px;
+      transform: rotate(5deg);
+    }
+
+    #wheel-container {
+      position: absolute;
+      top: 150px;
+      width: 450px;
+      height: 450px;
+      z-index: 10;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    #wheel {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      position: relative;
+      border: var(--rim-width) solid #3e2723;
+      box-sizing: border-box;
+      box-shadow: 0 0 50px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(0, 0, 0, 0.5);
+      background:
+        radial-gradient(circle at center, rgba(0, 0, 0, 0.3) 0%, transparent 70%),
+        conic-gradient(#ff3333 0deg 30deg,
+          #33ff33 30deg 60deg,
+          #3333ff 60deg 90deg,
+          #ffff33 90deg 120deg,
+          #ff33ff 120deg 150deg,
+          #33ffff 150deg 180deg,
+          #ff8833 180deg 210deg,
+          #88ff33 210deg 240deg,
+          #8833ff 240deg 270deg,
+          #3388ff 270deg 300deg,
+          #ff3388 300deg 330deg,
+          #33ff88 330deg 360deg);
+      transition: transform 4s cubic-bezier(0.15, 0, 0.15, 1);
+    }
+
+    #wheel::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      border-radius: 50%;
+      background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCI+PGZpbHRlciBpZD0ibSI+PGZlVHVyYnVsZW5jZSB0eXBlPSJmcmFjdGFalOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iMC41IiBudW1PY3RhdmVzPSIyIi8+PC9maWx0ZXI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsdGVyPSJ1cmwoI20pIi8+PC9zdmc+');
+      opacity: 0.2;
+      pointer-events: none;
+    }
+
+    #axle {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 40px;
+      height: 40px;
+      background: radial-gradient(circle at 30% 30%, #6d4c41, #2e1a12);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 15;
+      border: 4px solid #1a0f0a;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    }
+
+    #axle-bolt {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 10px;
+      height: 10px;
+      background: var(--brass);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+    }
+
+    .wheel-peg {
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      width: 8px;
+      height: 16px;
+      background: var(--brass);
+      border-radius: 4px;
+      transform: translateX(-50%);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+      /* (wheel radius) + (wheel peg top offset over 2) */
+      /* (450/2) + (-10/2) */
+      transform-origin: 50% 220px;
+    }
+
+    .segment-letter {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 32px;
+      font-weight: 900;
+      color: rgba(255, 255, 255, 0.8);
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+      pointer-events: none;
+    }
+
+    /* Indicator peg */
+    #indicator-container {
+      position: absolute;
+      /* Slightly above the wheel */
+      top: 135px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 20;
+    }
+
+    #indicator {
+      width: 20px;
+      height: 40px;
+      background: #eee;
+      clip-path: polygon(50% 100%, 0% 0%, 100% 0%);
+      background: linear-gradient(to bottom, #ccc, #fff);
+      filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.5));
+      transform-origin: 50% 0%;
+    }
+
+    .clack {
+      animation: clack 0.1s ease-out;
+    }
+
+    @keyframes clack {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      50% {
+        transform: rotate(-20deg);
+      }
+
+      100% {
+        transform: rotate(0deg);
+      }
+    }
+
+    #instructions {
+      position: absolute;
+      top: 40px;
+      width: 100%;
+      text-align: center;
+      color: #eadbb8;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      text-shadow: 2px 2px 0px #000;
+      font-size: 1.8rem;
+      z-index: 150;
+    }
+
+    .blink {
+      animation: blink 1s infinite alternate;
+    }
+
+    @keyframes blink {
+      from {
+        opacity: 0.5;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    /* Hidden links for the crawler */
+    .hidden-links {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* Fancy Tooltip */
+    #tooltip {
+      position: fixed;
+      padding: 8px 12px;
+      background: #eee;
+      border: 2px solid var(--wood-dark);
+      color: var(--wood-dark);
+      font-weight: 900;
+      font-size: 14px;
+      text-transform: uppercase;
+      pointer-events: none;
+      z-index: 200;
+      display: none;
+      box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.5);
+      white-space: nowrap;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="grain"></div>
+  <div id="tooltip"></div>
+
+  <div id="stage">
+    <div class="struct left"></div>
+    <div class="struct right"></div>
+    <div class="base"></div>
+
+    <div id="instructions" class="blink">Step right up! Give it a spin!</div>
+
+    <div id="indicator-container">
+      <div id="indicator"></div>
+    </div>
+
+    <div id="wheel-container" onclick="spinWheel()">
+      <div id="wheel">
+        <!-- Pegs and Letters will be added here -->
+      </div>
+      <div id="axle" onclick="quickJump(event)">
+        <div id="axle-bolt"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hidden-links" id="link-pool"></div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/spin-the-wheel/index.html";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const wheel = document.getElementById('wheel');
+    const indicator = document.getElementById('indicator');
+    const instructions = document.getElementById('instructions');
+    const tooltip = document.getElementById('tooltip');
+    let spinning = false;
+    let currentRotation = 0;
+
+    // Prepare 12 unique destinations for the wheel segments
+    const segmentDestinations = pageRandomiser.next(12);
+
+    // URL looks like "../../corridors/name/index.html"
+    function displayFriendlyName(url) {
+      const parts = url.split('/');
+      let name = parts[parts.length - 2] || "X";
+      // Convert "spin-the-wheel" to "Spin The Wheel"
+      return name.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+    }
+
+    function getFirstLetter(url) {
+      const parts = url.split('/');
+      const name = parts[parts.length - 2] || "X";
+      return name.charAt(0).toUpperCase();
+    }
+
+    // Add segments (pegs and letters) to the wheel
+    for (let i = 0; i < 12; i++) {
+      // Peg
+      const peg = document.createElement('div');
+      peg.className = 'wheel-peg';
+      peg.style.transform = `translateX(-50%) rotate(${i * 30}deg)`;
+      wheel.appendChild(peg);
+
+      // Letter
+      const letter = document.createElement('div');
+      letter.className = 'segment-letter';
+      const angle = i * 30 + 15; // Middle of segment
+      const letterChar = getFirstLetter(segmentDestinations[i]);
+      letter.innerText = letterChar;
+
+      // Positioning the letter
+      const radius = 170; // Distance from center
+      const rad = (angle - 90) * (Math.PI / 180);
+      const x = Math.cos(rad) * radius;
+      const y = Math.sin(rad) * radius;
+
+      letter.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px) rotate(${angle}deg)`;
+      wheel.appendChild(letter);
+    }
+
+    function quickJump(e) {
+      e.stopPropagation();
+      window.location.href = pageRandomiser.nextOne();
+    }
+
+    function spinWheel() {
+      if (spinning) return;
+      spinning = true;
+
+      instructions.classList.remove('blink');
+      instructions.innerText = "Round and round she goes...";
+
+      const rotations = 5 + Math.floor(Math.random() * 5);
+      const extraDegrees = Math.floor(Math.random() * 360);
+      const totalDegrees = rotations * 360 + extraDegrees;
+
+      const startRotation = currentRotation;
+      currentRotation += totalDegrees;
+
+      wheel.style.transform = `rotate(${currentRotation}deg)`;
+
+      // Logic to make the indicator "clack"
+      let lastPegIndex = -1;
+      const startTime = performance.now();
+      const duration = 4000;
+
+      function checkClack(now) {
+        const elapsed = now - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+
+        // Cubic-bezier(0.15, 0, 0.15, 1) approximation
+        // This is a rough estimation of the ease-out curve
+        const ease = 1 - Math.pow(1 - progress, 3);
+        const currentPos = startRotation + (totalDegrees * ease);
+
+        // A peg passes the top every 30 degrees
+        const pegIndex = Math.floor((currentPos + 15) / 30);
+
+        if (pegIndex !== lastPegIndex) {
+          indicator.classList.remove('clack');
+          void indicator.offsetWidth; // Trigger reflow
+          indicator.classList.add('clack');
+          lastPegIndex = pegIndex;
+        }
+
+        if (progress < 1) {
+          requestAnimationFrame(checkClack);
+        } else {
+          finishSpin();
+        }
+      }
+
+      requestAnimationFrame(checkClack);
+    }
+
+    function finishSpin() {
+      // Calculate winning segment
+      const normalizedRotation = (currentRotation % 360 + 360) % 360;
+      // Index calculation: Segment i starts at i*30 and goes to (i+1)*30
+      // Indicator is at 12 o'clock (0 degrees).
+      // The segment at 0 degrees is the one that was originally at -normalizedRotation
+      const winningIdx = Math.floor((-normalizedRotation % 360 + 360) % 360 / 30);
+      const winner = segmentDestinations[winningIdx];
+
+      instructions.innerText = "And the winner is...";
+
+      setTimeout(() => {
+        window.location.href = winner;
+      }, 1000);
+    }
+
+    // Tooltip and hover logic
+    const wheelContainer = document.getElementById('wheel-container');
+
+    wheelContainer.addEventListener('mousemove', (e) => {
+      if (spinning) {
+        tooltip.style.display = 'none';
+        return;
+      }
+
+      const rect = wheel.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+
+      const dx = e.clientX - centerX;
+      const dy = e.clientY - centerY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      // Only show if inside the wheel but not on the axle
+      if (dist < 225 && dist > 25) {
+        let angle = Math.atan2(dy, dx) * 180 / Math.PI;
+        angle += 90; // Offset to start from top
+
+        // Account for current rotation
+        const relativeAngle = (angle - currentRotation % 360 + 360) % 360;
+        const segmentIdx = Math.floor(relativeAngle / 30);
+
+        const destination = segmentDestinations[segmentIdx];
+        if (destination) {
+          tooltip.innerText = displayFriendlyName(destination);
+          tooltip.style.display = 'block';
+          tooltip.style.left = (e.clientX + 15) + 'px';
+          tooltip.style.top = (e.clientY + 15) + 'px';
+        }
+      } else {
+        tooltip.style.display = 'none';
+      }
+    });
+
+    wheelContainer.addEventListener('mouseleave', () => {
+      tooltip.style.display = 'none';
+    });
+
+  </script>
+</body>
+
+</html>

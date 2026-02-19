@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+Kurt Vonnegut Jr.
+https://www.goodreads.com/quotes/17931-if-you-want-to-really-hurt-you-parents-and-you
+-->
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="God damn it, you've got to be kind.">
+  <title>Hello babies</title>
+  <style>
+    body {
+      padding: 3vh;
+      background-color: white;
+      color: black;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 6vh;
+    }
+  </style>
+</head>
+
+<body>
+  Go into the <a href="#">arts</a>.
+  I'm not <a href="#">kidding</a>.
+  The <a href="#">arts</a> are not a <a href="#">way</a> to make a <a href="#">living</a>.
+  They are a very <a href="#">human</a> way of making <a href="#">life</a> more <a
+    href="#">bearable</a>.
+  <a href="#">Practicing</a> an <a href="#">art</a>, no matter how <a href="#">well</a> or <a
+    href="#">badly</a>, is a way to make your <a href="#">soul</a> grow, for <a
+    href="#">heaven's</a> sake.
+  <a href="#">Sing</a> in the <a href="#">shower</a>.
+  <a href="#">Dance</a> to the <a href="#">radio</a>.
+  <a href="#">Tell</a> <a href="#">stories</a>.
+  <a href="#">Write</a> a <a href="#">poem</a> to a <a href="#">friend</a>, even a <a
+    href="#">lousy</a> <a href="#">poem</a>.
+  Do it as <a href="#">well</a> as you possibly <a href="#">can</a>.
+  You will get an <a href="#">enormous</a> <a href="#">reward</a>.
+  You will have <a href="#">created</a> <a href="#">something</a>.
+
+  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script>
+    const currentPage = "corridors/vonnegut/index.html";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    document.querySelectorAll('a').forEach(link => {
+      link.href = pageRandomiser.nextOne();
+    });
+  </script>
+</body>
+
+</html>

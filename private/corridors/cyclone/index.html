@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Coma-overdose and I'm in the zone">
+  <meta name="description" content="You got me in a spin, but everything is A-okay.">
   <title>Running in a cyclone</title>
   <style>
     body {
@@ -51,6 +51,12 @@
     const pageRandomiser = new CyclicRandomiser(otherPages);
 
     const container = document.getElementById('cyclone-container');
+
+    // It's actually quite hard to click the moving emojis, so let's use this as a fallback
+    container.onclick = () => {
+      window.location.href = pageRandomiser.nextOne();
+    };
+
     const spawnRate = 10;
     const expansionSpeed = 0.8;
     const rotationSpeed = 0.015;

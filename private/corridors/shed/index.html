@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+The idea for this one is "what if your tools were all sentient".
+So they move about in the dark and play dead in the light.
+Like in The Brave Little Toaster or Toy Story.
+Pretty simple trick, but fun I think!
+-->
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="I'm just chasing rainbows all the time.">
+  <title>The sharpest bulb in the shed</title>
+  <style>
+    :root {
+      --bg-dark: #000;
+      --bg-lit: #4a3728;
+      --wire-color: #111;
+      --wood-grain: rgba(0, 0, 0, 0.15);
+    }
+
+    body,
+    html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: var(--bg-dark);
+      font-family: 'Courier New', Courier, monospace;
+      transition: background-color 0.1s ease;
+    }
+
+    #shed {
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+
+    /* Hanging wire */
+    #wire {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      width: 2px;
+      height: 120px;
+      background-color: var(--wire-color);
+      transform: translateX(-50%);
+      z-index: 10;
+    }
+
+    /* Light bulb - upside down and dangling */
+    #bulb {
+      position: absolute;
+      top: 110px;
+      left: 50%;
+      transform: translateX(-50%) rotate(180deg);
+      font-size: 80px;
+      cursor: pointer;
+      z-index: 20;
+      user-select: none;
+      filter: grayscale(1) brightness(0.2);
+      transition: filter 0.05s ease;
+    }
+
+    body.is-lit #bulb {
+      filter: grayscale(0) brightness(1.2) drop-shadow(0 0 40px #fdfd96) drop-shadow(0 0 10px white);
+    }
+
+    /* Background should look like wood grain */
+    body.is-lit {
+      background-color: var(--bg-lit);
+      background-image:
+        repeating-linear-gradient(90deg,
+          var(--wood-grain) 0px,
+          var(--wood-grain) 1px,
+          transparent 1px,
+          transparent 60px),
+        repeating-linear-gradient(0deg,
+          rgba(0, 0, 0, 0.05) 0px,
+          rgba(0, 0, 0, 0.05) 2px,
+          transparent 2px,
+          transparent 120px),
+        linear-gradient(to bottom, rgba(0, 0, 0, 0.3), transparent 20%, transparent 80%, rgba(0, 0, 0, 0.4));
+    }
+
+    .shelf {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80%;
+      height: 25px;
+      background: #2a1e16;
+      border: 3px solid #1a120b;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.6);
+      display: none;
+      z-index: 5;
+    }
+
+    body.is-lit .shelf {
+      display: block;
+    }
+
+    .tool {
+      position: absolute;
+      font-size: 45px;
+      text-decoration: none;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+      z-index: 15;
+      cursor: pointer;
+      user-select: none;
+      transform-origin: bottom center;
+    }
+
+    body.is-lit .tool {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .tool:hover {
+      transform: scale(1.1) rotate(5deg) !important;
+      filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
+    }
+
+    .grain {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48ZmlsdGVyIGlkPSJuIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iMC44NSIgbnVtT2N0YXZlcz0iMyIgc3RpdGNoVGlsZXM9InN0aXRjaCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbHRlcj0idXJsKCNuKSIvPjwvc3ZnPg==');
+      opacity: 0.08;
+      z-index: 100;
+      pointer-events: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="grain"></div>
+  <div id="shed">
+    <div id="wire"></div>
+    <div id="bulb" onclick="toggleLight()">💡</div>
+    <div id="shelves-container"></div>
+    <div id="tools-container"></div>
+  </div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/shed/index.html";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const TOOL_EMOJIS_POOL = [
+      '🔨', '🪚', '🪛', '🔧', '🪠', '🧹', '🧺', '✂️', '🪓', '📎', '🖇️',
+      '⛏️', '🛠️', '🧰', '🔩', '⚙️', '🧤', '🔦', '📐', '📏', '🪵', '🪴',
+    ];
+    const toolRandomiser = new CyclicRandomiser(TOOL_EMOJIS_POOL);
+
+    const toolsContainer = document.getElementById('tools-container');
+    const shelvesContainer = document.getElementById('shelves-container');
+    const activeTools = [];
+
+    function createTool(shelfBottom) {
+      const emoji = toolRandomiser.nextOne();
+      const a = document.createElement('a');
+      a.href = pageRandomiser.nextOne();
+      a.className = 'tool';
+      a.innerText = emoji;
+
+      // State for animation
+      const x = 15 + Math.random() * 70;
+      const rot = (Math.random() * 30 - 15);
+      const bottom = shelfBottom + 25 + (Math.random() * 5);
+
+      // Random velocity between 0.1 and 0.15 or -0.1 and -0.15
+      const min = 0.1;
+      const max = 0.15;
+      const speed = min + Math.random() * (max - min);
+      const vx = Math.random() < 0.5 ? -speed : speed;
+
+      a.style.bottom = bottom + 'px';
+      a.style.left = x + '%';
+      a.style.transform = `rotate(${rot}deg)`;
+
+      toolsContainer.appendChild(a);
+
+      activeTools.push({
+        el: a,
+        x: x,
+        vx: vx,
+        rot: rot
+      });
+    }
+
+    function populateShed() {
+      toolsContainer.innerHTML = '';
+      shelvesContainer.innerHTML = '';
+      activeTools.length = 0;
+
+      // Three shelves in total
+      const shelfHeight = 80;
+      const shelfHeights = [shelfHeight, shelfHeight * 3, shelfHeight * 5];
+
+      shelfHeights.forEach(bottom => {
+        const shelf = document.createElement('div');
+        shelf.className = 'shelf';
+        shelf.style.bottom = bottom + 'px';
+        shelvesContainer.appendChild(shelf);
+
+        // Populate shelf with tools
+        const toolCount = 6 + Math.floor(Math.random() * 5);
+        for (let i = 0; i < toolCount; i++) {
+          createTool(bottom);
+        }
+      });
+    }
+
+    let canMove = false;
+    let moveDelay = null;
+
+    function update() {
+      if (canMove && !document.body.classList.contains('is-lit')) {
+        activeTools.forEach(tool => {
+          tool.x += tool.vx;
+
+          // Boundary check (12% to 88% to stay on 80% centered shelf)
+          if (tool.x < 12 || tool.x > 88) {
+            tool.vx *= -1;
+          }
+
+          tool.el.style.left = tool.x + '%';
+        });
+      }
+      requestAnimationFrame(update);
+    }
+
+    function toggleLight() {
+      document.body.classList.toggle('is-lit');
+      const isLit = document.body.classList.contains('is-lit');
+
+      if (isLit) {
+        canMove = false;
+        if (moveDelay) clearTimeout(moveDelay);
+      } else {
+        // Wait for the transition to finish (0.1s) plus a small buffer
+        moveDelay = setTimeout(() => {
+          canMove = true;
+        }, 200);
+      }
+    }
+
+    populateShed();
+    update();
+
+  </script>
+</body>
+
+</html>

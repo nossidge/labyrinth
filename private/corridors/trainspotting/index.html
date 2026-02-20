@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+This is a Northwest Southern Eastland service to
+- Brain
+Calling at
+- Batterby Whilby
+- Stunk
+- Threshold Green
+- Peelington
+- Rhinestone-on-Trent
+- Thisk
+- Whiny
+- Splashzone Central
+And
+- Brain
+-->
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="all sense of being in a hurry gone">
+  <title>loaded with the sum of all they saw</title>
+  <style>
+    :root {
+      --sky-blue: #87CEEB;
+      --grass-green: #348C31;
+      --hill-green: #228B22;
+      --track-grey: #666;
+      --sleeper-brown: #3d2b1f;
+      --sun-yellow: #FFD700;
+    }
+
+    body,
+    html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--sky-blue);
+    }
+
+    #landscape {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    .sun {
+      position: absolute;
+      top: 50px;
+      right: 100px;
+      width: 80px;
+      height: 80px;
+      background: var(--sun-yellow);
+      border-radius: 50%;
+      box-shadow: 0 0 50px var(--sun-yellow);
+      display: block;
+      z-index: -1;
+    }
+
+    .cloud {
+      position: absolute;
+      background: white;
+      border-radius: 50px;
+      opacity: 0.9;
+      filter: blur(2px);
+      display: block;
+      z-index: 4;
+      text-decoration: none;
+    }
+
+    .cloud::before,
+    .cloud::after {
+      content: '';
+      position: absolute;
+      background: white;
+      border-radius: 50%;
+    }
+
+    .hill {
+      position: absolute;
+      bottom: 30%;
+      background: var(--hill-green);
+      border-radius: 50% 50% 0 0;
+      transform: scaleY(0.5);
+      transform-origin: bottom;
+    }
+
+    #ground {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      height: 30%;
+      background: var(--grass-green);
+      z-index: 2;
+    }
+
+    #tracks {
+      position: absolute;
+      bottom: 10%;
+      width: 100%;
+      height: 10px;
+      background: var(--track-grey);
+      z-index: 3;
+    }
+
+    .sleeper {
+      position: absolute;
+      width: 4px;
+      height: 20px;
+      background: var(--sleeper-brown);
+      top: -5px;
+    }
+
+    .rail {
+      position: absolute;
+      width: 100%;
+      height: 2px;
+      background: #444;
+      top: 0;
+    }
+
+    .rail.bottom {
+      top: 8px;
+    }
+
+    #train-container {
+      position: absolute;
+      bottom: calc(10% + 8px);
+      right: -1000px;
+      white-space: nowrap;
+      z-index: 10;
+      font-size: 60px;
+      line-height: 1;
+      cursor: pointer;
+      pointer-events: none;
+    }
+
+    #train-container.passing {
+      pointer-events: auto;
+    }
+
+    .train-part {
+      display: inline-block;
+      text-decoration: none;
+      user-select: none;
+    }
+
+    .field {
+      position: absolute;
+      bottom: 0;
+      height: 100%;
+      border-right: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .grain {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48ZmlsdGVyIGlkPSJuIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iMC44NSIgbnVtT2N0YXZlcz0iMyIgc3RpdGNoVGlsZXM9InN0aXRjaCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbHRlcj0idXJsKCNuKSIvPjwvc3ZnPg==');
+      opacity: 0.3;
+      z-index: 100;
+      pointer-events: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="grain"></div>
+
+  <div id="landscape">
+    <a id="sun" class="sun" href="#"></a>
+
+    <div id="clouds-container">
+      <!-- Clouds generated using JavaScript -->
+    </div>
+
+    <div id="hills-container">
+      <!-- Hills generated using JavaScript -->
+    </div>
+
+    <div id="ground">
+      <div id="tracks">
+        <!-- Sleepers generated using JavaScript -->
+        <div class="rail top"></div>
+        <div class="rail bottom"></div>
+      </div>
+      <div id="train-container">
+        <!-- Train generated using JavaScript -->
+      </div>
+    </div>
+  </div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/trainspotting/index.html";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    // Initialise Landscape
+    function initLandscape() {
+      // Sun
+      document.getElementById('sun').href = pageRandomiser.nextOne();
+
+      // Clouds
+      const cloudsCont = document.getElementById('clouds-container');
+      for (let i = 0; i < 8; i++) {
+        const cloud = document.createElement('a');
+        cloud.href = pageRandomiser.nextOne();
+        cloud.className = 'cloud';
+        cloud.style.width = (100 + Math.random() * 100) + 'px';
+        cloud.style.height = (40 + Math.random() * 30) + 'px';
+        cloud.style.top = (10 + Math.random() * 20) + '%';
+        cloud.style.left = (Math.random() * 100) + '%';
+
+        // Add puffiness
+        const before = document.createElement('div');
+        before.style.width = (40 + Math.random() * 30) + 'px';
+        before.style.height = before.style.width;
+        before.style.top = '-20px';
+        before.style.left = '20px';
+        before.style.position = 'absolute';
+        before.style.background = 'white';
+        before.style.borderRadius = '50%';
+
+        const after = document.createElement('div');
+        after.style.width = (50 + Math.random() * 40) + 'px';
+        after.style.height = after.style.width;
+        after.style.top = '-30px';
+        after.style.left = '50px';
+        after.style.position = 'absolute';
+        after.style.background = 'white';
+        after.style.borderRadius = '50%';
+
+        cloud.appendChild(before);
+        cloud.appendChild(after);
+        cloudsCont.appendChild(cloud);
+
+        // Clouds move slowly
+        moveCloud(cloud);
+      }
+
+      // Hills
+      const hillsCont = document.getElementById('hills-container');
+      for (let i = 0; i < 15; i++) {
+        const hill = document.createElement('div');
+        hill.className = 'hill';
+        const width = 300 + Math.random() * 700;
+        hill.style.width = width + 'px';
+        hill.style.height = (width * 0.7) + 'px';
+        hill.style.left = (Math.random() * 140 - 20) + '%';
+
+        // Slight overlap with fields
+        hill.style.bottom = '29%';
+        hill.style.zIndex = 1;
+        hill.style.opacity = 0.7 + Math.random() * 0.3;
+
+        // Vary greens
+        const g = 80 + Math.floor(Math.random() * 60);
+        hill.style.background = `rgb(34, ${g}, 34)`;
+        hillsCont.appendChild(hill);
+      }
+
+      // Sleepers
+      const tracks = document.getElementById('tracks');
+      const trackWidth = window.innerWidth;
+      for (let i = 0; i < trackWidth; i += 30) {
+        const sleeper = document.createElement('div');
+        sleeper.className = 'sleeper';
+        sleeper.style.left = i + 'px';
+        tracks.appendChild(sleeper);
+      }
+
+      // Fields
+      const ground = document.getElementById('ground');
+      for (let i = 0; i < 10; i++) {
+        const field = document.createElement('div');
+        field.className = 'field';
+        field.style.width = (10 + Math.random() * 20) + '%';
+        field.style.left = (i * 10) + '%';
+        const g = 120 + Math.floor(Math.random() * 40);
+        field.style.background = `rgb(52, ${g}, 49)`;
+        ground.appendChild(field);
+      }
+    }
+
+    function moveCloud(cloud) {
+      let left = parseFloat(cloud.style.left);
+      const speed = 0.01 + Math.random() * 0.02;
+
+      function step() {
+        left -= speed;
+        if (left < -20) left = 110;
+        cloud.style.left = left + '%';
+        requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+
+    // Train logic
+    const trainContainer = document.getElementById('train-container');
+    let trainActive = false;
+
+    function buildTrain() {
+      trainContainer.innerHTML = '';
+
+      const parts = [];
+      parts.push('🚂');
+      const carCount = 5 + Math.floor(Math.random() * 10);
+      for (let i = 0; i < carCount; i++) {
+        parts.push('🚃');
+      }
+
+      parts.forEach(emoji => {
+        const link = document.createElement('a');
+        link.href = pageRandomiser.nextOne();
+        link.className = 'train-part';
+        link.textContent = emoji;
+        trainContainer.appendChild(link);
+      });
+    }
+
+    function startTrain() {
+      if (trainActive) return;
+      trainActive = true;
+      buildTrain();
+
+      trainContainer.classList.add('passing');
+      const screenWidth = window.innerWidth;
+      const trainWidth = trainContainer.offsetWidth;
+      let pos = screenWidth;
+
+      // Right to left, just because then I don't have to flip the emoji
+      function animate() {
+        pos -= 6; // Speed
+        trainContainer.style.left = pos + 'px';
+        trainContainer.style.right = 'auto';
+
+        if (pos < -trainWidth - 100) {
+          trainActive = false;
+          trainContainer.classList.remove('passing');
+          trainContainer.style.left = 'auto';
+          trainContainer.style.right = '-1500px';
+        } else {
+          requestAnimationFrame(animate);
+        }
+      }
+      requestAnimationFrame(animate);
+    }
+
+    // Title and clock Logic
+    function update() {
+      const now = new Date();
+      const s = now.getSeconds();
+
+      if (s === 0 && !trainActive) {
+        startTrain();
+      }
+
+      if (trainActive) {
+        document.title = "Train approaching!";
+      } else {
+        const due = 60 - s;
+        document.title = `Train due in ${due === 60 ? 0 : due} second${due % 60 === 1 ? '' : 's'}`;
+      }
+    }
+
+    initLandscape();
+    setInterval(update, 1000);
+    update();
+
+    // Re-fill sleepers if needed
+    window.addEventListener('resize', () => {
+      const tracks = document.getElementById('tracks');
+      tracks.querySelectorAll('.sleeper').forEach(s => s.remove());
+      const trackWidth = window.innerWidth;
+      for (let i = 0; i < trackWidth; i += 30) {
+        const sleeper = document.createElement('div');
+        sleeper.className = 'sleeper';
+        sleeper.style.left = i + 'px';
+        tracks.appendChild(sleeper);
+      }
+    });
+
+  </script>
+</body>
+
+</html>

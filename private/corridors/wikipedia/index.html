@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+https://en.wikipedia.org/wiki/Superbad_(website)
+I know this isn't exactly Wikipedia's old layout, but it's close enough.
+
+Thank you, Ben Benjamin, for the inspiration.
+-->
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1120">
+  <meta name="description" content="Tribute to he who came before me.">
+  <title>Superbad (website) - Wikipedia</title>
+  <style>
+    body {
+      background-color: #f6f6f6;
+      color: #000;
+      font-family: 'Times New Roman', Times, serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    #container {
+      display: flex;
+      min-height: 100vh;
+      max-width: 1060px;
+      margin: 0 auto;
+      background-color: #fff;
+      border-left: 1px solid #aaa;
+      border-right: 1px solid #aaa;
+    }
+
+    #sidebar {
+      width: 160px;
+      padding: 10px;
+      background-color: #f6f6f6;
+      border-right: 1px solid #aaa;
+      font-size: 0.8em;
+      flex-shrink: 0;
+    }
+
+    #sidebar .images-container {
+      width: 100%;
+      margin-top: 6px;
+      margin-bottom: 12px;
+    }
+
+    #sidebar ul {
+      list-style-type: none;
+      padding: 0;
+      margin: 0 0 20px 0;
+    }
+
+    #sidebar li {
+      margin-bottom: 5px;
+    }
+
+    #sidebar h3 {
+      font-size: 1em;
+      margin: 10px 0 5px 0;
+      border-bottom: 1px solid #aaa;
+    }
+
+    #content {
+      flex-grow: 1;
+      padding: 20px 40px;
+      background-color: #fff;
+      max-width: 900px;
+    }
+
+    h1 {
+      font-size: 2.2em;
+      border-bottom: 1px solid #aaa;
+      margin-top: 0;
+      font-family: serif;
+    }
+
+    h2 {
+      font-size: 1.5em;
+      border-bottom: 1px solid #aaa;
+      margin-top: 30px;
+    }
+
+    .tagline {
+      font-style: italic;
+      font-size: 0.9em;
+      color: #555;
+      margin-top: -10px;
+      margin-bottom: 20px;
+    }
+
+    p {
+      line-height: 1.6;
+      margin-bottom: 1em;
+    }
+
+    a {
+      color: #0000ee;
+      text-decoration: none;
+    }
+
+    a:visited {
+      color: #551a8b;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .infobox {
+      float: right;
+      width: 250px;
+      border: 1px solid #aaa;
+      background-color: #f9f9f9;
+      margin: 0 0 10px 10px;
+      padding: 5px;
+      font-size: 0.9em;
+    }
+
+    .infobox caption {
+      font-weight: bold;
+      font-size: 1.25em;
+      margin-bottom: 5px;
+    }
+
+    .infobox table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .infobox th {
+      text-align: left;
+      vertical-align: top;
+      width: 40%;
+      padding: 3px;
+    }
+
+    .infobox td {
+      vertical-align: top;
+      padding: 3px;
+    }
+
+    .infobox-image {
+      text-align: center;
+      border-bottom: 1px solid #aaa;
+      padding-bottom: 5px;
+    }
+
+    .infobox-image img {
+      max-width: 100%;
+      height: auto;
+    }
+
+    .references {
+      font-size: 0.9em;
+      border-top: 1px solid #aaa;
+      margin-top: 40px;
+      padding-top: 10px;
+    }
+
+    .reference-list {
+      list-style-type: decimal;
+      padding-left: 20px;
+    }
+
+    ::-webkit-scrollbar {
+      width: 16px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #dfdfdf;
+      box-shadow: inset 1px 1px #808080, inset -1px -1px #fff;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #c0c0c0;
+      box-shadow: inset 1px 1px #fff, inset -1px -1px #808080;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="container">
+    <div id="sidebar">
+      <div class="images-container">
+        <a href="#" class="logo-link">
+          <img src="wikipedia-logo.svg" alt="Wikipedia logo">
+        </a>
+        <a href="#" class="tagline-link">
+          <img src="wikipedia-tagline.svg" alt="The Free Encyclopedia">
+        </a>
+      </div>
+
+      <h3>Navigation</h3>
+      <ul>
+        <li><a href="#">Main page</a></li>
+        <li><a href="#">Contents</a></li>
+        <li><a href="#">Featured content</a></li>
+        <li><a href="#">Current events</a></li>
+        <li><a href="#">Random article</a></li>
+        <li><a href="#">Donate to Wikipedia</a></li>
+      </ul>
+
+      <h3>Interaction</h3>
+      <ul>
+        <li><a href="#">Help</a></li>
+        <li><a href="#">About Wikipedia</a></li>
+        <li><a href="#">Community portal</a></li>
+        <li><a href="#">Recent changes</a></li>
+        <li><a href="#">Contact Wikipedia</a></li>
+      </ul>
+
+      <h3>Tools</h3>
+      <ul>
+        <li><a href="#">What links here</a></li>
+        <li><a href="#">Related changes</a></li>
+        <li><a href="#">Upload file</a></li>
+        <li><a href="#">Special pages</a></li>
+        <li><a href="#">Permanent link</a></li>
+      </ul>
+    </div>
+
+    <div id="content">
+      <h1>Superbad (website)</h1>
+      <div class="tagline">From Wikipedia, the free encyclopedia</div>
+
+      <table class="infobox">
+        <caption>Superbad</caption>
+        <tr>
+          <td colspan="2" class="infobox-image">
+            <a href="#"><img src="superbad-logo.png" alt="Superbad logo"></a>
+          </td>
+        </tr>
+        <tr>
+          <th>Type of site</th>
+          <td><a href="#">Web art</a></td>
+        </tr>
+        <tr>
+          <th>Available in</th>
+          <td>English (occasionally)</td>
+        </tr>
+        <tr>
+          <th>Owner</th>
+          <td><a href="#">Ben Benjamin</a></td>
+        </tr>
+        <tr>
+          <th>Created by</th>
+          <td><a href="#">Ben Benjamin</a></td>
+        </tr>
+        <tr>
+          <th>URL</th>
+          <td><a href="#">superbad.com</a></td>
+        </tr>
+        <tr>
+          <th>Commercial</th>
+          <td>No</td>
+        </tr>
+        <tr>
+          <th>Launched</th>
+          <td>1997</td>
+        </tr>
+        <tr>
+          <th>Status</th>
+          <td>Active</td>
+        </tr>
+      </table>
+
+      <p>
+        <b>Superbad</b> is a noted <a href="#">web art</a> installation created by graphic designer
+        <a href="#">Ben Benjamin</a> in 1997.
+      </p>
+
+      <p>
+        Superbad.com received a 1999 <a href="#">Webby</a> award in the "Weird" category,
+        <sup><a href="#">[1]</a></sup> and was one of nine websites<sup><a href="#">[2]</a></sup>
+        featured in the <a href="#">Whitney Museum</a> Biennial in 2000.<sup><a
+            href="#">[3]</a></sup> Superbad began as a test bed for Benjamin's web design for
+        technology corporations; his clients ranged from <a href="#">E! Online</a> to <a
+          href="#">Nippon Telegraph and Telephone</a>.<sup><a href="#">[4]</a></sup> The
+        installation uses images from <a href="#">Japanese pop culture</a>.<sup><a
+            href="#">[4]</a></sup>
+      </p>
+
+      <p>
+        The website serves primarily as an artistic work that was produced using the tools and
+        methods of <a href="#">web design</a>. This genre of art is often referred to as
+        <a href="#">web art</a>.
+      </p>
+
+      <p>
+        The site consists of a veritable maze of inter-linked visual, conceptual "subprojects"
+        ranging from two-tone and technical-looking to wacky, colorful, and even bizarre. Often a
+        subproject will have clickable elements linked to other pages within that subproject, or to
+        another, or that just provide visual richness (e.g., the "follow" subproject has a grid of
+        circles with arrows that follow the mouse cursor; each circle is a link to a different page
+        within the site). Some of the pages contain narrative elements. There are 143 different
+        pages, with the main page serving as a hub to the subprojects. Clicking anywhere on the
+        "bad" will link to somewhere within each subproject.
+      </p>
+
+      <p>
+        <i><a href="#">Time</a></i> magazine cited "the very randomness of the electronic images"
+        offered on the website that lures the viewer "deeper and deeper into its playful maze".
+        <sup><a href="#">[2]</a></sup>
+      </p>
+
+      <p>
+        Benjamin sells nothing on Superbad, and received little extra traffic from the Webby award,
+        though he did receive more junk mail when the <a href="#">International Academy of Digital
+          Arts and Sciences</a> put his name on a list.<sup><a href="#">[1]</a></sup> Up to 10
+        percent of the websites featured in the 2000 Biennal consisted of various <a href="#">net
+          art</a> projects, marking the first time they were considered "so prominently among the
+        traditional arts", according to Salon.<sup><a href="#">[4]</a></sup> Benjamin "didn't really
+        start thinking of Superbad as art until the art people started finding it", but insisted
+        that the Whitney's selection of his and other web art projects "makes it look more valid to
+        the art crowd. So all of a sudden because it's in a museum it's not crap anymore?"<sup><a
+            href="#">[4]</a></sup>
+      </p>
+
+      <h2>See also</h2>
+      <ul>
+        <li><a href="#">jodi.org</a></li>
+        <li><a href="#">Net art</a></li>
+        <li><a href="#">Internet art</a></li>
+      </ul>
+
+      <h2>References</h2>
+      <ol class="reference-list">
+        <li>
+          <a href="#">^</a>
+          Kopytoff, Verne (May 8, 2000).
+          <a href="#">"What Webbys Win: Internet awards' effect on bottom line difficult to
+            measure".</a> San Francisco Chronicle.
+        </li>
+        <li>
+          <a href="#">^</a>
+          Hamilton, Anita (April 10, 2000).
+          <a href="#">"Clicking on the Canvas".</a> Time.
+        </li>
+        <li>
+          <a href="#">^</a>
+          Allen, Jamie (April 18, 2000).
+          <a href="#">"Internet art on display at Whitney Biennial".</a>
+          CNN.com.
+        </li>
+        <li>
+          <a href="#">^</a>
+          Brown, Janelle (March 16, 2000).
+          <a href="#">"The Net as canvas".</a>
+          Salon.com.
+        </li>
+      </ol>
+
+      <h2>External links</h2>
+      <ul>
+        <li><a href="#">Official website</a></li>
+        <li><a href="#">Ben Benjamin at the Whitney Museum Artport</a></li>
+        <li><a href="#">Superbad at net-art.org</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script>
+    const currentPage = "corridors/wikipedia/index.html";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    // Hijack every single link on the page
+    const allLinks = document.querySelectorAll('a');
+    allLinks.forEach(link => {
+      link.href = pageRandomiser.next();
+    });
+  </script>
+
+</body>
+
+</html>

@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Delphic as fieves">
+  <title>Oracular Spectacular</title>
+  <style>
+    body {
+      background-color: #000;
+      color: #fff;
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: "Courier New", Courier, monospace;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    #eight-ball-container {
+      position: relative;
+      width: 550px;
+      height: 550px;
+      cursor: pointer;
+    }
+
+    #eight-ball {
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at 30% 30%, #444, #080808 70%);
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+      position: relative;
+    }
+
+    #window {
+      width: 180px;
+      height: 180px;
+      background: #001;
+      background: radial-gradient(circle at center, #003, #000);
+      border: 4px solid #111;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    #triangle {
+      width: 0;
+      height: 0;
+      top: 23px;
+      border-left: 80px solid transparent;
+      border-right: 80px solid transparent;
+      border-top: 140px solid #0056b3;
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: opacity 2s ease-in-out, transform 2s ease-in-out;
+      opacity: 0;
+    }
+
+    #oracle-link {
+      text-decoration: none;
+      display: block;
+      pointer-events: none;
+      transition: transform 0.2s;
+    }
+
+    .clickable-message #oracle-link {
+      pointer-events: auto;
+    }
+
+    #oracle-link:hover {
+      transform: scale(1.1);
+    }
+
+    #message {
+      position: absolute;
+      top: -125px;
+      width: 100px;
+      text-align: center;
+      color: #fff;
+      font-size: 14px;
+      font-weight: bold;
+      line-height: 1.2;
+      text-transform: uppercase;
+    }
+
+    .initial-eight {
+      position: absolute;
+      font-size: 100px;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      font-weight: 900;
+      opacity: 0.8;
+      transition: opacity 0.5s;
+      z-index: 10;
+      pointer-events: auto;
+    }
+
+    .shaking #eight-ball {
+      animation: shake 0.1s infinite;
+    }
+
+    /*
+    Simulate shaking by doing lots of fast rotation.
+    This actually looks pretty good, despite how janky it seems.
+    So there's no need to animate it up and down or side to side.
+    */
+    @keyframes shake {
+      0% {
+        transform: translate(1px, 1px) rotate(0deg);
+      }
+
+      10% {
+        transform: translate(-1px, -2px) rotate(-1deg);
+      }
+
+      20% {
+        transform: translate(-3px, 0px) rotate(1deg);
+      }
+
+      30% {
+        transform: translate(3px, 2px) rotate(0deg);
+      }
+
+      40% {
+        transform: translate(1px, -1px) rotate(1deg);
+      }
+
+      50% {
+        transform: translate(-1px, 2px) rotate(-1deg);
+      }
+
+      60% {
+        transform: translate(-3px, 1px) rotate(0deg);
+      }
+
+      70% {
+        transform: translate(3px, 1px) rotate(-1deg);
+      }
+
+      80% {
+        transform: translate(-1px, -1px) rotate(1deg);
+      }
+
+      90% {
+        transform: translate(1px, 2px) rotate(0deg);
+      }
+
+      100% {
+        transform: translate(1px, -2px) rotate(-1deg);
+      }
+    }
+
+    .revealing #triangle {
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+
+      0%,
+      100% {
+        transform: translateY(0) rotate(0deg);
+      }
+
+      50% {
+        transform: translateY(-8px) rotate(1.5deg);
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="eight-ball-container">
+    <div id="eight-ball">
+      <div class="initial-eight" id="eight">8</div>
+      <div id="window">
+        <a id="oracle-link" href="#">
+          <div id="triangle">
+            <div id="message"></div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script>
+    const currentPage = "corridors/magic-8-ball/index.html";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const MESSAGES_POOL = [
+      "It is certain",
+      "It is decidedly so",
+      "Without a doubt",
+      "Yes definitely",
+      "You may rely on it",
+      "As I see it, yes",
+      "Most likely",
+      "Outlook good",
+      "Yes",
+      "Signs point to yes",
+      "Reply hazy, try again",
+      "Ask again later",
+      "Better not tell you now",
+      "Cannot predict now",
+      "Concentrate and ask again",
+      "Don't count on it",
+      "My reply is no",
+      "My sources say no",
+      "Outlook not so good",
+      "Very doubtful",
+    ];
+    const messagesRandomiser = new CyclicRandomiser(MESSAGES_POOL);
+
+    const container = document.getElementById('eight-ball-container');
+    const ball = document.getElementById('eight-ball');
+    const message = document.getElementById('message');
+    const triangle = document.getElementById('triangle');
+    const eight = document.getElementById('eight');
+    const oracleLink = document.getElementById('oracle-link');
+
+    let isShaking = false;
+    let hasShaken = false;
+
+    // Immediately navigate on first click of '8'
+    // Just for dev purposes really, I like a quick way to get to a new random page
+    eight.addEventListener('click', (e) => {
+      if (!hasShaken) {
+        e.stopPropagation();
+        window.location.href = pageRandomiser.nextOne();
+      }
+    });
+
+    // The anchor handles navigation for revealed messages
+    oracleLink.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
+
+    // The ball handles shaking
+    container.addEventListener('click', (e) => {
+      if (isShaking) return;
+      hasShaken = true;
+      startShake();
+    });
+
+    function startShake() {
+      isShaking = true;
+
+      container.classList.add('shaking');
+      container.classList.remove('revealing', 'clickable-message');
+
+      // Fading out only (Faster)
+      triangle.style.transition = 'opacity 0.5s ease-in-out';
+      triangle.style.opacity = '0';
+      triangle.style.transform = 'scale(1)';
+      eight.style.opacity = '0';
+      eight.style.pointerEvents = 'none';
+
+      setTimeout(() => {
+        stopShake();
+      }, 2000);
+    }
+
+    function stopShake() {
+      container.classList.remove('shaking');
+
+      setTimeout(() => {
+        revealMessage();
+      }, 100);
+    }
+
+    function revealMessage() {
+      message.textContent = messagesRandomiser.nextOne();
+
+      // Reset scale instantly while hidden so it can float up
+      triangle.style.transition = 'none';
+      triangle.style.transform = 'scale(0.7)';
+      triangle.offsetHeight; // Force reflow
+
+      // Floating/Revealing effect (Slower)
+      triangle.style.transition = 'opacity 2s ease-in-out, transform 2s ease-in-out';
+      triangle.style.opacity = '1';
+      triangle.style.transform = 'scale(1.1)';
+      container.classList.add('revealing');
+
+      setTimeout(() => {
+        isShaking = false;
+        container.classList.add('clickable-message');
+        oracleLink.href = pageRandomiser.nextOne();
+      }, 1000);
+    }
+
+  </script>
+</body>
+
+</html>

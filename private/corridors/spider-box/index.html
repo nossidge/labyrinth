@@ -64,6 +64,7 @@ https://pineco.de/wp-content/uploads/2019/09/modify-the-css-box-model-with-box-s
     .spider {
       position: fixed;
       font-size: 2.9rem;
+      cursor: pointer;
       pointer-events: auto;
       z-index: 10;
       user-select: none;
@@ -95,7 +96,6 @@ https://pineco.de/wp-content/uploads/2019/09/modify-the-css-box-model-with-box-s
 <body>
 
   <div id="container">
-    <!-- Layered Cardboard Box PNGs -->
     <img id="box-back" src="cardboard-box-back.png" alt="" class="box-layer">
     <div id="spiders-container"></div>
     <img id="box-front" src="cardboard-box-front.png" alt="" class="box-layer">
@@ -157,6 +157,8 @@ https://pineco.de/wp-content/uploads/2019/09/modify-the-css-box-model-with-box-s
       spiderWrap.style.left = startX + 'px';
       spiderWrap.style.top = startY + 'px';
       spiderWrap.style.zIndex = '10'; // Behind box-front (15)
+
+      spiderWrap.addEventListener('click', createSpider);
 
       spidersContainer.appendChild(spiderWrap);
 

@@ -4,8 +4,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Bueh Whar ir gTR wjantr3e iftr fgorytghb ewoliJhe gtha?">
   <title>{rp,[t ;omlks]}</title>
-  <meta name="description" content="Bueh Whar ir gTR wjantr3e iftr fgorytghb ew;lijhe gtha?">
+  <link rel="preload" href="3-heads.png" as="image" type="image/png">
   <style>
     :root {
       --bg-2: url('2-heads.png');
@@ -16,7 +17,6 @@
       background-image: var(--bg-2);
       background-repeat: repeat;
       background-size: 200px;
-      transition: background-image 0.4s ease-in-out;
       margin: 0;
       height: 100vh;
       overflow: hidden;
@@ -24,7 +24,8 @@
       justify-content: center;
       align-items: center;
       background-color: #000;
-      cursor: not-allowed;
+      /* This doesn't work on Firefox, but it works on Chrome */
+      transition: background-image 0.4s ease-in-out;
     }
 
     img {
@@ -47,13 +48,6 @@
       background-image: var(--bg-3);
     }
 
-    /* Preload the hover image */
-    body::after {
-      content: "";
-      display: none;
-      background-image: var(--bg-3);
-    }
-
     @keyframes zoominandout {
       from {
         transform: translate(-50%, -50%) scale(1);
@@ -68,7 +62,7 @@
 
 <body>
   <a href="../../todo.html">
-    <img src="head.png" alt="low-polygon head and shoulder bust of a bald man" id="central-face">
+    <img src="head.png" alt="low-polygon head and shoulder bust of a bald man">
   </a>
 </body>
 

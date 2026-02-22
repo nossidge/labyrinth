@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+This is all really simple and I don't think the current defaults result in a stable population.
+Marriage also depends on emoji proximity, so the size of your screen will have an effect.
+But it's still fun to watch these emojis wander around a bit, falling in love.
+
+Named after this game:
+https://en.wikipedia.org/wiki/Passage_(video_game)
+-->
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Samsara">
+  <title>Passage</title>
+  <style>
+    :root {
+      --bg-color: #000000;
+      --marriage-color: #0000ff;
+      --parental-color: #ff0000;
+      --sibling-color: #ffff00;
+      --settings-color: #00ff00;
+      --text-color: #ffffff;
+    }
+
+    body,
+    html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background-color: var(--bg-color);
+      background-image:
+        linear-gradient(rgba(0, 255, 0, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 255, 0, 0.05) 1px, transparent 1px);
+      background-size: 50px 50px;
+      overflow: hidden;
+      font-family: "Courier New", Courier, monospace;
+      color: var(--text-color);
+    }
+
+    #canvas-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    #tethers {
+      width: 100%;
+      height: 100%;
+    }
+
+    #people-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+    }
+
+    .person {
+      position: absolute;
+      font-size: 24px;
+      user-select: none;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      /* Using will-change for performance since we update left/top frequently */
+      will-change: left, top;
+    }
+
+    .compatibility-hint {
+      font-size: 9px;
+      margin-top: -4px;
+      opacity: 0.8;
+      background: #000;
+      padding: 1px 2px;
+      border: 1px solid #444;
+      pointer-events: none;
+    }
+
+    .grain {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48ZmlsdGVyIGlkPSJuIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iMC44NSIgbnVtT2N0YXZlcz0iMyIgc3RpdGNoVGlsZXM9InN0aXRjaCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbHRlcj0idXJsKCNuKSIvPjwvc3ZnPg==');
+      opacity: 0.15;
+      z-index: 100;
+      pointer-events: none;
+    }
+
+    .heart-burst {
+      position: absolute;
+      font-size: 40px;
+      animation: burst 0.8s ease-out forwards;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    @keyframes burst {
+      0% {
+        transform: scale(0.5);
+        opacity: 1;
+      }
+
+      100% {
+        transform: scale(3);
+        opacity: 0;
+      }
+    }
+
+    svg line {
+      stroke-linecap: round;
+      opacity: 0.8;
+    }
+
+    .marriage-line {
+      stroke: var(--marriage-color);
+      stroke-width: 2;
+    }
+
+    .parental-line {
+      stroke: var(--parental-color);
+      stroke-width: 1;
+      stroke-dasharray: 5, 5;
+    }
+
+    .sibling-line {
+      stroke: var(--sibling-color);
+      stroke-width: 1;
+      stroke-dasharray: 5, 5;
+    }
+
+    #settings-panel {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      max-height: 94vh;
+      overflow-y: auto;
+      background: #111;
+      border: 1px solid var(--settings-color);
+      padding: 10px;
+      z-index: 100;
+      color: var(--settings-color);
+      font-size: 16px;
+      font-family: inherit;
+      width: 300px;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+
+    #settings-panel:hover {
+      opacity: 1;
+    }
+
+    #settings-panel.hidden #settings-form {
+      display: none;
+    }
+
+    #settings-toggle {
+      cursor: pointer;
+      font-weight: bold;
+      text-align: center;
+      user-select: none;
+    }
+
+    #settings-form {
+      overflow-y: auto;
+    }
+
+    .setting-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 8px;
+    }
+
+    .setting-row input {
+      width: 80px;
+      background: #000;
+      color: var(--settings-color);
+      border: 1px solid var(--settings-color);
+      font-family: inherit;
+      font-size: 16px;
+      text-align: right;
+    }
+
+    .setting-hint {
+      display: block;
+      color: var(--text-color);
+      font-size: 12px;
+      margin-top: 2px;
+    }
+
+    #info-panel {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: #111;
+      border: 1px solid var(--settings-color);
+      padding: 10px;
+      z-index: 100;
+      color: var(--settings-color);
+      font-size: 16px;
+      font-family: inherit;
+      width: 300px;
+      opacity: 0.8;
+      transition: opacity 0.2s;
+    }
+
+    #info-panel:hover {
+      opacity: 1;
+    }
+
+    #info-panel.hidden #info-content {
+      display: none;
+    }
+
+    #info-toggle {
+      cursor: pointer;
+      font-weight: bold;
+      text-align: center;
+      user-select: none;
+    }
+
+    #info-content {
+      margin-top: 10px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      margin-top: 5px;
+      font-size: 14px;
+      color: var(--text-color);
+    }
+
+    .legend-line {
+      width: 30px;
+      margin-right: 10px;
+    }
+
+    .legend-marriage {
+      height: 2px;
+      background: var(--marriage-color);
+    }
+
+    .legend-parental {
+      height: 0;
+      border-bottom: 1px dashed var(--parental-color);
+    }
+
+    .legend-sibling {
+      height: 0;
+      border-bottom: 1px dashed var(--sibling-color);
+    }
+
+    .info-description {
+      margin-top: 15px;
+      font-size: 13px;
+      line-height: 1.4;
+      color: var(--text-color);
+    }
+
+    .setting-row input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+    }
+
+    .compatibility-hint {
+      display: none;
+      font-size: 9px;
+      margin-top: -4px;
+      opacity: 0.8;
+      background: #000;
+      padding: 1px 2px;
+      border: 1px solid #444;
+      pointer-events: none;
+    }
+
+    .show-hints .compatibility-hint {
+      display: block;
+    }
+
+    #restart-btn {
+      width: 100%;
+      margin-top: 12px;
+      background: var(--settings-color);
+      color: #000;
+      border: 1px solid var(--settings-color);
+      padding: 5px;
+      font-family: inherit;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    hr {
+      border: none;
+      border-top: 1px dashed #444;
+      margin: 15px 0;
+    }
+
+    .stats-area {
+      margin-top: 5px;
+      font-size: 13px;
+      color: var(--text-color);
+    }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+
+    .stat-row span {
+      color: var(--settings-color);
+      font-weight: bold;
+    }
+
+    a {
+      text-decoration: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="grain"></div>
+  <div id="canvas-container">
+    <svg id="tethers"></svg>
+  </div>
+  <div id="people-container"></div>
+
+  <div id="settings-panel" class="hidden">
+    <div id="settings-toggle">
+      [ + ] Settings
+    </div>
+
+    <div id="settings-form">
+      <div class="setting-row">
+        <label for="cfg-initialPopulation">Initial Population:</label>
+        <input type="number" id="cfg-initialPopulation" min="0" step="1" value="100">
+      </div>
+      <span class="setting-hint">Starting number of people</span>
+
+      <div class="setting-row">
+        <label for="cfg-maxPopulation">Max Population:</label>
+        <input type="number" id="cfg-maxPopulation" min="0" step="1" value="250">
+      </div>
+      <span class="setting-hint">Cap to prevent lag</span>
+
+      <div class="setting-row">
+        <label for="cfg-lifespanMin">Min Lifespan:</label>
+        <input type="number" id="cfg-lifespanMin" min="0" step="1" value="60">
+      </div>
+      <span class="setting-hint">Shortest possible life (seconds)</span>
+
+      <div class="setting-row">
+        <label for="cfg-lifespanMax">Max Lifespan:</label>
+        <input type="number" id="cfg-lifespanMax" min="0" step="1" value="100">
+      </div>
+      <span class="setting-hint">Longest possible life (seconds)</span>
+
+      <div class="setting-row">
+        <label for="cfg-childSpeed">Child Speed:</label>
+        <input type="number" step="0.1" id="cfg-childSpeed" value="2.5">
+      </div>
+      <span class="setting-hint">Movement speed for babies/children</span>
+
+      <div class="setting-row">
+        <label for="cfg-adultSpeed">Adult Speed:</label>
+        <input type="number" id="cfg-adultSpeed" min="0" step="0.01" value="2.0">
+      </div>
+      <span class="setting-hint">Movement speed for adults</span>
+
+      <div class="setting-row">
+        <label for="cfg-seniorSpeed">Senior Speed:</label>
+        <input type="number" id="cfg-seniorSpeed" min="0" step="0.01" value="1.0">
+      </div>
+      <span class="setting-hint">Movement speed for seniors</span>
+
+      <div class="setting-row">
+        <label for="cfg-momentumLoss">Momentum Loss:</label>
+        <input type="number" id="cfg-momentumLoss" min="0" step="0.001" value="0.985">
+      </div>
+      <span class="setting-hint">Friction (closer to 1 = slides further)</span>
+
+      <div class="setting-row">
+        <label for="cfg-marryingDistance">Marrying Distance:</label>
+        <input type="number" id="cfg-marryingDistance" min="0" step="1" value="100">
+      </div>
+      <span class="setting-hint">Proximity required to marry</span>
+
+      <div class="setting-row">
+        <label for="cfg-childrenDesiredMin">Min Children:</label>
+        <input type="number" id="cfg-childrenDesiredMin" min="0" step="1" value="2">
+      </div>
+      <span class="setting-hint">Fewest kids a couple will have</span>
+
+      <div class="setting-row">
+        <label for="cfg-childrenDesiredMax">Max Children:</label>
+        <input type="number" id="cfg-childrenDesiredMax" min="0" step="1" value="4">
+      </div>
+      <span class="setting-hint">Most kids a couple will have</span>
+
+      <div class="setting-row">
+        <label for="cfg-compatibilityMax">Personality Range:</label>
+        <input type="number" id="cfg-compatibilityMax" min="1" step="1" value="1">
+      </div>
+      <span class="setting-hint">Max compatibility. Couples must have
+        the exact same personality value in order to marry. So higher means fewer
+        marriages</span>
+
+      <div class="setting-row">
+        <label for="cfg-birthCooldownMin">Min Birth Cooldown:</label>
+        <input type="number" id="cfg-birthCooldownMin" min="0" step="100" value="6000">
+      </div>
+      <span class="setting-hint">Min ms between births</span>
+
+      <div class="setting-row">
+        <label for="cfg-birthCooldownMax">Max Birth Cooldown:</label>
+        <input type="number" id="cfg-birthCooldownMax" min="0" step="100" value="16000">
+      </div>
+      <span class="setting-hint">Max ms between births</span>
+
+      <div class="setting-row">
+        <label for="cfg-growthChild">Growth Child:</label>
+        <input type="number" id="cfg-growthChild" min="0" step="0.01" value="0.15">
+      </div>
+      <span class="setting-hint">Age threshold to become a child (fraction of life)</span>
+
+      <div class="setting-row">
+        <label for="cfg-growthAdult">Growth Adult:</label>
+        <input type="number" id="cfg-growthAdult" min="0" step="0.01" value="0.35">
+      </div>
+      <span class="setting-hint">Age threshold to become an adult (fraction of life)</span>
+
+      <div class="setting-row">
+        <label for="cfg-growthSenior">Growth Senior:</label>
+        <input type="number" id="cfg-growthSenior" min="0" step="0.01" value="0.75">
+      </div>
+      <span class="setting-hint">Age threshold to become a senior (fraction of life)</span>
+
+      <button id="restart-btn">Restart Simulation</button>
+    </div>
+  </div>
+
+  <div id="info-panel" class="hidden">
+    <div id="info-toggle">
+      [ + ] Information
+    </div>
+
+    <div id="info-content">
+      <div class="info-description">
+        Very simple simulation of human life cycles. Entities meet based on shared compatibility,
+        form lasting bonds, and raise children together. Or they don't. Either way, their life is
+        not finite.
+      </div>
+
+      <hr>
+
+      <div class="setting-row">
+        <label for="cfg-showPersonality">Show Personality:</label>
+        <input type="checkbox" id="cfg-showPersonality">
+      </div>
+      <span class="setting-hint">Show personality values below emojis</span>
+
+      <hr>
+
+      <div class="setting-row">
+        <label for="cfg-showLines">Show Relationships:</label>
+        <input type="checkbox" id="cfg-showLines">
+      </div>
+      <span class="setting-hint">
+        Show relationship tether lines
+        <br>
+        (This may slow down the simulation)
+      </span>
+
+      <div class="legend-item">
+        <div class="legend-line legend-marriage"></div>
+        <span>Spouse</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-line legend-parental"></div>
+        <span>Parent & child</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-line legend-sibling"></div>
+        <span>Sibling</span>
+      </div>
+
+      <hr>
+
+      <div class="stats-area">
+        <div class="stat-row">Alive: <span id="stat-alive">0</span></div>
+        <div class="stat-row">Births: <span id="stat-births">0</span></div>
+        <div class="stat-row">Deaths: <span id="stat-deaths">0</span></div>
+        <div class="stat-row">Marriages: <span id="stat-marriages">0</span></div>
+        <div class="stat-row">Parent-Child: <span id="stat-parental">0</span></div>
+        <div class="stat-row">Siblings: <span id="stat-siblings">0</span></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/passage/index.html";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const peopleContainer = document.getElementById('people-container');
+    const tethersSvg = document.getElementById('tethers');
+
+    const CONFIG = {
+      initialPopulation: 100,
+      maxPopulation: 250,
+      lifespanRange: [60, 100],
+      childSpeed: 2.5,
+      adultSpeed: 2.0,
+      seniorSpeed: 1.0,
+      momentumLoss: 0.985,
+      marryingDistance: 100,
+      childrenDesiredMin: 2,
+      childrenDesiredMax: 4,
+
+      // The original plan was to give everyone personality score so they wouldn't marry just
+      // anyone. But this led to everyone dying out! I'll leave this in the code anyway.
+      compatibilityMax: 1,
+
+      growthThresholds: {
+        child: 0.15, // 15% of life
+        adult: 0.35, // 35% of life
+        senior: 0.75 // 75% of life
+      },
+      birthCooldownRange: [6000, 16000],
+      showPersonality: false,
+      showLines: false,
+    };
+
+    const EMOJI_MAP = {
+      M: {
+        baby: '👶',
+        child: '👦',
+        adult: '👨',
+        senior: '👴'
+      },
+      F: {
+        baby: '👶',
+        child: '👧',
+        adult: '👩',
+        senior: '👵'
+      }
+    };
+
+    const SKIN_TONES = ['🏻', '🏼', '🏽', '🏾', '🏿'];
+
+    document.getElementById('settings-toggle').onclick = (e) => {
+      e.stopPropagation();
+      const panel = document.getElementById('settings-panel');
+      panel.classList.toggle('hidden');
+      e.target.innerText = panel.classList.contains('hidden') ? '[ + ] Settings' : '[ - ] Settings';
+    };
+
+    document.getElementById('info-toggle').onclick = (e) => {
+      e.stopPropagation();
+      const panel = document.getElementById('info-panel');
+      panel.classList.toggle('hidden');
+      e.target.innerText = panel.classList.contains('hidden') ? '[ + ] Information' : '[ - ] Information';
+    };
+
+    const updateUIVisibility = () => {
+      CONFIG.showPersonality = document.getElementById('cfg-showPersonality').checked;
+      CONFIG.showLines = document.getElementById('cfg-showLines').checked;
+      document.body.classList.toggle('show-hints', CONFIG.showPersonality);
+    };
+
+    document.getElementById('settings-panel').onclick = (e) => e.stopPropagation();
+    document.getElementById('info-panel').onclick = (e) => e.stopPropagation();
+
+    document.getElementById('cfg-showPersonality').onchange = updateUIVisibility;
+    document.getElementById('cfg-showLines').onchange = updateUIVisibility;
+
+    document.getElementById('restart-btn').onclick = (e) => {
+      e.stopPropagation();
+
+      CONFIG.initialPopulation = parseInt(document.getElementById('cfg-initialPopulation').value) || 10;
+      CONFIG.maxPopulation = parseInt(document.getElementById('cfg-maxPopulation').value) || 250;
+      CONFIG.lifespanRange[0] = parseInt(document.getElementById('cfg-lifespanMin').value) || 60;
+      CONFIG.lifespanRange[1] = parseInt(document.getElementById('cfg-lifespanMax').value) || 100;
+      CONFIG.childSpeed = parseFloat(document.getElementById('cfg-childSpeed').value) || 2.5;
+      CONFIG.adultSpeed = parseFloat(document.getElementById('cfg-adultSpeed').value) || 2.0;
+      CONFIG.seniorSpeed = parseFloat(document.getElementById('cfg-seniorSpeed').value) || 1.0;
+      CONFIG.momentumLoss = parseFloat(document.getElementById('cfg-momentumLoss').value) || 0.985;
+      CONFIG.marryingDistance = parseInt(document.getElementById('cfg-marryingDistance').value) || 100;
+      CONFIG.childrenDesiredMin = parseInt(document.getElementById('cfg-childrenDesiredMin').value) || 2;
+      CONFIG.childrenDesiredMax = parseInt(document.getElementById('cfg-childrenDesiredMax').value) || 4;
+      CONFIG.compatibilityMax = parseInt(document.getElementById('cfg-compatibilityMax').value) || 1;
+      CONFIG.birthCooldownRange[0] = parseInt(document.getElementById('cfg-birthCooldownMin').value) || 6000;
+      CONFIG.birthCooldownRange[1] = parseInt(document.getElementById('cfg-birthCooldownMax').value) || 16000;
+
+      // I should maybe do some validation to make sure that each of these is
+      // sequentially higher than the previous...
+      CONFIG.growthThresholds.child = parseFloat(document.getElementById('cfg-growthChild').value) || 0.15;
+      CONFIG.growthThresholds.adult = parseFloat(document.getElementById('cfg-growthAdult').value) || 0.35;
+      CONFIG.growthThresholds.senior = parseFloat(document.getElementById('cfg-growthSenior').value) || 0.75;
+
+      updateUIVisibility();
+
+      people.forEach(p => p.element.remove());
+      people = [];
+      nextId = 0;
+      tethersSvg.innerHTML = '';
+      totalBirths = 0;
+      totalDeaths = 0;
+      init();
+    };
+
+    let people = [];
+    let nextId = 0;
+    let totalBirths = 0;
+    let totalDeaths = 0;
+
+    class Person {
+      constructor(options = {}) {
+        this.id = nextId++;
+        this.x = options.x !== undefined ? options.x : Math.random() * window.innerWidth;
+        this.y = options.y !== undefined ? options.y : Math.random() * window.innerHeight;
+        this.vx = (Math.random() - 0.5) * 2;
+        this.vy = (Math.random() - 0.5) * 2;
+        this.gender = options.gender || (Math.random() > 0.5 ? 'M' : 'F');
+
+        // Gay marriage modeling: 5% chance of display gender being opposite of biological gender.
+        // This is just a visual thing, it doesn't affect anything else in the simulation.
+        this.genderDisplayed = (Math.random() < 0.05) ? (this.gender === 'M' ? 'F' : 'M') : this.gender;
+
+        this.skinTone = options.skinTone || SKIN_TONES[Math.floor(Math.random() * SKIN_TONES.length)];
+        this.compatibility = options.compatibility || Math.floor(Math.random() * CONFIG.compatibilityMax) + 1;
+        this.age = options.age || 0;
+        this.lifespan = options.lifespan || (CONFIG.lifespanRange[0] + Math.random() * (CONFIG.lifespanRange[1] - CONFIG.lifespanRange[0]));
+        this.partner = null;
+        this.parents = options.parents || [];
+        this.siblings = options.siblings || [];
+        this.childrenCount = 0;
+        this.spawnedChildren = 0;
+        this.lastBirthTime = 0;
+        this.birthCooldown = CONFIG.birthCooldownRange[0] + Math.random() * (CONFIG.birthCooldownRange[1] - CONFIG.birthCooldownRange[0]);
+
+        this.element = document.createElement('a');
+        this.element.href = pageRandomiser.nextOne();
+        this.element.className = 'person';
+        this.element.innerHTML = `<span class="emoji"></span><span class="compatibility-hint">${this.compatibility}</span>`;
+        this.element.style.left = `${this.x}px`;
+        this.element.style.top = `${this.y}px`;
+
+        peopleContainer.appendChild(this.element);
+
+        this.updateEmoji();
+      }
+
+      updateEmoji() {
+        const ratio = this.age / this.lifespan;
+        let stage = 'baby';
+        if (ratio > CONFIG.growthThresholds.senior) stage = 'senior';
+        else if (ratio > CONFIG.growthThresholds.adult) stage = 'adult';
+        else if (ratio > CONFIG.growthThresholds.child) stage = 'child';
+
+        const base = EMOJI_MAP[this.genderDisplayed][stage];
+        this.element.querySelector('.emoji').innerText = base + this.skinTone;
+      }
+
+      update(dt, now, newborns) {
+        this.age += dt / 1000;
+        if (this.age >= this.lifespan) {
+          this.die();
+          return false;
+        }
+
+        this.updateEmoji();
+
+        const ratio = this.age / this.lifespan;
+        let speedMultiplier = CONFIG.adultSpeed;
+        if (ratio < CONFIG.growthThresholds.child) speedMultiplier = CONFIG.childSpeed;
+        if (ratio > CONFIG.growthThresholds.senior) speedMultiplier = CONFIG.seniorSpeed;
+
+        const frameScale = dt / 16.6;
+        this.x += this.vx * speedMultiplier * frameScale;
+        this.y += this.vy * speedMultiplier * frameScale;
+
+        // Bounce boundaries
+        if (this.x < 0) { this.x = 0; this.vx *= -1; }
+        if (this.x > window.innerWidth - 30) { this.x = window.innerWidth - 30; this.vx *= -1; }
+        if (this.y < 0) { this.y = 0; this.vy *= -1; }
+        if (this.y > window.innerHeight - 30) { this.y = window.innerHeight - 30; this.vy *= -1; }
+
+        // Physical tethering for babies (until they become children)
+        if (ratio < CONFIG.growthThresholds.child && this.parents.length > 0) {
+          const mother = this.parents[0];
+          const motherExists = people.includes(mother) || newborns.includes(mother);
+          if (motherExists) {
+            const dx = mother.x - this.x;
+            const dy = mother.y - this.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            // Strong attraction for babies to stay close to parent
+            if (dist > 30) {
+              this.vx += dx * 0.05;
+              this.vy += dy * 0.05;
+            }
+          }
+        }
+
+        // Partner attraction (marital tether)
+        if (this.partner) {
+          const dx = this.partner.x - this.x;
+          const dy = this.partner.y - this.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist > 60) {
+            this.vx += dx * 0.005;
+            this.vy += dy * 0.005;
+          }
+
+          // Production
+          if (this.gender === 'F' && this.spawnedChildren < this.childrenCount) {
+            if (now - this.lastBirthTime > this.birthCooldown) {
+              this.spawnChild(newborns);
+              this.lastBirthTime = now;
+            }
+          }
+        }
+
+        // Friction and drift
+        this.vx *= CONFIG.momentumLoss;
+        this.vy *= CONFIG.momentumLoss;
+
+        // Add a bit of random drift to keep things chaotic and lively
+        this.vx += (Math.random() - 0.5) * 0.2;
+        this.vy += (Math.random() - 0.5) * 0.2;
+
+        this.element.style.left = `${this.x}px`;
+        this.element.style.top = `${this.y}px`;
+        return true;
+      }
+
+      die() {
+        createBurst(this.x, this.y, '🪦');
+        this.element.querySelector('.emoji').innerText = '⚰️';
+        this.element.style.transition = 'opacity 1s, transform 1s';
+        this.element.style.opacity = '0';
+        this.element.style.pointerEvents = 'none';
+
+        if (this.partner) {
+          this.partner.partner = null;
+        }
+
+        setTimeout(() => {
+          this.element.remove();
+        }, 2000);
+        totalDeaths++;
+      }
+
+      spawnChild(newborns) {
+        if (people.length + newborns.length >= CONFIG.maxPopulation) return;
+
+        const child = new Person({
+          x: this.x,
+          y: this.y,
+          parents: [this, this.partner],
+          compatibility: Math.random() > 0.5 ? this.compatibility : this.partner.compatibility,
+          skinTone: Math.random() > 0.5 ? this.skinTone : this.partner.skinTone,
+          siblings: []
+        });
+
+        // Link siblings within currently alive and upcoming people
+        [...people, ...newborns].forEach(p => {
+          if (p !== child && p.parents && p.parents.includes(this) && p.parents.includes(this.partner)) {
+            p.siblings.push(child);
+            child.siblings.push(p);
+          }
+        });
+
+        newborns.push(child);
+        this.spawnedChildren++;
+        totalBirths++;
+        createBurst(this.x, this.y, '🍼');
+      }
+    }
+
+    function init() {
+      for (let i = 0; i < CONFIG.initialPopulation; i++) {
+        people.push(new Person({
+          age: Math.random() * 20
+        }));
+      }
+    }
+
+    function createBurst(x, y, emoji) {
+      const burst = document.createElement('div');
+      burst.className = 'heart-burst';
+      burst.innerText = emoji;
+      burst.style.left = x + 'px';
+      burst.style.top = y + 'px';
+      peopleContainer.appendChild(burst);
+      setTimeout(() => burst.remove(), 800);
+    }
+
+    function drawTethers(allPeople) {
+      // Clear SVG logic
+      tethersSvg.innerHTML = '';
+
+      if (!CONFIG.showLines) return;
+
+      const processedMarriages = new Set();
+      const processedSiblings = new Set();
+
+      allPeople.forEach(p => {
+        const px = p.x + 12;
+        const py = p.y + 12;
+
+        // Marriage line
+        if (p.partner && !processedMarriages.has(p.partner.id)) {
+          const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+          line.setAttribute('x1', px);
+          line.setAttribute('y1', py);
+          line.setAttribute('x2', p.partner.x + 12);
+          line.setAttribute('y2', p.partner.y + 12);
+          line.setAttribute('class', 'marriage-line');
+          tethersSvg.appendChild(line);
+          processedMarriages.add(p.id);
+        }
+
+        // Parental lines
+        p.parents.forEach(parent => {
+          if (allPeople.includes(parent)) {
+            const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            line.setAttribute('x1', px);
+            line.setAttribute('y1', py);
+            line.setAttribute('x2', parent.x + 12);
+            line.setAttribute('y2', parent.y + 12);
+            line.setAttribute('class', 'parental-line');
+            tethersSvg.appendChild(line);
+          }
+        });
+
+        // Sibling lines
+        p.siblings.forEach(sib => {
+          const sibKey = [p.id, sib.id].sort().join('-');
+          if (allPeople.includes(sib) && !processedSiblings.has(sibKey)) {
+            const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            line.setAttribute('x1', px);
+            line.setAttribute('y1', py);
+            line.setAttribute('x2', sib.x + 12);
+            line.setAttribute('y2', sib.y + 12);
+            line.setAttribute('class', 'sibling-line');
+            tethersSvg.appendChild(line);
+            processedSiblings.add(sibKey);
+          }
+        });
+      });
+    }
+
+    function updateStats() {
+      document.getElementById('stat-alive').innerText = people.length;
+      document.getElementById('stat-births').innerText = totalBirths;
+      document.getElementById('stat-deaths').innerText = totalDeaths;
+
+      let marriages = 0;
+      let parental = 0;
+      const processedSiblings = new Set();
+      let siblingsCount = 0;
+
+      people.forEach(p => {
+        if (p.partner && p.gender === 'M') {
+          marriages++;
+        }
+
+        p.parents.forEach(parent => {
+          if (people.includes(parent)) {
+            parental++;
+          }
+        });
+
+        p.siblings.forEach(sib => {
+          const sibKey = [p.id, sib.id].sort().join('-');
+          if (people.includes(sib) && !processedSiblings.has(sibKey)) {
+            siblingsCount++;
+            processedSiblings.add(sibKey);
+          }
+        });
+      });
+
+      document.getElementById('stat-marriages').innerText = marriages;
+      document.getElementById('stat-parental').innerText = parental;
+      document.getElementById('stat-siblings').innerText = siblingsCount;
+    }
+
+    let lastTime = performance.now();
+    function loop(now) {
+      const dt = now - lastTime;
+      const delta = Math.min(dt, 100);
+      lastTime = now;
+
+      const newborns = [];
+      people = people.filter(p => p.update(delta, now, newborns));
+      people.push(...newborns);
+
+      for (let i = 0; i < people.length; i++) {
+        const p1 = people[i];
+        if (p1.partner || p1.age / p1.lifespan < CONFIG.growthThresholds.adult) continue;
+
+        for (let j = i + 1; j < people.length; j++) {
+          const p2 = people[j];
+          if (p2.partner || p2.age / p2.lifespan < CONFIG.growthThresholds.adult) continue;
+
+          if (p1.gender !== p2.gender && p1.compatibility === p2.compatibility) {
+            // Kinship checks: No marrying parents or siblings!
+            if (p1.parents.includes(p2) || p2.parents.includes(p1)) continue;
+            if (p1.siblings.includes(p2)) continue;
+
+            const dx = p1.x - p2.x;
+            const dy = p1.y - p2.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+
+            if (dist < CONFIG.marryingDistance) {
+              p1.partner = p2;
+              p2.partner = p1;
+              p1.childrenCount = Math.floor(CONFIG.childrenDesiredMin + Math.random() * (CONFIG.childrenDesiredMax - CONFIG.childrenDesiredMin));
+              p2.childrenCount = p1.childrenCount;
+              p1.lastBirthTime = now;
+              p2.lastBirthTime = now;
+              createBurst((p1.x + p2.x) / 2, (p1.y + p2.y) / 2, '❤️');
+            }
+          }
+        }
+      }
+
+      drawTethers(people);
+      updateStats();
+      requestAnimationFrame(loop);
+    }
+
+    init();
+    requestAnimationFrame(loop);
+
+  </script>
+</body>
+
+</html>

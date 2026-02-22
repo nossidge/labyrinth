@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+Inspiration:
+https://www.markrjohnsongames.com/2025/05/10/ultima-ratio-regum-0-11-update-35-lots-of-book-progress/
+-->
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="¿Dónde está la biblioteca?">
+  <title>Library of Babel</title>
+  <style>
+    :root {
+      --wood-dark: #2c1a12;
+      --wood-light: #4a2c1d;
+      --dust: rgba(255, 255, 255, 0.05);
+      --book-shadow: rgba(0, 0, 0, 0.5);
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      min-height: 100vh;
+      background: var(--wood-dark);
+      overflow-x: hidden;
+      font-family: 'Times New Roman', Times, serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .library-floor {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #1a0f0a 0%, #2c1a12 100%);
+      z-index: -1;
+    }
+
+    #shelves-container {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 60px;
+      padding: 40px 0;
+      align-items: center;
+      z-index: 10;
+    }
+
+    .shelf {
+      position: relative;
+      width: 90%;
+      max-width: 1000px;
+      height: 200px;
+      background: var(--wood-light);
+      border-bottom: 12px solid #1a0f0a;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 0 20px;
+      box-sizing: border-box;
+    }
+
+    .shelf::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(to bottom, rgba(0, 0, 0, 0.5) 0%, transparent 20%);
+      pointer-events: none;
+    }
+
+    .book-link {
+      display: block;
+      margin-right: 2px;
+      transition: transform 0.2s ease, filter 0.2s ease;
+      cursor: pointer;
+      position: relative;
+      z-index: 10;
+    }
+
+    .book-link:hover {
+      transform: translateY(-8px) scale(1.02);
+      filter: brightness(1.2) drop-shadow(0 5px 15px rgba(255, 255, 255, 0.2));
+      z-index: 20;
+    }
+
+    .book-svg {
+      display: block;
+      box-shadow: -2px 0 5px rgba(0, 0, 0, 0.3);
+    }
+
+    .grain {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48ZmlsdGVyIGlkPSJuIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iMC44NSIgbnVtT2N0YXZlcz0iMyIgc3RpdGNoVGlsZXM9InN0aXRjaCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbHRlcj0idXJsKCNuKSIvPjwvc3ZnPg==');
+      opacity: 0.15;
+      z-index: 100;
+      pointer-events: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="library-floor"></div>
+  <div class="grain"></div>
+
+  <div id="shelves-container">
+    <!-- Shelves will be injected here -->
+  </div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/bookshelves/index.html";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const shelfCount = 3;
+    const container = document.getElementById('shelves-container');
+
+    const bookColors = [
+      '#4a1a1a', // Deep Red
+      '#1a3a1a', // Forest Green
+      '#1a1d3a', // Navy Blue
+      '#3a3a1a', // Olive/Gold
+      '#3a1a3a', // Purple
+      '#2a2a2a', // Charcoal
+      '#5c4033', // Leather brown
+      '#8b4513', // Saddle brown
+      '#483d8b', // Dark Slate Blue
+    ];
+
+    const goldColors = ['#ffd700', '#d4af37', '#cfb53b', '#b8860b'];
+
+    function getRandomItem(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function generateBookSVG(width, height) {
+      const bgColor = getRandomItem(bookColors);
+      const goldColor = getRandomItem(goldColors);
+      const titleLines = Math.floor(Math.random() * 3) + 1;
+
+      let decor = "";
+      // Random gold lines at top and bottom
+      if (Math.random() > 0.3) {
+        decor += `<line x1="0" y1="10" x2="${width}" y2="10" stroke="${goldColor}" stroke-width="2" />`;
+        decor += `<line x1="0" y1="15" x2="${width}" y2="15" stroke="${goldColor}" stroke-width="1" />`;
+      }
+      if (Math.random() > 0.3) {
+        decor += `<line x1="0" y1="${height - 10}" x2="${width}" y2="${height - 10}" stroke="${goldColor}" stroke-width="2" />`;
+        decor += `<line x1="0" y1="${height - 15}" x2="${width}" y2="${height - 15}" stroke="${goldColor}" stroke-width="1" />`;
+      }
+
+      // Random "text" or symbol on spine
+      if (Math.random() > 0.5) {
+        const textY = height / 2;
+        const fontSize = Math.min(width * 0.7, 14);
+        decor += `<text x="${width / 2}" y="${textY}" fill="${goldColor}" font-family="serif" font-size="${fontSize}" text-anchor="middle" transform="rotate(90, ${width / 2}, ${textY})">${Math.random() > 0.5 ? 'I' : '§'}${Math.random() > 0.5 ? 'X' : 'V'}</text>`;
+      } else {
+        // Just some horizontal blocks for text
+        const midY = height / 2;
+        decor += `<rect x="${width * 0.2}" y="${midY - 20}" width="${width * 0.6}" height="2" fill="${goldColor}" opacity="0.8" />`;
+        if (Math.random() > 0.5) {
+          decor += `<rect x="${width * 0.2}" y="${midY - 10}" width="${width * 0.6}" height="2" fill="${goldColor}" opacity="0.8" />`;
+        }
+        if (Math.random() > 0.5) {
+          decor += `<rect x="${width * 0.2}" y="${midY}" width="${width * 0.6}" height="2" fill="${goldColor}" opacity="0.8" />`;
+        }
+      }
+
+      return `
+        <svg class="book-svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
+          <rect width="${width}" height="${height}" fill="${bgColor}" />
+          <rect width="${width * 0.1}" height="${height}" fill="rgba(0,0,0,0.2)" />
+          <line x1="${width * 0.1}" y1="0" x2="${width * 0.1}" y2="${height}" stroke="rgba(255,255,255,0.1)" stroke-width="1" />
+          ${decor}
+        </svg>
+      `;
+    }
+
+    function fillShelves() {
+      for (let i = 0; i < shelfCount; i++) {
+        const shelf = document.createElement('div');
+        shelf.className = 'shelf';
+
+        let currentWidth = 0;
+        const maxShelfWidth = 960;
+
+        while (currentWidth < maxShelfWidth - 40) {
+          const bookWidth = 20 + Math.random() * 30;
+          const bookHeight = 150 + Math.random() * 40;
+
+          if (currentWidth + bookWidth > maxShelfWidth) break;
+
+          const link = document.createElement('a');
+          link.className = 'book-link';
+          link.href = pageRandomiser.nextOne();
+          link.innerHTML = generateBookSVG(bookWidth, bookHeight);
+
+          shelf.appendChild(link);
+          currentWidth += bookWidth + 2;
+        }
+
+        container.appendChild(shelf);
+      }
+    }
+
+    fillShelves();
+
+  </script>
+</body>
+
+</html>

@@ -4,6 +4,8 @@ require 'fileutils'
 SOURCE_DIR = 'private'
 TARGET_DIR = 'public'
 WIP_DIR = 'wip'
+DEV_MODE = ARGV.include?('--dev')
+LINK_SUFFIX = DEV_MODE ? 'index.html' : ''
 
 def get_formatted_title(dir_path)
   File.basename(dir_path).split('-').map(&:capitalize).join(' ')
@@ -21,7 +23,7 @@ def generate_dir_files(dir_path)
   end
 
   # Corridors for JS (relative to common/labyrinthPages.js, i.e., ../../corridors/...)
-  corridors_for_js = corridor_dirs.map { |d| d.sub("#{dir_path}/", '') + "index.html" }
+  corridors_for_js = corridor_dirs.map { |d| d.sub("#{dir_path}/", '') + LINK_SUFFIX }
 
   # 1. Generate common/labyrinthPages.js
   js_path = File.join(dir_path, 'common', 'labyrinthPages.js')
@@ -37,18 +39,18 @@ def generate_dir_files(dir_path)
   File.write(js_path, js_content)
   puts "Generated #{js_path}"
 
-  # 2. Generate index.html
-  template = File.read('template.html')
+  # 2. Generate index.html (internal list)
+  template = File.read('template/list.html')
 
   corridor_links = corridor_dirs.map do |d|
     title = get_formatted_title(d)
-    rel_path = d.sub("#{dir_path}/", '') + "index.html"
+    rel_path = d.sub("#{dir_path}/", '') + LINK_SUFFIX
     "      <li><a href=\"#{rel_path}\">#{title}</a></li>"
   end.join("\n")
 
   room_links = room_dirs.map do |d|
     title = get_formatted_title(d)
-    rel_path = d.sub("#{dir_path}/", '') + "index.html"
+    rel_path = d.sub("#{dir_path}/", '') + LINK_SUFFIX
     "      <li><a href=\"#{rel_path}\">#{title}</a></li>"
   end.join("\n")
 
@@ -69,19 +71,41 @@ generate_dir_files(WIP_DIR)
 puts "Housekeeping PRIVATE directory..."
 corridors = generate_dir_files(SOURCE_DIR)
 
-# 2. Create public directory (clean copy of private, excluding WIPs)
+# 2. Create public directory (clean copy of private, minus todo.html and WIPs)
 puts "Generating #{TARGET_DIR}..."
 FileUtils.rm_rf(TARGET_DIR)
-FileUtils.cp_r(SOURCE_DIR, TARGET_DIR)
+FileUtils.mkdir_p(TARGET_DIR)
 
-# Remove any lingering WIP directories from public (if they were in private with .wip file)
+Dir.each_child(SOURCE_DIR) do |child|
+  next if child == 'todo.html'
+  FileUtils.cp_r(File.join(SOURCE_DIR, child), File.join(TARGET_DIR, child))
+end
+
+# 3. Setup public entry points
+puts "Setting up public entry points..."
+FileUtils.mkdir_p(File.join(TARGET_DIR, 'assets'))
+FileUtils.cp('assets/labyrinthus.png', File.join(TARGET_DIR, 'assets', 'labyrinthus.png'))
+
+public_index_content = File.read('template/index.html')
+current_date = Time.now.strftime('%Y-%m-%d')
+total_pages = corridors.length
+
+public_index_content.gsub!(/(<strong id="date-last-randomised">).*?(<\/strong>)/m, "\\1\n          #{current_date}\n        \\2")
+public_index_content.gsub!(/(<strong id="page-count">).*?(<\/strong>)/m, "\\1\n          #{total_pages}\n        \\2")
+
+File.write(File.join(TARGET_DIR, 'index.html'), public_index_content)
+
+FileUtils.mkdir_p(File.join(TARGET_DIR, 'random'))
+FileUtils.cp('template/random.html', File.join(TARGET_DIR, 'random', 'index.html'))
+
+# 4. Remove any lingering WIP directories from public (if they were in private with .wip file)
 Dir.glob(File.join(TARGET_DIR, '**/.wip')).each do |wip_file|
   wip_dir = File.dirname(wip_file)
   FileUtils.rm_rf(wip_dir)
   puts "Removed WIP corridor from public: #{wip_dir}"
 end
 
-# 3. Randomise links in public/
+# 5. Randomise links in public/
 html_files = Dir.glob(File.join(TARGET_DIR, '**/*.html'))
 
 html_files.each do |file|

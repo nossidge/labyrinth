@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Entering...</title>
+  <script src="../common/labyrinthPages.js"></script>
+  <script>
+    window.onload = function () {
+      if (typeof labyrinthPages !== 'undefined' && labyrinthPages.length > 0) {
+        const randomPage = labyrinthPages[Math.floor(Math.random() * labyrinthPages.length)];
+        // Paths in labyrinthPages are relative to common/labyrinthPages.js (../../corridors/...)
+        // From random/index.html we need ../corridors/...
+        const target = randomPage.replace(/^\.\.\/\.\.\//, '../');
+        window.location.href = target;
+      } else {
+        window.location.href = '../index.html';
+      }
+    };
+  </script>
+</head>
+
+<body
+  style="background-color: black; color: white; font-family: monospace; text-align: center; margin-top: 100px;">
+  <p>Navigating the labyrinth...</p>
+</body>
+
+</html>

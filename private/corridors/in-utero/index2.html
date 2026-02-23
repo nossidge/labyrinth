@@ -150,7 +150,7 @@
   <script src="../../common/CyclicRandomiser.js"></script>
   <script src="../../common/labyrinthPages.js"></script>
   <script>
-    const currentPage = "corridors/in-utero/index.html";
+    const currentPage = "corridors/in-utero";
     const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
     const pageRandomiser = new CyclicRandomiser(otherPages);
 
@@ -195,7 +195,7 @@
 
         // a.href = pageRandomiser.nextOne();
         // Actually, this is funnier:
-        a.href = "../baby-god/index.html";
+        a.href = "../baby-god";
 
         const img = document.createElement('img');
         img.src = "baby.png";

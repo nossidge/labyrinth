@@ -40,7 +40,7 @@
     const canvas = document.getElementById('liquidCanvas');
     const ctx = canvas.getContext('2d');
 
-    const currentPage = "corridors/ripples/index.html";
+    const currentPage = "corridors/ripples";
     const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
     const pageRandomiser = new CyclicRandomiser(otherPages);
 

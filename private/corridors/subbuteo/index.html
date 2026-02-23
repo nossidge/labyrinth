@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+Warning!
+This game isn't very fun!
+-->
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Jules Rimet still gleaming">
+  <title>First to score 3 goals</title>
+  <style>
+    :root {
+      --pitch-green: #2d5a27;
+      --pitch-lines: #ffffffcf;
+      --blue-team: #0000ff;
+      --yellow-team: #ffff00;
+      --ball-white: #ffffff;
+      --ui-bg: #ccc;
+    }
+
+    body,
+    html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #000;
+      font-family: "Trebuchet MS", sans-serif;
+      user-select: none;
+    }
+
+    #fans-area {
+      height: 50px;
+      background: #333;
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      overflow: hidden;
+      border-bottom: 2px solid #888;
+      position: relative;
+      z-index: 10;
+    }
+
+    .fan {
+      font-size: 20px;
+      display: inline-block;
+      transition: transform 0.2s;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    #game-container {
+      position: relative;
+      width: 100%;
+      height: calc(100% - 50px);
+      background-color: var(--pitch-green);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #pitch-canvas {
+      display: block;
+      border: 1px solid #000;
+    }
+
+    #ui-layer {
+      position: absolute;
+      top: 10px;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      pointer-events: none;
+      z-index: 20;
+    }
+
+    .scoreboard {
+      background: linear-gradient(to right,
+          #eee 0%,
+          #eee 30%,
+          #222 70%,
+          #222 100%);
+      color: white;
+      padding: 5px 10px;
+      border: 3px outset #eee;
+      display: flex;
+      gap: 15px;
+      align-items: center;
+      font-size: 20px;
+      font-weight: bold;
+      pointer-events: auto;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .score-val {
+      font-size: 30px;
+      background: #000;
+      color: #0f0;
+      padding: 0 10px;
+      border: 2px inset #555;
+      font-family: "Courier New", Courier, monospace;
+    }
+
+    .blue-score,
+    .yellow-score {
+      width: 100px;
+      text-align: center;
+    }
+
+    .blue-score {
+      color: #33f;
+    }
+
+    .yellow-score {
+      color: #ff0;
+    }
+
+    #turn-indicator {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 5px 15px;
+      border: 3px outset #eee;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+
+    .turn-blue {
+      background: var(--blue-team);
+      color: white;
+    }
+
+    .turn-yellow {
+      background: var(--yellow-team);
+      color: black;
+    }
+
+    #win-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      z-index: 100;
+    }
+
+    #win-message {
+      font-size: 60px;
+      font-weight: bold;
+      margin-bottom: 20px;
+      text-align: center;
+      text-transform: uppercase;
+      text-shadow: 4px 4px #000;
+    }
+
+    .restart-btn {
+      background: #ccc;
+      color: black;
+      padding: 10px 30px;
+      font-size: 20px;
+      font-weight: bold;
+      cursor: pointer;
+      border: 3px outset #eee;
+    }
+
+    .restart-btn:active {
+      border-style: inset;
+    }
+
+    .grain {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48ZmlsdGVyIGlkPSJuIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iMC44NSIgbnVtT2N0YXZlcz0iMyIgc3RpdGNoVGlsZXM9InN0aXRjaCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbHRlcj0idXJsKCNuKSIvPjwvc3ZnPg==');
+      opacity: 0.1;
+      z-index: 1000;
+      pointer-events: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="grain"></div>
+
+  <div id="fans-area">
+    <!-- Fans will be generated here -->
+  </div>
+
+  <div id="game-container">
+    <canvas id="pitch-canvas"></canvas>
+
+    <div id="ui-layer">
+      <a id="scoreboard-link" class="scoreboard">
+        <span class="blue-score">BLUE</span>
+        <span id="score-text" class="score-val">0 - 0</span>
+        <span class="yellow-score">YELLOW</span>
+      </a>
+    </div>
+
+    <div id="turn-indicator" class="turn-blue">BLUE'S TURN</div>
+
+    <div id="win-overlay">
+      <div id="win-message">TEAM WINS!</div>
+      <button class="restart-btn" onclick="resetGame()">PLAY AGAIN</button>
+    </div>
+  </div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/subbuteo/index.html";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    // Configuration
+    const PITCH_WIDTH = 1000;
+    const PITCH_HEIGHT = 650;
+    const PLAYER_RADIUS = 15;
+    const BALL_RADIUS = 8;
+    const FRICTION = 0.985;
+    const BALL_FRICTION = 0.992;
+    const BOUNCE = 0.6;
+    const WIN_SCORE = 3;
+
+    // State
+    let canvas, ctx;
+    let players = [];
+    let ball = { x: 0, y: 0, vx: 0, vy: 0, radius: BALL_RADIUS };
+    let scores = { blue: 0, yellow: 0 };
+    let currentTurn = 'blue';
+    let isMoving = false;
+    let selectedPlayer = null;
+    let dragStart = null;
+    let lastFlickedPlayer = null;
+    let mousePos = { x: 0, y: 0 };
+    let gameEnded = false;
+
+    // Initialization
+    function init() {
+      canvas = document.getElementById('pitch-canvas');
+      ctx = canvas.getContext('2d');
+
+      resize();
+      window.addEventListener('resize', resize);
+
+      setupFans();
+      resetGame();
+
+      canvas.addEventListener('mousedown', onMouseDown);
+      window.addEventListener('mousemove', onMouseMove);
+      window.addEventListener('mouseup', onMouseUp);
+
+      document.getElementById('scoreboard-link').href = pageRandomiser.nextOne();
+
+      requestAnimationFrame(update);
+    }
+
+    function resize() {
+      const container = document.getElementById('game-container');
+      const ratio = PITCH_WIDTH / PITCH_HEIGHT;
+      let w = container.clientWidth * 0.9;
+      let h = w / ratio;
+
+      if (h > container.clientHeight * 0.9) {
+        h = container.clientHeight * 0.9;
+        w = h * ratio;
+      }
+
+      canvas.width = PITCH_WIDTH;
+      canvas.height = PITCH_HEIGHT;
+      canvas.style.width = w + 'px';
+      canvas.style.height = h + 'px';
+    }
+
+    function setupFans() {
+      const fansArea = document.getElementById('fans-area');
+      const fanEmojis = ['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '😉', '😌', '😍', '🥰', '😘', '😋', '😛', '😜', '🤪', '🤩', '🥳', '😎', '🧐', '🤓', '👻', '💀', '👽', '🤖'];
+
+      for (let i = 0; i < 40; i++) {
+        const a = document.createElement('a');
+        a.className = 'fan';
+        a.href = pageRandomiser.nextOne();
+        a.textContent = fanEmojis[Math.floor(Math.random() * fanEmojis.length)];
+
+        const speed = 1 + Math.random() * 2;
+        const delay = Math.random() * -2;
+        a.style.animation = `fan-bounce ${speed}s ease-in-out ${delay}s infinite alternate`;
+
+        fansArea.appendChild(a);
+      }
+
+      const style = document.createElement('style');
+      style.textContent = `
+                @keyframes fan-bounce {
+                    from { transform: translateY(5px) rotate(-3deg); }
+                    to { transform: translateY(-5px) rotate(3deg); }
+                }
+            `;
+      document.head.appendChild(style);
+    }
+
+    function resetGame() {
+      scores = { blue: 0, yellow: 0 };
+      gameEnded = false;
+      document.getElementById('win-overlay').style.display = 'none';
+      updateScoreUI();
+      resetPositions();
+      currentTurn = Math.random() < 0.5 ? 'blue' : 'yellow';
+      updateTurnUI();
+    }
+
+    function resetPositions() {
+      players = [];
+
+      // Blue team (left)
+      const blueForm = [
+        { x: 50, y: 325 }, // GK
+        { x: 160, y: 130 }, { x: 220, y: 325 }, { x: 160, y: 520 }, // DEF
+        { x: 330, y: 200 }, { x: 330, y: 450 }, // MID
+        { x: 440, y: 100 }, { x: 440, y: 550 } // FWD
+      ];
+
+      // Yellow team (right)
+      const yellowForm = blueForm.map(p => ({ x: PITCH_WIDTH - p.x, y: p.y }));
+
+      blueForm.forEach((p, i) => {
+        players.push({ ...p, vx: 0, vy: 0, radius: PLAYER_RADIUS, team: 'blue', id: 'b' + i });
+      });
+
+      yellowForm.forEach((p, i) => {
+        players.push({ ...p, vx: 0, vy: 0, radius: PLAYER_RADIUS, team: 'yellow', id: 'y' + i });
+      });
+
+      ball = { x: PITCH_WIDTH / 2, y: PITCH_HEIGHT / 2, vx: 0, vy: 0, radius: BALL_RADIUS };
+    }
+
+    // Input handling
+    function onMouseDown(e) {
+      if (isMoving || gameEnded) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      const x = (e.clientX - rect.left) * scaleX;
+      const y = (e.clientY - rect.top) * scaleY;
+
+      // Find clicked player of current team
+      const found = players.find(p => {
+        if (p.team !== currentTurn) return false;
+        const dx = p.x - x;
+        const dy = p.y - y;
+        return Math.sqrt(dx * dx + dy * dy) < PLAYER_RADIUS * 2;
+      });
+
+      if (found) {
+        selectedPlayer = found;
+        dragStart = { x: found.x, y: found.y };
+      }
+    }
+
+    function onMouseMove(e) {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      mousePos = {
+        x: (e.clientX - rect.left) * scaleX,
+        y: (e.clientY - rect.top) * scaleY
+      };
+    }
+
+    function onMouseUp(e) {
+      if (selectedPlayer && dragStart) {
+        const dx = dragStart.x - mousePos.x;
+        const dy = dragStart.y - mousePos.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        // Max impulse
+        const maxPull = 150;
+        const force = Math.min(dist, maxPull) / 10;
+        const angle = Math.atan2(dy, dx);
+
+        selectedPlayer.vx = Math.cos(angle) * force;
+        selectedPlayer.vy = Math.sin(angle) * force;
+
+        lastFlickedPlayer = selectedPlayer;
+        selectedPlayer = null;
+        dragStart = null;
+        isMoving = true;
+      }
+    }
+
+    // Game logic
+    function update() {
+      if (!gameEnded) {
+        updatePhysics();
+        checkGoals();
+      }
+      draw();
+      requestAnimationFrame(update);
+    }
+
+    function updatePhysics() {
+      let anyMovement = false;
+
+      // Move ball
+      ball.x += ball.vx;
+      ball.y += ball.vy;
+      ball.vx *= BALL_FRICTION;
+      ball.vy *= BALL_FRICTION;
+
+      if (Math.abs(ball.vx) < 0.05) ball.vx = 0;
+      if (Math.abs(ball.vy) < 0.05) ball.vy = 0;
+      if (ball.vx !== 0 || ball.vy !== 0) anyMovement = true;
+
+      // Ball wall collisions
+      if (ball.x - ball.radius < 0 || ball.x + ball.radius > PITCH_WIDTH) {
+        // Check if in goal area
+        if (ball.y < 225 || ball.y > 425) {
+          ball.vx *= -BOUNCE;
+          ball.x = ball.x < ball.radius ? ball.radius : PITCH_WIDTH - ball.radius;
+        }
+      }
+      if (ball.y - ball.radius < 0 || ball.y + ball.radius > PITCH_HEIGHT) {
+        ball.vy *= -BOUNCE;
+        ball.y = ball.y < ball.radius ? ball.radius : PITCH_HEIGHT - ball.radius;
+      }
+
+      // Move players
+      players.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vx *= FRICTION;
+        p.vy *= FRICTION;
+
+        if (Math.abs(p.vx) < 0.05) p.vx = 0;
+        if (Math.abs(p.vy) < 0.05) p.vy = 0;
+        if (p.vx !== 0 || p.vy !== 0) anyMovement = true;
+
+        // Player wall collisions
+        if (p.x - p.radius < 0 || p.x + p.radius > PITCH_WIDTH) {
+          p.vx *= -BOUNCE;
+          p.x = p.x < p.radius ? p.radius : PITCH_WIDTH - p.radius;
+        }
+        if (p.y - p.radius < 0 || p.y + p.radius > PITCH_HEIGHT) {
+          p.vy *= -BOUNCE;
+          p.y = p.y < p.radius ? p.radius : PITCH_HEIGHT - p.radius;
+        }
+
+        // Snap to zero much more aggressively to avoid "infinite" slow movement.
+        // It used to be that they would move microscopically, so that the turn would never end!
+        if (Math.abs(p.vx) < 0.2) p.vx = 0;
+        if (Math.abs(p.vy) < 0.2) p.vy = 0;
+        if (Math.abs(ball.vx) < 0.2) ball.vx = 0;
+        if (Math.abs(ball.vy) < 0.2) ball.vy = 0;
+
+        // Player-ball collision logic
+        const dx = ball.x - p.x;
+        const dy = ball.y - p.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const minDist = p.radius + ball.radius;
+
+        if (dist < minDist) {
+          if (p.team === currentTurn) {
+            // Ball hits teammate
+            if (p === lastFlickedPlayer) {
+              // Only the flicked player can kick the ball
+              resolveCollision(p, ball, 5);
+            } else {
+              // Go through other teammates
+            }
+          } else {
+            // Ball hits opponent -> Interception!
+            ball.vx = 0;
+            ball.vy = 0;
+            // Prevent sticking by pushing ball out slightly
+            const angle = Math.atan2(dy, dx);
+            ball.x = p.x + Math.cos(angle) * (minDist + 1);
+            ball.y = p.y + Math.sin(angle) * (minDist + 1);
+          }
+        }
+      });
+
+      // Player-player collisions
+      for (let i = 0; i < players.length; i++) {
+        for (let j = i + 1; j < players.length; j++) {
+          resolveCollision(players[i], players[j], 1);
+        }
+      }
+
+      // Turn management
+      if (isMoving) {
+        let playersStill = true;
+        players.forEach(p => {
+          if (Math.abs(p.vx) > 0 || Math.abs(p.vy) > 0) playersStill = false;
+        });
+
+        if (playersStill && ball.vx === 0 && ball.vy === 0) {
+          isMoving = false;
+          lastFlickedPlayer = null;
+          currentTurn = (currentTurn === 'blue' ? 'yellow' : 'blue');
+          updateTurnUI();
+        }
+      }
+    }
+
+    function resolveCollision(a, b, massRatio) {
+      const dx = b.x - a.x;
+      const dy = b.y - a.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const minDist = a.radius + b.radius;
+
+      if (dist < minDist) {
+        // Separate
+        const angle = Math.atan2(dy, dx);
+        const overlap = minDist - dist;
+        const totalMass = 1 + massRatio;
+
+        const moveX = Math.cos(angle) * overlap;
+        const moveY = Math.sin(angle) * overlap;
+
+        // Simple elastic collision
+        const nx = dx / dist;
+        const ny = dy / dist;
+
+        const p = 2 * (a.vx * nx + a.vy * ny - b.vx * nx - b.vy * ny) / totalMass;
+
+        if (!isMoving) isMoving = true;
+
+        a.vx -= p * nx * massRatio;
+        a.vy -= p * ny * massRatio;
+        b.vx += p * nx;
+        b.vy += p * ny;
+
+        // Prevent sticking
+        a.x -= moveX * (1 / totalMass);
+        a.y -= moveY * (1 / totalMass);
+        b.x += moveX * (massRatio / totalMass);
+        b.y += moveY * (massRatio / totalMass);
+      }
+    }
+
+    function checkGoals() {
+      // Left goal (Blue's goal, so Yellow scores)
+      if (ball.x < 0 && ball.y >= 225 && ball.y <= 425) {
+        scores.yellow++;
+        goalScored('YELLOW');
+      }
+      // Right goal (Yellow's goal, so Blue scores)
+      else if (ball.x > PITCH_WIDTH && ball.y >= 225 && ball.y <= 425) {
+        scores.blue++;
+        goalScored('BLUE');
+      }
+    }
+
+    function goalScored(team) {
+      updateScoreUI();
+      if (scores.blue >= WIN_SCORE || scores.yellow >= WIN_SCORE) {
+        endGame(team);
+      } else {
+        // Kickoff goes to the team that conceded
+        currentTurn = team.toLowerCase() === 'blue' ? 'yellow' : 'blue';
+        updateTurnUI();
+        resetPositions();
+        isMoving = false;
+      }
+    }
+
+    function updateScoreUI() {
+      document.getElementById('score-text').textContent = `${scores.blue} - ${scores.yellow}`;
+    }
+
+    function updateTurnUI() {
+      const el = document.getElementById('turn-indicator');
+      el.textContent = `${currentTurn}'s turn`.toUpperCase();
+      el.className = `turn-${currentTurn}`;
+    }
+
+    function endGame(team) {
+      gameEnded = true;
+      const overlay = document.getElementById('win-overlay');
+      const msg = document.getElementById('win-message');
+      msg.textContent = `${team} TEAM WINS!`;
+      msg.style.color = team === 'BLUE' ? '#6495ed' : '#ffff00';
+      overlay.style.display = 'flex';
+    }
+
+    // Drawing
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw pitch
+      ctx.strokeStyle = 'var(--pitch-lines)';
+      ctx.lineWidth = 2;
+
+      // Outer line
+      ctx.strokeRect(5, 5, PITCH_WIDTH - 10, PITCH_HEIGHT - 10);
+
+      // Center line
+      ctx.beginPath();
+      ctx.moveTo(PITCH_WIDTH / 2, 5);
+      ctx.lineTo(PITCH_WIDTH / 2, PITCH_HEIGHT - 5);
+      ctx.stroke();
+
+      // Center circle
+      ctx.beginPath();
+      ctx.arc(PITCH_WIDTH / 2, PITCH_HEIGHT / 2, 80, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Penalty areas
+      ctx.strokeRect(5, 150, 150, 350);
+      ctx.strokeRect(PITCH_WIDTH - 155, 150, 150, 350);
+
+      // Goals
+      ctx.fillStyle = '#444';
+      ctx.fillRect(-20, 225, 25, 200);
+      ctx.fillRect(PITCH_WIDTH - 5, 225, 25, 200);
+      ctx.strokeStyle = 'white';
+      ctx.strokeRect(-20, 225, 25, 200);
+      ctx.strokeRect(PITCH_WIDTH - 5, 225, 25, 200);
+
+      // Draw players
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      players.forEach(p => {
+        const isSelected = p === selectedPlayer;
+        const isCurrentTurn = p.team === currentTurn;
+
+        ctx.save();
+
+        // Shadow
+        ctx.fillStyle = 'rgba(0,0,0,0.3)';
+        ctx.font = `${p.radius * 2.5}px sans-serif`;
+        ctx.fillText('👕', p.x + 2, p.y + 4);
+
+        // Highlight active team with a glow
+        if (isCurrentTurn && !gameEnded) {
+          ctx.shadowColor = 'white';
+          ctx.shadowBlur = 10;
+        }
+
+        // Color the shirt more vibrant when it's their turn
+        if (p.team === 'yellow') {
+          if (isCurrentTurn && !gameEnded) {
+            ctx.filter = 'sepia(1) saturate(10) brightness(1.2)';
+          } else {
+            ctx.filter = 'sepia(1) saturate(2) brightness(0.6)';
+          }
+        } else {
+          if (isCurrentTurn && !gameEnded) {
+            ctx.filter = 'sepia(1) hue-rotate(160deg) saturate(10) brightness(1)';
+          } else {
+            ctx.filter = 'sepia(1) hue-rotate(160deg) saturate(2) brightness(0.3)';
+          }
+        }
+
+        ctx.fillText('👕', p.x, p.y);
+        ctx.restore();
+
+        // Selection ring
+        if (isSelected) {
+          ctx.strokeStyle = '#fff';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.radius + 8, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      });
+
+      // Draw ball
+      ctx.save();
+
+      // Shadow
+      ctx.fillStyle = 'rgba(0,0,0,0.3)';
+      ctx.font = `${ball.radius * 2.5}px sans-serif`;
+      ctx.fillText('⚽', ball.x + 1, ball.y + 2);
+
+      // The ball
+      ctx.fillStyle = 'white';
+      ctx.fillText('⚽', ball.x, ball.y);
+      ctx.restore();
+
+      // Draw drag line
+      if (selectedPlayer && dragStart) {
+        ctx.beginPath();
+        ctx.moveTo(selectedPlayer.x, selectedPlayer.y);
+        ctx.lineTo(mousePos.x, mousePos.y);
+        ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+        ctx.setLineDash([5, 5]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Aim indicator
+        const dx = selectedPlayer.x - mousePos.x;
+        const dy = selectedPlayer.y - mousePos.y;
+        ctx.beginPath();
+        ctx.moveTo(selectedPlayer.x, selectedPlayer.y);
+        ctx.lineTo(selectedPlayer.x + dx, selectedPlayer.y + dy);
+        ctx.strokeStyle = 'rgba(255,255,255,0.8)';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+      }
+    }
+
+    init();
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Cursed by the Fairy of Nominative Determinism">
+  <title>Professional help</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=Space+Grotesk:wght@300..700&family=IBM+Plex+Mono:wght@400;700&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #0c0c0c;
+      --accent-1: #ff0055;
+      --accent-2: #00ffcc;
+      --accent-3: #ffcc00;
+      --text-color: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      background-image:
+        linear-gradient(45deg, #1a1a1a 25%, transparent 25%),
+        linear-gradient(-45deg, #1a1a1a 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #1a1a1a 75%),
+        linear-gradient(-45deg, transparent 75%, #1a1a1a 75%);
+      background-size: 40px 40px;
+      background-position: 0 0, 0 20px, 20px -20px, -20px 0px;
+      color: var(--text-color);
+      font-family: 'Space Grotesk', sans-serif;
+      margin: 0;
+      padding: 40px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-x: hidden;
+    }
+
+    h1 {
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-size: clamp(3rem, 10vw, 6rem);
+      margin: 0 0 40px 0;
+      text-transform: uppercase;
+      letter-spacing: -4px;
+      color: var(--accent-3);
+      text-shadow: 6px 6px 0px var(--accent-1);
+      transform: skewX(-5deg) rotate(-2deg);
+      line-height: 0.9;
+      text-align: center;
+    }
+
+    .game-board {
+      margin-bottom: 40px;
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 40px;
+      width: 100%;
+      max-width: 1000px;
+    }
+
+    .column {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(5px);
+    }
+
+    .column h2 {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 1.2rem;
+      margin-top: 0;
+      color: var(--accent-2);
+      text-transform: uppercase;
+      border-bottom: 2px solid var(--accent-2);
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+      width: 100%;
+    }
+
+    #celeb-column,
+    #tool-column {
+      flex-direction: row;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-content: flex-start;
+    }
+
+    .card {
+      padding: 20px;
+      font-weight: 700;
+      cursor: grab;
+      user-select: none;
+      position: relative;
+      border: 3px solid #000;
+      box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.5);
+      transition: transform 0.1s, box-shadow 0.1s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      min-height: 80px;
+      overflow: hidden;
+    }
+
+    .card:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.5);
+    }
+
+    .card::after {
+      content: '';
+      position: absolute;
+      top: -100%;
+      left: -100%;
+      width: 300%;
+      height: 300%;
+      background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+      transition: 0.5s;
+      pointer-events: none;
+    }
+
+    .celebrity-card {
+      background: var(--accent-1);
+      color: white;
+      font-family: 'Bricolage Grotesque', sans-serif;
+      padding: 0 !important;
+      width: 136px;
+      height: 136px;
+    }
+
+    .celebrity-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top;
+      display: block;
+      pointer-events: none;
+    }
+
+    .tool-card {
+      background: var(--accent-2);
+      color: black;
+      font-size: 2.5rem;
+      width: 80px;
+      height: 80px;
+      padding: 0 !important;
+    }
+
+    .dragging {
+      opacity: 0.5;
+      z-index: 1000;
+    }
+
+    .matched-area {
+      width: 100%;
+      max-width: 1000px;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(5px);
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 20px;
+      min-height: 200px;
+      text-align: center;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #instructions {
+      font-family: 'IBM Plex Mono', monospace;
+      color: var(--accent-3);
+      font-weight: 700;
+      letter-spacing: 1px;
+      line-height: 1.0;
+      text-align: center;
+      margin-bottom: 40px;
+      width: 100%;
+      max-width: 1000px;
+      padding: 18px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(5px);
+    }
+
+    h1 a {
+      color: inherit;
+      text-decoration: none;
+      transition: color 0.1s;
+    }
+
+    h1 a:hover {
+      color: var(--accent-2);
+      text-shadow: 6px 6px 0px var(--accent-3);
+    }
+
+    .instructions p {
+      margin: 5px 0;
+    }
+
+    .match-pair {
+      background-color: var(--bg-color);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      border: 2px solid white;
+      animation: matchPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      overflow: hidden;
+      box-shadow: 8px 8px 0px var(--accent-1);
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .match-pair:hover {
+      transform: translateY(-5px);
+      box-shadow: 12px 12px 0px var(--accent-2);
+    }
+
+    @keyframes matchPop {
+      0% {
+        transform: scale(0.5) rotate(-10deg);
+        opacity: 0;
+      }
+
+      100% {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+      }
+    }
+
+    .match-name {
+      background: white;
+      color: black;
+      padding: 15px;
+      font-weight: 800;
+      font-size: 0.95rem;
+      text-align: center;
+      font-family: 'Bricolage Grotesque', sans-serif;
+      text-transform: uppercase;
+      width: 100%;
+    }
+
+    .match-tool {
+      background: var(--accent-3);
+      color: black;
+      padding: 10px;
+      font-size: 1.8rem;
+      text-align: center;
+      border-bottom: 2px solid black;
+      width: 100%;
+      text-shadow: 0 0 8px rgba(255, 255, 255, 0.9), 0 0 15px rgba(255, 255, 255, 0.6);
+    }
+
+    .match-img {
+      width: 200px;
+      height: 200px;
+      object-fit: cover;
+      object-position: top;
+      border-bottom: 2px solid black;
+    }
+
+    #canvas-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 10000;
+    }
+
+    .win-msg {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-5deg);
+      background: white;
+      color: black;
+      padding: 60px;
+      font-size: 6rem;
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-weight: 800;
+      border: 15px solid black;
+      z-index: 10001;
+      box-shadow: 30px 30px 0px var(--accent-1), -30px -30px 0px var(--accent-2);
+      display: none;
+      text-align: center;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .win-msg div:nth-child(1) {
+      font-size: 0.7em;
+    }
+
+    .win-msg div:nth-child(2) {
+      font-size: 0.5em;
+      margin-bottom: 20px;
+    }
+
+    .play-again-btn {
+      background: var(--accent-3);
+      color: black;
+      border: 5px solid black;
+      padding: 20px 40px;
+      font-size: 2rem;
+      cursor: pointer;
+      font-family: 'IBM Plex Mono', monospace;
+      font-weight: 700;
+      text-transform: uppercase;
+      box-shadow: 8px 8px 0px black;
+      transition: 0.1s;
+    }
+
+    .play-again-btn:hover {
+      transform: translate(-4px, -4px);
+      box-shadow: 12px 12px 0px black;
+    }
+
+    .play-again-btn:active {
+      transform: translate(2px, 2px);
+      box-shadow: 4px 4px 0px black;
+    }
+
+    @keyframes shake {
+
+      0%,
+      100% {
+        transform: translateX(0);
+      }
+
+      25% {
+        transform: translateX(-10px);
+      }
+
+      75% {
+        transform: translateX(10px);
+      }
+    }
+
+    @keyframes subtleFlash {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.6;
+      }
+    }
+
+    .hint-flash {
+      animation: subtleFlash 1.8s ease-in-out infinite;
+      box-shadow: 0 0 25px var(--accent-3) !important;
+      outline: 2px solid var(--accent-3);
+    }
+  </style>
+</head>
+
+<body>
+  <h1 id="main-title">Professional help</h1>
+
+  <div id="instructions">
+    <p>Oh no! These famous faces need your help!</p>
+    <p>They've been cursed by the Fairy of Nominative Determinism!</p>
+    <p>You can help by showing them how to perform their new profession.</p>
+    <p>Drag a celebrity to the tools of their named trade.</p>
+  </div>
+
+  <div class="game-board">
+    <div class="column" id="celeb-column">
+      <!-- Cards will be injected here -->
+    </div>
+    <div class="column" id="tool-column">
+      <!-- Cards will be injected here -->
+    </div>
+  </div>
+
+  <div class="matched-area" id="matched-area">
+    <!-- Correct guesses will be injected here -->
+  </div>
+
+  <div class="win-msg" id="win-msg">
+    <div>Hooray!</div>
+    <div>You've done it!</div>
+    <button class="play-again-btn" onclick="viewMatched()">
+      Well done me.
+    </button>
+  </div>
+
+  <canvas id="canvas-overlay"></canvas>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/professional-help/index.html";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    // Commenting out the ones that are a bit obscure, or where the emoji doesn't really work.
+    // Sorry Jackie Weaver, you are still a star to me.
+    const data = [
+      { id: 0, tool: "🚗", name: "Adam Driver", img: "driver.jpg" },
+      { id: 1, tool: "🍷", name: "Austin Butler", img: "butler.jpg" },
+      { id: 2, tool: "🛢️", name: "Bradley Cooper", img: "cooper.jpg" },
+      { id: 3, tool: "🕯️", name: "Chandler Bing", img: "chandler.jpg" },
+      { id: 4, tool: "🪠", name: "Christopher Plummer", img: "plummer.jpg" },
+      { id: 5, tool: "✒️", name: "Clark Gable", img: "clark.jpg" },
+      { id: 6, tool: "✂️", name: "Don Draper", img: "draper.jpg" },
+      { id: 7, tool: "🛎️", name: "Elliot Page", img: "page.jpg" },
+      { id: 8, tool: "🏺", name: "Harry Potter", img: "potter.jpg" },
+      // { id: 9, tool: "🧶", name: "Jackie Weaver", img: "weaver.jpg" },
+      // { id: 10, tool: "🛒", name: "Jimmy Carter", img: "carter.jpg" },
+      // { id: 11, tool: "🍺", name: "Madeline Brewer", img: "brewer.jpg" },
+      { id: 12, tool: "🛖", name: "Margaret Thatcher", img: "thatcher.jpg" },
+      { id: 13, tool: "🍞", name: "Matt Baker", img: "baker.jpg" },
+      { id: 14, tool: "🎨", name: "Natalia Dyer", img: "dyer.jpg" },
+      { id: 15, tool: "🥩", name: "Pat Butcher", img: "butcher.jpg" },
+      { id: 16, tool: "🍳", name: "Peter Cook", img: "cook.jpg" },
+      { id: 17, tool: "🔨", name: "Sabrina Carpenter", img: "carpenter.jpg" },
+      { id: 18, tool: "⚓", name: "Sailor Moon", img: "sailor.jpg" },
+      // { id: 19, tool: "🛞", name: "Sally Wainwright", img: "wainwright.jpg" },
+      { id: 20, tool: "🌾", name: "Steve Miller", img: "miller.jpg" },
+      { id: 21, tool: "🪡", name: "Taylor Swift", img: "tailor.jpg" },
+      { id: 22, tool: "🏹", name: "Tom Fletcher", img: "fletcher.jpg" },
+      { id: 23, tool: "🛡️", name: "Will Smith", img: "smith.jpg" },
+    ];
+
+    let matchedIds = new Set();
+    const celebCol = document.getElementById('celeb-column');
+    const toolCol = document.getElementById('tool-column');
+    const matchedArea = document.getElementById('matched-area');
+    const winMsg = document.getElementById('win-msg');
+
+    function shuffle(array) {
+      return array.sort(() => Math.random() - 0.5);
+    }
+
+    function init() {
+      const shuffledCelebs = shuffle([...data]);
+      const shuffledTools = shuffle([...data]);
+
+      shuffledCelebs.forEach((item, index) => {
+        const div = document.createElement('div');
+        div.className = 'card celebrity-card';
+
+        const img = document.createElement('img');
+        img.src = item.img;
+        img.alt = item.name;
+        div.appendChild(img);
+
+        div.draggable = true;
+        div.dataset.id = item.id;
+        div.dataset.type = 'celeb';
+        addDragEvents(div);
+        celebCol.appendChild(div);
+      });
+
+      shuffledTools.forEach((item, index) => {
+        const div = document.createElement('div');
+        div.className = 'card tool-card';
+        div.textContent = item.tool;
+        div.draggable = true;
+        div.dataset.id = item.id;
+        div.dataset.type = 'tool';
+        addDragEvents(div);
+        toolCol.appendChild(div);
+      });
+
+      updateH1('Professional help');
+    }
+
+    // Each letter is a link to a random page
+    function updateH1(text) {
+      const h1 = document.getElementById('main-title');
+      h1.innerHTML = '';
+      [...text].forEach(char => {
+        if (char === ' ') {
+          h1.appendChild(document.createTextNode(' '));
+        } else {
+          const a = document.createElement('a');
+          a.href = pageRandomiser.nextOne();
+          a.textContent = char;
+          h1.appendChild(a);
+        }
+      });
+    }
+
+    let draggedItem = null;
+
+    function addDragEvents(el) {
+      el.addEventListener('dragstart', (e) => {
+        draggedItem = e.target;
+        e.target.classList.add('dragging');
+        e.dataTransfer.setData('text/plain', e.target.dataset.id);
+      });
+
+      el.addEventListener('dragend', (e) => {
+        e.target.classList.remove('dragging');
+        draggedItem = null;
+      });
+
+      el.addEventListener('dragover', (e) => {
+        e.preventDefault();
+      });
+
+      el.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const target = e.target.closest('.card');
+        if (!target || !draggedItem || target === draggedItem) return;
+
+        if (target.dataset.type !== draggedItem.dataset.type) {
+          // One is tool, one is celeb
+          if (target.dataset.id === draggedItem.dataset.id) {
+            handleMatch(target.dataset.id);
+          } else {
+            // Shake effect for wrong match
+            target.style.animation = 'none';
+            void target.offsetWidth;
+            target.style.animation = 'shake 0.4s';
+          }
+        }
+      });
+    }
+
+    function handleMatch(id) {
+      if (matchedIds.has(id)) return;
+
+      matchedIds.add(id);
+      const item = data.find(d => d.id == id);
+
+      // Remove from columns
+      document.querySelectorAll(`.card[data-id="${id}"]`).forEach(el => el.remove());
+
+      // Add to matched area
+      const pairLink = document.createElement('a');
+      pairLink.className = 'match-pair';
+      pairLink.href = pageRandomiser.nextOne();
+      pairLink.innerHTML = `
+        <div class="match-tool">${item.tool}</div>
+        <img src="${item.img}" class="match-img" alt="${item.name}">
+        <div class="match-name">${item.name}</div>
+      `;
+
+      matchedArea.prepend(pairLink);
+
+      // Win condition
+      if (matchedIds.size === data.length) {
+        showWin();
+      }
+    }
+
+    function viewMatched() {
+      winMsg.style.display = 'none';
+      document.querySelector('.game-board').style.display = 'none';
+      document.getElementById('instructions').style.display = 'none';
+      updateH1('Professionals helped');
+      matchedIds.add('finished');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function showWin() {
+      winMsg.style.display = 'flex';
+      startFireworks();
+    }
+
+    // A buncha fancy fireworks
+    const canvas = document.getElementById('canvas-overlay');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    // Firework particles
+    class Particle {
+      constructor(x, y, color) {
+        this.x = x;
+        this.y = y;
+        this.color = color;
+        this.velocity = {
+          x: (Math.random() - 0.5) * 8,
+          y: (Math.random() - 0.5) * 8
+        };
+        this.alpha = 1;
+        this.friction = 0.95;
+      }
+
+      draw() {
+        ctx.save();
+        ctx.globalAlpha = this.alpha;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+        ctx.restore();
+      }
+
+      update() {
+        this.velocity.x *= this.friction;
+        this.velocity.y *= this.friction;
+        this.x += this.velocity.x;
+        this.y += this.velocity.y;
+        this.alpha -= 0.01;
+      }
+    }
+
+    function startFireworks() {
+      function animate() {
+        if (matchedIds.has('finished')) return;
+        if (matchedIds.size < data.length) return;
+        requestAnimationFrame(animate);
+        ctx.fillStyle = 'rgba(0,0,0,0.1)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        if (Math.random() < 0.1) {
+          const x = Math.random() * canvas.width;
+          const y = Math.random() * canvas.height;
+          const colors = ['#ff0055', '#00ffcc', '#ffcc00', '#ffffff'];
+          const color = colors[Math.floor(Math.random() * colors.length)];
+          for (let i = 0; i < 50; i++) {
+            particles.push(new Particle(x, y, color));
+          }
+        }
+
+        particles.forEach((p, i) => {
+          if (p.alpha <= 0) {
+            particles.splice(i, 1);
+          } else {
+            p.update();
+            p.draw();
+          }
+        });
+      }
+      animate();
+    }
+
+    // Dev cheat mode
+    // Click the ` key to make a match
+    document.addEventListener('keydown', (e) => {
+      if (e.key === '`') {
+        const unmatched = data.filter(item => !matchedIds.has(item.id.toString()));
+        if (unmatched.length > 0) {
+          handleMatch(unmatched[0].id.toString());
+        }
+      }
+    });
+
+    init();
+
+    // Subtle hint if they haven't matched anything after 10 seconds
+    setTimeout(() => {
+      if (matchedIds.size !== 0) return;
+      const hintCards = document.querySelectorAll('.card[data-id="0"]');
+      hintCards.forEach(card => card.classList.add('hint-flash'));
+    }, 10000);
+  </script>
+</body>
+
+</html>

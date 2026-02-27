@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+Source for the koi image:
+https://freesvg.org/dibujo-9
+
+The CSS effects are really subtle, but I think they work.
+-->
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Marvell Cinematic Universe">
+  <title>To His Koi Mistress</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      background: linear-gradient(135deg, #1a4d6d 0%, #0a2e42 50%, #051b2a 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      filter: saturate(0.8) contrast(1.1);
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background:
+        radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.03) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 2;
+      animation: bodyRipple 5s ease-in-out infinite;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image:
+        repeating-linear-gradient(0deg,
+          rgba(200, 220, 255, 0.02) 0px,
+          rgba(200, 220, 255, 0.02) 2px,
+          transparent 2px,
+          transparent 4px);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .pond {
+      position: relative;
+      width: 500px;
+      height: 500px;
+      z-index: 10;
+      transform-origin: center center;
+      animation: fishRipple 6s ease-in-out alternate infinite;
+    }
+
+    .fish-container {
+      position: absolute;
+      width: 280px;
+      height: 280px;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      animation: swim 12s linear infinite;
+    }
+
+    .fish {
+      position: absolute;
+      width: 220px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      transition: filter 0.3s ease;
+    }
+
+    .fish img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+    }
+
+    .fish:hover img {
+      filter: drop-shadow(0 6px 16px rgba(100, 200, 255, 0.6)) brightness(1.1);
+    }
+
+    .fish:nth-child(1) {
+      top: 0;
+      left: calc(50% + 60px);
+      transform: translateX(-50%) rotate(180deg);
+      animation: pulse1 6s ease-in-out infinite;
+    }
+
+    .fish:nth-child(2) {
+      bottom: 0;
+      left: calc(50% - 60px);
+      transform: translateX(-50%);
+      animation: pulse2 6s ease-in-out infinite;
+    }
+
+    @keyframes bodyRipple {
+
+      0%,
+      100% {
+        opacity: 0.6;
+      }
+
+      50% {
+        opacity: 0.9;
+      }
+    }
+
+    @keyframes fishRipple {
+
+      0%,
+      100% {
+        transform: skew(0deg, 0deg) scale(1.35, 1.35);
+      }
+
+      25% {
+        transform: skew(1deg, 1deg) scale(1.40, 1.43);
+      }
+
+      50% {
+        transform: skew(0deg, 0deg) scale(1.35, 1.35);
+      }
+
+      75% {
+        transform: skew(-1deg, 1deg) scale(1.43, 1.40);
+      }
+    }
+
+    @keyframes swim {
+      0% {
+        transform: translate(-50%, -50%) rotate(0deg);
+      }
+
+      100% {
+        transform: translate(-50%, -50%) rotate(-360deg);
+      }
+    }
+
+    @keyframes pulse1 {
+
+      0%,
+      100% {
+        opacity: 0.6;
+      }
+
+      50% {
+        opacity: 0.86;
+      }
+    }
+
+    @keyframes pulse2 {
+
+      0%,
+      100% {
+        opacity: 0.86;
+      }
+
+      50% {
+        opacity: 0.6;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="pond">
+    <div class="fish-container">
+      <a href="#" class="fish" id="fish1">
+        <img src="koi.png" alt="First koi fish">
+      </a>
+      <a href="#" class="fish" id="fish2">
+        <img src="koi.png" alt="Second koi fish">
+      </a>
+    </div>
+  </div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/koi-pond";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const fish1 = document.getElementById('fish1');
+      const fish2 = document.getElementById('fish2');
+
+      fish1.href = pageRandomiser.nextOne();
+      fish2.href = pageRandomiser.nextOne();
+    });
+  </script>
+</body>
+
+</html>

@@ -1,4 +1,6 @@
 require 'fileutils'
+require 'yaml'
+require 'time'
 
 # Configuration
 SOURCE_DIR = 'private'
@@ -7,17 +9,41 @@ WIP_DIR = 'wip'
 DEV_MODE = ARGV.include?('--dev')
 LINK_SUFFIX = DEV_MODE ? 'index.html' : ''
 
+# Load creation dates from corridors.yaml
+def load_creation_dates
+  data = YAML.load_file('corridors.yaml')
+  dates = {}
+  data['corridors'].each do |corridor|
+    id = corridor['id']
+    created = corridor['created']
+    # Parse date string "yyyy-mm-dd hh:mm" or handle "Not yet created"
+    if created && created != 'Not yet created'
+      dates[id] = Time.strptime(created, '%Y-%m-%d %H:%M')
+    else
+      dates[id] = Time.at(0) # Earliest possible time for unpublished
+    end
+  end
+  dates
+end
+
+CREATION_DATES = load_creation_dates
+
 def get_formatted_title(dir_path)
   File.basename(dir_path).split('-').map(&:capitalize).join(' ')
 end
 
+def get_creation_date(dir_path)
+  dir_name = File.basename(dir_path)
+  CREATION_DATES[dir_name] || Time.at(0)
+end
+
 def generate_dir_files(dir_path)
-  all_corridor_dirs = Dir.glob(File.join(dir_path, 'corridors', '*/')).sort
+  all_corridor_dirs = Dir.glob(File.join(dir_path, 'corridors', '*/')).sort_by { |d| get_creation_date(d) }
   corridor_dirs = all_corridor_dirs.reject do |d|
     File.exist?(File.join(d, '.wip'))
   end
 
-  all_room_dirs = Dir.glob(File.join(dir_path, 'rooms', '*/')).sort
+  all_room_dirs = Dir.glob(File.join(dir_path, 'rooms', '*/')).sort_by { |d| get_creation_date(d) }
   room_dirs = all_room_dirs.reject do |d|
     File.exist?(File.join(d, '.wip'))
   end

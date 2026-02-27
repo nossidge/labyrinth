@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="This town ain't big enough for the both of us.">
+  <title>High Noon</title>
+  <style>
+    body {
+      background: linear-gradient(to bottom, #87ceeb 35%, #e2c08d 35%);
+      margin: 0;
+      height: 100vh;
+      overflow: hidden;
+      font-family: 'Courier New', Courier, monospace;
+      color: #3b2f2f;
+    }
+
+    a {
+      text-decoration: none;
+    }
+
+    .town-wrapper {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .building {
+      position: absolute;
+      color: #654321;
+      font-weight: bold;
+      white-space: pre;
+      pointer-events: auto;
+      cursor: pointer;
+      user-select: none;
+      transition: color 0.2s;
+      text-shadow: 1px 1px 0px #e2c08d;
+    }
+
+    .building:hover {
+      color: #8b4513;
+    }
+
+    .cowboy {
+      position: absolute;
+      bottom: 15%;
+      font-size: 2.5rem;
+      line-height: 1.1;
+      white-space: pre;
+      transition: left 4s linear, right 4s linear;
+      cursor: pointer;
+      user-select: none;
+      z-index: 20;
+      color: #654321;
+    }
+
+    #cowboy-left {
+      left: calc(50% - 80px);
+      transform: translateX(-50%);
+    }
+
+    #cowboy-right {
+      right: calc(50% - 80px);
+      transform: translateX(50%);
+    }
+
+    .part-flipped {
+      transform: scaleX(-1);
+      display: inline-block;
+    }
+
+    .cowboy-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transform-origin: bottom center;
+      transition: transform 0.5s ease;
+      animation: breathe 2s infinite ease-in-out;
+    }
+
+    .cowboy-part {
+      white-space: pre;
+      line-height: 1;
+      font-family: inherit;
+      margin: 0;
+    }
+
+    .name-display {
+      position: absolute;
+      bottom: 5%;
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #3b2f2f;
+      text-shadow: 2px 2px 0 #fff;
+      z-index: 30;
+    }
+
+    #name-left {
+      left: 5%;
+    }
+
+    #name-right {
+      right: 5%;
+      text-align: right;
+    }
+
+    .dead .cowboy-inner {
+      animation: fall 1.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    @keyframes fall {
+      from {
+        transform: rotate(0deg);
+      }
+
+      to {
+        transform: rotate(90deg);
+      }
+    }
+
+    @keyframes breathe {
+
+      0%,
+      100% {
+        transform: scaleY(1);
+      }
+
+      50% {
+        transform: scaleY(1.05);
+      }
+    }
+
+    .draw-text {
+      position: absolute;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 5rem;
+      font-weight: 900;
+      color: red;
+      animation: flash 0.2s infinite;
+      z-index: 100;
+      font-family: sans-serif;
+    }
+
+    @keyframes flash {
+      0% {
+        opacity: 1;
+        color: red;
+      }
+
+      50% {
+        opacity: 0;
+      }
+
+      100% {
+        opacity: 1;
+        color: yellow;
+      }
+    }
+
+    .winner-text {
+      position: absolute;
+      top: 18%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 2.5rem;
+      font-weight: bold;
+      background: #fff;
+      padding: 15px 30px;
+      border: 4px solid #3b2f2f;
+      box-shadow: 6px 6px 0 #3b2f2f;
+      text-align: center;
+      z-index: 100;
+      font-family: sans-serif;
+      text-shadow: none;
+    }
+
+    .winner-text a {
+      color: blue;
+      text-decoration: underline;
+      font-size: 1.5rem;
+      display: block;
+      margin-top: 15px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="town-wrapper" id="town-wrapper"></div>
+
+  <div class="name-display" id="name-left"></div>
+  <div class="name-display" id="name-right"></div>
+
+  <a class="cowboy" id="cowboy-left">
+    <div class="cowboy-inner" id="inner-left"></div>
+  </a>
+
+  <a class="cowboy" id="cowboy-right">
+    <div class="cowboy-inner" id="inner-right"></div>
+  </a>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/high-noon";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const MALE_FIRST_NAMES_POOL = [
+      "Abel", "Bart", "Beau", "Bill", "Billy", "Caleb", "Clint", "Clyde", "Cole", "Doc", "Earl",
+      "Emmett", "Frank", "Hank", "Jack", "Jed", "Jesse", "John", "Levi", "Otis", "Rex", "Roy",
+      "Sam", "Silas", "Slim", "Tex", "Virgil", "Wayne", "Wyatt", "Zane",
+    ];
+
+    const FEMALE_FIRST_NAMES_POOL = [
+      "Abigail", "Ada", "Annie", "Clara", "Cora", "Daisy", "Delilah", "Edith", "Eleanor", "Eliza",
+      "Florence", "Harriet", "Hazel", "Ida", "Josephine", "Lottie", "Lucy", "Mae", "Martha",
+      "Matilda", "Nellie", "Pearl", "Rose", "Sadie", "Susannah",
+    ];
+
+    const SURNAMES_POOL = [
+      "Barrow", "Bass", "Blackwood", "Bonney", "Boone", "Briggs", "Caldwell", "Callahan", "Carver",
+      "Dalton", "Donovan", "Earp", "Fletcher", "Gibson", "Grey", "Hawkins", "Holliday", "James",
+      "McCoy", "McGraw", "Mitchell", "Oakley", "Pickett", "Riley", "Sawyer", "Slade", "Tanner",
+      "Turner", "Young",
+    ];
+
+    const NICKNAMES_POOL = [
+      "Blackjack", "Black-Eye", "Bullet", "Cactus", "Cold-Eye", "Deadshot", "Dusty",
+      "Grave Digger", "Grit", "Iron", "Longhorn", "Lucky", "Mad Dog", "Maverick", "No Mercy",
+      "Pale Rider", "Quickdraw", "Rattlesnake", "Razor", "Red Knife", "Rustler", "Scar",
+      "Sidewinder", "Silver", "Six-Shooter", "Snake", "Spurs", "The Shadow", "Two-Gun",
+      "Whirlwind",
+    ];
+
+    const maleFirstNamesRandomiser = new CyclicRandomiser(MALE_FIRST_NAMES_POOL);
+    const femaleFirstNamesRandomiser = new CyclicRandomiser(FEMALE_FIRST_NAMES_POOL);
+    const surnamesRandomiser = new CyclicRandomiser(SURNAMES_POOL);
+    const nicknamesRandomiser = new CyclicRandomiser(NICKNAMES_POOL);
+
+    function generateCowboyName() {
+      const firstPool = Math.random() > 0.5 ? maleFirstNamesRandomiser : femaleFirstNamesRandomiser;
+      const first = firstPool.nextOne();
+      const nickname = nicknamesRandomiser.nextOne();
+      const last = surnamesRandomiser.nextOne();
+
+      return `${first} '${nickname}' ${last}`;
+    }
+
+    let nameL, nameR;
+
+    function updateCowboyNames() {
+      nameL = generateCowboyName();
+      nameR = generateCowboyName();
+      document.getElementById('name-left').textContent = nameL;
+      document.getElementById('name-right').textContent = nameR;
+    }
+
+    updateCowboyNames();
+
+    // Base parts (Gun faces LEFT, Boots face RIGHT)
+    const HEAD = 0, ARMS = 1, TORSO = 2, LEGS = 3, BOOTS = 4;
+    const partsNormal = ['  🤠  ', ' /|\\ ', '  |  ', ' /\\ ', ' 👢👢 '];
+    const partsShooting = ['  🤠  ', '🔫-|\\  ', '  |  ', ' /\\ ', ' 👢👢 '];
+
+    // There's got to be a better way to do this...
+    const BUILDINGS = [
+      `   __||__
+  |      |
+ _|      |_
+|__________|`,
+      `    _[]_
+   |    |
+   |    |
+___|____|___`,
+      `    /\\
+   /  \\
+  |    |
+__|____|__`
+    ];
+
+    function createTown() {
+      const wrapper = document.getElementById('town-wrapper');
+      for (let i = 0; i < 7; i++) {
+        const t = BUILDINGS[i % BUILDINGS.length];
+
+        const leftB = document.createElement('a');
+        leftB.className = 'building';
+        leftB.textContent = t;
+        leftB.style.bottom = (32 + i * 5) + '%';
+        leftB.style.left = (5 + i * 4) + '%';
+        leftB.style.fontSize = (2 - i * 0.2) + 'rem';
+        leftB.style.zIndex = 10 - i;
+        leftB.href = pageRandomiser.nextOne();
+        wrapper.appendChild(leftB);
+
+        const rightB = document.createElement('a');
+        rightB.className = 'building';
+        rightB.textContent = t;
+        rightB.style.bottom = (32 + i * 5) + '%';
+        rightB.style.right = (5 + i * 4) + '%';
+        rightB.style.fontSize = (2 - i * 0.2) + 'rem';
+        rightB.style.zIndex = 10 - i;
+        rightB.href = pageRandomiser.nextOne();
+        wrapper.appendChild(rightB);
+      }
+    }
+
+    createTown();
+
+    const leftCowboy = document.getElementById('cowboy-left');
+    const rightCowboy = document.getElementById('cowboy-right');
+    const innerLeft = document.getElementById('inner-left');
+    const innerRight = document.getElementById('inner-right');
+
+    function renderCowboy(container, parts, flippedIndices = []) {
+      console.log(container);
+
+      container.innerHTML = '';
+      parts.forEach((p, i) => {
+        const partDiv = document.createElement('pre');
+        partDiv.className = 'cowboy-part';
+        if (flippedIndices.includes(i)) {
+          partDiv.classList.add('part-flipped');
+        }
+        // Replace spaces with non-breaking spaces
+        partDiv.innerHTML = p.replace(/ /g, '&nbsp;');
+        container.appendChild(partDiv);
+      });
+    }
+
+    // Initial: Cowboys face each other.
+    // Left needs to face Right: Gun (Left-facing) needs flip, Boots (Right-facing) No flip.
+    // Right needs to face Left: Gun (Left-facing) No flip, Boots (Right-facing) needs flip.
+    renderCowboy(innerLeft, partsNormal, [HEAD, ARMS, TORSO, LEGS]);
+    renderCowboy(innerRight, partsNormal, [BOOTS]);
+
+    const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+    let duelCounter = 0;
+
+    async function startDuel() {
+      const currentDuelId = ++duelCounter;
+
+      // Reset visual state
+      // Teleport cowboys back to their initial positions
+      leftCowboy.style.transition = 'none';
+      rightCowboy.style.transition = 'none';
+      leftCowboy.classList.remove('dead');
+      rightCowboy.classList.remove('dead');
+      leftCowboy.style.left = '';
+      rightCowboy.style.right = '';
+
+      // Force reflow to ensure teleport happens before re-enabling transitions
+      leftCowboy.offsetHeight;
+
+      // Restore transitions for the walk away phase
+      leftCowboy.style.transition = '';
+      rightCowboy.style.transition = '';
+
+      updateCowboyNames();
+
+      const existingWinner = document.querySelector('.winner-text');
+      if (existingWinner) existingWinner.remove();
+
+      renderCowboy(innerLeft, partsNormal, [HEAD, ARMS, TORSO, LEGS]);
+      renderCowboy(innerRight, partsNormal, [BOOTS]);
+
+      await sequence(currentDuelId);
+    }
+
+    async function sequence(duelId) {
+      if (duelId !== duelCounter) return;
+      leftCowboy.href = pageRandomiser.nextOne();
+      rightCowboy.href = pageRandomiser.nextOne();
+
+      await sleep(3000);
+      if (duelId !== duelCounter) return;
+
+      // Walk away:
+      // Left needs to face Left: Gun No flip, Boots Flip
+      // Right needs to face Right: Gun Flip, Boots No flip
+      renderCowboy(innerLeft, partsNormal, [BOOTS]);
+      renderCowboy(innerRight, partsNormal, [HEAD, ARMS, TORSO, LEGS]);
+
+      leftCowboy.style.left = '20%';
+      rightCowboy.style.right = '20%';
+
+      await sleep(4000);
+      if (duelId !== duelCounter) return;
+
+      // Turn back
+      renderCowboy(innerLeft, partsNormal, [HEAD, ARMS, TORSO, LEGS]);
+      renderCowboy(innerRight, partsNormal, [BOOTS]);
+
+      // Add suspense building
+      const drawText = document.createElement('div');
+      drawText.className = 'draw-text';
+      drawText.textContent = 'DRAW!';
+      drawText.style.top = '18%';
+      document.body.appendChild(drawText);
+
+      await sleep(1200);
+      if (duelId !== duelCounter) return;
+
+      drawText.remove();
+      renderCowboy(innerLeft, partsShooting, [HEAD, ARMS, TORSO, LEGS]);
+      renderCowboy(innerRight, partsShooting, [BOOTS]);
+
+      await sleep(200);
+      if (duelId !== duelCounter) return;
+
+      const winner = Math.random() > 0.5 ? 'left' : 'right';
+      if (winner === 'left') {
+        rightCowboy.classList.add('dead');
+      } else {
+        leftCowboy.classList.add('dead');
+      }
+
+      await sleep(2000);
+      if (duelId !== duelCounter) return;
+
+      const winnerText = document.createElement('div');
+      winnerText.className = 'winner-text';
+      const winnerName = winner === 'left' ? nameL : nameR;
+      winnerText.innerHTML = `<div>${winnerName.toUpperCase()} WINS</div>
+      <a href="#" id="continue-link">NEXT DUEL</a>`;
+      document.body.appendChild(winnerText);
+
+      document.getElementById('continue-link').onclick = (e) => {
+        e.preventDefault();
+        startDuel();
+      };
+    }
+
+    startDuel();
+
+  </script>
+</body>
+
+</html>

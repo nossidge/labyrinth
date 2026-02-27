@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="A BUBBLE ON A NEEDLE">
+  <title>I'm forever blowing bubbles</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: linear-gradient(to bottom, #1a1a2e 0%, #0f0f1e 50%, #16213e 100%);
+      font-family: Georgia, serif;
+      color: #fff;
+    }
+
+    body {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Uusual scanline overlay that I use when something's not pretty enough yet */
+    #overlays {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 200;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 255, 0, 0.03));
+      background-size: 100% 2px, 3px 100%;
+    }
+
+    #container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      perspective: 1000px;
+    }
+
+    /* Falling bubbles */
+    .bubble {
+      cursor: pointer;
+      position: absolute;
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.8), rgba(200, 220, 255, 0.3) 40%, rgba(100, 150, 255, 0.2));
+      border: 2px solid rgba(255, 255, 255, 0.6);
+      box-shadow:
+        inset -8px -8px 16px rgba(0, 0, 0, 0.2),
+        0 10px 30px rgba(0, 0, 0, 0.7),
+        inset 3px 3px 8px rgba(255, 255, 255, 0.9);
+      animation: rise linear forwards, shimmer 2s ease-in-out infinite;
+      z-index: 50;
+    }
+
+    @keyframes shimmer {
+
+      0%,
+      100% {
+        box-shadow:
+          inset -8px -8px 16px rgba(0, 0, 0, 0.2),
+          0 10px 30px rgba(0, 0, 0, 0.7),
+          inset 3px 3px 8px rgba(255, 255, 255, 0.9);
+      }
+
+      50% {
+        box-shadow:
+          inset -8px -8px 16px rgba(0, 0, 0, 0.2),
+          0 10px 30px rgba(0, 0, 0, 0.7),
+          inset 3px 3px 8px rgba(255, 255, 255, 0.4);
+      }
+    }
+
+    .bubble.shattering {
+      animation: shatter 0.6s ease-out forwards;
+    }
+
+    @keyframes rise {
+      from {
+        transform: translateY(200px) rotateZ(var(--rotation, 0deg));
+        opacity: 1;
+      }
+
+      to {
+        transform: translateY(calc(-100vh - 100px)) rotateZ(var(--rotation, 0deg));
+        opacity: 1;
+      }
+    }
+
+    @keyframes shatter {
+      0% {
+        transform: scale(1) rotateZ(0deg);
+        opacity: 1;
+      }
+
+      50% {
+        transform: scale(0.8) rotateZ(8deg);
+      }
+
+      100% {
+        transform: scale(0) rotateZ(15deg);
+        opacity: 0;
+      }
+    }
+
+    /* Residue links that appear when bubbles pop */
+    .residue {
+      position: absolute;
+      width: 80px;
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      color: #74b9ff;
+      font-size: 28px;
+      cursor: pointer;
+      opacity: 0;
+      transition: all 0.4s ease;
+      z-index: 40;
+      border: 1px dashed #74b9ff;
+      border-radius: 50%;
+      backdrop-filter: blur(2px);
+      background: rgba(20, 40, 80, 0.3);
+    }
+
+    .residue:hover {
+      transform: scale(1.15);
+      box-shadow: 0 0 20px rgba(116, 185, 255, 0.6);
+      background: rgba(20, 40, 80, 0.6);
+    }
+
+    .residue.visible {
+      opacity: 1;
+    }
+
+    .residue.fading {
+      animation: residue-fade-out 1s ease-out forwards;
+    }
+
+    @keyframes residue-fade-out {
+      0% {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      100% {
+        opacity: 0;
+        transform: scale(0.8);
+      }
+    }
+
+    /* Shatter particles */
+    .particle {
+      position: absolute;
+      width: 3px;
+      height: 3px;
+      background: #b2bec3;
+      border-radius: 50%;
+      pointer-events: none;
+      animation: particle-fall linear forwards;
+      z-index: 49;
+    }
+
+    @keyframes particle-fall {
+      0% {
+        opacity: 1;
+        transform: translate(0, 0);
+      }
+
+      100% {
+        opacity: 0;
+        transform: translate(var(--tx), var(--ty));
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="overlays"></div>
+  <div id="container"></div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/soap-bubbles";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const container = document.getElementById('container');
+
+    function createParticles(x, y) {
+      const count = 8 + Math.random() * 8;
+      for (let i = 0; i < count; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        const angle = (Math.PI * 2 * i) / count;
+        const speed = 100 + Math.random() * 200;
+        const tx = Math.cos(angle) * speed;
+        const ty = Math.sin(angle) * speed - 100;
+        particle.style.left = x + 'px';
+        particle.style.top = y + 'px';
+        particle.style.setProperty('--tx', tx + 'px');
+        particle.style.setProperty('--ty', ty + 'px');
+        particle.style.setProperty('--duration', (0.6 + Math.random() * 0.4) + 's');
+        particle.style.animationDuration = particle.style.getPropertyValue('--duration');
+        container.appendChild(particle);
+
+        setTimeout(() => particle.remove(), 1000);
+      }
+    }
+
+    function createResidue(x, y) {
+      const residue = document.createElement('a');
+      residue.className = 'residue';
+      residue.href = pageRandomiser.nextOne();
+
+      const emojis = ['◆', '●', '✦', '⬢', '★', '▴', '▪'];
+      residue.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+
+      residue.style.left = (x - 40) + 'px';
+      residue.style.top = (y - 40) + 'px';
+      container.appendChild(residue);
+
+      requestAnimationFrame(() => {
+        residue.classList.add('visible');
+      });
+
+      setTimeout(() => {
+        residue.classList.add('fading');
+        setTimeout(() => residue.remove(), 1100);
+      }, 7500);
+    }
+
+    function shatterBubble(bubble) {
+      if (bubble.classList.contains('shattering')) return;
+
+      const rect = bubble.getBoundingClientRect();
+      const x = rect.left + rect.width / 2;
+      const y = rect.top + rect.height / 2;
+
+      bubble.classList.add('shattering');
+      createParticles(x, y);
+      createResidue(x, y);
+
+      bubble.remove();
+    }
+
+    function createBubble(bubbleTop = null) {
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble';
+
+      const startX = Math.random() * (window.innerWidth - 80);
+      const duration = 5 + Math.random() * 4;
+      const rotation = -10 + Math.random() * 20;
+
+      // If no bubbleTop provided, start at bottom of screen
+      if (bubbleTop === null) {
+        bubbleTop = (window.innerHeight + 100) + 'px';
+      }
+
+      // Parse bubbleTop to get numeric value
+      const bubbleTopValue = parseFloat(bubbleTop);
+
+      // Calculate a random pop position between bubble top (going up) and top of screen
+      const maxPopY = bubbleTopValue - 100;
+      const minPopY = 0;
+      const popY = minPopY + Math.random() * (maxPopY - minPopY);
+
+      bubble.style.left = startX + 'px';
+      bubble.style.top = bubbleTop;
+      bubble.style.setProperty('--rotation', rotation + 'deg');
+      bubble.style.setProperty('--duration', duration + 's');
+      bubble.style.animationDuration = duration + 's';
+      bubble.dataset.popY = popY;
+      bubble.dataset.bubbleTop = bubbleTopValue;
+
+      container.appendChild(bubble);
+
+      // Calculate time to pop based on position
+      // Animation goes from translateY(200px) to translateY(-100vh - 100px)
+      const totalRiseDistance = window.innerHeight + 300;
+      const distanceToRise = bubbleTopValue - popY + 200;
+      const popProgress = distanceToRise / totalRiseDistance;
+      const popTime = duration * popProgress * 1000;
+
+      // Still use a timeout (because then we don't need a game loop)
+      // But now it's based on position
+      const timeout = setTimeout(() => {
+        if (bubble.parentElement) {
+          shatterBubble(bubble);
+        }
+      }, popTime);
+
+      bubble.addEventListener('click', () => {
+        clearTimeout(timeout);
+        shatterBubble(bubble);
+      });
+    }
+
+    // Pre-populate the page with some bubbles already rising at random Y positions
+    const initialBubbleCount = 10;
+    for (let i = 0; i < initialBubbleCount; i++) {
+      const randomY = (window.innerHeight * 0.4) + Math.random() * (window.innerHeight * 0.6);
+      createBubble(randomY + 'px');
+    }
+
+    // Spawn bubbles infinitely in waves
+    setInterval(() => {
+      const spawnCount = 1 + Math.floor(Math.random() * 3);
+      for (let i = 0; i < spawnCount; i++) {
+        setTimeout(() => createBubble(), i * 200);
+      }
+    }, 400);
+  </script>
+</body>
+
+</html>

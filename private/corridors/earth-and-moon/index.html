@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+I know this isn't exactly true to science.
+Please don't use this in your physics homework.
+-->
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="I'll see you on the dark side of the moon">
+  <title>Celestial mechanics</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: monospace;
+    }
+
+    .starfield {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .star {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      background: #fff;
+      opacity: 0.8;
+      border-radius: 50%;
+    }
+
+    .star.bright {
+      opacity: 1;
+      width: 2px;
+      height: 2px;
+      box-shadow: 0 0 3px rgba(255, 255, 255, 0.8);
+    }
+
+    .container {
+      position: relative;
+      width: 600px;
+      height: 600px;
+      z-index: 10;
+    }
+
+    .earth-container {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 20;
+    }
+
+    .earth {
+      width: 200px;
+      height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 120px;
+      line-height: 1;
+      user-select: none;
+    }
+
+    .orbit {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 350px;
+      height: 350px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 5;
+    }
+
+    .moon-container {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 80px;
+      height: 80px;
+      z-index: 15;
+    }
+
+    .moon {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 64px;
+      line-height: 1;
+      user-select: none;
+      cursor: pointer;
+    }
+
+    .earth-link,
+    .moon-link {
+      position: absolute;
+      display: block;
+      text-decoration: none;
+      border: none;
+      background: none;
+      padding: 0;
+      cursor: pointer;
+      font-size: inherit;
+      z-index: 20;
+    }
+
+    .earth-link {
+      width: 200px;
+      height: 200px;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .earth-link:hover {
+      filter: drop-shadow(0 0 18px #0000ff);
+    }
+
+    .moon-link {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .moon-link:hover {
+      filter: drop-shadow(0 0 12px #ffff0099);
+    }
+
+    @keyframes twinkle {
+
+      0%,
+      100% {
+        opacity: 0.8;
+      }
+
+      50% {
+        opacity: 0.3;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="starfield" id="starfield"></div>
+
+  <div class="container">
+    <div class="orbit"></div>
+
+    <div class="earth-container">
+      <a href="#" class="earth-link" id="earthLink">
+        <div class="earth" id="earthEmoji">🌎</div>
+      </a>
+    </div>
+
+    <div class="moon-container" id="moonContainer">
+      <a href="#" class="moon-link" id="moonLink">
+        <div class="moon" id="moonEmoji">🌕</div>
+      </a>
+    </div>
+  </div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/earth-and-moon";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    // Create starfield
+    function createStarfield() {
+      const starfield = document.getElementById('starfield');
+      const starCount = 150;
+
+      for (let i = 0; i < starCount; i++) {
+        const star = document.createElement('div');
+        star.className = 'star';
+        if (Math.random() < 0.2) {
+          star.classList.add('bright');
+        }
+
+        star.style.left = Math.random() * 100 + '%';
+        star.style.top = Math.random() * 100 + '%';
+
+        // Subtle twinkling animation
+        const duration = 3 + Math.random() * 4;
+        const delay = Math.random() * 5;
+        star.style.animation = `twinkle ${duration}s ease-in-out ${delay}s infinite`;
+
+        starfield.appendChild(star);
+      }
+    }
+
+    const earthLink = document.getElementById('earthLink');
+    const moonLink = document.getElementById('moonLink');
+
+    earthLink.href = pageRandomiser.nextOne();
+    moonLink.href = pageRandomiser.nextOne();
+
+    // It's weird that there isn't a Pacific islands emoji...
+    const earthEmojis = ['🌎', '🌍', '🌏'];
+    const moonEmojis = ['🌗', '🌘', '🌑', '🌒', '🌓', '🌔', '🌕', '🌖'];
+
+    const moonContainer = document.getElementById('moonContainer');
+    const earthEmoji = document.getElementById('earthEmoji');
+    const moonEmoji = document.getElementById('moonEmoji');
+
+    // Animation loop
+    let angle = 0;
+    function updateAnimation() {
+      angle = (angle + 0.5) % 360;
+
+      // Moon position (circular orbit, 175px radius from center)
+      const radius = 175;
+      const radians = (angle * Math.PI) / 180;
+      const x = Math.cos(radians) * radius;
+      const y = Math.sin(radians) * radius;
+
+      // Position moon and rotate it to face the earth
+      const rotation = angle + 90;
+      moonContainer.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) rotate(${rotation}deg)`;
+
+      // Update earth emoji based on moon position (every 120 degrees)
+      const earthRotation = Math.floor(angle / 120) % 3;
+      earthEmoji.textContent = earthEmojis[earthRotation];
+
+      // Update moon emoji based on moon position (every 45 degrees)
+      const moonPhaseIndex = Math.floor(angle / 45) % 8;
+      moonEmoji.textContent = moonEmojis[moonPhaseIndex];
+
+      requestAnimationFrame(updateAnimation);
+    }
+
+    // Initialize
+    createStarfield();
+    updateAnimation();
+  </script>
+</body>
+
+</html>

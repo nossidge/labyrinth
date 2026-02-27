@@ -179,6 +179,16 @@ This game isn't very fun!
       border-style: inset;
     }
 
+    @keyframes fan-bounce {
+      from {
+        transform: translateY(5px) rotate(-3deg);
+      }
+
+      to {
+        transform: translateY(-5px) rotate(3deg);
+      }
+    }
+
     .grain {
       position: fixed;
       top: 0;
@@ -302,15 +312,6 @@ This game isn't very fun!
 
         fansArea.appendChild(a);
       }
-
-      const style = document.createElement('style');
-      style.textContent = `
-                @keyframes fan-bounce {
-                    from { transform: translateY(5px) rotate(-3deg); }
-                    to { transform: translateY(-5px) rotate(3deg); }
-                }
-            `;
-      document.head.appendChild(style);
     }
 
     function resetGame() {

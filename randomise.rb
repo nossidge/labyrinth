@@ -9,7 +9,7 @@ WIP_DIR = 'wip'
 DEV_MODE = ARGV.include?('--dev')
 LINK_SUFFIX = DEV_MODE ? 'index.html' : ''
 
-# Load creation dates from corridors.yaml
+# Load creation dates and full corridor metadata from corridors.yaml
 def load_creation_dates
   data = YAML.load_file('corridors.yaml')
   dates = {}
@@ -26,7 +26,21 @@ def load_creation_dates
   dates
 end
 
+def load_corridor_metadata
+  data = YAML.load_file('corridors.yaml')
+  metadata = {}
+  data['corridors'].each do |corridor|
+    id = corridor['id']
+    metadata[id] = {
+      'title' => corridor['title'],
+      'created' => corridor['created']
+    }
+  end
+  metadata
+end
+
 CREATION_DATES = load_creation_dates
+CORRIDOR_METADATA = load_corridor_metadata
 
 def get_formatted_title(dir_path)
   File.basename(dir_path).split('-').map(&:capitalize).join(' ')
@@ -53,13 +67,34 @@ def generate_dir_files(dir_path)
 
   # 1. Generate common/labyrinthPages.js
   js_path = File.join(dir_path, 'common', 'labyrinthPages.js')
+
+  # Build corridorsData array with metadata
+  corridors_data_entries = corridor_dirs.map do |d|
+    corridor_id = File.basename(d)
+    metadata = CORRIDOR_METADATA[corridor_id] || { 'title' => get_formatted_title(d), 'created' => 'Unknown' }
+    rel_path = d.sub("#{dir_path}/", '') + LINK_SUFFIX
+    {
+      id: corridor_id,
+      title: metadata['title'],
+      created: metadata['created'],
+      url: "../../#{rel_path}"
+    }
+  end
+
+  # Build JavaScript object literals for corridorsData
+  corridors_data_js = corridors_data_entries.map do |entry|
+    "  { id: \"#{entry[:id]}\", title: \"#{entry[:title]}\", created: \"#{entry[:created]}\", url: \"#{entry[:url]}\" }"
+  end.join(",\n")
+
   js_content = <<~JSCRIPT
-    // Contains the list of all pages, that are ready to go.
-    // There are other pages that are not ready to go, but are referenced in the code.
-    // Those other pages will be ignored when the links are randomly generated via randomise.rb
-    const labyrinthPages = [
-    #{corridors_for_js.map { |p| "  \"../../#{p}\"," }.join("\n")}
+    // Corridor metadata loaded from corridors.yaml
+    // Contains all available corridors with their metadata
+    const corridorsData = [
+    #{corridors_data_js}
     ];
+
+    // Most pages only need the URL strings.
+    const labyrinthPages = corridorsData.map(c => c.url);
   JSCRIPT
   FileUtils.mkdir_p(File.dirname(js_path))
   File.write(js_path, js_content)

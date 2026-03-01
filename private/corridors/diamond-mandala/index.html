@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+This was supposed to be a mandala, but I'm not great at CSS.
+The diamonds were supposed to be tear-shaped petals.
+But I ended up liking how it looked as it is.
+Imperfection is beauty :-)
+-->
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Shine on">
+  <title>Forever</title>
+  <style>
+    :root {
+      --bg-color: #0a0a0f;
+      --mandala-bg: #1a1a25;
+      --ring-color-1: #3d3d4d;
+      --ring-color-2: #5a5a6d;
+      --ring-color-3: #7a7a8d;
+      --petal-color-light: #9a9aad;
+      --petal-color-dark: #6a6a7d;
+      --center-color: #9a9aad;
+      --accent-glow: #babacd;
+      --mandala-diameter: 400;
+      --mandala-padding: 50;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body,
+    html {
+      width: 100%;
+      height: 100%;
+      background-color: var(--bg-color);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      font-family: 'Space Grotesk', monospace;
+    }
+
+    /* Grainy background */
+    body::after {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0.03;
+      pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+      z-index: 5;
+    }
+
+    #container {
+      position: relative;
+      z-index: 20;
+      perspective: 1000px;
+    }
+
+    svg {
+      display: block;
+      max-width: 95vw;
+      max-height: 95vh;
+      filter: drop-shadow(0 0 50px rgba(192, 160, 224, 0.15));
+      animation: pulse 4s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        filter: drop-shadow(0 0 50px rgba(192, 160, 224, 0.15));
+      }
+
+      50% {
+        filter: drop-shadow(0 0 80px rgba(212, 165, 255, 0.25));
+      }
+    }
+
+    .mandala-ring {
+      fill: none;
+      stroke-linecap: round;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .mandala-ring:hover {
+      filter: drop-shadow(0 0 15px rgba(212, 165, 255, 0.6));
+      stroke-width: 3 !important;
+    }
+
+    .mandala-petal {
+      cursor: pointer;
+      transition: all 0.3s ease;
+      filter: drop-shadow(0 0 8px rgba(212, 165, 255, 0.1));
+    }
+
+    .mandala-petal:hover {
+      filter: drop-shadow(0 0 20px rgba(212, 165, 255, 0.6));
+      opacity: 1 !important;
+    }
+
+    .mandala-link {
+      text-decoration: none;
+    }
+
+    .center-dot {
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .center-dot:hover {
+      filter: drop-shadow(0 0 25px rgba(212, 165, 255, 0.8));
+    }
+  </style>
+</head>
+
+<body>
+  <div id="container">
+    <svg id="mandala-svg" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="centerGlow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" style="stop-color:#c0a0e0;stop-opacity:0.8" />
+          <stop offset="100%" style="stop-color:#7a7a8d;stop-opacity:0.2" />
+        </radialGradient>
+      </defs>
+
+      <!-- Background circle -->
+      <circle id="bg-circle" fill="var(--mandala-bg)" stroke="var(--ring-color-1)"
+        stroke-width="1" />
+
+      <!-- Outer ring 1 (petals) -->
+      <g id="petal-ring-1"></g>
+
+      <!-- Rings -->
+      <circle id="ring-1" class="mandala-ring" stroke="var(--ring-color-1)" stroke-width="2" />
+      <circle id="ring-2" class="mandala-ring" stroke="var(--ring-color-2)" stroke-width="2" />
+      <circle id="ring-3" class="mandala-ring" stroke="var(--ring-color-3)" stroke-width="2" />
+      <circle id="ring-4" class="mandala-ring" stroke="var(--center-color)" stroke-width="2" />
+
+      <!-- Inner petals -->
+      <g id="petal-ring-2"></g>
+
+      <!-- Center -->
+      <circle id="center-dot" class="center-dot" fill="var(--center-color)"
+        stroke="var(--accent-glow)" stroke-width="2" />
+    </svg>
+  </div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/diamond-mandala";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    // Configuration
+    const mandala = {
+      diameter: 400,
+      padding: 70
+    };
+
+    // Calculate dimensions
+    const viewBoxSize = mandala.diameter + (mandala.padding * 2);
+    const centerX = viewBoxSize / 2;
+    const centerY = viewBoxSize / 2;
+
+    // Set CSS variables (actually, are these even used still?)
+    document.documentElement.style.setProperty('--mandala-diameter', mandala.diameter);
+    document.documentElement.style.setProperty('--mandala-padding', mandala.padding);
+
+    // Set SVG viewBox
+    const svg = document.getElementById('mandala-svg');
+    svg.setAttribute('viewBox', `0 0 ${viewBoxSize} ${viewBoxSize}`);
+
+    // Set static circle positions and sizes
+    const outerRadius = mandala.diameter / 2 - 5;
+    document.getElementById('bg-circle').setAttribute('cx', centerX);
+    document.getElementById('bg-circle').setAttribute('cy', centerY);
+    document.getElementById('bg-circle').setAttribute('r', outerRadius);
+
+    const rings = [
+      { id: 'ring-1', r: 160 },
+      { id: 'ring-2', r: 120 },
+      { id: 'ring-3', r: 80 },
+      { id: 'ring-4', r: 50 }
+    ];
+    rings.forEach(ring => {
+      document.getElementById(ring.id).setAttribute('cx', centerX);
+      document.getElementById(ring.id).setAttribute('cy', centerY);
+      document.getElementById(ring.id).setAttribute('r', ring.r);
+    });
+
+    const centerDotElement = document.getElementById('center-dot');
+    centerDotElement.setAttribute('cx', centerX);
+    centerDotElement.setAttribute('cy', centerY);
+    centerDotElement.setAttribute('r', 20);
+
+    // Create outer petals
+    function createPetals(ringId, radius, count, rotation, scale) {
+      const ring = document.getElementById(ringId);
+      ring.innerHTML = '';
+
+      const petalRadius = radius * 0.25 * scale;
+
+      for (let i = 0; i < count; i++) {
+        const angle = (360 / count) * i + rotation;
+
+        // Create group for petal with rotation
+        const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        group.setAttribute('transform', `rotate(${angle} ${centerX} ${centerY})`);
+
+        // Draw petal at fixed position (straight up from center)
+        const petalX = centerX;
+        const petalY = centerY - radius;
+
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('class', 'mandala-petal');
+
+        // Create petal shape (I wanted a teardrop, but it came out like a diamond)
+        const d = `
+          M ${petalX} ${petalY - petalRadius}
+          Q ${petalX + petalRadius * 0.6} ${petalY - petalRadius * 0.3}
+             ${petalX + petalRadius * 0.8} ${petalY}
+          Q ${petalX + petalRadius * 0.6} ${petalY + petalRadius * 0.3}
+             ${petalX} ${petalY + petalRadius}
+          Q ${petalX - petalRadius * 0.6} ${petalY + petalRadius * 0.3}
+             ${petalX - petalRadius * 0.8} ${petalY}
+          Q ${petalX - petalRadius * 0.6} ${petalY - petalRadius * 0.3}
+             ${petalX} ${petalY - petalRadius}
+        `;
+        path.setAttribute('d', d);
+        const colorIndex = i % 2;
+        path.setAttribute('fill', colorIndex === 0 ? 'var(--petal-color-light)' : 'var(--petal-color-dark)');
+        path.setAttribute('opacity', colorIndex === 0 ? '0.7' : '0.5');
+
+        const link = document.createElementNS('http://www.w3.org/2000/svg', 'a');
+        link.setAttribute('class', 'mandala-link');
+        link.setAttribute('href', pageRandomiser.nextOne());
+        link.appendChild(path);
+        group.appendChild(link);
+        ring.appendChild(group);
+      }
+    }
+
+    // Create rings as clickable elements
+    const ringElements = svg.querySelectorAll('.mandala-ring');
+    ringElements.forEach((ring) => {
+      const link = document.createElementNS('http://www.w3.org/2000/svg', 'a');
+      link.setAttribute('class', 'mandala-link');
+      link.setAttribute('href', pageRandomiser.nextOne());
+      const parent = ring.parentNode;
+      parent.replaceChild(link, ring);
+      link.appendChild(ring);
+    });
+
+    // Create center as clickable
+    const centerDotClickable = svg.querySelector('.center-dot');
+    const centerLink = document.createElementNS('http://www.w3.org/2000/svg', 'a');
+    centerLink.setAttribute('class', 'mandala-link');
+    centerLink.setAttribute('href', pageRandomiser.nextOne());
+    centerDotClickable.parentNode.replaceChild(centerLink, centerDotClickable);
+    centerLink.appendChild(centerDotClickable);
+
+    // Initialize petals
+    createPetals('petal-ring-1', 192, 12, 0, 1);
+    createPetals('petal-ring-2', 100, 12, 360 / 12, 0.7);
+
+    // Slow rotation animation
+    let rotationAngle = 0;
+    function animateRotation() {
+      rotationAngle += 0.02;
+      svg.style.transform = `rotate(${rotationAngle}deg)`;
+      requestAnimationFrame(animateRotation);
+    }
+    animateRotation();
+
+    // Responsive sizing
+    function resizeHandler() {
+      const container = document.getElementById('container');
+      const vmin = Math.min(window.innerWidth, window.innerHeight);
+      const svg = document.getElementById('mandala-svg');
+      svg.style.width = Math.min(vmin * 0.9, 680) + 'px';
+      svg.style.height = Math.min(vmin * 0.9, 680) + 'px';
+    }
+    resizeHandler();
+    window.addEventListener('resize', resizeHandler);
+  </script>
+</body>
+
+</html>

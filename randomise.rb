@@ -83,8 +83,8 @@ def generate_dir_files(dir_path)
 
   # Build JavaScript object literals for corridorsData
   corridors_data_js = corridors_data_entries.map do |entry|
-    "  { id: \"#{entry[:id]}\", title: \"#{entry[:title]}\", created: \"#{entry[:created]}\", url: \"#{entry[:url]}\" }"
-  end.join(",\n")
+    "  { id: \"#{entry[:id]}\", title: \"#{entry[:title]}\", created: \"#{entry[:created]}\", url: \"#{entry[:url]}\" },"
+  end.join("\n")
 
   js_content = <<~JSCRIPT
     // Corridor metadata loaded from corridors.yaml

@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+This is based on the CodePen by BladeDev:
+https://codepen.io/BladeDev/pen/QWxwJZb
+https://codepen.io/BladeDev
+https://github.com/bladedevoff
+
+I'd already figured out on my own that I needed to draw circles and make them merge together.
+But I struggled for a while trying to get the "gloopiness" of the ink blots merging.
+Then I searched and found this code.
+Thanks BladeDev!
+-->
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="I'm not locked in here with you">
+  <title>Fearful symmetry</title>
+  <style>
+    body {
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      position: relative;
+      background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48ZmlsdGVyIGlkPSJuIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iMC44NSIgbnVtT2N0YXZlcz0iMyIgc3RpdGNoVGlsZXM9InN0aXRjaCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbHRlcj0idXJsKCNuKSIvPjwvc3ZnPg==');
+    }
+
+    .container {
+      display: flex;
+      gap: 0;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      position: relative;
+      padding: 40px;
+      box-sizing: border-box;
+      max-width: 90vw;
+      max-height: calc(100vh - 80px);
+      margin: 0 auto;
+    }
+
+    svg {
+      height: 100%;
+      width: auto;
+      max-height: calc(100vh - 80px);
+    }
+
+    #svgMain {
+      margin-right: -80px;
+      z-index: 1;
+    }
+
+    #svgRight {
+      transform: scaleX(-1);
+      margin-left: -80px;
+      z-index: 0;
+    }
+
+    @media (max-width: 1024px) {
+      .container {
+        max-width: 80vw;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        max-width: 70vw;
+        padding: 30px;
+      }
+
+      #svgMain {
+        margin-right: -60px;
+      }
+
+      #svgRight {
+        margin-left: -60px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        padding: 20px;
+        max-width: calc(100vw - 40px);
+      }
+
+      #svgMain {
+        margin-right: -40px;
+      }
+
+      #svgRight {
+        margin-left: -40px;
+      }
+    }
+
+    .inkblot-circle {
+      cursor: pointer;
+      transition: opacity 0.3s ease, filter 0.3s ease;
+    }
+
+    .inkblot-circle.hovered {
+      opacity: 0.5;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <svg id="svgMain" viewBox="0 0 500 500" height="500" width="500" x="0" y="0">
+      <defs>
+        <filter id="gloop" height="125%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation=15 result="blur" />
+          <feColorMatrix in="blur" mode="matrix"
+            values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 50 -20" result="goo" />
+        </filter>
+      </defs>
+
+      <g id="svgGroup" filter="url(#gloop)"></g>
+    </svg>
+
+    <svg id="svgRight" viewBox="0 0 500 500" height="500" width="500" x="0" y="0">
+      <defs>
+        <filter id="gloop" height="125%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation=15 result="blur" />
+          <feColorMatrix in="blur" mode="matrix"
+            values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 50 -20" result="goo" />
+        </filter>
+      </defs>
+      <g id="svgGroupRight" filter="url(#gloop)"></g>
+    </svg>
+  </div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/rorschach";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const body = document.body;
+    const svgGroup = document.getElementById('svgGroup');
+    const svgGroupRight = document.getElementById('svgGroupRight');
+    const svgMain = document.getElementById('svgMain');
+    const svgRight = document.getElementById('svgRight');
+
+    let circleLinks = [];
+
+    function drawCircle() {
+      // Create anchor elements
+      const anchorLeft = document.createElementNS('http://www.w3.org/2000/svg', 'a');
+      const anchorRight = document.createElementNS('http://www.w3.org/2000/svg', 'a');
+
+      const circleLeft = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      const circleRight = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+
+      const cx = Math.floor(Math.random() * 350) + 75;
+      const cy = Math.floor(Math.random() * 500);
+
+      // Calculate maximum radius based on distance to nearest edge
+      // This is so that a circle doesn't go off the edge of the SVG
+      const distToEdge = Math.min(cx, 500 - cx, cy, 500 - cy);
+
+      // Skip this circle if it can't fit with minimum radius of 10
+      const maxRadiusPossible = Math.min(60, distToEdge);
+      if (maxRadiusPossible < 10) {
+        return;
+      }
+
+      const radius = Math.floor(Math.random() * (maxRadiusPossible - 9)) + 10;
+
+      circleLeft.setAttribute('r', radius);
+      circleLeft.setAttribute('cx', cx);
+      circleLeft.setAttribute('cy', cy);
+      circleLeft.setAttribute('fill', 'black');
+      circleLeft.setAttribute('class', 'inkblot-circle');
+
+      circleRight.setAttribute('r', radius);
+      circleRight.setAttribute('cx', cx);
+      circleRight.setAttribute('cy', cy);
+      circleRight.setAttribute('fill', 'black');
+      circleRight.setAttribute('class', 'inkblot-circle');
+
+      const corridor = pageRandomiser.nextOne();
+
+      // Set href on anchor elements
+      // Use legacy namespace still, though it might not be needed these days
+      anchorLeft.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', corridor);
+      anchorRight.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', corridor);
+
+      // Append circles to anchors
+      anchorLeft.appendChild(circleLeft);
+      anchorRight.appendChild(circleRight);
+
+      // Store link info with both circle elements
+      circleLinks.push({
+        corridor: corridor,
+        elementLeft: circleLeft,
+        elementRight: circleRight
+      });
+
+      svgGroup.appendChild(anchorLeft);
+      svgGroupRight.appendChild(anchorRight);
+    }
+
+    function drawRandom() {
+      circleLinks = [];
+      for (let i = 0; i < 50; i++) {
+        drawCircle();
+      }
+      attachCircleInteractions();
+    }
+
+    function removeAll() {
+      while (svgGroup.firstChild) {
+        svgGroup.removeChild(svgGroup.lastChild);
+      }
+      while (svgGroupRight.firstChild) {
+        svgGroupRight.removeChild(svgGroupRight.lastChild);
+      }
+      circleLinks = [];
+    }
+
+    function attachCircleInteractions() {
+      circleLinks.forEach((link) => {
+        const circleLeft = link.elementLeft;
+        const circleRight = link.elementRight;
+
+        circleLeft.style.cursor = "pointer";
+        circleRight.style.cursor = "pointer";
+
+        // Left circle hover (also hovers right circle)
+        circleLeft.addEventListener('mouseenter', () => {
+          circleLeft.classList.add('hovered');
+          circleRight.classList.add('hovered');
+        });
+
+        circleLeft.addEventListener('mouseleave', () => {
+          circleLeft.classList.remove('hovered');
+          circleRight.classList.remove('hovered');
+        });
+
+        // Right circle hover (also hovers left circle)
+        circleRight.addEventListener('mouseenter', () => {
+          circleLeft.classList.add('hovered');
+          circleRight.classList.add('hovered');
+        });
+
+        circleRight.addEventListener('mouseleave', () => {
+          circleLeft.classList.remove('hovered');
+          circleRight.classList.remove('hovered');
+        });
+      });
+    }
+
+    // Click anywhere on the page (except circles) to regenerate
+    body.addEventListener('click', (e) => {
+      // Check if the click was on a circle or anchor
+      if (e.target.tagName === 'circle' || e.target.classList.contains('inkblot-circle') || e.target.tagName === 'a') {
+        return;
+      }
+
+      removeAll();
+      drawRandom();
+    });
+
+    // Draw initial random shapes
+    drawRandom();
+  </script>
+
+</body>
+
+</html>

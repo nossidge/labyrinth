@@ -178,46 +178,52 @@
     <a href="#" class="character-link pos-lc tint-pink"><img></a>
   </div>
 
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
   <script>
+    const currentPage = "corridors/blade-runner";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
     const characters = [
       {
         image: "batty.jpg",
-        link: "../../todo.html",
+        link: pageRandomiser.nextOne(),
         quote: "I've seen things you people wouldn't believe."
       },
       {
         image: "deckard.jpg",
-        link: "../../todo.html",
+        link: pageRandomiser.nextOne(),
         quote: "Maybe in those last moments he loved life more than he ever had before."
       },
       {
         image: "leon.jpg",
-        link: "../../todo.html",
+        link: pageRandomiser.nextOne(),
         quote: "Let me tell you about my mother."
       },
       {
         image: "pris.jpg",
-        link: "../../todo.html",
+        link: pageRandomiser.nextOne(),
         quote: "I think, Sebastian, therefore I am."
       },
       {
         image: "rachael.jpg",
-        link: "../../todo.html",
+        link: pageRandomiser.nextOne(),
         quote: "I'm not in the business. I am the business."
       },
       {
         image: "sebastian.jpg",
-        link: "../../todo.html",
+        link: pageRandomiser.nextOne(),
         quote: "I make friends. They're toys. My friends are toys. I make them. It's a hobby."
       },
       {
         image: "tyrell.jpg",
-        link: "../../todo.html",
+        link: pageRandomiser.nextOne(),
         quote: "The light that burns twice as bright burns half as long."
       },
       {
         image: "gaff.jpg",
-        link: "../../todo.html",
+        link: pageRandomiser.nextOne(),
         quote: "It's too bad she won't live! But then again, who does?"
       },
     ];

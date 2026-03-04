@@ -21,7 +21,6 @@
 
     * {
       box-sizing: border-box;
-      cursor: cell;
     }
 
     body,
@@ -167,7 +166,7 @@
       opacity: 0.2;
     }
 
-    .link-layer {
+    #link-layer {
       position: absolute;
       top: 0;
       left: 0;
@@ -175,23 +174,6 @@
       height: 100%;
       z-index: 20;
       pointer-events: none;
-    }
-
-    .invisible-link {
-      position: absolute;
-      width: 50px;
-      height: 50px;
-      pointer-events: auto;
-      text-decoration: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: transparent;
-    }
-
-    .invisible-link:hover {
-      color: var(--glitch-magenta);
-      background: rgba(255, 0, 255, 0.2);
     }
 
     #progress-container {
@@ -246,7 +228,7 @@
 
     <p>
       The error appears to be caused by the following file:
-      <a href="../../todo.html" class="highlight">labyrinth.sys</a>
+      <a href="../index.html" class="highlight">labyrinth.sys</a>
     </p>
 
     <p>
@@ -257,28 +239,28 @@
 
     <p>
       Check to make sure any new
-      <a href="../../todo.html" class="highlight">hardware or software</a>
+      <a href="../index.html" class="highlight">hardware or software</a>
       is properly installed.
       If this is a new installation, ask your hardware or software manufacturer for any
-      <a href="../../todo.html" class="highlight">reality updates</a>
+      <a href="../index.html" class="highlight">reality updates</a>
       you might need.
     </p>
 
     <p>
       If problems continue, disable or remove any recently installed
-      <a href="../../todo.html" class="highlight">memories or dreams</a>.
+      <a href="../index.html" class="highlight">memories or dreams</a>.
       Disable BIOS memory options such as
-      <a href="../../todo.html" class="highlight">caching or shadowing</a>.
-      If you need to use Safe Mode to remove or disable components, restart your computer, press
-      <a href="../../todo.html" class="highlight">F8</a>
+      <a href="../index.html" class="highlight">caching or shadowing</a>.
+      If you need to use Safe Mode to remove or disable components, restart your hardware, press
+      <a href="../index.html" class="highlight">F8</a>
       to select Advanced Startup Options, and then select
-      <a href="../../todo.html" class="highlight">Safe Mode</a>.
+      <a href="../index.html" class="highlight">Safe Mode</a>.
     </p>
 
     <div class="error-code">
       Technical information:<br><br>
       *** STOP: 0x0000008E (0xC0000005, 0xBF8F196B, 0xB7D93734, 0x00000000)<br><br>
-      *** <a href="../../todo.html" class="highlight">win32k.sys</a> - Address BF8F196B base at
+      *** <a href="../index.html" class="highlight">win32k.sys</a> - Address BF8F196B base at
       BF800000, DateStamp 3d6dd67c
     </div>
 
@@ -295,7 +277,7 @@
     <div id="progress-bar"></div>
   </div>
 
-  <div class="link-layer" id="link-layer">
+  <div id="link-layer">
     <!-- Floating hidden links. -->
     <!-- I'm not fully sure what to do with these, but I'll leave them here for now. -->
   </div>
@@ -379,10 +361,10 @@
     }
     drawGlitch();
 
-    // Floating Error Windows on Click
+    // On click, spawn some floating error windows
     document.addEventListener('mousedown', (e) => {
       // Don't spawn a new window if clicking an existing UI element or window
-      if (e.target.tagName === 'A' || e.target.classList.contains('error-btn') || e.target.closest('.floating-error')) return;
+      if (e.target.matches('a, .error-btn, .floating-error')) return;
 
       createErrorWindow(e.clientX, e.clientY);
       triggerFlicker();
@@ -407,7 +389,7 @@
         'Buffer overflow in subconscious.dll',
         'Stack trace leads to nowhere.',
         'Invalid handle to current existence.',
-        'A critical object has been deleted.'
+        'Critical memory has been deleted.'
       ][Math.floor(Math.random() * 5)];
 
       win.innerHTML = `
@@ -426,34 +408,6 @@
       // Auto remove after a while or if too many
       const windows = document.querySelectorAll('.floating-error');
       if (windows.length > 20) windows[0].remove();
-    }
-
-    // Create invisible floating links
-    for (let i = 0; i < 20; i++) {
-      const a = document.createElement('a');
-      a.href = pageRandomiser.nextOne();
-      a.className = 'invisible-link';
-      a.style.left = Math.random() * 95 + '%';
-      a.style.top = Math.random() * 95 + '%';
-      a.innerText = '???';
-      linkLayer.appendChild(a);
-
-      // Make them move slowly
-      let vx = (Math.random() - 0.5) * 0.5;
-      let vy = (Math.random() - 0.5) * 0.5;
-      let px = parseFloat(a.style.left);
-      let py = parseFloat(a.style.top);
-
-      function moveLink() {
-        px += vx;
-        py += vy;
-        if (px < 0 || px > 95) vx *= -1;
-        if (py < 0 || py > 95) vy *= -1;
-        a.style.left = px + '%';
-        a.style.top = py + '%';
-        requestAnimationFrame(moveLink);
-      }
-      moveLink();
     }
 
     // Keyboard interaction

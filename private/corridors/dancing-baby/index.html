@@ -158,15 +158,15 @@ calista pop-tart
   <img src="background.gif" id="background" alt="Ally McBeal in her apartment">
 
   <main class="baby-container">
-    <a href="../../todo.html" class="baby-link small-baby">
+    <a href="../index.html" class="baby-link small-baby">
       <img src="sk_baby.max" alt="Dancing Baby Meme">
     </a>
 
-    <a href="../../todo.html" class="baby-link large-baby">
+    <a href="../index.html" class="baby-link large-baby">
       <img src="sk_baby.max" alt="The Original Dancing Baby">
     </a>
 
-    <a href="../../todo.html" class="baby-link small-baby">
+    <a href="../index.html" class="baby-link small-baby">
       <img src="sk_baby.max" alt="Dancing Baby Meme">
     </a>
   </main>
@@ -175,6 +175,13 @@ calista pop-tart
     <span>Ooga-Chaka Ooga-Ooga Ooga-Chaka Ooga-Ooga Ooga-Chaka Ooga-Ooga Ooga-Chaka Ooga-Ooga</span>
   </div>
 
+  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script>
+    const currentPage = "corridors/dancing-baby";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+  </script>
 </body>
 
 </html>

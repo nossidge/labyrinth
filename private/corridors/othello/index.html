@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 
+<!--
+I should have named this "Reversi", since that's the non-brand name.
+But then I couldn't make a dumb Shakespeare reference.
+-->
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Othello board flipping simulation">
   <title>I am not what I am</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@200;800&family=JetBrains+Mono:wght@100&display=swap"
-    rel="stylesheet">
   <style>
     :root {
       --board-green: #1a4d2e;
@@ -32,23 +32,10 @@
       justify-content: center;
       align-items: center;
       min-height: 100vh;
-      font-family: 'Bricolage Grotesque', sans-serif;
-      color: #fff;
       overflow: hidden;
     }
 
-    #ui-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 100;
-      border: 40px solid #000;
-    }
-
-    /* The Board */
+    /* The board */
     #board-container {
       position: relative;
       padding: 20px;
@@ -56,10 +43,10 @@
       box-shadow: 0 50px 100px rgba(0, 0, 0, 0.8), inset 0 0 20px rgba(0, 0, 0, 0.5);
       border-radius: 4px;
       transform: perspective(1000px) rotateX(20deg);
-      animation: breathe 10s ease-in-out infinite alternate;
+      animation: movement 10s ease-in-out infinite alternate;
     }
 
-    @keyframes breathe {
+    @keyframes movement {
       from {
         transform: perspective(1000px) rotateX(15deg) rotateY(-2deg);
       }
@@ -91,7 +78,7 @@
       background-image: radial-gradient(circle, var(--felt-green) 0%, var(--board-green) 100%);
     }
 
-    /* The Piece */
+    /* The pieces */
     .piece-anchor {
       width: 80%;
       height: 80%;
@@ -131,8 +118,8 @@
       transform: rotateY(180deg);
     }
 
-    /* Abstract Elements */
-    .dust {
+    /* Abstract overlay effects */
+    #dust {
       position: fixed;
       width: 100%;
       height: 100%;
@@ -153,7 +140,18 @@
       pointer-events: none;
     }
 
-    /* Responsive */
+    #ui-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 100;
+      border: 40px solid #000;
+    }
+
+    /* Basic responsiveness */
     @media (max-width: 700px) {
       #board {
         width: 320px;
@@ -168,7 +166,7 @@
 </head>
 
 <body>
-  <div class="dust"></div>
+  <div id="dust"></div>
   <div id="vignette"></div>
   <div id="ui-overlay"></div>
 
@@ -200,7 +198,7 @@
       const piece = document.createElement('div');
       piece.className = 'piece';
 
-      // Random initial color
+      // Random initial colour for each piece
       const isWhite = Math.random() > 0.5;
       if (!isWhite) {
         piece.classList.add('flipped');
@@ -220,32 +218,6 @@
 
       pieces.push(piece);
     }
-
-    // Random flip logic
-    function triggerFlips() {
-      // Decide how many pieces to flip (between 1 and 8)
-      const count = Math.floor(Math.random() * 8) + 1;
-
-      for (let i = 0; i < count; i++) {
-        const target = pieces[Math.floor(Math.random() * pieces.length)];
-        setTimeout(() => {
-          target.classList.toggle('flipped');
-        }, i * 100);
-      }
-    }
-
-    // Massive flip logic (whole board)
-    function chaosFlip() {
-      pieces.forEach((p, idx) => {
-        setTimeout(() => {
-          p.classList.toggle('flipped');
-        }, idx * 10);
-      });
-    }
-
-    // Randomly switch some of the tiles at regular intervals?
-    // setInterval(triggerFlips, 2000);  // Small flips every 2s
-    // setInterval(chaosFlip, 15000); // Full board flip every 15s maybe?
 
     // Mouse interaction to flip pieces
     board.addEventListener('mousemove', (e) => {

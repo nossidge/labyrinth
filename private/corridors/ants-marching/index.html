@@ -109,26 +109,31 @@
   <div id="pile"></div>
 
   <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
   <script>
+    const currentPage = "corridors/ants-marching";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
     const ITEMS_POOL = [
-      { emoji: '🍎', link: '../../todo.html' },
-      { emoji: '🍕', link: '../../todo.html' },
-      { emoji: '🍃', link: '../../todo.html' },
-      { emoji: '🍬', link: '../../todo.html' },
-      { emoji: '🍭', link: '../../todo.html' },
-      { emoji: '🍓', link: '../../todo.html' },
-      { emoji: '🌽', link: '../../todo.html' },
-      { emoji: '🍇', link: '../../todo.html' },
-      { emoji: '🍒', link: '../../todo.html' },
-      { emoji: '🍑', link: '../../todo.html' },
-      { emoji: '🍐', link: '../../todo.html' },
-      { emoji: '🍉', link: '../../todo.html' },
-      { emoji: '🍄', link: '../../todo.html' },
-      { emoji: '🌰', link: '../../todo.html' },
-      { emoji: '🌾', link: '../../todo.html' },
-      { emoji: '🌿', link: '../../todo.html' },
-      { emoji: '🍂', link: '../../todo.html' },
-      { emoji: '🍁', link: '../../todo.html' },
+      { emoji: '🍎', link: pageRandomiser.nextOne() },
+      { emoji: '🍕', link: pageRandomiser.nextOne() },
+      { emoji: '🍃', link: pageRandomiser.nextOne() },
+      { emoji: '🍬', link: pageRandomiser.nextOne() },
+      { emoji: '🍭', link: pageRandomiser.nextOne() },
+      { emoji: '🍓', link: pageRandomiser.nextOne() },
+      { emoji: '🌽', link: pageRandomiser.nextOne() },
+      { emoji: '🍇', link: pageRandomiser.nextOne() },
+      { emoji: '🍒', link: pageRandomiser.nextOne() },
+      { emoji: '🍑', link: pageRandomiser.nextOne() },
+      { emoji: '🍐', link: pageRandomiser.nextOne() },
+      { emoji: '🍉', link: pageRandomiser.nextOne() },
+      { emoji: '🍄', link: pageRandomiser.nextOne() },
+      { emoji: '🌰', link: pageRandomiser.nextOne() },
+      { emoji: '🌾', link: pageRandomiser.nextOne() },
+      { emoji: '🌿', link: pageRandomiser.nextOne() },
+      { emoji: '🍂', link: pageRandomiser.nextOne() },
+      { emoji: '🍁', link: pageRandomiser.nextOne() },
     ];
     const itemRandomiser = new CyclicRandomiser(ITEMS_POOL);
 

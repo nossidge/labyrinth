@@ -178,15 +178,21 @@
   </div>
 
   <div class="color-nav">
-    <a href="../../todo.html" class="color-btn" id="btn-r">R</a>
-    <a href="../../todo.html" class="color-btn" id="btn-y">Y</a>
-    <a href="../../todo.html" class="color-btn" id="btn-g">G</a>
-    <a href="../../todo.html" class="color-btn" id="btn-m">M</a>
-    <a href="../../todo.html" class="color-btn" id="btn-b">B</a>
-    <a href="../../todo.html" class="color-btn" id="btn-c">C</a>
+    <a href="../index.html" class="color-btn" id="btn-r">R</a>
+    <a href="../index.html" class="color-btn" id="btn-y">Y</a>
+    <a href="../index.html" class="color-btn" id="btn-g">G</a>
+    <a href="../index.html" class="color-btn" id="btn-m">M</a>
+    <a href="../index.html" class="color-btn" id="btn-b">B</a>
+    <a href="../index.html" class="color-btn" id="btn-c">C</a>
   </div>
 
+  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/CyclicRandomiser.js"></script>
   <script>
+    const currentPage = "corridors/chromaphilia";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
     const mixer = document.getElementById('mixer');
     const red = document.getElementById('red');
     const green = document.getElementById('green');

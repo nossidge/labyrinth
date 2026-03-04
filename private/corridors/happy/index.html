@@ -113,28 +113,36 @@
       <rect x="0" y="0" width="200" height="100" rx="18" fill="#F4B24F" />
 
       <!-- blush -->
-      <a href="../../todo.html" title="Left blush">
+      <a href="../index.html" title="Left blush">
         <circle class="face-element blush" cx="55" cy="58" r="16" fill="#E9A23B" opacity="0.6" />
       </a>
-      <a href="../../todo.html" title="Right blush">
+      <a href="../index.html" title="Right blush">
         <circle class="face-element blush" cx="145" cy="58" r="16" fill="#E9A23B" opacity="0.6" />
       </a>
 
       <!-- eyes -->
-      <a href="../../todo.html" title="Left eye">
+      <a href="../index.html" title="Left eye">
         <circle class="face-element eye" cx="70" cy="40" r="9" fill="#1A120C" />
       </a>
-      <a href="../../todo.html" title="Right eye">
+      <a href="../index.html" title="Right eye">
         <circle class="face-element eye" cx="130" cy="40" r="9" fill="#1A120C" />
       </a>
 
       <!-- mouth -->
-      <a href="../../todo.html" class="mouth-link" title="Good nice smile">
+      <a href="../index.html" class="mouth-link" title="Good nice smile">
         <path class="face-element mouth-path" d="M85 55 Q100 70 115 55" fill="none" stroke="#1A120C"
           stroke-width="6" stroke-linecap="round" />
       </a>
     </svg>
   </div>
+
+  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script>
+    const currentPage = "corridors/happy";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+  </script>
 </body>
 
 </html>

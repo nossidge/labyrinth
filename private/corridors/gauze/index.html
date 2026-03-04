@@ -276,6 +276,12 @@ https://twitter.com/MrPrudence/status/2026411527738212754
     document.getElementById('nav-left').addEventListener('click', goToPrev);
     document.getElementById('nav-right').addEventListener('click', goToNext);
 
+    // Click anywhere on the page (except canvas, anchors, or nav panels) to go forward
+    document.body.addEventListener('click', (e) => {
+      if (e.target.matches('canvas, a, .nav-panel')) return;
+      goToNext();
+    });
+
     // Arrow keys, WASD keys, HJKL keys
     const LEFT_OR_DOWN = new Set(['ArrowLeft', 'ArrowDown', 'h', 'j', 'a', 's']);
     const RIGHT_OR_UP = new Set(['ArrowRight', 'ArrowUp', 'k', 'l', 'd', 'w']);

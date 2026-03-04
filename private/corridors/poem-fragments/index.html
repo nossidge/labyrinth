@@ -78,7 +78,7 @@ But I make these pages for me, not for you.
       color: #777;
     }
 
-    .glow {
+    #glow {
       position: fixed;
       width: 400px;
       height: 400px;
@@ -92,7 +92,7 @@ But I make these pages for me, not for you.
       top: 50%;
     }
 
-    .noise {
+    #noise {
       position: fixed;
       top: 0;
       left: 0;
@@ -110,7 +110,7 @@ But I make these pages for me, not for you.
       width: 100%;
       text-align: center;
       font-size: 14px;
-      color: #222;
+      color: #666;
       letter-spacing: 3px;
       z-index: 50;
       pointer-events: none;
@@ -125,14 +125,14 @@ But I make these pages for me, not for you.
     }
 
     #nav-footer a:hover {
-      color: #555;
+      color: #999;
     }
   </style>
 </head>
 
 <body>
-  <div class="noise"></div>
-  <div id="glow" class="glow"></div>
+  <div id="noise"></div>
+  <div id="glow"></div>
   <div id="container"></div>
   <div id="nav-footer"></div>
 
@@ -365,16 +365,18 @@ But I make these pages for me, not for you.
     let mouseY = window.innerHeight / 2;
     let targetX = mouseX;
     let targetY = mouseY;
-    let isMouseDown = false;
 
     document.addEventListener('mousemove', (e) => {
       targetX = e.clientX;
       targetY = e.clientY;
     });
 
-    document.addEventListener('mousedown', () => isMouseDown = true);
-    document.addEventListener('mouseup', () => isMouseDown = false);
-    document.addEventListener('mouseleave', () => isMouseDown = false);
+    // The orginial intent was to have the words fly towards the mouse when held down.
+    // But I think I prefer to have this always occur.
+    let globalAttraction = true;
+    // document.addEventListener('mousedown', () => globalAttraction = true);
+    // document.addEventListener('mouseup', () => globalAttraction = false);
+    // document.addEventListener('mouseleave', () => globalAttraction = false);
 
     function mergeWords(idxA, idxB) {
       const a = wordActors[idxA];
@@ -489,7 +491,7 @@ But I make these pages for me, not for you.
             const t = getToroidalDistance(obj.x, obj.y, mouseX, mouseY);
 
             // Global attraction when mouse is down
-            if (isMouseDown) {
+            if (globalAttraction) {
               obj.vx -= t.dx * 0.00002;
               obj.vy -= t.dy * 0.00002;
             }

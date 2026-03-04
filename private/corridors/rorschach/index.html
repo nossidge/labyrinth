@@ -104,10 +104,62 @@ Thanks BladeDev!
     .inkblot-circle.hovered {
       opacity: 0.5;
     }
+
+    .nav-panel {
+      position: fixed;
+      top: 0;
+      height: 100%;
+      width: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 5;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .nav-panel:hover {
+      opacity: 1;
+    }
+
+    #nav-left {
+      left: 0;
+      background: linear-gradient(to right, rgba(255, 255, 255, 0.05), transparent);
+    }
+
+    #nav-right {
+      right: 0;
+      background: linear-gradient(to left, rgba(255, 255, 255, 0.05), transparent);
+    }
+
+    .nav-button {
+      background: none;
+      border: 1px solid rgba(0, 0, 0, 0.3);
+      color: rgba(0, 0, 0, 0.6);
+      font-size: 28px;
+      padding: 12px 16px;
+      cursor: pointer;
+      line-height: 1;
+      pointer-events: none;
+    }
+
+    .nav-panel:hover .nav-button {
+      border-color: rgba(0, 0, 0, 0.6);
+      color: rgba(0, 0, 0, 0.9);
+    }
   </style>
 </head>
 
 <body>
+  <div id="nav-left" class="nav-panel">
+    <button class="nav-button">&larr;</button>
+  </div>
+
+  <div id="nav-right" class="nav-panel">
+    <button class="nav-button">&rarr;</button>
+  </div>
+
   <div class="container">
     <svg id="svgMain" viewBox="0 0 500 500" height="500" width="500" x="0" y="0">
       <defs>
@@ -140,22 +192,17 @@ Thanks BladeDev!
     const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
     const pageRandomiser = new CyclicRandomiser(otherPages);
 
-    const body = document.body;
     const svgGroup = document.getElementById('svgGroup');
     const svgGroupRight = document.getElementById('svgGroupRight');
-    const svgMain = document.getElementById('svgMain');
-    const svgRight = document.getElementById('svgRight');
 
     let circleLinks = [];
 
-    function drawCircle() {
-      // Create anchor elements
-      const anchorLeft = document.createElementNS('http://www.w3.org/2000/svg', 'a');
-      const anchorRight = document.createElementNS('http://www.w3.org/2000/svg', 'a');
+    // History of generated inkblots
+    // Each entry: { circles: [{ cx, cy, radius, corridor }] }
+    let history = [];
+    let historyIndex = -1;
 
-      const circleLeft = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      const circleRight = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-
+    function generateCircleData() {
       const cx = Math.floor(Math.random() * 350) + 75;
       const cy = Math.floor(Math.random() * 500);
 
@@ -166,51 +213,58 @@ Thanks BladeDev!
       // Skip this circle if it can't fit with minimum radius of 10
       const maxRadiusPossible = Math.min(60, distToEdge);
       if (maxRadiusPossible < 10) {
-        return;
+        return null;
       }
 
       const radius = Math.floor(Math.random() * (maxRadiusPossible - 9)) + 10;
+      const corridor = pageRandomiser.nextOne();
 
-      circleLeft.setAttribute('r', radius);
-      circleLeft.setAttribute('cx', cx);
-      circleLeft.setAttribute('cy', cy);
+      return { cx, cy, radius, corridor };
+    }
+
+    function createNewEntry() {
+      const circles = [];
+      for (let i = 0; i < 50; i++) {
+        const data = generateCircleData();
+        if (data) circles.push(data);
+      }
+      return { circles };
+    }
+
+    function renderCircle(data) {
+      const anchorLeft = document.createElementNS('http://www.w3.org/2000/svg', 'a');
+      const anchorRight = document.createElementNS('http://www.w3.org/2000/svg', 'a');
+
+      const circleLeft = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      const circleRight = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+
+      circleLeft.setAttribute('r', data.radius);
+      circleLeft.setAttribute('cx', data.cx);
+      circleLeft.setAttribute('cy', data.cy);
       circleLeft.setAttribute('fill', 'black');
       circleLeft.setAttribute('class', 'inkblot-circle');
 
-      circleRight.setAttribute('r', radius);
-      circleRight.setAttribute('cx', cx);
-      circleRight.setAttribute('cy', cy);
+      circleRight.setAttribute('r', data.radius);
+      circleRight.setAttribute('cx', data.cx);
+      circleRight.setAttribute('cy', data.cy);
       circleRight.setAttribute('fill', 'black');
       circleRight.setAttribute('class', 'inkblot-circle');
 
-      const corridor = pageRandomiser.nextOne();
-
-      // Set href on anchor elements
       // Use legacy namespace still, though it might not be needed these days
-      anchorLeft.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', corridor);
-      anchorRight.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', corridor);
+      anchorLeft.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', data.corridor);
+      anchorRight.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', data.corridor);
 
-      // Append circles to anchors
       anchorLeft.appendChild(circleLeft);
       anchorRight.appendChild(circleRight);
 
-      // Store link info with both circle elements
       circleLinks.push({
-        corridor: corridor,
+        corridor: data.corridor,
         elementLeft: circleLeft,
         elementRight: circleRight
       });
 
       svgGroup.appendChild(anchorLeft);
       svgGroupRight.appendChild(anchorRight);
-    }
-
-    function drawRandom() {
-      circleLinks = [];
-      for (let i = 0; i < 50; i++) {
-        drawCircle();
-      }
-      attachCircleInteractions();
     }
 
     function removeAll() {
@@ -223,15 +277,20 @@ Thanks BladeDev!
       circleLinks = [];
     }
 
+    function renderFromHistory(entry) {
+      removeAll();
+      entry.circles.forEach(data => renderCircle(data));
+      attachCircleInteractions();
+    }
+
     function attachCircleInteractions() {
       circleLinks.forEach((link) => {
         const circleLeft = link.elementLeft;
         const circleRight = link.elementRight;
 
-        circleLeft.style.cursor = "pointer";
-        circleRight.style.cursor = "pointer";
+        circleLeft.style.cursor = 'pointer';
+        circleRight.style.cursor = 'pointer';
 
-        // Left circle hover (also hovers right circle)
         circleLeft.addEventListener('mouseenter', () => {
           circleLeft.classList.add('hovered');
           circleRight.classList.add('hovered');
@@ -242,7 +301,6 @@ Thanks BladeDev!
           circleRight.classList.remove('hovered');
         });
 
-        // Right circle hover (also hovers left circle)
         circleRight.addEventListener('mouseenter', () => {
           circleLeft.classList.add('hovered');
           circleRight.classList.add('hovered');
@@ -255,21 +313,58 @@ Thanks BladeDev!
       });
     }
 
-    // Click anywhere on the page (except circles) to regenerate
-    body.addEventListener('click', (e) => {
-      // Check if the click was on a circle or anchor
-      if (e.target.tagName === 'circle' || e.target.classList.contains('inkblot-circle') || e.target.tagName === 'a') {
-        return;
+    function goToNext() {
+      if (historyIndex < history.length - 1) {
+        historyIndex++;
+      } else {
+        history.push(createNewEntry());
+        historyIndex = history.length - 1;
       }
+      renderFromHistory(history[historyIndex]);
+    }
 
-      removeAll();
-      drawRandom();
+    function goToPrev() {
+      if (historyIndex > 0) {
+        historyIndex--;
+      } else {
+        history.unshift(createNewEntry());
+        historyIndex = 0;
+      }
+      renderFromHistory(history[historyIndex]);
+    }
+
+    document.getElementById('nav-left').addEventListener('click', goToPrev);
+    document.getElementById('nav-right').addEventListener('click', goToNext);
+
+    // Click anywhere on the page (except circles, anchors, or nav panels) to go forward
+    document.body.addEventListener('click', (e) => {
+      if (e.target.matches('circle, a, .inkblot-circle, .nav-panel')) return;
+      goToNext();
     });
 
-    // Draw initial random shapes
-    drawRandom();
-  </script>
+    // Arrow keys, WASD keys, HJKL keys
+    const LEFT_OR_DOWN = new Set(['ArrowLeft', 'ArrowDown', 'h', 'j', 'a', 's']);
+    const RIGHT_OR_UP = new Set(['ArrowRight', 'ArrowUp', 'k', 'l', 'd', 'w']);
+    function keyLeftOrDown(key) { return LEFT_OR_DOWN.has(key); }
+    function keyRightOrUp(key) { return RIGHT_OR_UP.has(key); }
 
+    document.addEventListener('keydown', (e) => {
+      if (keyLeftOrDown(e.key)) {
+        e.preventDefault();
+        goToPrev();
+      } else if (keyRightOrUp(e.key)) {
+        e.preventDefault();
+        goToNext();
+      }
+    });
+
+    // Draw initial inkblot
+    const first = createNewEntry();
+    history.push(first);
+    historyIndex = 0;
+    renderFromHistory(first);
+
+  </script>
 </body>
 
 </html>

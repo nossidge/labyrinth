@@ -54,11 +54,19 @@ https://www.clipartmax.com/middle/m2i8A0i8K9G6d3A0_background-clipart-cow-spots-
 </head>
 
 <body>
-  <a href="../../todo.html">
+  <a href="../index.html">
     <div id="central-cow" aria-label="Cow Emoji">
       🐄
     </div>
   </a>
+
+  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script>
+    const currentPage = "corridors/cow";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+  </script>
 </body>
 
 </html>

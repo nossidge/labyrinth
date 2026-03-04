@@ -95,6 +95,14 @@ def generate_dir_files(dir_path)
 
     // Most pages only need the URL strings.
     const labyrinthPages = corridorsData.map(c => c.url);
+
+    // Find all anchors that link to the parent index.
+    // e.g. `<a href="../index.html" class="highlight">Safe Mode</a>`
+    // And replace the href with `pageRandomiser.nextOne()`.
+    window.addEventListener('DOMContentLoaded', () => {
+      const anchors = document.querySelectorAll('a[href="../index.html"]');
+      anchors.forEach(anchor => anchor.href = pageRandomiser.nextOne());
+    });
   JSCRIPT
   FileUtils.mkdir_p(File.dirname(js_path))
   File.write(js_path, js_content)

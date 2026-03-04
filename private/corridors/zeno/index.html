@@ -243,19 +243,19 @@
 </head>
 
 <body>
-  <a href="../../todo.html" class="icon" style="top: 20px; left: 20px;">
+  <a href="../index.html" class="icon" style="top: 20px; left: 20px;">
     <span class="icon-img">📂</span>
     <span>Axioms</span>
   </a>
-  <a href="../../todo.html" class="icon" style="top: 110px; left: 20px;">
+  <a href="../index.html" class="icon" style="top: 110px; left: 20px;">
     <span class="icon-img">💽</span>
     <span>Tortoise</span>
   </a>
-  <a href="../../todo.html" class="icon" style="top: 200px; left: 20px;">
+  <a href="../index.html" class="icon" style="top: 200px; left: 20px;">
     <span class="icon-img">🏹</span>
     <span>Achilles</span>
   </a>
-  <a href="../../todo.html" class="icon" style="top: 290px; left: 20px;">
+  <a href="../index.html" class="icon" style="top: 290px; left: 20px;">
     <span class="icon-img">🗑️</span>
     <span>Recycle Bin</span>
   </a>
@@ -266,9 +266,9 @@
         <span>⌛</span> Downloading Eternity...
       </div>
       <div class="title-bar-controls">
-        <a href="../../todo.html" class="control-button">_</a>
-        <a href="../../todo.html" class="control-button">□</a>
-        <a href="../../todo.html" class="control-button">X</a>
+        <a href="../index.html" class="control-button">_</a>
+        <a href="../index.html" class="control-button">□</a>
+        <a href="../index.html" class="control-button">X</a>
       </div>
     </div>
     <div class="window-body">
@@ -304,8 +304,8 @@
       </div>
 
       <div class="buttons-row">
-        <a href="../../todo.html" class="win-button" id="more-info">More Info</a>
-        <a href="../../todo.html" class="win-button" id="cancel">Cancel</a>
+        <a href="../index.html" class="win-button" id="more-info">More Info</a>
+        <a href="../index.html" class="win-button" id="cancel">Cancel</a>
       </div>
     </div>
   </div>
@@ -315,8 +315,13 @@
     <div id="taskbar-clock">00:00</div>
   </div>
 
+  <script src="../../common/labyrinthPages.js"></script>
   <script src="../../common/CyclicRandomiser.js"></script>
   <script>
+    const currentPage = "corridors/zeno";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
     const RATES_POOL = [
       "0.0001 atoms/sec",
       "Planck length/day",

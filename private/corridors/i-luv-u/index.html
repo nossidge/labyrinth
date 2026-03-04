@@ -45,11 +45,19 @@ https://uk.pinterest.com/pin/glitter-hearts-gif--700520917033499611/
 </head>
 
 <body>
-  <a href="../../todo.html">I</a>
+  <a href="../index.html">I</a>
   <hr>
-  <a href="../../todo.html">&lt;3</a>
+  <a href="../index.html">&lt;3</a>
   <hr>
-  <a href="../../todo.html">U</a>
+  <a href="../index.html">U</a>
+
+  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script>
+    const currentPage = "corridors/i-luv-u";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+  </script>
 </body>
 
 </html>

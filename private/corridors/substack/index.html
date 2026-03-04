@@ -48,10 +48,18 @@ I don't care, fuck you.
 </head>
 
 <body>
-  <div><a href="../../todo.html">i'm not going</a></div>
-  <div><a href="../../todo.html">to read your</a></div>
-  <div><a href="../../todo.html">fucking substack</a></div>
-  <div><a href="../../todo.html">you fucking nazi</a></div>
+  <div><a href="../index.html">i'm not going</a></div>
+  <div><a href="../index.html">to read your</a></div>
+  <div><a href="../index.html">fucking substack</a></div>
+  <div><a href="../index.html">you fucking nazi</a></div>
+
+  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script>
+    const currentPage = "corridors/substack";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+  </script>
 </body>
 
 </html>

@@ -27,7 +27,6 @@
       justify-content: center;
       height: 100vh;
       overflow: hidden;
-      cursor: crosshair;
       animation: bg-pulse var(--heartbeat-duration) infinite ease-in-out;
     }
 
@@ -142,15 +141,23 @@
   <div class="ripple ripple-2"></div>
 
   <div class="container">
-    <pre>   <a href="../../todo.html">&lt;3</a><a href="../../todo.html">&lt;3</a>  <a href="../../todo.html">&lt;3</a><a href="../../todo.html">&lt;3</a>
- <a href="../../todo.html">&lt;3</a>    <a href="../../todo.html">&lt;3</a>    <a href="../../todo.html">&lt;3</a>
-<a href="../../todo.html">&lt;3</a>            <a href="../../todo.html">&lt;3</a>
-<a href="../../todo.html">&lt;3</a>            <a href="../../todo.html">&lt;3</a>
- <a href="../../todo.html">&lt;3</a>          <a href="../../todo.html">&lt;3</a>
-   <a href="../../todo.html">&lt;3</a>      <a href="../../todo.html">&lt;3</a>
-     <a href="../../todo.html">&lt;3</a>  <a href="../../todo.html">&lt;3</a>
-       <a href="../../todo.html">&lt;3</a></pre>
+    <pre>   <a href="../index.html">&lt;3</a><a href="../index.html">&lt;3</a>  <a href="../index.html">&lt;3</a><a href="../index.html">&lt;3</a>
+ <a href="../index.html">&lt;3</a>    <a href="../index.html">&lt;3</a>    <a href="../index.html">&lt;3</a>
+<a href="../index.html">&lt;3</a>            <a href="../index.html">&lt;3</a>
+<a href="../index.html">&lt;3</a>            <a href="../index.html">&lt;3</a>
+ <a href="../index.html">&lt;3</a>          <a href="../index.html">&lt;3</a>
+   <a href="../index.html">&lt;3</a>      <a href="../index.html">&lt;3</a>
+     <a href="../index.html">&lt;3</a>  <a href="../index.html">&lt;3</a>
+       <a href="../index.html">&lt;3</a></pre>
   </div>
+
+  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script>
+    const currentPage = "corridors/heart-of-hearts";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+  </script>
 </body>
 
 </html>

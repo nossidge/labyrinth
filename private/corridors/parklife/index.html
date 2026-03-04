@@ -129,29 +129,37 @@ https://www.youtube.com/watch?v=YSuHrTfcikU&t=9s
 <body>
   <div class="card">
     <div class="top-banner">
-      <a href="../../todo.html">AMAZING GLAZING</a>
+      <a href="../index.html">AMAZING GLAZING</a>
     </div>
 
     <div class="names">
-      <a href="../../todo.html">Phil & Damon</a>
+      <a href="../index.html">Phil & Damon</a>
     </div>
 
     <div class="tagline">
-      <a href="../../todo.html">“Always completely transparent”</a>
+      <a href="../index.html">“Always completely transparent”</a>
     </div>
 
     <div class="bottom">
       <div class="address">
-        <a href="../../todo.html">82 SKYLARK'S WAY,</a>
-        <a href="../../todo.html">LONDON, E17.</a>
+        <a href="../index.html">82 SKYLARK'S WAY,</a>
+        <a href="../index.html">LONDON, E17.</a>
       </div>
       <div class="contact">
-        <a href="../../todo.html">Tel: 415 875 8463</a>
-        <a href="../../todo.html">Fax: 823 876 8431</a>
-        <a href="../../todo.html">Mobile: 0956 394333</a>
+        <a href="../index.html">Tel: 415 875 8463</a>
+        <a href="../index.html">Fax: 823 876 8431</a>
+        <a href="../index.html">Mobile: 0956 394333</a>
       </div>
     </div>
   </div>
+
+  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script>
+    const currentPage = "corridors/parklife";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+  </script>
 </body>
 
 </html>

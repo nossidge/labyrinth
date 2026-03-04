@@ -137,6 +137,18 @@ https://www.markrjohnsongames.com/2025/05/10/ultima-ratio-regum-0-11-update-35-l
     const shelfCount = 3;
     const container = document.getElementById('shelves-container');
 
+    const ALCHEMICAL_SYMBOLS = [
+      '🜁', '🜂', '🜃', '🜄', '🜅', '🜆', '🜇', '🜈', '🜉', '🜊', '🜋', '🜌', '🜍', '🜎', '🜏',
+      '🜐', '🜑', '🜒', '🜓', '🜔', '🜕', '🜖', '🜗', '🜘', '🜙', '🜚', '🜛', '🜜', '🜝', '🜞',
+      '🜟', '🜠', '🜡', '🜢', '🜣', '🜤', '🜥', '🜦', '🜧', '🜨', '🜩', '🜪', '🜫', '🜬', '🜭',
+      '🜮', '🜯', '🜰', '🜱', '🜲', '🜳', '🜴', '🜵', '🜶', '🜷', '🜸', '🜹', '🜺', '🜻', '🜼',
+      '🜽', '🜾', '🜿', '🝀', '🝁', '🝂', '🝃', '🝄', '🝅', '🝆', '🝈', '🝉', '🝊', '🝋', '🝠',
+      '🝍', '🝎', '🝏', '🝐', '🝑', '🝒', '🝓', '🝔', '🝕', '🝖', '🝗', '🝘', '🝙', '🝚', '🝛',
+      '🝜', '🝝', '🝞', '🝟', '🝌', '🝡', '🝢', '🝣', '🝤', '🝥', '🝦', '🝧', '🝩', '🝪', '🝫',
+      '🝬', '🝭', '🝮', '🝯', '🝰', '🝱', '🝲', '🝳',
+    ]
+    const symbolRandomiser = new CyclicRandomiser(ALCHEMICAL_SYMBOLS);
+
     const bookColors = [
       '#4a1a1a', // Deep Red
       '#1a3a1a', // Forest Green
@@ -171,11 +183,11 @@ https://www.markrjohnsongames.com/2025/05/10/ultima-ratio-regum-0-11-update-35-l
         decor += `<line x1="0" y1="${height - 15}" x2="${width}" y2="${height - 15}" stroke="${goldColor}" stroke-width="1" />`;
       }
 
-      // Random "text" or symbol on spine
-      if (Math.random() > 0.5) {
+      // Random symbol on spine
+      if (Math.random() > 0.3) {
         const textY = height / 2;
         const fontSize = Math.min(width * 0.7, 14);
-        decor += `<text x="${width / 2}" y="${textY}" fill="${goldColor}" font-family="serif" font-size="${fontSize}" text-anchor="middle" transform="rotate(90, ${width / 2}, ${textY})">${Math.random() > 0.5 ? 'I' : '§'}${Math.random() > 0.5 ? 'X' : 'V'}</text>`;
+        decor += `<text x="${width / 2}" y="${textY}" fill="${goldColor}" font-family="serif" font-size="${fontSize}" text-anchor="middle" transform="rotate(90, ${width / 2}, ${textY})">${symbolRandomiser.nextOne()}</text>`;
       } else {
         // Just some horizontal blocks for text
         const midY = height / 2;

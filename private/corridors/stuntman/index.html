@@ -124,13 +124,18 @@
 
 <body>
   <div id="world">
-    <a href="../../todo.html" id="sun"></a>
-    <a href="../../todo.html" id="ramp"></a>
+    <a href="../index.html" id="sun"></a>
+    <a href="../index.html" id="ramp"></a>
     <div id="ground"></div>
   </div>
 
+  <script src="../../common/labyrinthPages.js"></script>
   <script src="../../common/CyclicRandomiser.js"></script>
   <script>
+    const currentPage = "corridors/stuntman";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
     // It turns out they all face left...
     // Sod it, I'm leaving this in.
     const VEHICLES_POOL = [

@@ -415,8 +415,8 @@ musicians) break creative blocks by encouraging lateral thinking.
       if (e.key === 'Tab') {
         return;
       }
-      // Ignore if a modifier key is pressed (e.g., Ctrl, Alt, Meta, Shift)
-      if (e.ctrlKey || e.altKey || e.metaKey || e.shiftKey) {
+      // Ignore if a modifier key is pressed (e.g., Ctrl, Alt, Meta, Shift, F5)
+      if (e.ctrlKey || e.altKey || e.metaKey || e.shiftKey || e.keyCode == 116) {
         return;
       }
       drawCard();

@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+Inspired by:
+"DR. J. MOUNT BLEYER'S AND MELVILLE M. WILSON'S SCALE"
+https://archive.org/details/rhythmicbreathin00nobl/page/n123/mode/2up
+
+Referenced (though wrongly attributed) here:
+https://twitter.com/MrPrudence/status/2026411527738212754
+-->
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="There's strings attached to every single lover">
+  <title>The threads that bind us</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body,
+    html {
+      width: 100%;
+      height: 100%;
+      background-color: #0a0a0a;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #link {
+      display: block;
+      line-height: 0;
+    }
+
+    canvas {
+      display: block;
+    }
+
+    .nav-panel {
+      position: fixed;
+      top: 0;
+      height: 100%;
+      width: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 5;
+      cursor: pointer;
+    }
+
+    #nav-left {
+      left: 0;
+      background: linear-gradient(to right, rgba(255, 255, 255, 0.02), transparent);
+    }
+
+    #nav-left:hover {
+      background: linear-gradient(to right, rgba(255, 255, 255, 0.06), transparent);
+    }
+
+    #nav-right {
+      right: 0;
+      background: linear-gradient(to left, rgba(255, 255, 255, 0.02), transparent);
+    }
+
+    #nav-right:hover {
+      background: linear-gradient(to left, rgba(255, 255, 255, 0.06), transparent);
+    }
+
+    .nav-button {
+      background: none;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: rgba(255, 255, 255, 0.25);
+      font-size: 28px;
+      padding: 12px 16px;
+      cursor: pointer;
+      line-height: 1;
+      pointer-events: none;
+    }
+
+    .nav-panel:hover .nav-button {
+      border-color: rgba(255, 255, 255, 0.5);
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    /* CRT scanline overlay */
+    body::after {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 10;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 255, 0, 0.03));
+      background-size: 100% 2px, 3px 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="nav-left" class="nav-panel">
+    <button id="prev-btn" class="nav-button">&larr;</button>
+  </div>
+
+  <a id="link" href="#">
+    <canvas id="canvas"></canvas>
+  </a>
+
+  <div id="nav-right" class="nav-panel">
+    <button id="next-btn" class="nav-button">&rarr;</button>
+  </div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/gauze";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const PALETTES_POOL = [
+      { line: 'rgb(200, 200, 220)', square: 'rgb(200, 200, 220)' },
+      { line: 'rgb(100, 180, 255)', square: 'rgb(100, 180, 255)' },
+      { line: 'rgb(255, 120, 80)', square: 'rgb(255, 120, 80)' },
+      { line: 'rgb(80, 255, 160)', square: 'rgb(80, 255, 160)' },
+      { line: 'rgb(255, 200, 50)', square: 'rgb(255, 200, 50)' },
+      { line: 'rgb(220, 100, 255)', square: 'rgb(220, 100, 255)' },
+    ];
+    const palettesRandomiser = new CyclicRandomiser(PALETTES_POOL);
+
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const linkElement = document.getElementById('link');
+
+    let squareSize = 0;
+
+    // History of generated patterns
+    // Each entry: { offsets: [...], palette: {...}, href: '...' }
+    let history = [];
+    let historyIndex = -1;
+
+    function calcSquareSize() {
+      const vmin = Math.min(window.innerWidth, window.innerHeight);
+      return Math.floor(vmin * 0.75);
+    }
+
+    function resize() {
+      const newSize = calcSquareSize();
+      if (newSize === squareSize) return;
+      squareSize = newSize;
+      canvas.width = squareSize;
+      canvas.height = squareSize;
+      drawFromHistory(history[historyIndex]);
+    }
+
+    function generateOffsets() {
+      const numPoints = 4 + Math.floor(Math.random() * 7); // 4-10 points
+      const offsets = [];
+      for (let i = 0; i < numPoints; i++) {
+        // Store as 0..0.5 fraction of squareSize
+        offsets.push(Math.random() * 0.5);
+      }
+      offsets.sort((a, b) => a - b);
+      return offsets;
+    }
+
+    function offsetsToPoints(offsets) {
+      const allPoints = [];
+
+      offsets.forEach(frac => {
+        const offset = frac * squareSize;
+        allPoints.push({ x: offset, y: 0 });
+        allPoints.push({ x: squareSize - offset, y: 0 });
+        allPoints.push({ x: squareSize, y: offset });
+        allPoints.push({ x: squareSize, y: squareSize - offset });
+        allPoints.push({ x: squareSize - offset, y: squareSize });
+        allPoints.push({ x: offset, y: squareSize });
+        allPoints.push({ x: 0, y: squareSize - offset });
+        allPoints.push({ x: 0, y: offset });
+      });
+
+      const halfLen = squareSize / 2;
+      allPoints.push({ x: 0, y: 0 });
+      allPoints.push({ x: squareSize, y: 0 });
+      allPoints.push({ x: squareSize, y: squareSize });
+      allPoints.push({ x: 0, y: squareSize });
+      allPoints.push({ x: halfLen, y: 0 });
+      allPoints.push({ x: squareSize, y: halfLen });
+      allPoints.push({ x: halfLen, y: squareSize });
+      allPoints.push({ x: 0, y: halfLen });
+
+      const unique = [];
+      const seen = new Set();
+      allPoints.forEach(p => {
+        const key = p.x + ',' + p.y;
+        if (!seen.has(key)) {
+          seen.add(key);
+          unique.push(p);
+        }
+      });
+
+      return unique;
+    }
+
+    function drawFromHistory(entry) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const palette = entry.palette;
+      const points = offsetsToPoints(entry.offsets);
+
+      ctx.strokeStyle = palette.square;
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(0, 0, squareSize, squareSize);
+
+      ctx.strokeStyle = palette.line;
+      ctx.lineWidth = 0.5;
+      ctx.beginPath();
+      for (let i = 0; i < points.length; i++) {
+        for (let j = i + 1; j < points.length; j++) {
+          ctx.moveTo(points[i].x, points[i].y);
+          ctx.lineTo(points[j].x, points[j].y);
+        }
+      }
+      ctx.stroke();
+
+      linkElement.href = entry.href;
+    }
+
+    function createNewEntry() {
+      return {
+        offsets: generateOffsets(),
+        palette: palettesRandomiser.nextOne(),
+        href: pageRandomiser.nextOne(),
+      };
+    }
+
+    function goToNext() {
+      if (historyIndex < history.length - 1) {
+        historyIndex++;
+      } else {
+        history.push(createNewEntry());
+        historyIndex = history.length - 1;
+      }
+      drawFromHistory(history[historyIndex]);
+    }
+
+    function goToPrev() {
+      if (historyIndex > 0) {
+        historyIndex--;
+      } else {
+        history.unshift(createNewEntry());
+        historyIndex = 0;
+      }
+      drawFromHistory(history[historyIndex]);
+    }
+
+    function init() {
+      squareSize = calcSquareSize();
+      canvas.width = squareSize;
+      canvas.height = squareSize;
+
+      const first = createNewEntry();
+      history.push(first);
+      historyIndex = 0;
+      drawFromHistory(first);
+    }
+
+    document.getElementById('nav-left').addEventListener('click', goToPrev);
+    document.getElementById('nav-right').addEventListener('click', goToNext);
+
+    // Arrow keys, WASD keys, HJKL keys
+    const LEFT_OR_DOWN = new Set(['ArrowLeft', 'ArrowDown', 'h', 'j', 'a', 's']);
+    const RIGHT_OR_UP = new Set(['ArrowRight', 'ArrowUp', 'k', 'l', 'd', 'w']);
+    function keyLeftOrDown(key) { return LEFT_OR_DOWN.has(key); }
+    function keyRightOrUp(key) { return RIGHT_OR_UP.has(key); }
+
+    document.addEventListener('keydown', (e) => {
+      if (keyLeftOrDown(e.key)) {
+        e.preventDefault();
+        goToPrev();
+      } else if (keyRightOrUp(e.key)) {
+        e.preventDefault();
+        goToNext();
+      }
+    });
+
+    window.addEventListener('resize', resize);
+
+    init();
+
+  </script>
+</body>
+
+</html>

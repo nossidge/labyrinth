@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="I've been playing Ultros lately.">
+  <title>Phosphorescence</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      background: #050510;
+      position: relative;
+      font-family: monospace;
+    }
+
+    #scene {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    /* Ground gradient */
+    #ground {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 35%;
+      background: linear-gradient(to bottom, transparent 0%, rgba(0, 20, 10, 0.6) 30%, rgba(0, 15, 8, 0.9) 100%);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* Lo-fi grain overlay */
+    .grain {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48ZmlsdGVyIGlkPSJuIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iMC44NSIgbnVtT2N0YXZlcz0iMyIgc3RpdGNoVGlsZXM9InN0aXRjaCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbHRlcj0idXJsKCNuKSIvPjwvc3ZnPg==');
+      opacity: 0.04;
+      z-index: 200;
+      pointer-events: none;
+    }
+
+    /* CRT scanlines */
+    .scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: repeating-linear-gradient(0deg,
+          transparent,
+          transparent 2px,
+          rgba(0, 0, 0, 0.08) 2px,
+          rgba(0, 0, 0, 0.08) 4px);
+      z-index: 201;
+      pointer-events: none;
+    }
+
+    /* Plant containers */
+    .plant {
+      position: absolute;
+      cursor: pointer;
+      text-decoration: none;
+      display: block;
+      z-index: 10;
+      transition: filter 0.4s ease;
+    }
+
+    .plant:hover {
+      filter: brightness(1.8) drop-shadow(0 0 20px var(--glow-color, #0ff));
+    }
+
+    /* Stem styling */
+    .stem {
+      opacity: 0;
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: var(--stem-width, 3px);
+      height: var(--stem-height, 120px);
+      background: var(--stem-color, #0a4a2a);
+      border-radius: 2px;
+      box-shadow: 0 0 6px var(--glow-color, #0f8),
+        0 0 12px rgba(0, 255, 100, 0.15);
+      transform-origin: bottom center;
+    }
+
+    /* Neon flower head - nested inside .stem so it sways with it */
+    .flower-head {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: var(--flower-size, 24px);
+      height: var(--flower-size, 24px);
+    }
+
+    /* Petal types */
+    .petal-ring {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      animation: pulse var(--pulse-speed, 3s) ease-in-out infinite;
+    }
+
+    .petal-ring svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 0.7;
+        filter: drop-shadow(0 0 4px var(--glow-color, #0ff));
+      }
+
+      50% {
+        opacity: 1;
+        filter: drop-shadow(0 0 12px var(--glow-color, #0ff)) drop-shadow(0 0 24px var(--glow-color, #0ff));
+      }
+    }
+
+    @keyframes pulse-slow {
+
+      0%,
+      100% {
+        opacity: 0.5;
+        filter: drop-shadow(0 0 3px var(--glow-color, #0ff));
+      }
+
+      50% {
+        opacity: 0.9;
+        filter: drop-shadow(0 0 8px var(--glow-color, #0ff)) drop-shadow(0 0 16px var(--glow-color, #0ff));
+      }
+    }
+
+    @keyframes sway {
+
+      0%,
+      100% {
+        transform: translateX(-50%) rotate(0deg);
+      }
+
+      50% {
+        transform: translateX(-50%) rotate(var(--sway-angle, 2deg));
+      }
+    }
+
+    .stem.sway {
+      animation: sway var(--sway-speed, 4s) ease-in-out infinite;
+    }
+
+    @keyframes grow-in {
+      0% {
+        transform: translateX(-50%) scaleY(0);
+        opacity: 0;
+      }
+
+      60% {
+        transform: translateX(-50%) scaleY(1.05);
+        opacity: 1;
+      }
+
+      100% {
+        transform: translateX(-50%) scaleY(1);
+        opacity: 1;
+      }
+    }
+
+    .plant.growing .stem {
+      animation: grow-in var(--grow-duration, 1.5s) ease-out forwards,
+        sway var(--sway-speed, 4s) ease-in-out infinite var(--grow-duration, 1.5s);
+    }
+
+    .plant.growing .flower-head {
+      opacity: 0;
+      animation: bloom var(--grow-duration, 1.5s) ease-out forwards;
+      animation-delay: calc(var(--grow-duration, 1.5s) * 0.6);
+    }
+
+    @keyframes bloom {
+      0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0);
+      }
+
+      70% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.15);
+      }
+
+      100% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+      }
+    }
+
+    /* Vine tendrils */
+    .vine {
+      position: absolute;
+      z-index: 5;
+      pointer-events: none;
+    }
+
+    .vine svg {
+      overflow: visible;
+    }
+
+    .vine path {
+      fill: none;
+      stroke-linecap: round;
+    }
+
+    @keyframes vine-draw {
+      0% {
+        stroke-dashoffset: var(--vine-length, 300);
+      }
+
+      100% {
+        stroke-dashoffset: 0;
+      }
+    }
+
+    .vine path {
+      stroke-dasharray: var(--vine-length, 300);
+      stroke-dashoffset: var(--vine-length, 300);
+      animation: vine-draw var(--vine-draw-speed, 4s) ease-out forwards;
+    }
+
+    /* Floating spore particles */
+    .spore {
+      position: absolute;
+      width: var(--spore-size, 4px);
+      height: var(--spore-size, 4px);
+      border-radius: 50%;
+      background: var(--spore-color, rgba(0, 255, 200, 0.6));
+      box-shadow: 0 0 6px var(--spore-color, rgba(0, 255, 200, 0.4)),
+        0 0 12px var(--spore-color, rgba(0, 255, 200, 0.2));
+      pointer-events: none;
+      z-index: 15;
+      animation: float-up var(--float-duration, 8s) ease-in-out infinite;
+      opacity: 0;
+    }
+
+    @keyframes float-up {
+      0% {
+        opacity: 0;
+        transform: translateY(0) translateX(0);
+      }
+
+      10% {
+        opacity: 1;
+      }
+
+      80% {
+        opacity: 0.6;
+      }
+
+      100% {
+        opacity: 0;
+        transform: translateY(var(--float-distance, -200px)) translateX(var(--float-drift, 30px));
+      }
+    }
+
+    /* Mushroom clusters */
+    .mushroom-group {
+      position: absolute;
+      z-index: 8;
+      cursor: pointer;
+      text-decoration: none;
+      display: block;
+      transition: filter 0.4s ease;
+    }
+
+    .mushroom-group:hover {
+      filter: brightness(1.6) drop-shadow(0 0 16px var(--glow-color, #f0f));
+    }
+
+    .mushroom-group svg {
+      overflow: visible;
+    }
+
+    .mushroom-cap {
+      opacity: 0.5;
+      animation: pulse-slow var(--pulse-speed, 2.5s) ease-in-out infinite;
+    }
+
+    /* Lotus / water plant at ground level */
+    .lotus {
+      position: absolute;
+      bottom: 0;
+      z-index: 12;
+      cursor: pointer;
+      text-decoration: none;
+      display: block;
+      transition: filter 0.4s ease;
+    }
+
+    .lotus:hover {
+      filter: brightness(1.5) drop-shadow(0 0 18px var(--glow-color, #f0a));
+    }
+
+    .lotus svg {
+      overflow: visible;
+      transform: rotate(90deg);
+    }
+
+    .lotus-petal {
+      opacity: 0.7;
+      animation: pulse var(--pulse-speed, 3s) ease-in-out infinite;
+    }
+
+    /* Hanging vines from top */
+    .hanging-vine {
+      position: absolute;
+      top: 0;
+      z-index: 6;
+      cursor: pointer;
+      text-decoration: none;
+      display: block;
+      transition: filter 0.4s ease;
+    }
+
+    .hanging-vine:hover {
+      filter: brightness(1.5) drop-shadow(0 0 14px var(--glow-color, #0f8));
+    }
+
+    .hanging-vine svg {
+      overflow: visible;
+    }
+
+    @keyframes hang-sway {
+
+      0%,
+      100% {
+        transform: rotate(0deg);
+      }
+
+      50% {
+        transform: rotate(var(--sway-angle, 1.5deg));
+      }
+    }
+
+    .hanging-vine svg {
+      transform-origin: top center;
+      animation: hang-sway var(--sway-speed, 5s) ease-in-out infinite;
+    }
+
+    /* Ambient glow spots */
+    .ambient-glow {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 3;
+      opacity: 0.15;
+      animation: ambient-pulse 6s ease-in-out infinite;
+    }
+
+    @keyframes ambient-pulse {
+
+      0%,
+      100% {
+        opacity: 0.15;
+        transform: scale(1);
+      }
+
+      50% {
+        opacity: 0.35;
+        transform: scale(1.1);
+      }
+    }
+
+    /* Poem box styling */
+    #poem-box {
+      position: absolute;
+      top: 45%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 150;
+      padding: 40px 70px 40px 40px;
+      background: rgba(10, 0, 20, 0.85);
+      border: 2px solid #ff00ff;
+      box-shadow: 0 0 25px rgba(255, 0, 255, 0.5),
+        inset 0 0 15px rgba(255, 0, 255, 0.3);
+      text-align: left;
+      max-width: 90vw;
+      width: fit-content;
+      border-radius: 30px;
+      backdrop-filter: blur(3px);
+      color: #ccc;
+      text-decoration: none;
+      transition: border-color 0.3s linear;
+      animation: fadeIn 6s ease-in forwards;
+      opacity: 0;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    /* Small decorative corners for that 90s polish */
+    #poem-box::before,
+    #poem-box::after {
+      content: "";
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      border: 2px solid #ff00ff;
+      transition: border-color 0.3s linear;
+    }
+
+    /* Fancy top left corner */
+    #poem-box::before {
+      top: -10px;
+      left: -10px;
+      border-right: none;
+      border-bottom: none;
+      border-top-left-radius: 40px;
+    }
+
+    /* Fancy bottom right corner */
+    #poem-box::after {
+      bottom: -10px;
+      right: -10px;
+      border-left: none;
+      border-top: none;
+      border-bottom-right-radius: 40px;
+    }
+
+    #poem-text {
+      font-family: "Georgia", "Times New Roman", serif;
+      font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+      line-height: 1.6;
+      font-style: italic;
+      text-shadow: 0 0 8px #ff00ff, 0 0 16px #ff00ff;
+      white-space: pre-wrap;
+      transition: color 0.3s linear;
+    }
+
+    #poem-box:hover {
+      color: #fff;
+      border-color: #ff99ff;
+    }
+
+    #poem-box:hover::before,
+    #poem-box:hover::after {
+      border-color: #ff99ff;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="grain"></div>
+  <div class="scanlines"></div>
+
+  <a id="poem-box" href="../index.html">
+    <div id="poem-text">—And I have felt
+      A presence that disturbs me with the joy
+      Of elevated thoughts; a sense sublime
+      Of something far more deeply interfused,
+      Whose dwelling is the light of setting suns</div>
+  </a>
+
+  <div id="scene">
+    <div id="ground"></div>
+  </div>
+
+  <!-- SVG filters for glow effects -->
+  <svg width="0" height="0" style="position:absolute">
+    <defs>
+      <filter id="neon-glow" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur" />
+        <feColorMatrix in="blur" type="saturate" values="3" result="saturated" />
+        <feMerge>
+          <feMergeNode in="saturated" />
+          <feMergeNode in="SourceGraphic" />
+        </feMerge>
+      </filter>
+      <filter id="heavy-glow" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur1" />
+        <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur2" />
+        <feMerge>
+          <feMergeNode in="blur1" />
+          <feMergeNode in="blur2" />
+          <feMergeNode in="SourceGraphic" />
+        </feMerge>
+      </filter>
+    </defs>
+  </svg>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/neon-garden";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const scene = document.getElementById('scene');
+    const W = window.innerWidth;
+    const H = window.innerHeight;
+
+    // Color palettes for different plant species
+    const PALETTES = [
+      { stem: '#0a3a2a', glow: '#00ffaa', petals: ['#00ffaa', '#00cc88', '#00ff77'] },
+      { stem: '#2a0a3a', glow: '#ff00ff', petals: ['#ff00ff', '#cc00cc', '#ff44ff'] },
+      { stem: '#0a1a3a', glow: '#00ccff', petals: ['#00ccff', '#0088ff', '#00eeff'] },
+      { stem: '#3a0a1a', glow: '#ff0066', petals: ['#ff0066', '#ff3388', '#ff0044'] },
+      { stem: '#1a3a0a', glow: '#aaff00', petals: ['#aaff00', '#88cc00', '#ccff44'] },
+      { stem: '#3a2a0a', glow: '#ffaa00', petals: ['#ffaa00', '#ff8800', '#ffcc44'] },
+      { stem: '#0a2a3a', glow: '#00ffee', petals: ['#00ffee', '#00ddcc', '#44ffee'] },
+      { stem: '#2a0a2a', glow: '#ee44ff', petals: ['#ee44ff', '#cc22dd', '#ff66ff'] },
+    ];
+
+    // Plant counts
+    const NUM_AMBIENT_GLOWS = 18;
+    const NUM_HANGING_VINES = 20;
+    const NUM_BACKGROUND_VINES = 222;
+    const NUM_STEM_FLOWERS = 18;
+    const NUM_MUSHROOM_CLUSTERS = 15;
+    const NUM_LOTUS = 12;
+    const NUM_SPORES = 40;
+
+    function randRange(min, max) {
+      return min + Math.random() * (max - min);
+    }
+
+    function pick(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    // --- AMBIENT GLOW SPOTS ---
+    function createAmbientGlows() {
+      const colors = ['#00ffaa', '#ff00ff', '#00ccff', '#ff0066', '#aaff00', '#00ffee'];
+      for (let i = 0; i < NUM_AMBIENT_GLOWS; i++) {
+        const glow = document.createElement('div');
+        glow.className = 'ambient-glow';
+        const size = randRange(100, 300);
+        const color = pick(colors);
+        glow.style.width = size + 'px';
+        glow.style.height = size + 'px';
+        glow.style.left = randRange(0, W - size) + 'px';
+        glow.style.top = randRange(H * 0.15, H * 0.6) + 'px';
+        glow.style.background = `radial-gradient(circle, ${color}22 0%, transparent 70%)`;
+        glow.style.animationDelay = randRange(0, 6) + 's';
+        glow.style.animationDuration = randRange(4, 8) + 's';
+        scene.appendChild(glow);
+      }
+    }
+
+    // --- TALL STEM FLOWERS ---
+    function createStemFlower(x, bottomY, palette, size) {
+      const link = document.createElement('a');
+      link.href = pageRandomiser.nextOne();
+      link.className = 'plant growing';
+      link.style.setProperty('--glow-color', palette.glow);
+
+      const stemH = randRange(80, 220) * size;
+      const stemW = randRange(2, 5) * size;
+      const flowerSize = randRange(40, 70) * size;
+      const growDur = randRange(1.2, 2.5);
+      const swaySpeed = randRange(3, 6);
+      const swayAngle = randRange(1, 4);
+      const pulseSpeed = randRange(2, 4);
+
+      link.style.left = x + 'px';
+      link.style.bottom = bottomY + 'px';
+      link.style.width = flowerSize + 'px';
+      link.style.height = (stemH + flowerSize) + 'px';
+      link.style.setProperty('--grow-duration', growDur + 's');
+      link.style.setProperty('--sway-speed', swaySpeed + 's');
+      link.style.setProperty('--sway-angle', swayAngle + 'deg');
+
+      // Stem
+      const stem = document.createElement('div');
+      stem.className = 'stem sway';
+      stem.style.setProperty('--stem-height', stemH + 'px');
+      stem.style.setProperty('--stem-width', stemW + 'px');
+      stem.style.setProperty('--stem-color', palette.stem);
+      stem.style.setProperty('--glow-color', palette.glow);
+      stem.style.setProperty('--sway-speed', swaySpeed + 's');
+      stem.style.setProperty('--sway-angle', swayAngle + 'deg');
+      stem.style.animationDelay = randRange(0, swaySpeed) + 's';
+
+      // Flower head - nested inside stem so it inherits the sway
+      const head = document.createElement('div');
+      head.className = 'flower-head';
+      head.style.setProperty('--flower-size', flowerSize + 'px');
+
+      // Choose flower type
+      const flowerType = Math.floor(Math.random() * 4);
+      const svg = createFlowerSVG(flowerSize, palette, flowerType, pulseSpeed);
+      head.appendChild(svg);
+      stem.appendChild(head);
+      link.appendChild(stem);
+
+      scene.appendChild(link);
+    }
+
+    function createFlowerSVG(size, palette, type, pulseSpeed) {
+      const ns = 'http://www.w3.org/2000/svg';
+      const svg = document.createElementNS(ns, 'svg');
+      svg.setAttribute('width', size);
+      svg.setAttribute('height', size);
+      svg.setAttribute('viewBox', '-30 -30 60 60');
+      svg.style.overflow = 'visible';
+      svg.style.setProperty('--glow-color', palette.glow);
+      svg.style.setProperty('--pulse-speed', pulseSpeed + 's');
+
+      const g = document.createElementNS(ns, 'g');
+      g.setAttribute('filter', 'url(#neon-glow)');
+      g.classList.add('petal-ring');
+      g.style.setProperty('--glow-color', palette.glow);
+      g.style.setProperty('--pulse-speed', pulseSpeed + 's');
+
+      if (type === 0) {
+        // Star flower - 5 or 6 pointed petals
+        const numPetals = Math.random() > 0.5 ? 5 : 6;
+        for (let i = 0; i < numPetals; i++) {
+          const angle = (360 / numPetals) * i;
+          const petal = document.createElementNS(ns, 'ellipse');
+          petal.setAttribute('cx', 0);
+          petal.setAttribute('cy', -14);
+          petal.setAttribute('rx', 4);
+          petal.setAttribute('ry', 12);
+          petal.setAttribute('fill', pick(palette.petals));
+          petal.setAttribute('opacity', '0.85');
+          petal.setAttribute('transform', `rotate(${angle})`);
+          g.appendChild(petal);
+        }
+        // Center
+        const center = document.createElementNS(ns, 'circle');
+        center.setAttribute('cx', 0);
+        center.setAttribute('cy', 0);
+        center.setAttribute('r', 4);
+        center.setAttribute('fill', palette.glow);
+        center.setAttribute('opacity', '0.9');
+        g.appendChild(center);
+      } else if (type === 1) {
+        // Dahlia - concentric rings of diamond shapes
+        for (let ring = 0; ring < 3; ring++) {
+          const numPetals = 8 + ring * 4;
+          const dist = 6 + ring * 7;
+          const petalSize = 5 - ring;
+          for (let i = 0; i < numPetals; i++) {
+            const angle = (360 / numPetals) * i + ring * 15;
+            const rad = (angle * Math.PI) / 180;
+            const px = Math.cos(rad) * dist;
+            const py = Math.sin(rad) * dist;
+            const diamond = document.createElementNS(ns, 'rect');
+            diamond.setAttribute('x', px - petalSize / 2);
+            diamond.setAttribute('y', py - petalSize / 2);
+            diamond.setAttribute('width', petalSize);
+            diamond.setAttribute('height', petalSize);
+            diamond.setAttribute('fill', palette.petals[ring % palette.petals.length]);
+            diamond.setAttribute('opacity', String(0.9 - ring * 0.15));
+            diamond.setAttribute('transform', `rotate(${angle}, ${px}, ${py})`);
+            g.appendChild(diamond);
+          }
+        }
+      } else if (type === 2) {
+        // Spiky orb - radiating lines with dots
+        const numSpikes = 10 + Math.floor(Math.random() * 8);
+        for (let i = 0; i < numSpikes; i++) {
+          const angle = (360 / numSpikes) * i;
+          const rad = (angle * Math.PI) / 180;
+          const len = 10 + Math.random() * 12;
+          const line = document.createElementNS(ns, 'line');
+          line.setAttribute('x1', 0);
+          line.setAttribute('y1', 0);
+          line.setAttribute('x2', Math.cos(rad) * len);
+          line.setAttribute('y2', Math.sin(rad) * len);
+          line.setAttribute('stroke', pick(palette.petals));
+          line.setAttribute('stroke-width', '1.5');
+          line.setAttribute('opacity', '0.8');
+          g.appendChild(line);
+          // Tip dot
+          const dot = document.createElementNS(ns, 'circle');
+          dot.setAttribute('cx', Math.cos(rad) * len);
+          dot.setAttribute('cy', Math.sin(rad) * len);
+          dot.setAttribute('r', 1.5 + Math.random() * 1.5);
+          dot.setAttribute('fill', palette.glow);
+          dot.setAttribute('opacity', '0.9');
+          g.appendChild(dot);
+        }
+        // Core
+        const core = document.createElementNS(ns, 'circle');
+        core.setAttribute('cx', 0);
+        core.setAttribute('cy', 0);
+        core.setAttribute('r', 3);
+        core.setAttribute('fill', palette.glow);
+        g.appendChild(core);
+      } else {
+        // Tulip bell - closed bell shape
+        const path = document.createElementNS(ns, 'path');
+        path.setAttribute('d', 'M0,-18 C-12,-12 -10,2 -6,6 C-3,10 0,12 0,12 C0,12 3,10 6,6 C10,2 12,-12 0,-18Z');
+        path.setAttribute('fill', pick(palette.petals));
+        path.setAttribute('opacity', '0.85');
+        g.appendChild(path);
+        // Inner glow
+        const inner = document.createElementNS(ns, 'path');
+        inner.setAttribute('d', 'M0,-14 C-7,-9 -5,0 -3,4 C-1,6 0,7 0,7 C0,7 1,6 3,4 C5,0 7,-9 0,-14Z');
+        inner.setAttribute('fill', palette.glow);
+        inner.setAttribute('opacity', '0.4');
+        g.appendChild(inner);
+      }
+
+      svg.appendChild(g);
+      return svg;
+    }
+
+    // --- MUSHROOM CLUSTERS ---
+    function createMushroomCluster(x, bottomY, palette, scale) {
+      const ns = 'http://www.w3.org/2000/svg';
+      const link = document.createElement('a');
+      link.href = pageRandomiser.nextOne();
+      link.className = 'mushroom-group';
+      link.style.setProperty('--glow-color', palette.glow);
+      link.style.left = x + 'px';
+      link.style.bottom = bottomY + 'px';
+
+      const numMushrooms = 2 + Math.floor(Math.random() * 3);
+      const svgW = 80 * scale;
+      const svgH = 60 * scale;
+
+      const svg = document.createElementNS(ns, 'svg');
+      svg.setAttribute('width', svgW);
+      svg.setAttribute('height', svgH);
+      svg.setAttribute('viewBox', '0 0 80 60');
+      svg.style.overflow = 'visible';
+
+      for (let i = 0; i < numMushrooms; i++) {
+        const mx = 15 + Math.random() * 50;
+        const capW = 8 + Math.random() * 14;
+        const capH = 5 + Math.random() * 8;
+        const stemH = 10 + Math.random() * 20;
+        const stemW = 2 + Math.random() * 3;
+        const pulseSpeed = randRange(2, 4);
+
+        // Stem
+        const stem = document.createElementNS(ns, 'rect');
+        stem.setAttribute('x', mx - stemW / 2);
+        stem.setAttribute('y', 60 - stemH);
+        stem.setAttribute('width', stemW);
+        stem.setAttribute('height', stemH);
+        stem.setAttribute('fill', palette.stem);
+        stem.setAttribute('rx', '1');
+        svg.appendChild(stem);
+
+        // Cap glow (behind cap)
+        const capGlow = document.createElementNS(ns, 'ellipse');
+        capGlow.setAttribute('cx', mx);
+        capGlow.setAttribute('cy', 60 - stemH);
+        capGlow.setAttribute('rx', capW * 0.7);
+        capGlow.setAttribute('ry', capH * 0.6);
+        capGlow.setAttribute('fill', palette.glow);
+        capGlow.setAttribute('opacity', '0.15');
+        capGlow.setAttribute('filter', 'url(#heavy-glow)');
+        svg.appendChild(capGlow);
+
+        // Cap
+        const cap = document.createElementNS(ns, 'ellipse');
+        cap.classList.add('mushroom-cap');
+        cap.style.setProperty('--glow-color', palette.glow);
+        cap.style.setProperty('--pulse-speed', pulseSpeed + 's');
+        cap.style.animationDelay = randRange(0, pulseSpeed) + 's';
+        cap.setAttribute('cx', mx);
+        cap.setAttribute('cy', 60 - stemH);
+        cap.setAttribute('rx', capW);
+        cap.setAttribute('ry', capH);
+        cap.setAttribute('fill', pick(palette.petals));
+        cap.setAttribute('opacity', '0.8');
+        svg.appendChild(cap);
+
+        // Spots on cap
+        const numSpots = 2 + Math.floor(Math.random() * 3);
+        for (let s = 0; s < numSpots; s++) {
+          const spot = document.createElementNS(ns, 'circle');
+          const sx = mx + (Math.random() - 0.5) * capW;
+          const sy = 60 - stemH + (Math.random() - 0.5) * capH * 0.5;
+          spot.setAttribute('cx', sx);
+          spot.setAttribute('cy', sy);
+          spot.setAttribute('r', 1 + Math.random() * 2);
+          spot.setAttribute('fill', palette.glow);
+          spot.setAttribute('opacity', '0.5');
+          svg.appendChild(spot);
+        }
+      }
+
+      link.appendChild(svg);
+      scene.appendChild(link);
+    }
+
+    // --- LOTUS / GROUND FLOWERS ---
+    function createLotus(x, palette, scale) {
+      const ns = 'http://www.w3.org/2000/svg';
+      const link = document.createElement('a');
+      link.href = pageRandomiser.nextOne();
+      link.className = 'lotus';
+      link.style.setProperty('--glow-color', palette.glow);
+      link.style.left = x + 'px';
+
+      const size = (30 + Math.random() * 30) * scale;
+      const pulseSpeed = randRange(2.5, 4.5);
+
+      const svg = document.createElementNS(ns, 'svg');
+      svg.setAttribute('width', size);
+      svg.setAttribute('height', size * 0.6);
+      svg.setAttribute('viewBox', '-30 -15 60 30');
+      svg.style.overflow = 'visible';
+
+      const g = document.createElementNS(ns, 'g');
+      g.setAttribute('filter', 'url(#neon-glow)');
+      g.classList.add('lotus-petal');
+      g.style.setProperty('--glow-color', palette.glow);
+      g.style.setProperty('--pulse-speed', pulseSpeed + 's');
+      g.style.animationDelay = randRange(0, pulseSpeed) + 's';
+
+      // Fan of petals opening upward
+      const numPetals = 5 + Math.floor(Math.random() * 4);
+      for (let i = 0; i < numPetals; i++) {
+        const spread = 140;
+        const angle = -90 - spread / 2 + (spread / (numPetals - 1)) * i;
+        const petal = document.createElementNS(ns, 'ellipse');
+        petal.setAttribute('cx', 0);
+        petal.setAttribute('cy', -10);
+        petal.setAttribute('rx', 3);
+        petal.setAttribute('ry', 10 + Math.random() * 4);
+        petal.setAttribute('fill', pick(palette.petals));
+        petal.setAttribute('opacity', String(0.7 + Math.random() * 0.2));
+        petal.setAttribute('transform', `rotate(${angle})`);
+        g.appendChild(petal);
+      }
+
+      svg.appendChild(g);
+      link.appendChild(svg);
+      scene.appendChild(link);
+    }
+
+    // --- HANGING VINES ---
+    function createHangingVine(x, palette, scale) {
+      const ns = 'http://www.w3.org/2000/svg';
+      const link = document.createElement('a');
+      link.href = pageRandomiser.nextOne();
+      link.className = 'hanging-vine';
+      link.style.setProperty('--glow-color', palette.glow);
+      link.style.left = x + 'px';
+
+      const vineH = (100 + Math.random() * 200) * scale;
+      const vineW = 40 * scale;
+      const swaySpeed = randRange(4, 7);
+      const swayAngle = randRange(0.5, 2.5);
+
+      link.style.setProperty('--sway-speed', swaySpeed + 's');
+      link.style.setProperty('--sway-angle', swayAngle + 'deg');
+
+      const svg = document.createElementNS(ns, 'svg');
+      svg.setAttribute('width', vineW);
+      svg.setAttribute('height', vineH);
+      svg.setAttribute('viewBox', `0 0 ${vineW} ${vineH}`);
+      svg.style.overflow = 'visible';
+      svg.style.animationDelay = randRange(0, swaySpeed) + 's';
+
+      // Main vine curve
+      const cp1x = vineW / 2 + (Math.random() - 0.5) * 30;
+      const cp1y = vineH * 0.3;
+      const cp2x = vineW / 2 + (Math.random() - 0.5) * 30;
+      const cp2y = vineH * 0.7;
+      const endX = vineW / 2 + (Math.random() - 0.5) * 20;
+
+      const path = document.createElementNS(ns, 'path');
+      path.setAttribute('d', `M${vineW / 2},0 C${cp1x},${cp1y} ${cp2x},${cp2y} ${endX},${vineH}`);
+      path.setAttribute('stroke', palette.stem);
+      path.setAttribute('stroke-width', (2 * scale).toString());
+      path.setAttribute('fill', 'none');
+      path.setAttribute('filter', 'url(#neon-glow)');
+
+      const pathLen = vineH * 1.2;
+      path.style.setProperty('--vine-length', pathLen.toString());
+      path.style.strokeDasharray = pathLen;
+      path.style.strokeDashoffset = pathLen;
+      path.style.animation = `vine-draw ${randRange(2, 4)}s ease-out forwards`;
+      path.style.animationDelay = randRange(0, 2) + 's';
+
+      svg.appendChild(path);
+
+      // Small leaves along the vine
+      const numLeaves = 3 + Math.floor(Math.random() * 5);
+      for (let i = 0; i < numLeaves; i++) {
+        const t = 0.15 + (0.7 / numLeaves) * i + Math.random() * 0.05;
+        const lx = vineW / 2 + (Math.random() - 0.5) * 15;
+        const ly = vineH * t;
+        const leaf = document.createElementNS(ns, 'ellipse');
+        leaf.setAttribute('cx', lx);
+        leaf.setAttribute('cy', ly);
+        leaf.setAttribute('rx', 3 * scale);
+        leaf.setAttribute('ry', 6 * scale);
+        leaf.setAttribute('fill', pick(palette.petals));
+        leaf.setAttribute('opacity', '0.6');
+        leaf.setAttribute('transform', `rotate(${Math.random() * 60 - 30}, ${lx}, ${ly})`);
+        svg.appendChild(leaf);
+      }
+
+      // Glowing tip
+      const tip = document.createElementNS(ns, 'circle');
+      tip.setAttribute('cx', endX);
+      tip.setAttribute('cy', vineH);
+      tip.setAttribute('r', (3 * scale).toString());
+      tip.setAttribute('fill', palette.glow);
+      tip.setAttribute('opacity', '0.8');
+      tip.setAttribute('filter', 'url(#heavy-glow)');
+      svg.appendChild(tip);
+
+      link.appendChild(svg);
+      scene.appendChild(link);
+    }
+
+    // --- DECORATIVE VINES (non-clickable, background) ---
+    function createBackgroundVine(x, bottomY, palette, scale) {
+      const ns = 'http://www.w3.org/2000/svg';
+      const container = document.createElement('div');
+      container.className = 'vine';
+      container.style.left = x + 'px';
+      container.style.bottom = bottomY + 'px';
+
+      const vineH = (60 + Math.random() * 120) * scale;
+      const vineW = 50 * scale;
+
+      const svg = document.createElementNS(ns, 'svg');
+      svg.setAttribute('width', vineW);
+      svg.setAttribute('height', vineH);
+      svg.setAttribute('viewBox', `0 0 ${vineW} ${vineH}`);
+
+      // Curly vine path
+      let d = `M${vineW * 0.5},${vineH}`;
+      let cx = vineW * 0.5;
+      let cy = vineH;
+      const segs = 3 + Math.floor(Math.random() * 3);
+      for (let i = 0; i < segs; i++) {
+        const dx = (Math.random() - 0.5) * 30 * scale;
+        const dy = -(vineH / segs) * (0.8 + Math.random() * 0.4);
+        d += ` Q${cx + dx * 2},${cy + dy * 0.5} ${cx + dx},${cy + dy}`;
+        cx += dx;
+        cy += dy;
+      }
+
+      const path = document.createElementNS(ns, 'path');
+      path.setAttribute('d', d);
+      path.setAttribute('stroke', palette.stem);
+      path.setAttribute('stroke-width', (1.5 * scale).toString());
+      path.setAttribute('opacity', '0.5');
+
+      const pathLen = vineH * 1.5;
+      path.style.setProperty('--vine-length', pathLen.toString());
+      path.style.animation = `vine-draw ${randRange(3, 5)}s ease-out forwards`;
+      path.style.animationDelay = randRange(0.5, 3) + 's';
+
+      svg.appendChild(path);
+      container.appendChild(svg);
+      scene.appendChild(container);
+    }
+
+    // --- FLOATING SPORES ---
+    function createSpores() {
+      const colors = [
+        'rgba(0, 255, 170, 0.5)',
+        'rgba(255, 0, 255, 0.4)',
+        'rgba(0, 200, 255, 0.4)',
+        'rgba(255, 100, 0, 0.3)',
+        'rgba(170, 255, 0, 0.3)',
+        'rgba(0, 255, 230, 0.4)',
+      ];
+
+      for (let i = 0; i < NUM_SPORES; i++) {
+        const spore = document.createElement('div');
+        spore.className = 'spore';
+        const size = 2 + Math.random() * 5;
+        const color = pick(colors);
+        spore.style.setProperty('--spore-size', size + 'px');
+        spore.style.setProperty('--spore-color', color);
+        spore.style.left = Math.random() * W + 'px';
+        spore.style.bottom = Math.random() * H * 0.3 + 'px';
+        spore.style.setProperty('--float-duration', randRange(6, 14) + 's');
+        spore.style.setProperty('--float-distance', randRange(-150, -300) + 'px');
+        spore.style.setProperty('--float-drift', randRange(-50, 50) + 'px');
+        spore.style.animationDelay = randRange(0, 10) + 's';
+        scene.appendChild(spore);
+      }
+    }
+
+    // --- BUILD THE GARDEN ---
+    function buildGarden() {
+      createAmbientGlows();
+
+      // Hanging vines from the top
+      const numHangingVines = NUM_HANGING_VINES + Math.floor(Math.random() * 4);
+      for (let i = 0; i < numHangingVines; i++) {
+        const x = (W / (numHangingVines + 1)) * (i + 1) + randRange(-40, 40);
+        const palette = pick(PALETTES);
+        createHangingVine(x, palette, randRange(0.7, 1.2));
+      }
+
+      // Background decorative vines
+      for (let i = 0; i < NUM_BACKGROUND_VINES; i++) {
+        const x = Math.random() * W;
+        const bottomY = randRange(-10, H * 0.15);
+        createBackgroundVine(x, bottomY, pick(PALETTES), randRange(0.5, 1));
+      }
+
+      // Main stem flowers - spread across the bottom
+      const numFlowers = NUM_STEM_FLOWERS + Math.floor(Math.random() * 8);
+      for (let i = 0; i < numFlowers; i++) {
+        const x = (W / (numFlowers + 1)) * (i + 1) + randRange(-30, 30);
+        const bottomY = randRange(-5, H * 0.08);
+        const palette = pick(PALETTES);
+        const size = randRange(0.6, 1.3);
+        createStemFlower(x, bottomY, palette, size);
+      }
+
+      // Mushroom clusters
+      const numMushrooms = NUM_MUSHROOM_CLUSTERS + Math.floor(Math.random() * 4);
+      for (let i = 0; i < numMushrooms; i++) {
+        const x = Math.random() * (W - 80);
+        const bottomY = randRange(0, H * 0.06);
+        createMushroomCluster(x, bottomY, pick(PALETTES), randRange(0.7, 1.3));
+      }
+
+      // Ground-level lotus flowers
+      const numLotus = NUM_LOTUS + Math.floor(Math.random() * 4);
+      for (let i = 0; i < numLotus; i++) {
+        const x = (W / (numLotus + 1)) * (i + 1) + randRange(-60, 60);
+        createLotus(x, pick(PALETTES), randRange(0.8, 1.4));
+      }
+
+      // Floating spores
+      createSpores();
+    }
+
+    buildGarden();
+  </script>
+</body>
+
+</html>

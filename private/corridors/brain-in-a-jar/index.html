@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Wearing the brain that she keeps in a jar by the door">
+  <title>Brain Blessed</title>
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(to bottom, #1a1a2e, #0f3460);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: Arial, sans-serif;
+      user-select: none;
+    }
+
+    #container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #jar-link {
+      position: relative;
+      font-size: clamp(200px, 40vw, 500px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform 0.3s ease;
+      filter: drop-shadow(0 20px 60px rgba(0, 0, 0, 0.5));
+      margin: 60px 0;
+    }
+
+    #jar-link:hover {
+      transform: scale(1.05);
+    }
+
+    #jar {
+      position: relative;
+      z-index: 1;
+    }
+
+    #brain {
+      position: absolute;
+      font-size: clamp(100px, 20vw, 250px);
+      top: 60%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 2;
+      animation: bob 3s ease-in-out infinite;
+      filter: drop-shadow(0 5px 15px rgba(255, 100, 150, 0.4));
+    }
+
+    @keyframes bob {
+
+      0%,
+      100% {
+        transform: translate(-50%, -50%);
+      }
+
+      50% {
+        transform: translate(-50%, calc(-50% - 30px));
+      }
+    }
+
+    #bubble-container {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    /* Floating bubble particles */
+    .bubble {
+      position: absolute;
+      width: var(--bubble-size, 4px);
+      height: var(--bubble-size, 4px);
+      background: rgba(100, 200, 255, 0.6);
+      border-radius: 50%;
+      box-shadow: 0 0 8px rgba(100, 200, 255, 0.4);
+      pointer-events: none;
+      opacity: 0;
+      animation: float-bubble var(--float-duration, 8s) ease-in forwards;
+    }
+
+    /* Assumes #brain { z-index: 2; } */
+    .bubble.behind {
+      z-index: 1;
+    }
+
+    /* Assumes #brain { z-index: 2; } */
+    .bubble.front {
+      z-index: 3;
+    }
+
+    @keyframes float-bubble {
+      0% {
+        transform: translate(-50%, -50%);
+        opacity: 0;
+      }
+
+      15% {
+        opacity: 0.8;
+      }
+
+      100% {
+        transform: translate(calc(-50% + var(--float-drift, 0)), calc(-50% + var(--float-distance, -600px)));
+        opacity: 0;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="container">
+    <a id="jar-link" href="../index.html">
+      <div id="bubble-container"></div>
+      <div id="brain">🧠</div>
+      <div id="jar">🫙</div>
+    </a>
+  </div>
+
+  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script>
+    const currentPage = "corridors/brain-in-a-jar";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const jarLink = document.getElementById('jar-link');
+    const bubbleContainer = document.getElementById('bubble-container');
+
+    // Percentage of container width to spread left/right from center (0.45 = ±45% from center)
+    const BUBBLE_SPAWN_WIDTH_PERCENT = 0.45;
+    // Percentage down from top where bubbles spawn (0.84 = 84% down)
+    const BUBBLE_SPAWN_Y_PERCENT = 0.84;
+    // Padding as percentage of container width for left and right sides (0.08 = 8% on each side)
+    const BUBBLE_PADDING_PERCENT_X = 0.12;
+    // Padding as percentage of container height from top (where bubbles disappear when they pop)
+    const BUBBLE_PADDING_PERCENT_TOP = 0.18;
+    // Padding as percentage of container height from bottom (where bubbles spawn)
+    const BUBBLE_PADDING_PERCENT_BOTTOM = 0.08;
+
+    // Create floating bubbles
+    function createBubble() {
+      const containerRect = bubbleContainer.getBoundingClientRect();
+      const containerWidth = containerRect.width;
+      const containerHeight = containerRect.height;
+
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble';
+
+      // Bubble size
+      const bubbleSize = 10 + Math.random() * 8;
+      const duration = 5 + Math.random() * 7;
+      const drift = (Math.random() - 0.5) * 100; // horizontal drift
+
+      // Randomize z-index: 50% chance to be in front, 50% chance to be behind
+      const isFront = Math.random() > 0.5;
+      bubble.classList.add(isFront ? 'front' : 'behind');
+
+      // Spawn position: center of container, spread left/right based on percentage
+      const spawnXPercent = 0.5 + (Math.random() - 0.5) * BUBBLE_SPAWN_WIDTH_PERCENT;
+      const spawnYPercent = BUBBLE_SPAWN_Y_PERCENT;
+
+      // Clamp X position to stay within padding (as percentages of container width)
+      const minXPercent = BUBBLE_PADDING_PERCENT_X;
+      const maxXPercent = 1 - BUBBLE_PADDING_PERCENT_X;
+      const clampedXPercent = Math.max(minXPercent, Math.min(maxXPercent, spawnXPercent));
+
+      // Clamp Y position to stay within padding (as percentages of container height)
+      const minYPercent = BUBBLE_PADDING_PERCENT_TOP;
+      const maxYPercent = 1 - BUBBLE_PADDING_PERCENT_BOTTOM;
+      const clampedYPercent = Math.max(minYPercent, Math.min(maxYPercent, spawnYPercent));
+
+      // Distance to travel: from spawn point to top of container (as percentage)
+      const distancePercent = -(clampedYPercent - BUBBLE_PADDING_PERCENT_TOP);
+      const distancePixels = containerHeight * distancePercent;
+
+      bubble.style.setProperty('--bubble-size', bubbleSize + 'px');
+      bubble.style.setProperty('--float-duration', duration + 's');
+      bubble.style.setProperty('--float-drift', drift + 'px');
+      bubble.style.setProperty('--float-distance', distancePixels + 'px');
+      bubble.style.left = (clampedXPercent * 100) + '%';
+      bubble.style.top = (clampedYPercent * 100) + '%';
+      bubble.style.transform = 'translate(-50%, -50%)'; // Center the bubble on its position
+      bubble.style.animationDelay = Math.random() * 2 + 's';
+
+      bubbleContainer.appendChild(bubble);
+
+      // Remove bubble after animation completes
+      setTimeout(() => {
+        bubble.remove();
+      }, (duration + 2) * 1000);
+    }
+
+    // Handle hover effects on jar
+    jarLink.addEventListener('mouseenter', () => {
+      jarLink.classList.add('hovered');
+    });
+
+    jarLink.addEventListener('mouseleave', () => {
+      jarLink.classList.remove('hovered');
+    });
+
+    // Spawn bubbles continuously
+    setInterval(createBubble, 400);
+
+  </script>
+</body>
+
+</html>

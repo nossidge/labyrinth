@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+10 PRINT CHR$(205.5+RND(1)); : GOTO 10
+
+"10 Print" is a one-line Commodore 64 BASIC program.
+It's a bit of a classic in the procedural generation world.
+Literally just a single instruction repeated infinitely.
+It's gorgeous!
+https://10print.org/
+
+The idea to colour all of the connecting lines came from this by Stepan Zakharov:
+https://stepanzh.github.io/10PRINT/
+https://github.com/stepanzh/10PRINT
+
+This JS is an adaptation of his Python code, which is MIT licensed.
+https://github.com/stepanzh/10PRINT/blob/main/LICENSE
+Copyright (c) 2021 Stepan Zakharov
+
+Thank you Stepan!
+-->
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="10 PRINT CHR$(205.5+RND(1)); : GOTO 10">
+  <title>10 PRINT</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      background: #0d1a2d;
+      color: #fff;
+      font-family: monospace;
+      overflow: hidden;
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      position: relative;
+      background: #0a1628;
+      border: 2px solid #334;
+      padding: 20px;
+      border-radius: 6px;
+      box-shadow: 0 0 40px rgba(30, 80, 180, 0.15);
+    }
+
+    .maze {
+      line-height: 1.1;
+      font-size: 18px;
+      white-space: pre;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .maze span {
+      transition: color 0.2s ease, text-shadow 0.2s ease;
+    }
+
+    .nav-panel {
+      position: fixed;
+      top: 0;
+      height: 100%;
+      width: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 5;
+      cursor: pointer;
+    }
+
+    #nav-left {
+      left: 0;
+      background: linear-gradient(to right, rgba(255, 255, 255, 0.02), transparent);
+    }
+
+    #nav-left:hover {
+      background: linear-gradient(to right, rgba(255, 255, 255, 0.06), transparent);
+    }
+
+    #nav-right {
+      right: 0;
+      background: linear-gradient(to left, rgba(255, 255, 255, 0.02), transparent);
+    }
+
+    #nav-right:hover {
+      background: linear-gradient(to left, rgba(255, 255, 255, 0.06), transparent);
+    }
+
+    .nav-arrow {
+      color: #334;
+      font-size: 24px;
+      font-weight: bold;
+      line-height: 0.88;
+      padding: 12px 16px;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .nav-panel:hover .nav-arrow {
+      border-color: rgba(255, 255, 255, 0.5);
+      color: rgba(255, 255, 255, 0.8);
+    }
+  </style>
+</head>
+
+<body>
+  <div id="nav-left" class="nav-panel">
+    <div class="nav-arrow">/<br>\</div>
+  </div>
+
+  <div class="container">
+    <div class="maze" id="maze"></div>
+  </div>
+
+  <div id="nav-right" class="nav-panel">
+    <div class="nav-arrow">\<br>/</div>
+  </div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/10-print";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const COLORS = [
+      '#FF1744', '#F50057', '#D500F9', '#651FFF',
+      '#2979F3', '#00B0FF', '#00BCD4', '#00BFA5',
+      '#00C853', '#76FF03', '#FFEA00', '#FFC400',
+      '#FF9100', '#FF3D00', '#FF5722', '#FF6E40',
+      '#FF80AB', '#FF4081', '#F06292', '#EC407A',
+      '#EF5350', '#EF9A9A', '#F48FB1', '#F8BBD0',
+    ];
+
+    // ===== Configuration (mirrors lib/config.py) =====
+    const CHARS = ['\u2571', '\u2572'];  // ╱ ╲
+    const FILL = 'x';
+
+    // Connectivity patterns from config.py:
+    //   DEFAULT_MAZE_CONNECTIVITY_PATTERN = ('x╲╱╲╱╲╱╲x', '╲╱x╱╲╱x╱╲')
+    // Pattern for CHARS[0] (╱): 'x╲╱╲╱╲╱╲x'  (9 chars, 3x3 row-major)
+    // Pattern for CHARS[1] (╲): '╲╱x╱╲╱x╱╲'  (9 chars, 3x3 row-major)
+    const PATTERN = [
+      'x\u2572\u2571\u2572\u2571\u2572\u2571\u2572x',
+      '\u2572\u2571x\u2571\u2572\u2571x\u2571\u2572'
+    ];
+
+    // ===== Seeded RNG (mimics Python's random with seed) =====
+    // Using mulberry32 for better distribution
+    function mulberry32(seed) {
+      return function () {
+        seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+        let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+        t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+      };
+    }
+
+    // ===== Maze Generation (mirrors lib/tenprint.py Maze class) =====
+    function generateMaze(width, height, seed) {
+      const rng = mulberry32(seed);
+      const maze = [];
+      for (let i = 0; i < height; i++) {
+        const row = [];
+        for (let j = 0; j < width; j++) {
+          // Python: chars[int(0.5 + random.random())]
+          // int(0.5 + r) where r in [0,1): if r < 0.5 -> 0, else -> 1
+          row.push(CHARS[rng() < 0.5 ? 0 : 1]);
+        }
+        maze.push(row);
+      }
+      return maze;
+    }
+
+    // ===== MazePattern.adjacent (mirrors lib/mazepattern.py) =====
+    function adjacent(window9) {
+      // window9: string of 9 characters (3x3 row-major)
+      // center char is window9[4]
+      const centerChar = window9[4];
+      const charIndex = CHARS.indexOf(centerChar);
+      if (charIndex === -1) return [];
+
+      const pattern = PATTERN[charIndex];
+      const adj = [];
+
+      for (let n = 0; n < 9; n++) {
+        if (n === 4) continue;  // skip center
+        if (window9[n] === FILL) continue;  // skip fill chars
+        if (window9[n] === pattern[n]) {
+          const di = Math.floor(n / 3) - 1;
+          const dj = (n % 3) - 1;
+          adj.push([di, dj]);
+        }
+      }
+      return adj;
+    }
+
+    // ===== Neighbours calculation (mirrors Maze._calc_neighbours) =====
+    function calcNeighbours(maze, width, height) {
+      // Build ghost_maze with FILL border
+      const ghostMaze = [];
+      const fillRow = new Array(width + 2).fill(FILL);
+      ghostMaze.push(fillRow);
+      for (let i = 0; i < height; i++) {
+        ghostMaze.push([FILL, ...maze[i], FILL]);
+      }
+      ghostMaze.push([...fillRow]);
+
+      const neighbours = [];
+      for (let i = 0; i < height; i++) {
+        const row = [];
+        for (let j = 0; j < width; j++) {
+          // Build 3x3 window (ghost coords: i+0..i+2, j+0..j+2)
+          let window9 = '';
+          window9 += ghostMaze[i][j] + ghostMaze[i][j + 1] + ghostMaze[i][j + 2];
+          window9 += ghostMaze[i + 1][j] + ghostMaze[i + 1][j + 1] + ghostMaze[i + 1][j + 2];
+          window9 += ghostMaze[i + 2][j] + ghostMaze[i + 2][j + 1] + ghostMaze[i + 2][j + 2];
+
+          const adj = adjacent(window9);
+          const neigh = [];
+          for (const [di, dj] of adj) {
+            const ii = i + di;
+            const jj = j + dj;
+            if (ii >= 0 && ii < height && jj >= 0 && jj < width) {
+              neigh.push([ii, jj]);
+            }
+          }
+          row.push(neigh);
+        }
+        neighbours.push(row);
+      }
+      return neighbours;
+    }
+
+    // ===== BFS Connected Components (mirrors Maze._calc_components) =====
+    function calcComponents(neighbours, width, height) {
+      const visited = [];
+      for (let i = 0; i < height; i++) visited.push(new Array(width).fill(false));
+
+      const vertexBelong = [];
+      for (let i = 0; i < height; i++) vertexBelong.push(new Array(width).fill(0));
+
+      let componentIndex = 0;
+
+      for (let i = 0; i < height; i++) {
+        for (let j = 0; j < width; j++) {
+          if (visited[i][j]) continue;
+
+          // BFS (wave algorithm) from (i, j)
+          const queue = [[i, j]];
+          visited[i][j] = true;
+          let head = 0;
+
+          while (head < queue.length) {
+            const [ci, cj] = queue[head++];
+            vertexBelong[ci][cj] = componentIndex;
+
+            for (const [ni, nj] of neighbours[ci][cj]) {
+              if (!visited[ni][nj]) {
+                visited[ni][nj] = true;
+                queue.push([ni, nj]);
+              }
+            }
+          }
+          componentIndex++;
+        }
+      }
+
+      return vertexBelong;
+    }
+
+    // ===== Rendering =====
+    function render(width, height, seed) {
+      const maze = generateMaze(width, height, seed);
+      const neighbours = calcNeighbours(maze, width, height);
+      const vertexBelong = calcComponents(neighbours, width, height);
+
+      const mazeEl = document.getElementById('maze');
+      mazeEl.innerHTML = '';
+
+      // Map each component to a link
+      const componentToLink = new Map();
+
+      for (let i = 0; i < height; i++) {
+        for (let j = 0; j < width; j++) {
+          const comp = vertexBelong[i][j];
+          const color = COLORS[comp % COLORS.length];
+
+          // Generate link for this component if not already done
+          if (!componentToLink.has(comp)) {
+            componentToLink.set(comp, pageRandomiser.nextOne());
+          }
+
+          const anchor = document.createElement('a');
+          anchor.href = componentToLink.get(comp);
+          anchor.textContent = maze[i][j];
+          anchor.style.color = color;
+          anchor.style.textDecoration = 'none';
+          anchor.style.cursor = 'pointer';
+          anchor.dataset.component = comp;
+
+          anchor.addEventListener('mouseenter', () => {
+            const myComp = anchor.dataset.component;
+            document.querySelectorAll('#maze a').forEach(a => {
+              if (a.dataset.component === myComp) {
+                a.style.textShadow = '0 0 8px currentColor, 0 0 16px currentColor';
+              } else {
+                a.style.opacity = '0.15';
+              }
+            });
+          });
+
+          anchor.addEventListener('mouseleave', () => {
+            document.querySelectorAll('#maze a').forEach(a => {
+              a.style.textShadow = 'none';
+              a.style.opacity = '1';
+            });
+          });
+
+          mazeEl.appendChild(anchor);
+        }
+        mazeEl.appendChild(document.createTextNode('\n'));
+      }
+    }
+
+    // ===== History and Navigation =====
+    let history = [];
+    let historyIndex = -1;
+
+    function generateSeed() {
+      return Math.floor(Math.random() * 0xFFFFFFFF);
+    }
+
+    function createNewEntry() {
+      return {
+        seed: generateSeed(),
+      };
+    }
+
+    function goToNext() {
+      if (historyIndex < history.length - 1) {
+        historyIndex++;
+      } else {
+        history.push(createNewEntry());
+        historyIndex = history.length - 1;
+      }
+      render(80, 28, history[historyIndex].seed);
+    }
+
+    function goToPrev() {
+      if (historyIndex > 0) {
+        historyIndex--;
+      } else {
+        history.unshift(createNewEntry());
+        historyIndex = 0;
+      }
+      render(80, 28, history[historyIndex].seed);
+    }
+
+    function init() {
+      const first = createNewEntry();
+      history.push(first);
+      historyIndex = 0;
+      render(80, 28, first.seed);
+    }
+
+    // ===== Event listeners =====
+    document.getElementById('nav-left').addEventListener('click', goToPrev);
+    document.getElementById('nav-right').addEventListener('click', goToNext);
+
+    // Click anywhere on the page (except container, nav panels) to go forward
+    document.body.addEventListener('click', (e) => {
+      if (e.target.closest('.container, .nav-panel')) return;
+      goToNext();
+    });
+
+    // Arrow keys, WASD keys, HJKL keys
+    const LEFT_OR_DOWN = new Set(['ArrowLeft', 'ArrowDown', 'h', 'j', 'a', 's']);
+    const RIGHT_OR_UP = new Set(['ArrowRight', 'ArrowUp', 'k', 'l', 'd', 'w']);
+    function keyLeftOrDown(key) { return LEFT_OR_DOWN.has(key); }
+    function keyRightOrUp(key) { return RIGHT_OR_UP.has(key); }
+
+    document.addEventListener('keydown', (e) => {
+      if (keyLeftOrDown(e.key)) {
+        e.preventDefault();
+        goToPrev();
+      } else if (keyRightOrUp(e.key)) {
+        e.preventDefault();
+        goToNext();
+      }
+    });
+
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+
+</html>

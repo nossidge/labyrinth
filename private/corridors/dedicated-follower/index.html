@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+Source for the fashionable man silhouette:
+https://www.vecteezy.com/vector-art/38445027
+-->
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Make or break">
+  <title>Loud but never square</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      background-color: #f9f9f9;
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #silhouette-container {
+      position: relative;
+      z-index: 10;
+      transition: transform 0.2s ease-in-out;
+    }
+
+    #silhouette-container:hover {
+      transform: scale(1.02);
+    }
+
+    #silhouette {
+      width: auto;
+      height: 66vh;
+      max-width: 100vw;
+      max-height: 100vh;
+      object-fit: contain;
+      display: block;
+      padding: 0 32px;
+    }
+
+    #background {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+    }
+
+    /* Polka dots pattern (even weeks) */
+    #background.polka-dots {
+      background-image:
+        radial-gradient(circle, #FF69B4 8px, transparent 8px);
+      background-size: 32px 32px;
+      background-position: 0 0;
+      transform: rotate(45deg);
+    }
+
+    /* Stripes pattern (odd weeks) */
+    #background.stripes {
+      background-image:
+        repeating-linear-gradient(45deg,
+          #FF69B4,
+          #FF69B4 12px,
+          #ffffff 12px,
+          #ffffff 24px);
+      transform: rotate(45deg);
+    }
+
+    /* Film grain / old-fashioned overlay */
+    #overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 100;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.08) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
+      background-size: 100% 4px, 3px 100%;
+      opacity: 0.6;
+    }
+
+    /* Additional sepia/vintage tone */
+    #overlay::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(139, 113, 101, 0.4);
+      pointer-events: none;
+      z-index: 100;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="background"></div>
+  <a id="silhouette-container" href="../index.html">
+    <img id="silhouette" src="silhouette.png" alt="A fashionably dressed silhouette">
+  </a>
+  <div id="overlay"></div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/dedicated-follower";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const backgroundDiv = document.getElementById('background');
+
+    // Calculate week number (1-52)
+    const today = new Date();
+    const start = new Date(today.getFullYear(), 0, 1);
+    const diff = today - start;
+    const oneDay = 1000 * 60 * 60 * 24;
+    const dayOfYear = Math.floor(diff / oneDay);
+    let weekNumber = Math.floor(dayOfYear / 7) + 1;
+
+    function init() {
+      if (weekNumber % 2 === 0) {
+        // One week he's in polka dots...
+        backgroundDiv.classList.remove('stripes');
+        backgroundDiv.classList.add('polka-dots');
+      } else {
+        // ...the next week he's in stripes
+        backgroundDiv.classList.remove('polka-dots');
+        backgroundDiv.classList.add('stripes');
+      }
+    }
+
+    init();
+
+    // Dev mode to switch between the two backgrounds
+    document.addEventListener('keydown', (e) => {
+      if (e.key === '`') {
+        weekNumber++;
+        init();
+      }
+    });
+
+  </script>
+</body>
+
+</html>

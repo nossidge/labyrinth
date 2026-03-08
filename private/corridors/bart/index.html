@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Toe to tip, this is a Bart">
+  <title>Just like Bart!</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #5fb2f1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    #bart-container {
+      position: relative;
+      display: inline-block;
+    }
+
+    #bart-container img {
+      display: block;
+    }
+
+    #hair-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+    }
+
+    #controls {
+      margin-top: 40px;
+      text-align: center;
+    }
+
+    #spike-slider {
+      width: 300px;
+    }
+  </style>
+</head>
+
+<body>
+  <a id="bart-container" href="../index.html">
+    <img src="bart-head.png" alt="Bart Simpson" id="bart-img">
+    <canvas id="hair-canvas"></canvas>
+  </a>
+
+  <div id="controls">
+    <input type="range" id="spike-slider" min="1" max="50" value="9">
+  </div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/bart";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    // These values must match the slider's min and max values
+    const hairLinks = new Map();
+    for (let i = 1; i <= 50; i++) {
+      hairLinks.set(i, pageRandomiser.nextOne());
+    }
+
+    // Position the hair triangles precisely on the image
+    const LEFT_X = 60;
+    const LEFT_Y = 56;
+    const RIGHT_X = 443;
+    const RIGHT_Y = 101;
+
+    // Height of each hair triangle (in image pixels), pointing upward
+    const SPIKE_HEIGHT = 54;
+
+    // Bart's skin colour
+    const BART_YELLOW = '#fae743';
+
+    // Border thickness for the hair outline (in image pixels)
+    const BORDER_WIDTH = 4.5;
+
+    const container = document.getElementById('bart-container');
+    const slider = document.getElementById('spike-slider');
+    const img = document.getElementById('bart-img');
+    const canvas = document.getElementById('hair-canvas');
+    const ctx = canvas.getContext('2d');
+
+    function drawHair(count) {
+      container.href = hairLinks.get(count);
+
+      const w = img.naturalWidth;
+      const h = img.naturalHeight;
+      const extra = SPIKE_HEIGHT + BORDER_WIDTH;
+      canvas.width = w;
+      canvas.height = h + extra;
+
+      const scaleX = img.offsetWidth / w;
+      const scaleY = img.offsetHeight / h;
+      canvas.style.width = (w * scaleX) + 'px';
+      canvas.style.height = ((h + extra) * scaleY) + 'px';
+      canvas.style.top = (-extra * scaleY) + 'px';
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.translate(0, extra);
+
+      for (let i = 0; i < count; i++) {
+        const t0 = i / count;
+        const t1 = (i + 1) / count;
+        const tMid = (i + 0.5) / count;
+
+        // Base left point
+        const bx0 = LEFT_X + t0 * (RIGHT_X - LEFT_X);
+        const by0 = LEFT_Y + t0 * (RIGHT_Y - LEFT_Y);
+
+        // Base right point
+        const bx1 = LEFT_X + t1 * (RIGHT_X - LEFT_X);
+        const by1 = LEFT_Y + t1 * (RIGHT_Y - LEFT_Y);
+
+        // Apex (midpoint of base, shifted upward)
+        const ax = LEFT_X + tMid * (RIGHT_X - LEFT_X);
+        const ay = (LEFT_Y + tMid * (RIGHT_Y - LEFT_Y)) - SPIKE_HEIGHT;
+
+        // Fill the triangle yellow
+        ctx.beginPath();
+        ctx.moveTo(bx0, by0);
+        ctx.lineTo(ax, ay);
+        ctx.lineTo(bx1, by1);
+        ctx.closePath();
+        ctx.fillStyle = BART_YELLOW;
+        ctx.fill();
+
+        // Draw the two hair-outline sides (not the base)
+        ctx.beginPath();
+        ctx.moveTo(bx0, by0);
+        ctx.lineTo(ax, ay);
+        ctx.lineTo(bx1, by1);
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = BORDER_WIDTH;
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
+        ctx.stroke();
+      }
+    }
+
+    slider.addEventListener('input', () => {
+      const count = parseInt(slider.value, 10);
+      drawHair(count);
+    });
+
+    img.addEventListener('load', () => {
+      drawHair(parseInt(slider.value, 10));
+    });
+
+    if (img.complete) {
+      drawHair(parseInt(slider.value, 10));
+    }
+  </script>
+</body>
+
+</html>

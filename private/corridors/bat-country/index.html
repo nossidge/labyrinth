@@ -445,12 +445,20 @@ https://www.imdb.com/title/tt0120669/quotes/
       if (!isMoving) goToPrevCountry();
     };
 
-    window.addEventListener('keydown', (e) => {
+    // Arrow keys, WASD keys, HJKL keys
+    const LEFT_OR_DOWN = new Set(['ArrowLeft', 'ArrowDown', 'h', 'j', 'a', 's']);
+    const RIGHT_OR_UP = new Set(['ArrowRight', 'ArrowUp', 'k', 'l', 'd', 'w']);
+    function keyLeftOrDown(key) { return LEFT_OR_DOWN.has(key); }
+    function keyRightOrUp(key) { return RIGHT_OR_UP.has(key); }
+
+    document.addEventListener('keydown', (e) => {
       if (isMoving) return;
-      if (e.key === 'ArrowRight') {
-        goToNextCountry();
-      } else if (e.key === 'ArrowLeft') {
+      if (keyLeftOrDown(e.key)) {
+        e.preventDefault();
         goToPrevCountry();
+      } else if (keyRightOrUp(e.key)) {
+        e.preventDefault();
+        goToNextCountry();
       }
     });
 

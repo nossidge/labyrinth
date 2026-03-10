@@ -145,6 +145,8 @@ https://baudinstudio.gumroad.com/l/gnnego
     container.style.gap = `${groupSpacing}px`;
 
     function buildMatrix() {
+      container.innerHTML = '';
+
       for (let gr = 0; gr < groupRows; gr++) {
         for (let gc = 0; gc < groupCols; gc++) {
           const group = document.createElement('a');
@@ -175,6 +177,12 @@ https://baudinstudio.gumroad.com/l/gnnego
         }
       }
     }
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.dot-group')) {
+        buildMatrix();
+      }
+    });
 
     buildMatrix();
 

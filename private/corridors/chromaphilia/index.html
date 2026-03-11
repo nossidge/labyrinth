@@ -55,7 +55,7 @@
       background-color: #0000ff;
     }
 
-    .color-nav {
+    #color-nav {
       position: fixed;
       top: 0;
       left: 0;
@@ -177,7 +177,7 @@
     <div id="blue" class="circle"></div>
   </div>
 
-  <div class="color-nav">
+  <div id="color-nav">
     <a href="../index.html" class="color-btn" id="btn-r">R</a>
     <a href="../index.html" class="color-btn" id="btn-y">Y</a>
     <a href="../index.html" class="color-btn" id="btn-g">G</a>
@@ -232,19 +232,37 @@
 
       const dist = (c1, c2) => Math.sqrt(Math.pow(c1.x - c2.x, 2) + Math.pow(c1.y - c2.y, 2));
 
-      const redGreen = dist(redCircle, greenCircle) < radius * 2;
-      const redBlue = dist(redCircle, blueCircle) < radius * 2;
-      const greenBlue = dist(greenCircle, blueCircle) < radius * 2;
+      const dRG = dist(redCircle, greenCircle);
+      const dRB = dist(redCircle, blueCircle);
+      const dGB = dist(greenCircle, blueCircle);
 
-      // Primary colors always visible
-      btnR.classList.add('visible');
-      btnG.classList.add('visible');
-      btnB.classList.add('visible');
+      const overlapThreshold = radius * 2;
+      const hideThreshold = radius * 0.1;
 
-      // Secondary colors based on overlaps
-      btnY.classList.toggle('visible', redGreen);
-      btnM.classList.toggle('visible', redBlue);
-      btnC.classList.toggle('visible', greenBlue);
+      const redGreen = dRG < overlapThreshold;
+      const redBlue = dRB < overlapThreshold;
+      const greenBlue = dGB < overlapThreshold;
+
+      // Primary buttons hide when another circle is nearly on top of them
+      const redHidden = dRG < hideThreshold || dRB < hideThreshold;
+      const greenHidden = dRG < hideThreshold || dGB < hideThreshold;
+      const blueHidden = dRB < hideThreshold || dGB < hideThreshold;
+
+      btnR.classList.toggle('visible', !redHidden);
+      btnG.classList.toggle('visible', !greenHidden);
+      btnB.classList.toggle('visible', !blueHidden);
+
+      // Secondary colors visible when their two circles overlap,
+      // but hidden when the third circle is piled on either component (making white)
+      const bNearR = dRB < hideThreshold;
+      const bNearG = dGB < hideThreshold;
+      const gNearR = dRG < hideThreshold;
+      const gNearB = dGB < hideThreshold;
+      const rNearG = dRG < hideThreshold;
+      const rNearB = dRB < hideThreshold;
+      btnY.classList.toggle('visible', redGreen && !bNearR && !bNearG);
+      btnM.classList.toggle('visible', redBlue && !gNearR && !gNearB);
+      btnC.classList.toggle('visible', greenBlue && !rNearG && !rNearB);
     }
 
     updateCirclePositions();

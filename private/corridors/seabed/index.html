@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Where the sea meets the moon-blanched land">
+  <title>floors of silent seas</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      background: #0a1628;
+      position: relative;
+    }
+
+    #pool {
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Sandy seabed on the bottom two-thirds */
+    #seabed {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 67%;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    /* Light ripple overlay */
+    #light-ripple {
+      position: fixed;
+      top: -10%;
+      left: -10%;
+      width: 120%;
+      height: 120%;
+      pointer-events: none;
+      z-index: 50;
+      opacity: 0.08;
+      background:
+        radial-gradient(ellipse at 20% 30%, rgba(120, 200, 255, 0.6) 0%, transparent 50%),
+        radial-gradient(ellipse at 70% 60%, rgba(120, 200, 255, 0.4) 0%, transparent 40%),
+        radial-gradient(ellipse at 50% 80%, rgba(100, 180, 255, 0.5) 0%, transparent 45%);
+      animation: lightRippleShift 8s ease-in-out infinite alternate;
+    }
+
+    @keyframes lightRippleShift {
+      0% {
+        transform: scale(1) translate(0, 0);
+        opacity: 0.06;
+      }
+
+      50% {
+        transform: scale(1.1) translate(-2%, 1%);
+        opacity: 0.1;
+      }
+
+      100% {
+        transform: scale(0.95) translate(2%, -1%);
+        opacity: 0.07;
+      }
+    }
+
+    /* CRT scanline overlay */
+    #scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 100;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+      background-size: 100% 2px, 3px 100%;
+    }
+
+    /* Creature base */
+    .creature {
+      position: absolute;
+      display: block;
+      text-decoration: none;
+      z-index: 10;
+      transition: filter 0.3s ease;
+    }
+
+    .creature:hover {
+      filter: brightness(1.8) drop-shadow(0 0 12px rgba(150, 220, 255, 0.7));
+      z-index: 30;
+    }
+
+    /* === STARFISH === */
+    .starfish {
+      width: 60px;
+      height: 60px;
+    }
+
+    .starfish svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .starfish:hover svg {
+      transform: rotate(36deg);
+      transition: transform 0.4s ease;
+    }
+
+    /* === ANEMONE === */
+    .anemone {
+      width: 50px;
+      height: 70px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    .tendril {
+      width: 3px;
+      border-radius: 2px;
+      position: absolute;
+      bottom: 10px;
+      transform-origin: bottom center;
+    }
+
+    @keyframes sway {
+
+      0%,
+      100% {
+        transform: rotate(var(--sway-from));
+      }
+
+      50% {
+        transform: rotate(var(--sway-to));
+      }
+    }
+
+    /* === URCHIN === */
+    .urchin {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .urchin-body {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      position: relative;
+    }
+
+    .spine {
+      position: absolute;
+      width: 2px;
+      background: currentColor;
+      transform-origin: bottom center;
+      bottom: 50%;
+      left: calc(50% - 1px);
+      border-radius: 1px;
+    }
+
+    @keyframes urchinPulse {
+
+      0%,
+      100% {
+        transform: scale(1);
+      }
+
+      50% {
+        transform: scale(1.06);
+      }
+    }
+
+    /* === JELLYFISH === */
+    .jellyfish {
+      width: 50px;
+      height: 80px;
+    }
+
+    .jelly-bell {
+      width: 50px;
+      height: 35px;
+      border-radius: 50% 50% 40% 40%;
+      position: relative;
+    }
+
+    .jelly-tentacles {
+      display: flex;
+      justify-content: space-around;
+      padding: 0 8px;
+    }
+
+    .jelly-t {
+      width: 2px;
+      border-radius: 1px;
+      transform-origin: top center;
+    }
+
+    @keyframes jellyBob {
+
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-8px);
+      }
+    }
+
+    @keyframes jellyTentacle {
+
+      0%,
+      100% {
+        transform: skewX(var(--skew-from));
+      }
+
+      50% {
+        transform: skewX(var(--skew-to));
+      }
+    }
+
+    /* === SEAWEED === */
+    .seaweed {
+      width: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .frond {
+      width: 14px;
+      border-radius: 50%;
+      transform-origin: bottom center;
+    }
+
+    @keyframes frondSway {
+
+      0%,
+      100% {
+        transform: rotate(var(--frond-from)) scaleY(1);
+      }
+
+      50% {
+        transform: rotate(var(--frond-to)) scaleY(1.05);
+      }
+    }
+
+    /* === BUBBLE === */
+    .bubble {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 1px solid rgba(150, 210, 255, 0.8);
+      background: radial-gradient(circle at 30% 30%, rgba(200, 240, 255, 0.15), transparent);
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    @keyframes bubbleRise {
+      0% {
+        transform: translateY(0) scale(1);
+        opacity: 0.6;
+      }
+
+      80% {
+        opacity: 0.3;
+      }
+
+      100% {
+        transform: translateY(-100vh) scale(0.5);
+        opacity: 0;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="pool">
+    <svg id="seabed" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"></svg>
+  </div>
+  <div id="light-ripple"></div>
+  <div id="scanlines"></div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/seabed";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const pool = document.getElementById('pool');
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    // Color palettes for creatures
+    const palettes = {
+      starfish: ['#c44b3f', '#d4765e', '#e8956a', '#b85c3a', '#a34232'],
+      anemone: ['#e847a0', '#c73ddb', '#ff6ec7', '#d44fa0', '#a33daa'],
+      urchin: ['#2a1a3e', '#3b1f5e', '#1e1040', '#4a2070', '#2d0e4a'],
+      jellyfish: ['rgba(120,180,255,0.9)', 'rgba(180,120,255,0.9)', 'rgba(100,200,230,0.9)', 'rgba(160,140,255,0.9)'],
+      seaweed: ['#1a5e2a', '#2a7e3a', '#0e4a1e', '#3a8e4a', '#1a6e30'],
+    };
+
+    function rand(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+
+    function randInt(min, max) {
+      return Math.floor(rand(min, max));
+    }
+
+    function pick(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    // Seabed boundary: top of the sandy area
+    const seabedTop = vh * 0.33;
+
+    // Perspective scale: 0.45 at the top of seabed, 1.3 at the very bottom
+    function perspectiveScale(y) {
+      const t = Math.max(0, Math.min(1, (y - seabedTop) / (vh - seabedTop)));
+      return 0.45 + t * 0.85;
+    }
+
+    // Generate wavy sandy seabed SVG
+    function generateSeabed() {
+      const svg = document.getElementById('seabed');
+      const w = vw;
+      const h = vh * 0.67;
+      svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+
+      // Build several wavy sand layers from back (darker, top) to front (lighter, bottom)
+      const layers = [
+        { yOffset: 0, color: '#2a2218', amp: 12, freq: 3 },
+        { yOffset: 30, color: '#3a3020', amp: 10, freq: 4 },
+        { yOffset: 70, color: '#4d4030', amp: 14, freq: 3.5 },
+        { yOffset: 120, color: '#5e4f3a', amp: 8, freq: 5 },
+        { yOffset: 180, color: '#6e5d42', amp: 11, freq: 4 },
+        { yOffset: 240, color: '#7d6b4e', amp: 9, freq: 3 },
+        { yOffset: 310, color: '#8c7a58', amp: 13, freq: 4.5 },
+        { yOffset: 380, color: '#9b8862', amp: 7, freq: 5 },
+      ];
+
+      let svgContent = '';
+
+      // Sandy grain filter
+      svgContent += `
+        <defs>
+          <filter id="sandGrain">
+            <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" result="noise"/>
+            <feColorMatrix type="saturate" values="0" in="noise" result="grayNoise"/>
+            <feBlend in="SourceGraphic" in2="grayNoise" mode="multiply"/>
+          </filter>
+        </defs>`;
+
+      for (const layer of layers) {
+        const segments = 20;
+        const segW = w / segments;
+        let d = `M 0 ${h}`;
+
+        // Draw bottom edge and sides, then wavy top
+        const points = [];
+        for (let i = 0; i <= segments; i++) {
+          const x = i * segW;
+          const phase = rand(0, Math.PI * 2);
+          const y = layer.yOffset + Math.sin((i / segments) * Math.PI * layer.freq + phase) * layer.amp;
+          points.push({ x, y });
+        }
+
+        d = `M -10 ${h + 10} L -10 ${points[0].y}`;
+        for (let i = 0; i < points.length - 1; i++) {
+          const cp1x = points[i].x + segW * 0.5;
+          const cp1y = points[i].y;
+          const cp2x = points[i + 1].x - segW * 0.5;
+          const cp2y = points[i + 1].y;
+          d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${points[i + 1].x} ${points[i + 1].y}`;
+        }
+        d += ` L ${w + 10} ${h + 10} Z`;
+
+        svgContent += `<path d="${d}" fill="${layer.color}" filter="url(#sandGrain)" opacity="0.9"/>`;
+      }
+
+      // Scatter a few small pebble ellipses on the sand
+      const pebbleColors = [
+        '#4a3d2a', '#5c4e38', '#6b5d45', '#3e3222', '#7a6a52',
+        '#1a2a3a', '#1e2e3e', '#142434', '#0e1e2e', '#223344', '#18283a',
+      ];
+      for (let i = 0; i < 100; i++) {
+        const px = rand(0, w);
+        const py = rand(40, h);
+        const rx = rand(3, 12);
+        const ry = rx * rand(0.4, 0.8);
+        const rot = rand(0, 180);
+        const col = pick(pebbleColors);
+        svgContent += `<ellipse cx="${px}" cy="${py}" rx="${rx}" ry="${ry}"
+          fill="${col}" opacity="${rand(0.2, 0.5)}"
+          transform="rotate(${rot} ${px} ${py})"/>`;
+      }
+
+      svg.innerHTML = svgContent;
+    }
+
+    // Apply perspective scale + z-index by depth
+    function applyPerspective(el, y) {
+      const s = perspectiveScale(y);
+      el.style.transform = `scale(${s.toFixed(3)})`;
+      el.style.zIndex = Math.floor(y / 10) + 5;
+    }
+
+    // Starfish
+    function createStarfish(x, y) {
+      const a = document.createElement('a');
+      a.className = 'creature starfish';
+      a.href = pageRandomiser.nextOne();
+      a.style.left = x + 'px';
+      a.style.top = y + 'px';
+      const size = rand(40, 80);
+      a.style.width = size + 'px';
+      a.style.height = size + 'px';
+      const rotation = rand(0, 360);
+      const color = pick(palettes.starfish);
+
+      a.innerHTML = `<svg viewBox="0 0 100 100" style="transform:rotate(${rotation}deg)">
+        <polygon points="50,5 61,35 95,35 67,55 78,90 50,70 22,90 33,55 5,35 39,35"
+          fill="${color}" stroke="${color}" stroke-width="2" stroke-linejoin="round"/>
+      </svg>`;
+      applyPerspective(a, y);
+      pool.appendChild(a);
+    }
+
+    // Anemone
+    function createAnemone(x, y) {
+      const a = document.createElement('a');
+      a.className = 'creature anemone';
+      a.href = pageRandomiser.nextOne();
+      a.style.left = x + 'px';
+      a.style.top = y + 'px';
+      const height = rand(50, 90);
+      a.style.height = height + 'px';
+
+      const numTendrils = randInt(7, 16);
+      const baseColor = pick(palettes.anemone);
+
+      for (let i = 0; i < numTendrils; i++) {
+        const t = document.createElement('div');
+        t.className = 'tendril';
+        const h = rand(20, height - 10);
+        t.style.height = h + 'px';
+        t.style.background = baseColor;
+        t.style.opacity = rand(0.5, 0.9);
+        const spread = rand(-20, 20);
+        t.style.left = `calc(50% + ${spread}px)`;
+
+        const swayFrom = rand(-15, -5);
+        const swayTo = rand(5, 15);
+        t.style.setProperty('--sway-from', swayFrom + 'deg');
+        t.style.setProperty('--sway-to', swayTo + 'deg');
+        t.style.animation = `sway ${rand(2, 5)}s ease-in-out ${rand(0, 2)}s infinite`;
+
+        // Glowing tip
+        t.style.boxShadow = `0 -3px 6px ${baseColor}`;
+        a.appendChild(t);
+      }
+
+      // Base disc
+      const base = document.createElement('div');
+      base.style.width = '30px';
+      base.style.height = '8px';
+      base.style.borderRadius = '50%';
+      base.style.background = baseColor;
+      base.style.opacity = '0.7';
+      base.style.position = 'absolute';
+      base.style.bottom = '0';
+      base.style.left = 'calc(50% - 15px)';
+      a.appendChild(base);
+
+      applyPerspective(a, y);
+      pool.appendChild(a);
+    }
+
+    // Urchin
+    function createUrchin(x, y) {
+      const a = document.createElement('a');
+      a.className = 'creature urchin';
+      a.href = pageRandomiser.nextOne();
+      a.style.left = x + 'px';
+      a.style.top = y + 'px';
+      const size = rand(30, 55);
+      a.style.width = size + 'px';
+      a.style.height = size + 'px';
+
+      const color = pick(palettes.urchin);
+
+      const body = document.createElement('div');
+      body.className = 'urchin-body';
+      body.style.background = `radial-gradient(circle at 40% 40%, ${color}, #0a0515)`;
+      body.style.color = color;
+      body.style.animation = `urchinPulse ${rand(3, 6)}s ease-in-out infinite`;
+
+      const numSpines = randInt(12, 24);
+      for (let i = 0; i < numSpines; i++) {
+        const spine = document.createElement('div');
+        spine.className = 'spine';
+        const angle = (360 / numSpines) * i;
+        const length = rand(8, size * 0.5);
+        spine.style.height = length + 'px';
+        spine.style.transform = `rotate(${angle}deg)`;
+        spine.style.opacity = rand(0.4, 0.8);
+        body.appendChild(spine);
+      }
+
+      a.appendChild(body);
+      applyPerspective(a, y);
+      pool.appendChild(a);
+    }
+
+    // Jellyfish
+    function createJellyfish(x, y) {
+      const a = document.createElement('a');
+      a.className = 'creature jellyfish';
+      a.href = pageRandomiser.nextOne();
+      a.style.left = x + 'px';
+      a.style.top = y + 'px';
+      a.style.animation = `jellyBob ${rand(3, 6)}s ease-in-out infinite`;
+
+      const color = pick(palettes.jellyfish);
+      const bellWidth = rand(35, 60);
+      const bellHeight = rand(25, 40);
+
+      const bell = document.createElement('div');
+      bell.className = 'jelly-bell';
+      bell.style.width = bellWidth + 'px';
+      bell.style.height = bellHeight + 'px';
+      bell.style.background = color;
+      bell.style.boxShadow = `0 0 15px ${color}, inset 0 -5px 10px rgba(255,255,255,0.1)`;
+      a.appendChild(bell);
+
+      const tentacles = document.createElement('div');
+      tentacles.className = 'jelly-tentacles';
+      const numTentacles = randInt(4, 8);
+      for (let i = 0; i < numTentacles; i++) {
+        const t = document.createElement('div');
+        t.className = 'jelly-t';
+        t.style.height = rand(20, 45) + 'px';
+        t.style.background = color;
+        t.style.opacity = rand(0.4, 0.7);
+        const skewFrom = rand(-10, -3);
+        const skewTo = rand(3, 10);
+        t.style.setProperty('--skew-from', skewFrom + 'deg');
+        t.style.setProperty('--skew-to', skewTo + 'deg');
+        t.style.animation = `jellyTentacle ${rand(1.5, 3.5)}s ease-in-out ${rand(0, 1)}s infinite`;
+        tentacles.appendChild(t);
+      }
+      a.appendChild(tentacles);
+
+      applyPerspective(a, y);
+      pool.appendChild(a);
+    }
+
+    // Seaweed
+    function createSeaweed(x, y) {
+      const a = document.createElement('a');
+      a.className = 'creature seaweed';
+      a.href = pageRandomiser.nextOne();
+      a.style.left = x + 'px';
+      a.style.top = y + 'px';
+
+      const color = pick(palettes.seaweed);
+      const numFronds = randInt(4, 10);
+      const totalHeight = rand(60, 140);
+
+      for (let i = 0; i < numFronds; i++) {
+        const frond = document.createElement('div');
+        frond.className = 'frond';
+        const h = rand(12, 22);
+        frond.style.height = h + 'px';
+        frond.style.background = color;
+        frond.style.opacity = rand(0.5, 0.85);
+        frond.style.marginTop = rand(-4, 2) + 'px';
+
+        const frondFrom = rand(-8, -2);
+        const frondTo = rand(2, 8);
+        frond.style.setProperty('--frond-from', frondFrom + 'deg');
+        frond.style.setProperty('--frond-to', frondTo + 'deg');
+        frond.style.animation = `frondSway ${rand(2, 5)}s ease-in-out ${rand(0, 2)}s infinite`;
+        a.appendChild(frond);
+      }
+
+      applyPerspective(a, y);
+      pool.appendChild(a);
+    }
+
+    // Periodic bubbles
+    function spawnBubble() {
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble';
+      const size = rand(4, 14);
+      bubble.style.width = size + 'px';
+      bubble.style.height = size + 'px';
+      bubble.style.position = 'absolute';
+      bubble.style.left = rand(0, vw) + 'px';
+      bubble.style.top = rand(vh * 0.4, vh) + 'px';
+      bubble.style.animation = `bubbleRise ${rand(6, 14)}s linear forwards`;
+      pool.appendChild(bubble);
+      bubble.addEventListener('animationend', () => bubble.remove());
+    }
+
+    // Place creatures with spawn zone constraints
+    function populatePool() {
+      // Clear existing creatures (anchor tags)
+      const anchors = document.querySelectorAll('a');
+      anchors.forEach(a => a.remove());
+
+      // Seabed creatures: bottom two-thirds only
+      let seabedFns = [
+        createStarfish, createStarfish, createStarfish, createStarfish,
+        createAnemone, createAnemone, createAnemone, createAnemone, createAnemone,
+        createUrchin, createUrchin, createUrchin, createUrchin,
+        createSeaweed, createSeaweed, createSeaweed, createSeaweed, createSeaweed, createSeaweed,
+      ];
+      seabedFns = seabedFns.concat(seabedFns);
+
+      // Jellyfish: anywhere
+      const jellyFns = [
+        createJellyfish, createJellyfish, createJellyfish,
+        createJellyfish, createJellyfish, createJellyfish,
+        createJellyfish, createJellyfish,
+      ];
+
+      const margin = 60;
+      const placed = [];
+
+      // Place seabed creatures in bottom two-thirds
+      for (const fn of seabedFns) {
+        let attempts = 0;
+        let x, y;
+        do {
+          x = rand(margin, vw - margin);
+          y = rand(seabedTop + margin * 0.5, vh - margin);
+          attempts++;
+        } while (
+          attempts < 50 &&
+          placed.some(p => Math.hypot(p.x - x, p.y - y) < 65)
+        );
+        placed.push({ x, y });
+        fn(x, y);
+      }
+
+      // Place jellyfish anywhere
+      for (const fn of jellyFns) {
+        let attempts = 0;
+        let x, y;
+        do {
+          x = rand(margin, vw - margin);
+          y = rand(margin, vh - margin);
+          attempts++;
+        } while (
+          attempts < 50 &&
+          placed.some(p => Math.hypot(p.x - x, p.y - y) < 65)
+        );
+        placed.push({ x, y });
+        fn(x, y);
+      }
+    }
+
+    generateSeabed();
+    populatePool();
+
+    // Bubble stream
+    setInterval(spawnBubble, 800);
+
+    // Initial bubble burst
+    for (let i = 0; i < 5; i++) {
+      setTimeout(spawnBubble, rand(0, 3000));
+    }
+
+    // Click anywhere on the page (except anchors) to respawn sealife
+    document.body.addEventListener('click', (e) => {
+      if (e.target.matches('a')) return;
+      populatePool();
+    });
+
+  </script>
+</body>
+
+</html>

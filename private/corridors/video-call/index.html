@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Can everyone see my screen?">
+  <title>You're on mute</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #1a1a2e;
+      font-family: 'Arial', 'Helvetica', sans-serif;
+      color: #e0e0e0;
+    }
+
+    #app {
+      display: flex;
+      width: 100%;
+      height: 100%;
+    }
+
+    #left-column {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    #video-grid {
+      flex: 1;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      gap: 4px;
+      padding: 4px;
+      background: #111;
+      min-height: 0;
+    }
+
+    .video-cell {
+      background: #2a2a3e;
+      border: 2px solid #333;
+      border-radius: 4px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      color: #e0e0e0;
+    }
+
+    .video-cell:hover {
+      border-color: #555;
+    }
+
+    .video-cell.speaking {
+      border-color: #4caf50;
+      box-shadow: 0 0 8px rgba(76, 175, 80, 0.4);
+    }
+
+    .avatar-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      width: 100%;
+      position: relative;
+    }
+
+    .desk {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 30%;
+      border-top: 3px solid #555;
+    }
+
+    .character {
+      font-size: clamp(2rem, 5vw, 6rem);
+      position: relative;
+      z-index: 2;
+      line-height: 1;
+      transition: transform 0.15s;
+    }
+
+    .video-cell.speaking .character {
+      animation: talk 0.3s infinite alternate;
+    }
+
+    @keyframes talk {
+      0% {
+        transform: translateY(0) rotate(-2deg);
+      }
+
+      100% {
+        transform: translateY(-4px) rotate(2deg);
+      }
+    }
+
+    .name-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0, 0, 0, 0.6);
+      padding: 3px 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      z-index: 3;
+    }
+
+    .mic-icon {
+      width: 12px;
+      height: 12px;
+      display: inline-block;
+      position: relative;
+    }
+
+    .mic-icon::before {
+      content: '🎤';
+      font-size: 10px;
+    }
+
+    .mic-icon.muted::before {
+      content: '🔇';
+    }
+
+    .mic-icon.active {
+      animation: mic-flash 0.5s infinite alternate;
+    }
+
+    @keyframes mic-flash {
+      0% {
+        opacity: 0.5;
+      }
+
+      100% {
+        opacity: 1;
+      }
+    }
+
+    .participant-name {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: 11px;
+    }
+
+    #transcript-panel {
+      width: 260px;
+      background: #1e1e2f;
+      border-left: 2px solid #333;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #transcript-header {
+      padding: 8px 12px;
+      background: #252540;
+      border-bottom: 1px solid #333;
+      font-size: 12px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #888;
+    }
+
+    #transcript-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px;
+    }
+
+    #transcript-messages::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    #transcript-messages::-webkit-scrollbar-track {
+      background: #1e1e2f;
+    }
+
+    #transcript-messages::-webkit-scrollbar-thumb {
+      background: #444;
+      border-radius: 3px;
+    }
+
+    .transcript-msg {
+      margin-bottom: 8px;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .transcript-msg .msg-name {
+      font-weight: bold;
+      color: #7ab8f5;
+      margin-bottom: 2px;
+    }
+
+    .transcript-msg .msg-text {
+      color: #bbb;
+      transition: color 0.3s;
+    }
+
+    .transcript-msg .msg-text.draft {
+      color: #666;
+    }
+
+    #toolbar {
+      height: 48px;
+      background: #1e1e2f;
+      border-top: 1px solid #333;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      flex-shrink: 0;
+    }
+
+    .toolbar-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 1px solid #555;
+      background: #2a2a3e;
+      color: #ccc;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      transition: background 0.2s, border-color 0.2s, transform 0.15s, box-shadow 0.2s;
+    }
+
+    .toolbar-btn:hover {
+      background: #3a3a55;
+      border-color: #888;
+      box-shadow: 0 0 10px rgba(150, 150, 255, 0.3);
+    }
+
+    .toolbar-btn.end-call {
+      background: #c62828;
+      border-color: #c62828;
+      width: 64px;
+      height: 36px;
+      border-radius: 18px;
+    }
+
+    .toolbar-btn.end-call:hover {
+      background: #e53935;
+      border-color: #e53935;
+      box-shadow: 0 0 12px rgba(229, 57, 53, 0.5);
+    }
+
+    #meeting-info {
+      height: 32px;
+      background: #1e1e2f;
+      border-bottom: 1px solid #333;
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      font-size: 11px;
+      color: #888;
+      gap: 16px;
+      flex-shrink: 0;
+    }
+
+    #meeting-title {
+      font-weight: bold;
+      color: #bbb;
+    }
+
+    #meeting-timer {
+      margin-left: auto;
+    }
+
+    a {
+      text-decoration: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app">
+    <div id="left-column">
+      <div id="meeting-info">
+        <span id="meeting-title"></span>
+        <span id="meeting-timer">00:00</span>
+      </div>
+      <div id="video-grid"></div>
+      <div id="toolbar">
+        <a href="../index.html" class="toolbar-btn">🎤</a>
+        <a href="../index.html" class="toolbar-btn">📷</a>
+        <a href="../index.html" class="toolbar-btn">🖥️</a>
+        <a href="../index.html" class="toolbar-btn">💬</a>
+        <a href="../index.html" class="toolbar-btn">😊</a>
+        <a href="../index.html" class="toolbar-btn end-call">📞</a>
+      </div>
+    </div>
+    <div id="transcript-panel">
+      <div id="transcript-header">Meeting Transcript</div>
+      <div id="transcript-messages"></div>
+    </div>
+  </div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/video-call";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    // --- Array constants ---
+    const MALE_NAMES_POOL = [
+      'Aaron', 'Blake', 'Craig', 'David', 'Ellis', 'Frank', 'Grant', 'Harry', 'Isaac', 'James',
+      'Keith', 'Lloyd', 'Marco', 'Nigel', 'Owain', 'Peter', 'Quent', 'Ronan', 'Simon', 'Terry',
+      'Usher', 'Vince', 'Wayne', 'Xaver', 'Yanni', 'Zayne',
+    ];
+    const FEMALE_NAMES_POOL = [
+      'Alice', 'Bella', 'Chloe', 'Diane', 'Ellen', 'Faith', 'Grace', 'Hanna', 'Irene', 'Julia',
+      'Katie', 'Laura', 'Maria', 'Nadia', 'Olive', 'Paula', 'Quinn', 'Riley', 'Sarah', 'Tanya',
+      'Unity', 'Vicky', 'Wendy', 'Xenia', 'Yvett', 'Zahra',
+    ];
+    const LAST_NAMES_POOL = [
+      'Adams', 'Brown', 'Clark', 'Davis', 'Evans', 'Foley', 'Green', 'Haley', 'Irwin', 'Jones',
+      'Kelly', 'Lewis', 'Moore', 'Nixon', 'Owens', 'Patel', 'Quill', 'Reese', 'Smith', 'Tatum',
+      'Upton', 'Vidal', 'White', 'Xiong', 'Young', 'Zhang',
+    ];
+    const DEVICES_POOL = ['iPad', 'MacBook', 'tablet', 'laptop', 'desktop', 'iPhone', 'Chromebook'];
+    const LOCATIONS_POOL = ['home computer', 'work laptop', 'kitchen', 'office'];
+    const MALE_EMOJIS_POOL = [
+      '👨', '👨‍🦰', '👨‍🦱', '👨‍🦳', '👨‍🦲', '👱‍♂️', '👴', '🧔',
+      '👮‍♂️', '🕵️‍♂️', '💂‍♂️', '👷‍♂️', '🤴', '🤵‍♂️', '🧙‍♂️', '🧛‍♂️', '🧝‍♂️', '🤹‍♂️',
+      '👨‍💻', '👨‍💼', '👨‍🔬', '👨‍⚕️', '👨‍🏫', '👨‍⚖️', '👨‍🌾', '👨‍🍳', '👨‍🔧', '👨‍🏭',
+      '👨‍🚒', '👨‍🚀', '👨‍✈️', '👨‍🎨', '👨‍🎤',
+    ];
+    const FEMALE_EMOJIS_POOL = [
+      '👩', '👩‍🦰', '👩‍🦱', '👩‍🦳', '👩‍🦲', '👱‍♀️', '👵', '🧕',
+      '👮‍♀️', '🕵️‍♀️', '💂‍♀️', '👷‍♀️', '👸', '🤵‍♀️', '🧙‍♀️', '🧛‍♀️', '🧝‍♀️', '🤹‍♀️',
+      '👩‍💻', '👩‍💼', '👩‍🔬', '👩‍⚕️', '👩‍🏫', '👩‍⚖️', '👩‍🌾', '👩‍🍳', '👩‍🔧', '👩‍🏭',
+      '👩‍🚒', '👩‍🚀', '👩‍✈️', '👩‍🎨', '👩‍🎤',
+    ];
+
+    const maleNamesRandomiser = new CyclicRandomiser(MALE_NAMES_POOL);
+    const femaleNamesRandomiser = new CyclicRandomiser(FEMALE_NAMES_POOL);
+    const lastNamesRandomiser = new CyclicRandomiser(LAST_NAMES_POOL);
+    const devicesRandomiser = new CyclicRandomiser(DEVICES_POOL);
+    const locationsRandomiser = new CyclicRandomiser(LOCATIONS_POOL);
+    const maleEmojiRandomiser = new CyclicRandomiser(MALE_EMOJIS_POOL);
+    const femaleEmojiRandomiser = new CyclicRandomiser(FEMALE_EMOJIS_POOL);
+
+    function sample(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function generateName(gender) {
+      const r = Math.random();
+      const nameRandomiser = (gender === 'm' ? maleNamesRandomiser : femaleNamesRandomiser);
+      const first = nameRandomiser.next();
+      if (r < 0.65) {
+        return first + ' ' + lastNamesRandomiser.next();
+      } else if (r < 0.85) {
+        return first + '\'s ' + devicesRandomiser.next();
+      } else {
+        return first + ' ' + locationsRandomiser.next();
+      }
+    }
+
+    const DESK_COLORS = [
+      '#3e2723', '#4e342e', '#5d4037', '#3b3020', '#2d2518',
+      '#37474f', '#455a64', '#263238', '#4a3728', '#5c3a21'
+    ];
+
+    const BG_COLORS = [
+      '#2c3e50', '#34495e', '#2d2d44', '#1e3a5f', '#3d2c4e',
+      '#1b3a2d', '#3b2e2e', '#2e2e4a', '#2a3f3f', '#3e2d3e'
+    ];
+
+    // --- Build participants ---
+    const usedNames = new Set();
+    const participants = [];
+
+    for (let i = 0; i < 9; i++) {
+      const gender = Math.random() < 0.5 ? 'm' : 'f';
+      const emojiPool = gender === 'm' ? maleEmojiRandomiser : femaleEmojiRandomiser;
+      const emoji = emojiPool.nextOne();
+
+      let name;
+      do { name = generateName(gender); } while (usedNames.has(name));
+      usedNames.add(name);
+
+      participants.push({
+        id: i,
+        name: name,
+        emoji: emoji,
+        bgColor: sample(BG_COLORS),
+        deskColor: sample(DESK_COLORS),
+        link: pageRandomiser.nextOne(),
+        participation: 1 + Math.floor(Math.random() * 5)
+      });
+    }
+
+    // --- Render video grid ---
+    const grid = document.getElementById('video-grid');
+    participants.forEach(p => {
+      const cell = document.createElement('a');
+      cell.href = p.link;
+      cell.className = 'video-cell';
+      cell.id = 'cell-' + p.id;
+      cell.innerHTML = `
+        <div class="avatar-area" style="background:${p.bgColor}">
+          <div class="character">${p.emoji}</div>
+          <div class="desk" style="background:${p.deskColor}"></div>
+        </div>
+        <div class="name-bar">
+          <span class="mic-icon muted" id="mic-${p.id}"></span>
+          <span class="participant-name">${p.name}</span>
+        </div>
+      `;
+      grid.appendChild(cell);
+    });
+
+    // --- Meeting title ---
+    const meetingTopics = [
+      'Q3 Strategy Sync', 'Weekly Standup', 'Project Kickoff',
+      'Upcoming Sprint', 'Sprint Retrospective', 'Design Review',
+      'Budget Planning', 'Team Check-in', 'Client Update',
+      'Roadmap Discussion', 'All Hands', 'Brainstorm Session',
+    ];
+    document.getElementById('meeting-title').textContent = sample(meetingTopics);
+
+    // --- Timer ---
+    let seconds = 0;
+    setInterval(() => {
+      seconds++;
+      const m = String(Math.floor(seconds / 60)).padStart(2, '0');
+      const s = String(seconds % 60).padStart(2, '0');
+      document.getElementById('meeting-timer').textContent = m + ':' + s;
+    }, 1000);
+
+    // --- Blah generation ---
+    function generateBlah() {
+      const patterns = [
+        'Blah blah blah blah blah.',
+        'Blah blah blah blah.',
+        'Blah blah blah, blah.',
+        'Blah blah blah.',
+        'Blah blah blah... blah.',
+        'Blah blah! Blah blah blah.',
+        'Blah blah, blah blah blah blah.',
+        'Blah blah, blah blah.',
+        'Blah blah, blah, blah blah.',
+        'Blah blah. Blah.',
+        'Blah blah... blah blah blah.',
+        'Blah! Blah! Blah blah.',
+        'Blah, blah blah blah.',
+        'Blah, blah blah.',
+        'Blah, blah, blah blah blah.',
+        'Blah. Blah blah blah.',
+        'Blah? Blah blah.',
+        'Blah? Blah, blah blah blah.',
+      ];
+      return sample(patterns);
+    }
+
+    function generateUtterance() {
+      const count = 1 + Math.floor(Math.random() * 4);
+      const sentences = [];
+      for (let i = 0; i < count; i++) {
+        sentences.push(generateBlah());
+      }
+      return sentences.join(' ');
+    }
+
+    // --- Transcript stuff ---
+    // It should start with no sentence structure, and then the sentence
+    // structure should be applied at the end of the talker's turn.
+    const transcriptEl = document.getElementById('transcript-messages');
+
+    function stripPunctuation(text) {
+      return text.replace(/[.,!?;:\-…]/g, '').toLowerCase();
+    }
+
+    function beginTranscript(participant, text, duration) {
+      const msg = document.createElement('div');
+      msg.className = 'transcript-msg';
+      const textEl = document.createElement('div');
+      textEl.className = 'msg-text draft';
+      msg.innerHTML = `<div class="msg-name">${participant.name}</div>`;
+      msg.appendChild(textEl);
+      transcriptEl.appendChild(msg);
+      transcriptEl.scrollTop = transcriptEl.scrollHeight;
+
+      const words = stripPunctuation(text).split(/\s+/);
+      const timers = [];
+      const startDelay = 200 + Math.random() * 300;
+      const wordWindow = duration - startDelay - 200;
+      const interval = Math.max(80, wordWindow / words.length);
+
+      words.forEach((word, i) => {
+        const t = setTimeout(() => {
+          textEl.textContent += (i > 0 ? ' ' : '') + word;
+          transcriptEl.scrollTop = transcriptEl.scrollHeight;
+        }, startDelay + i * interval);
+        timers.push(t);
+      });
+
+      return { el: textEl, finalText: text, timers: timers };
+    }
+
+    function finaliseTranscript(handle) {
+      if (!handle) return;
+      handle.timers.forEach(t => clearTimeout(t));
+      handle.el.textContent = handle.finalText;
+      handle.el.classList.remove('draft');
+      transcriptEl.scrollTop = transcriptEl.scrollHeight;
+    }
+
+    // --- Speaking logic ---
+    let currentSpeaker = null;
+    let activeHandle = null;
+
+    function setSpeaking(participant, speaking) {
+      const cell = document.getElementById('cell-' + participant.id);
+      const mic = document.getElementById('mic-' + participant.id);
+      if (speaking) {
+        cell.classList.add('speaking');
+        mic.classList.remove('muted');
+        mic.classList.add('active');
+      } else {
+        cell.classList.remove('speaking');
+        mic.classList.add('muted');
+        mic.classList.remove('active');
+      }
+    }
+
+    function stopSpeaker() {
+      if (currentSpeaker) {
+        setSpeaking(currentSpeaker, false);
+        finaliseTranscript(activeHandle);
+        activeHandle = null;
+      }
+    }
+
+    function startSpeaker(speaker, duration) {
+      currentSpeaker = speaker;
+      setSpeaking(speaker, true);
+      const utterance = generateUtterance();
+      activeHandle = beginTranscript(speaker, utterance, duration);
+    }
+
+    // Weighted random: participation level determines likelihood
+    function pickNextSpeaker() {
+      const totalWeight = participants.reduce((sum, p) => sum + (p === currentSpeaker ? 0 : p.participation), 0);
+      let roll = Math.random() * totalWeight;
+      for (const p of participants) {
+        if (p === currentSpeaker) continue;
+        roll -= p.participation;
+        if (roll <= 0) return p;
+      }
+      return participants.find(p => p !== currentSpeaker);
+    }
+
+    function doTurn() {
+      const prevSpeaker = currentSpeaker;
+      const nextSpeaker = pickNextSpeaker();
+
+      // Pre-calculate speaking duration
+      const baseDuration = 1000 + Math.random() * 2500;
+      const duration = baseDuration * (0.6 + nextSpeaker.participation * 0.25);
+
+      // Gap variance: negative = overlap, positive = pause between speakers
+      // Range: -400ms (slight overlap) to +800ms (awkward pause)
+      // (I'm not sure the negatives are working correctly, but it's fine for now)
+      const gap = -400 + Math.random() * 1200;
+
+      if (gap <= 0 && prevSpeaker) {
+        // Overlap: start next speaker slightly before stopping previous
+        stopSpeaker();
+        setTimeout(() => {
+          startSpeaker(nextSpeaker, duration);
+        }, Math.max(0, -gap));
+      } else {
+        // Pause: stop previous, wait, then start next
+        stopSpeaker();
+        setTimeout(() => {
+          startSpeaker(nextSpeaker, duration);
+        }, gap);
+      }
+
+      setTimeout(doTurn, Math.max(gap, 0) + duration);
+    }
+
+    // Start after a brief pause
+    setTimeout(doTurn, 1000);
+
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="The hands can't hit what the eyes can't see">
+  <title>Floating and stinging</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body,
+    html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #111;
+      font-family: monospace;
+    }
+
+    #arena {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    #stands {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 55%;
+      background: linear-gradient(to bottom, #0a0a0a 0%, #1a1a2e 40%, #222244 100%);
+      z-index: 1;
+    }
+
+    .spectator {
+      position: absolute;
+      text-decoration: none;
+      user-select: none;
+      line-height: 1;
+      z-index: 2;
+      animation: crowd-bounce var(--bounce-dur, 0.6s) ease-in-out infinite alternate;
+      animation-delay: var(--bounce-delay, 0s);
+    }
+
+    @keyframes crowd-bounce {
+      0% {
+        transform: translateY(0) rotate(var(--sway-a, -3deg));
+      }
+
+      100% {
+        transform: translateY(var(--bounce-h, -3px)) rotate(var(--sway-b, 3deg));
+      }
+    }
+
+    #ring-floor {
+      position: absolute;
+      pointer-events: none;
+      z-index: 3;
+    }
+
+    .post {
+      position: absolute;
+      width: 18px;
+      background: linear-gradient(to bottom, #999, #ccc, #999);
+      border: 1px solid #666;
+      z-index: 10;
+    }
+
+    #ropes-svg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 8;
+      pointer-events: none;
+    }
+
+    .rope {
+      stroke-linecap: round;
+      fill: none;
+    }
+
+    .fighter {
+      position: absolute;
+      z-index: 15;
+      line-height: 1;
+      user-select: none;
+    }
+
+    #butterfly {
+      transform: scaleX(-1);
+    }
+
+    a {
+      text-decoration: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="arena">
+    <div id="stands"></div>
+    <canvas id="ring-floor"></canvas>
+    <svg id="ropes-svg"></svg>
+    <a id="butterfly" class="fighter">🦋</a>
+    <a id="bee" class="fighter">🐝</a>
+  </div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/float-and-sting";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const arena = document.getElementById('arena');
+    const stands = document.getElementById('stands');
+    const ropesSvg = document.getElementById('ropes-svg');
+    const floorCanvas = document.getElementById('ring-floor');
+    const floorCtx = floorCanvas.getContext('2d');
+    const butterflyEl = document.getElementById('butterfly');
+    const beeEl = document.getElementById('bee');
+
+    // Spectator emoji pool
+    const crowdEmoji = [
+      '👤', '👥', '🧑', '👨', '👩', '🧔', '👴', '👵',
+      '🧒', '👦', '👧', '🤠', '🧢', '👒', '🎩',
+      '😀', '😂', '😮', '😲', '🤩', '😡', '🥳', '😎',
+      '👏', '✊', '🙌', '🤲'
+    ];
+
+    function layout() {
+      const W = window.innerWidth;
+      const H = window.innerHeight;
+
+      // Post positions
+      const leftPostX = W * 0.25;
+      const rightPostX = W * 0.75;
+      const postY = H * 0.5;
+      const postHeight = H * 0.28;
+      const postTop = postY - postHeight / 2;
+
+      // Clear and redraw everything
+      drawFloor(W, H, leftPostX, rightPostX, postY, postHeight);
+      drawRopes(W, H, leftPostX, rightPostX, postTop, postHeight);
+      drawPosts(leftPostX, rightPostX, postTop, postHeight);
+      placeSpectators(W, H);
+      placeFighters(W, H, leftPostX, rightPostX, postY);
+    }
+
+    // --- RING FLOOR ---
+    function drawFloor(W, H, lx, rx, postY, postHeight) {
+      floorCanvas.width = W;
+      floorCanvas.height = H;
+      floorCanvas.style.left = '0';
+      floorCanvas.style.top = '0';
+
+      const ctx = floorCtx;
+      ctx.clearRect(0, 0, W, H);
+
+      // The ring floor is a trapezoid in perspective
+      // Top edge runs between the two posts
+      // Bottom edge is wider, extending past the screen edges
+      const topY = postY + postHeight * 0.25;
+      const bottomY = H;
+      const topLeft = lx;
+      const topRight = rx;
+
+      // Perspective: bottom extends further out
+      const spread = (rx - lx) * 1.8;
+      const centerX = W / 2;
+      const bottomLeft = centerX - spread;
+      const bottomRight = centerX + spread;
+
+      ctx.beginPath();
+      ctx.moveTo(topLeft, topY);
+      ctx.lineTo(topRight, topY);
+      ctx.lineTo(bottomRight, bottomY);
+      ctx.lineTo(bottomLeft, bottomY);
+      ctx.closePath();
+      ctx.fillStyle = '#1a3a6a';
+      ctx.fill();
+
+      // Ring floor lighter inner
+      ctx.beginPath();
+      ctx.moveTo(topLeft + 10, topY + 5);
+      ctx.lineTo(topRight - 10, topY + 5);
+      ctx.lineTo(bottomRight - 30, bottomY);
+      ctx.lineTo(bottomLeft + 30, bottomY);
+      ctx.closePath();
+      ctx.fillStyle = '#2255a0';
+      ctx.fill();
+
+      // Canvas lines for texture
+      const numLines = 12;
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= numLines; i++) {
+        const t = i / numLines;
+        const y = topY + (bottomY - topY) * t;
+        const leftEdge = topLeft + (bottomLeft - topLeft) * t;
+        const rightEdge = topRight + (bottomRight - topRight) * t;
+        ctx.beginPath();
+        ctx.moveTo(leftEdge, y);
+        ctx.lineTo(rightEdge, y);
+        ctx.stroke();
+      }
+    }
+
+    // --- ROPES ---
+    function drawRopes(W, H, lx, rx, postTop, postHeight) {
+      ropesSvg.innerHTML = '';
+      ropesSvg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+      ropesSvg.setAttribute('width', W);
+      ropesSvg.setAttribute('height', H);
+
+      // Kinda thought these might be nice to be different colours, but I decided against it
+      const ropeColors = ['#cc2200', '#cc2200', '#cc2200', '#cc2200'];
+      const ropeWidths = [5, 5, 5, 5];
+
+      // Compute the same vanishing-point slope used by the ring floor trapezoid
+      const postY = postTop + postHeight / 2;
+      const floorTopY = postY + postHeight * 0.25;
+      const spread = (rx - lx) * 1.8;
+      const centerX = W / 2;
+      const floorBottomLeft = centerX - spread;
+      const floorBottomRight = centerX + spread;
+
+      // Slope from left post down to bottom-left corner of floor
+      const slopeLeftX = floorBottomLeft - lx;
+      const slopeLeftY = H - floorTopY;
+
+      // Slope from right post down to bottom-right corner of floor
+      const slopeRightX = floorBottomRight - rx;
+      const slopeRightY = H - floorTopY;
+
+      for (let i = 0; i < 4; i++) {
+        const t = (i + 0.5) / 4;
+        const ropeY = postTop + postHeight * t;
+
+        // Between posts
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', lx);
+        line.setAttribute('y1', ropeY);
+        line.setAttribute('x2', rx);
+        line.setAttribute('y2', ropeY);
+        line.setAttribute('stroke', ropeColors[i]);
+        line.setAttribute('stroke-width', ropeWidths[i]);
+        line.classList.add('rope');
+        ropesSvg.appendChild(line);
+
+        // Left ropes: follow the floor trapezoid slope
+        // Find how far along that slope we need to go to reach x = -10
+        const tLeft = (lx + 10) / -slopeLeftX;
+        const leftEndX = -10;
+        const leftEndY = ropeY + slopeLeftY * tLeft;
+        const lineLeft = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        lineLeft.setAttribute('x1', lx);
+        lineLeft.setAttribute('y1', ropeY);
+        lineLeft.setAttribute('x2', leftEndX);
+        lineLeft.setAttribute('y2', leftEndY);
+        lineLeft.setAttribute('stroke', ropeColors[i]);
+        lineLeft.setAttribute('stroke-width', ropeWidths[i]);
+        lineLeft.classList.add('rope');
+        ropesSvg.appendChild(lineLeft);
+
+        // Right ropes: follow the floor trapezoid slope
+        const tRight = (W + 10 - rx) / slopeRightX;
+        const rightEndX = W + 10;
+        const rightEndY = ropeY + slopeRightY * tRight;
+        const lineRight = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        lineRight.setAttribute('x1', rx);
+        lineRight.setAttribute('y1', ropeY);
+        lineRight.setAttribute('x2', rightEndX);
+        lineRight.setAttribute('y2', rightEndY);
+        lineRight.setAttribute('stroke', ropeColors[i]);
+        lineRight.setAttribute('stroke-width', ropeWidths[i]);
+        lineRight.classList.add('rope');
+        ropesSvg.appendChild(lineRight);
+      }
+    }
+
+    // --- POSTS ---
+    function drawPosts(lx, rx, postTop, postHeight) {
+      // Remove old posts, just in case
+      document.querySelectorAll('.post').forEach(p => p.remove());
+
+      [lx, rx].forEach(x => {
+        const post = document.createElement('div');
+        post.className = 'post';
+        post.style.left = (x - 4) + 'px';
+        post.style.top = postTop + 'px';
+        post.style.height = postHeight + 'px';
+        arena.appendChild(post);
+      });
+    }
+
+    // --- SPECTATORS ---
+    function placeSpectators(W, H) {
+      // Remove old spectators, just in case
+      document.querySelectorAll('.spectator').forEach(s => s.remove());
+
+      const standsHeight = H * 0.55;
+      const rows = 10;
+      const baseFontSize = 10;
+      const maxFontSize = 30;
+
+      for (let row = 0; row < rows; row++) {
+        const t = row / (rows - 1); // 0 = top (far), 1 = bottom (near)
+        const y = standsHeight * 0.05 + (standsHeight * 0.9) * t;
+        const fontSize = baseFontSize + (maxFontSize - baseFontSize) * t;
+        const count = Math.floor(W / (fontSize * 1.3));
+
+        for (let col = 0; col < count; col++) {
+          const x = (col / count) * W + (Math.random() - 0.5) * fontSize * 0.5;
+          const jitterY = (Math.random() - 0.5) * fontSize * 0.4;
+
+          const spec = document.createElement('a');
+          spec.href = pageRandomiser.nextOne();
+          spec.className = 'spectator';
+          spec.textContent = crowdEmoji[Math.floor(Math.random() * crowdEmoji.length)];
+          spec.style.left = x + 'px';
+          spec.style.top = (y + jitterY) + 'px';
+          spec.style.fontSize = fontSize + 'px';
+          const bounceH = -(2 + Math.random() * 4);
+          const swayA = -(2 + Math.random() * 6);
+          const swayB = (2 + Math.random() * 6);
+          spec.style.setProperty('--bounce-dur', (0.3 + Math.random() * 0.6) + 's');
+          spec.style.setProperty('--bounce-delay', (Math.random() * -2) + 's');
+          spec.style.setProperty('--bounce-h', bounceH + 'px');
+          spec.style.setProperty('--sway-a', swayA + 'deg');
+          spec.style.setProperty('--sway-b', swayB + 'deg');
+          stands.appendChild(spec);
+        }
+      }
+    }
+
+    // --- FIGHTERS ---
+    let butterflyX, beeX, fighterY;
+    let butterflyRestX, beeRestX;
+    let fighting = false;
+
+    function placeFighters(W, H, lx, rx, postY) {
+      const fighterSize = 180;
+      fighterY = postY + 140;
+
+      // Butterfly on the left, bee on the right
+      // Position them between the posts
+      const ringCenter = (lx + rx) / 2;
+      const ringQuarter = (rx - lx) / 4;
+
+      butterflyRestX = ringCenter - ringQuarter - fighterSize / 2;
+      beeRestX = ringCenter + ringQuarter - fighterSize / 2;
+
+      butterflyX = butterflyRestX;
+      beeX = beeRestX;
+
+      butterflyEl.style.top = fighterY + 'px';
+      beeEl.style.top = fighterY + 'px';
+      butterflyEl.style.left = butterflyX + 'px';
+      beeEl.style.left = beeX + 'px';
+      butterflyEl.style.fontSize = fighterSize + 'px';
+      beeEl.style.fontSize = fighterSize + 'px';
+      butterflyEl.href = pageRandomiser.nextOne();
+      beeEl.href = pageRandomiser.nextOne();
+    }
+
+    // --- IDLE BOBBING ---
+    let idleRaf = null;
+    let idleStartTime = null;
+
+    function idleBob(timestamp) {
+      if (fighting) {
+        idleRaf = requestAnimationFrame(idleBob);
+        return;
+      }
+      if (!idleStartTime) idleStartTime = timestamp;
+      const elapsed = (timestamp - idleStartTime) / 1000;
+
+      // Butterfly: gentle breathing + lateral sway
+      // Also, the butterfly emoji is facing the wrong way, so use scaleX(-1)
+      const bfBreathe = Math.sin(elapsed * 2.2) * 3;
+      const bfSway = Math.sin(elapsed * 0.9) * 6;
+      butterflyEl.style.transform = `translate(${bfSway}px, ${bfBreathe}px) scaleX(-1)`;
+
+      // Bee: offset phase so they don't move in sync
+      const beeBreathe = Math.sin(elapsed * 2.5 + 1.5) * 3;
+      const beeSway = Math.sin(elapsed * 1.1 + 2.0) * 6;
+      beeEl.style.transform = `translate(${beeSway}px, ${beeBreathe}px)`;
+
+      idleRaf = requestAnimationFrame(idleBob);
+    }
+
+    // --- FIGHT ANIMATION ---
+    function triggerFight() {
+      if (fighting) return;
+      fighting = true;
+
+      const meetX = (butterflyRestX + beeRestX) / 2;
+
+      // Randomly decide who is in front for this confrontation
+      if (Math.random() < 0.5) {
+        butterflyEl.style.zIndex = 16;
+        beeEl.style.zIndex = 15;
+      } else {
+        butterflyEl.style.zIndex = 15;
+        beeEl.style.zIndex = 16;
+      }
+
+      // Snap transform to neutral during fight
+      butterflyEl.style.transform = 'scaleX(-1)';
+      beeEl.style.transform = '';
+
+      // Move toward each other
+      butterflyEl.style.transition = 'left 0.3s ease-in-out';
+      beeEl.style.transition = 'left 0.3s ease-in-out';
+      butterflyEl.style.left = (meetX - 10) + 'px';
+      beeEl.style.left = (meetX + 10) + 'px';
+
+      // After they meet, shake and retreat
+      setTimeout(() => {
+        butterflyEl.style.transition = 'left 0.05s ease-in-out';
+        beeEl.style.transition = 'left 0.05s ease-in-out';
+
+        let shakes = 0;
+        const shakeInterval = setInterval(() => {
+          const offset = (shakes % 2 === 0) ? 8 : -8;
+          butterflyEl.style.left = (meetX - 10 + offset) + 'px';
+          beeEl.style.left = (meetX + 10 - offset) + 'px';
+          shakes++;
+          if (shakes >= 6) {
+            clearInterval(shakeInterval);
+
+            // Retreat
+            butterflyEl.style.transition = 'left 0.4s ease-out';
+            beeEl.style.transition = 'left 0.4s ease-out';
+            butterflyEl.style.left = butterflyRestX + 'px';
+            beeEl.style.left = beeRestX + 'px';
+
+            setTimeout(() => {
+              butterflyEl.style.transition = '';
+              beeEl.style.transition = '';
+              fighting = false;
+            }, 500);
+          }
+        }, 60);
+      }, 350);
+    }
+
+    // Fight on a randomised schedule (300ms - 1200ms between bouts)
+    function scheduleFight() {
+      const delay = 300 + Math.random() * 900;
+      setTimeout(() => {
+        triggerFight();
+        scheduleFight();
+      }, delay);
+    }
+
+    // --- INIT ---
+    function init() {
+      layout();
+      scheduleFight();
+      idleRaf = requestAnimationFrame(idleBob);
+    }
+
+    window.addEventListener('resize', layout);
+    init();
+
+  </script>
+</body>
+
+</html>

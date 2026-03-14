@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Let's shake on it">
+  <title>Firm grip on reality</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #2a2a3d;
+      font-family: "Comic Sans MS", "Chalkboard SE", cursive;
+      user-select: none;
+    }
+
+    #game-area {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: linear-gradient(180deg, #3a3a5c 0%, #2a2a3d 40%, #1a1a2d 100%);
+    }
+
+    /* Office background decorations */
+    .office-bg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Office environment elements */
+    .office-ceiling {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 18%;
+      background:
+        repeating-linear-gradient(90deg, transparent, transparent 24.8%, rgba(255, 255, 255, 0.04) 24.8%, rgba(255, 255, 255, 0.04) 25%),
+        repeating-linear-gradient(0deg, transparent, transparent 49%, rgba(255, 255, 255, 0.04) 49%, rgba(255, 255, 255, 0.04) 50%);
+      border-bottom: 2px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .office-floor {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 16%;
+      background: linear-gradient(0deg, rgba(40, 30, 20, 0.5) 0%, rgba(40, 30, 20, 0.15) 100%);
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .office-floor::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: repeating-linear-gradient(90deg,
+          transparent, transparent 9.9%,
+          rgba(255, 255, 255, 0.02) 9.9%, rgba(255, 255, 255, 0.02) 10%);
+    }
+
+    .wall-frame {
+      position: absolute;
+      border: 2px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 2px;
+    }
+
+    .wall-frame-inner {
+      position: absolute;
+      top: 6px;
+      left: 6px;
+      right: 6px;
+      bottom: 6px;
+    }
+
+    .wall-frame-bar {
+      position: absolute;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 1px 1px 0 0;
+    }
+
+    .office-plant {
+      position: absolute;
+      bottom: 16%;
+      font-size: 48px;
+      opacity: 0.12;
+    }
+
+    .office-clock {
+      position: absolute;
+      width: 50px;
+      height: 50px;
+      border: 2px solid rgba(255, 255, 255, 0.08);
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .office-clock::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 1px;
+      height: 18px;
+      background: rgba(255, 255, 255, 0.12);
+      transform-origin: bottom center;
+      transform: translate(-50%, -100%) rotate(30deg);
+    }
+
+    .office-clock::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 1px;
+      height: 11px;
+      background: rgba(255, 255, 255, 0.12);
+      transform-origin: bottom center;
+      transform: translate(-50%, -100%) rotate(240deg);
+    }
+
+    .office-window {
+      position: absolute;
+      border: 2px solid rgba(255, 255, 255, 0.06);
+      background: linear-gradient(180deg, rgba(60, 70, 100, 0.15) 0%, rgba(40, 50, 80, 0.08) 100%);
+      border-radius: 1px;
+    }
+
+    .office-window::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 50%;
+      width: 2px;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.05);
+      transform: translateX(-50%);
+    }
+
+    .office-window::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: rgba(255, 255, 255, 0.05);
+      transform: translateY(-50%);
+    }
+
+    .office-watercooler {
+      position: absolute;
+      bottom: 16%;
+      font-size: 20px;
+      opacity: 0.1;
+    }
+
+    /* Player hand */
+    #player {
+      position: absolute;
+      z-index: 10;
+      left: 15%;
+      pointer-events: none;
+      display: none;
+    }
+
+    #player .hand-emoji {
+      font-size: 64px;
+      display: inline-block;
+      transform: scaleX(-1) rotate(-90deg);
+      filter: drop-shadow(0 0 6px rgba(255, 200, 100, 0.4));
+    }
+
+    #player-arm-svg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      z-index: 9;
+      pointer-events: none;
+    }
+
+    /* Client hand */
+    #client {
+      position: absolute;
+      z-index: 10;
+      pointer-events: none;
+      display: none;
+    }
+
+    #client .hand-emoji {
+      font-size: 64px;
+      display: inline-block;
+      transform: rotate(-90deg);
+      filter: drop-shadow(0 0 6px rgba(100, 200, 255, 0.4));
+    }
+
+    /* Client noodle arm */
+    #client-arm-svg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      z-index: 9;
+      pointer-events: none;
+    }
+
+    /* Obstacle hands */
+    .obstacle-pair {
+      position: absolute;
+      z-index: 5;
+      pointer-events: none;
+    }
+
+    .obstacle {
+      position: absolute;
+      left: 0;
+      width: 60px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .obstacle-top {
+      top: 0;
+    }
+
+    .obstacle-bottom {
+      bottom: 0;
+    }
+
+    .obstacle .hand-emoji {
+      font-size: 48px;
+      display: inline-block;
+    }
+
+    .obstacle-top .hand-emoji {
+      transform: rotate(180deg);
+    }
+
+    .obstacle .arm-segment {
+      width: 24px;
+      background: #2c2c3a;
+      border-left: 2px solid #3d3d50;
+      border-right: 2px solid #3d3d50;
+    }
+
+    .obstacle-top .arm-segment {
+      border-radius: 0 0 4px 4px;
+    }
+
+    .obstacle-bottom .arm-segment {
+      border-radius: 4px 4px 0 0;
+    }
+
+    /* Sleeve cuffs */
+    .obstacle .sleeve-cuff {
+      width: 32px;
+      height: 12px;
+      background: #eee;
+      border: 1px solid #ccc;
+      border-radius: 2px;
+    }
+
+    /* Score display */
+    #score-display {
+      position: absolute;
+      top: 16px;
+      right: 20px;
+      font-size: 28px;
+      color: #ffd700;
+      z-index: 50;
+      text-shadow: 2px 2px 0 #000;
+      letter-spacing: 2px;
+    }
+
+    /* Overlays */
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      background: rgba(0, 0, 0, 0.82);
+    }
+
+    .overlay.hidden {
+      display: none;
+    }
+
+    .overlay h1 {
+      font-size: 42px;
+      color: #ffd700;
+      text-shadow: 3px 3px 0 #000, -1px -1px 0 #aa8800;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .overlay .subtitle {
+      font-size: 18px;
+      color: #ccc;
+      margin-bottom: 30px;
+      text-align: center;
+      max-width: 500px;
+      line-height: 1.4;
+    }
+
+    .overlay .emoji-deco {
+      font-size: 48px;
+      margin-bottom: 20px;
+      letter-spacing: 12px;
+    }
+
+    .overlay .message {
+      font-size: 17px;
+      color: #ff6b6b;
+      max-width: 480px;
+      text-align: center;
+      line-height: 1.5;
+      margin-bottom: 8px;
+      padding: 15px;
+      border: 2px solid #ff6b6b;
+      background: #4d2424;
+    }
+
+    .overlay .big-message {
+      font-size: 22px;
+    }
+
+    .overlay .message.win {
+      color: #6bff6b;
+      border-color: #6bff6b;
+      background: #244d24;
+    }
+
+    .overlay .message p {
+      margin: 10px 0px;
+    }
+
+    .overlay button {
+      font-family: "Comic Sans MS", "Chalkboard SE", cursive;
+      font-size: 18px;
+      padding: 12px 28px;
+      margin: 6px;
+      border: 3px outset #888;
+      cursor: pointer;
+      color: #000;
+      background: #ccc;
+      transition: background 0.15s;
+    }
+
+    .overlay button:hover {
+      background: #ffd700;
+    }
+
+    .overlay button:active {
+      border-style: inset;
+    }
+
+    #title-screen .emoji-deco {
+      animation: titleBounce 2s ease-in-out infinite;
+    }
+
+    @keyframes titleBounce {
+
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-8px);
+      }
+    }
+
+    /* Handshake win animation */
+    #handshake-anim {
+      position: absolute;
+      z-index: 80;
+      pointer-events: none;
+      font-size: 72px;
+      display: none;
+    }
+
+    #handshake-anim.active {
+      display: block;
+      animation: shakeHands 0.3s ease-in-out infinite alternate;
+    }
+
+    @keyframes shakeHands {
+      0% {
+        transform: rotate(-8deg);
+      }
+
+      100% {
+        transform: rotate(8deg);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="game-area">
+    <!-- Office background -->
+    <div class="office-bg">
+      <!-- Ceiling tiles -->
+      <div class="office-ceiling"></div>
+
+      <!-- Windows -->
+      <div class="office-window" style="top:28%;left:18%;width:190px;height:24%"></div>
+      <div class="office-window" style="top:28%;left:44%;width:190px;height:24%"></div>
+      <div class="office-window" style="top:28%;left:72%;width:190px;height:24%"></div>
+
+      <!-- Framed bar charts on walls -->
+      <div class="wall-frame" style="top:32%;left:4%;width:70px;height:50px">
+        <div class="wall-frame-inner">
+          <div class="wall-frame-bar" style="left:10%;width:15%;height:60%"></div>
+          <div class="wall-frame-bar" style="left:35%;width:15%;height:85%"></div>
+          <div class="wall-frame-bar" style="left:60%;width:15%;height:40%"></div>
+        </div>
+      </div>
+      <div class="wall-frame" style="top:34%;left:62%;width:60px;height:45px">
+        <div class="wall-frame-inner">
+          <div class="wall-frame-bar" style="left:10%;width:18%;height:50%"></div>
+          <div class="wall-frame-bar" style="left:38%;width:18%;height:70%"></div>
+          <div class="wall-frame-bar" style="left:66%;width:18%;height:90%"></div>
+        </div>
+      </div>
+      <div class="wall-frame" style="top:30%;right:6%;width:55px;height:40px">
+        <div class="wall-frame-inner">
+          <div class="wall-frame-bar" style="left:8%;width:20%;height:75%"></div>
+          <div class="wall-frame-bar" style="left:40%;width:20%;height:45%"></div>
+          <div class="wall-frame-bar" style="left:70%;width:20%;height:65%"></div>
+        </div>
+      </div>
+
+      <!-- Clock -->
+      <div class="office-clock" style="top:37%;left:35%"></div>
+
+      <!-- Floor -->
+      <div class="office-floor"></div>
+
+      <!-- Plants and props -->
+      <div class="office-plant" style="left:3%">🪴</div>
+      <div class="office-plant" style="right:4%">🪴</div>
+      <div class="office-watercooler" style="left:92%">🚰</div>
+    </div>
+
+    <!-- Player arm SVG (drawn behind the hand) -->
+    <svg id="player-arm-svg"></svg>
+
+    <!-- Player hand -->
+    <div id="player">
+      <span class="hand-emoji">✋</span>
+    </div>
+
+    <!-- Client arm SVG -->
+    <svg id="client-arm-svg"></svg>
+
+    <!-- Client hand -->
+    <div id="client">
+      <span class="hand-emoji">✋</span>
+    </div>
+
+    <!-- Obstacles container -->
+    <div id="obstacles"></div>
+
+    <!-- Handshake animation element -->
+    <div id="handshake-anim">🤝</div>
+
+    <!-- Score -->
+    <div id="score-display">DISTRACTIONS AVOIDED: 0</div>
+
+    <!-- Title screen -->
+    <div id="title-screen" class="overlay">
+      <div class="emoji-deco">💼🤝💼</div>
+      <h1>Handshake Simulator</h1>
+      <div class="subtitle">Navigate the treacherous waters of corporate introductions</div>
+      <button class="btn-start">Let's get down to business</button>
+      <button class="btn-exit">Exit</button>
+    </div>
+
+    <!-- Game over screen (floor) -->
+    <div id="gameover-floor" class="overlay hidden">
+      <div class="emoji-deco">😱📉😱</div>
+      <h1>Corporate incompetence!</h1>
+      <div class="message">
+        <p>You oaf!</p>
+        <p>Your floppy handshake couldn't even reach the client!</p>
+        <p>You're just sprawled out in a heap on the office floor.</p>
+        <p>You have deeply offended the client, and they want nothing more to do with you or this
+          company.</p>
+        <p class="big-message">YOU'RE FIRED!</p>
+      </div>
+      <button class="btn-retry">Beg for another chance • (Enter key ↵)</button>
+      <button class="btn-exit">Clear your desk and leave</button>
+    </div>
+
+    <!-- Game over screen (obstacle) -->
+    <div id="gameover-obstacle" class="overlay hidden">
+      <div class="emoji-deco">🖐️💥🖐️</div>
+      <h1>Unsanctioned fraternisation!</h1>
+      <div class="message">
+        <p>You buffoon!</p>
+        <p>You accidentally high-fived a random colleague!</p>
+        <p>You have deeply offended the client, and they want nothing more to do with you or this
+          company.</p>
+        <p class="big-message">YOU'RE FIRED!</p>
+      </div>
+      <button class="btn-retry">Beg for another chance • (Enter key ↵)</button>
+      <button class="btn-exit">Clear your desk and leave</button>
+    </div>
+
+    <!-- Game over screen (missed) -->
+    <div id="gameover-missed" class="overlay hidden">
+      <div class="emoji-deco">🤦💨🤦</div>
+      <h1>Office insubordination!</h1>
+      <div class="message">
+        <p>You fool!</p>
+        <p>You completely missed the client's hand!</p>
+        <p>You literally walked right past them.</p>
+        <p>What the hell were you thinking?!</p>
+        <p>You have deeply offended the client, and they want nothing more to do with you or this
+          company.</p>
+        <p class="big-message">YOU'RE FIRED!</p>
+      </div>
+      <button class="btn-retry">Beg for another chance • (Enter key ↵)</button>
+      <button class="btn-exit">Clear your desk and leave</button>
+    </div>
+
+    <!-- Win screen -->
+    <div id="win-screen" class="overlay hidden">
+      <div class="emoji-deco">🎉🤝🎉</div>
+      <h1>YOU WIN!</h1>
+      <div class="message win">
+        <p>You have successfully navigated the most important client meeting in the history of the
+          company!</p>
+        <p>Headhunters want you, interns want to be you!</p>
+        <p>All your colleagues are in awe of you!</p>
+        <p>Go have your coffee, you closer!</p>
+      </div>
+      <button class="btn-retry">Make another hot deal • (Enter key ↵)</button>
+      <button class="btn-exit">Retire to the beach</button>
+    </div>
+  </div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/handshake-simulator";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    // --- Game constants ---
+    const GRAVITY = 0.5;
+    const FLAP_STRENGTH = -7;
+    const PLAYER_X_PERCENT = 0.15;
+    const PLAYER_SIZE = 64;
+    const OBSTACLE_SPEED = 4.5;
+    const OBSTACLE_GAP = 200;
+    const OBSTACLE_SPACING = 400;
+    const OBSTACLE_HAND_SIZE = 48;
+    const CLIENT_SPEED = 0.7;
+    const FLOOR_HEIGHT = 10;
+    const ARM_WIDTH = 24;
+    const HITBOX_SHRINK = 14;
+
+    // --- Game state ---
+    let gameRunning = false;
+    let playerY = 0;
+    let playerVelocity = 0;
+    let obstacles = [];
+    let score = 0;
+    let clientX = 0;
+    let clientY = 0;
+    let gameTime = 0;
+    let obstacleTimer = 0;
+    let hasWon = false;
+    let winAnimTimer = 0;
+    let obstacleRetractSpeed = 0;
+    let lastGapTop = -1;
+    let lastFrameTime = 0;
+    let requestFrameId = null;
+
+    // --- DOM refs ---
+    const gameArea = document.getElementById('game-area');
+    const playerEl = document.getElementById('player');
+    const clientEl = document.getElementById('client');
+    const obstaclesContainer = document.getElementById('obstacles');
+    const scoreDisplay = document.getElementById('score-display');
+    const playerArmSvg = document.getElementById('player-arm-svg');
+    const clientArmSvg = document.getElementById('client-arm-svg');
+    const handshakeAnim = document.getElementById('handshake-anim');
+
+    const titleScreen = document.getElementById('title-screen');
+    const gameoverFloor = document.getElementById('gameover-floor');
+    const gameoverObstacle = document.getElementById('gameover-obstacle');
+    const gameoverMissed = document.getElementById('gameover-missed');
+    const winScreen = document.getElementById('win-screen');
+
+    // --- Noodle arm drawing ---
+    function drawNoodleArm(svg, startX, startY, endX, endY, color, strokeWidth, time) {
+      svg.innerHTML = '';
+      const dx = endX - startX;
+      const dy = endY - startY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const segments = Math.max(6, Math.floor(dist / 30));
+      const wobbleAmt = 4;
+
+      let pathD = `M ${startX} ${startY}`;
+      const points = [];
+      for (let i = 0; i <= segments; i++) {
+        const t = i / segments;
+        const x = startX + dx * t;
+        const y = startY + dy * t;
+        const wobble = Math.sin(time * 2.5 + i * 1.2) * wobbleAmt * (1 - Math.abs(t - 0.5) * 2);
+        const nx = -dy / (dist || 1);
+        const ny = dx / (dist || 1);
+        points.push({ x: x + nx * wobble, y: y + ny * wobble });
+      }
+
+      if (points.length > 2) {
+        pathD = `M ${points[0].x} ${points[0].y}`;
+        for (let i = 1; i < points.length - 1; i++) {
+          const cpx = (points[i].x + points[i + 1].x) / 2;
+          const cpy = (points[i].y + points[i + 1].y) / 2;
+          pathD += ` Q ${points[i].x} ${points[i].y} ${cpx} ${cpy}`;
+        }
+        const last = points[points.length - 1];
+        pathD += ` L ${last.x} ${last.y}`;
+      }
+
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', pathD);
+      path.setAttribute('stroke', color);
+      path.setAttribute('stroke-width', strokeWidth);
+      path.setAttribute('fill', 'none');
+      path.setAttribute('stroke-linecap', 'round');
+      svg.appendChild(path);
+
+      // Sleeve cuff at the wrist end
+      const cuffPath = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      cuffPath.setAttribute('cx', points[0].x);
+      cuffPath.setAttribute('cy', points[0].y);
+      cuffPath.setAttribute('r', strokeWidth * 0.7);
+      cuffPath.setAttribute('fill', '#ddd');
+      cuffPath.setAttribute('stroke', '#bbb');
+      cuffPath.setAttribute('stroke-width', '1');
+      svg.appendChild(cuffPath);
+    }
+
+    // --- Obstacle arm drawing ---
+    function buildObstacleArm(height, isTop) {
+      const container = document.createElement('div');
+      container.className = `obstacle ${isTop ? 'obstacle-top' : 'obstacle-bottom'}`;
+      container.style.width = '60px';
+
+      const sleeve = document.createElement('div');
+      sleeve.className = 'sleeve-cuff';
+
+      const arm = document.createElement('div');
+      arm.className = 'arm-segment';
+      arm.style.height = height + 'px';
+
+      const hand = document.createElement('span');
+      hand.className = 'hand-emoji';
+      hand.textContent = '🖐️';
+
+      if (isTop) {
+        container.appendChild(arm);
+        container.appendChild(sleeve);
+        container.appendChild(hand);
+      } else {
+        container.appendChild(hand);
+        container.appendChild(sleeve);
+        container.appendChild(arm);
+      }
+
+      return container;
+    }
+
+    // --- Create obstacle pair ---
+    function createObstaclePair(x) {
+      const areaH = gameArea.clientHeight;
+      const playableH = areaH;
+      const minTop = 60;
+      const maxTop = playableH - OBSTACLE_GAP - 60;
+      let gapTop = minTop + Math.random() * (maxTop - minTop);
+
+      // Constrain upward jumps to half screen height so they're always reachable
+      if (lastGapTop >= 0 && gapTop < lastGapTop) {
+        const maxUpward = areaH / 3;
+        if (lastGapTop - gapTop > maxUpward) {
+          gapTop = lastGapTop - maxUpward;
+        }
+      }
+      gapTop = Math.max(minTop, Math.min(maxTop, gapTop));
+      lastGapTop = gapTop;
+
+      const pair = document.createElement('div');
+      pair.className = 'obstacle-pair';
+      pair.style.left = x + 'px';
+      pair.style.top = '0';
+      pair.style.width = '60px';
+      pair.style.height = playableH + 'px';
+
+      const topArmHeight = gapTop - OBSTACLE_HAND_SIZE - 12;
+      const bottomArmHeight = playableH - gapTop - OBSTACLE_GAP - OBSTACLE_HAND_SIZE - 12;
+
+      const topObs = buildObstacleArm(Math.max(0, topArmHeight), true);
+      const bottomObs = buildObstacleArm(Math.max(0, bottomArmHeight), false);
+
+      pair.appendChild(topObs);
+      pair.appendChild(bottomObs);
+      obstaclesContainer.appendChild(pair);
+
+      return {
+        el: pair,
+        x: x,
+        gapTop: gapTop,
+        gapBottom: gapTop + OBSTACLE_GAP,
+        scored: false,
+        originalGapTop: gapTop,
+        originalGapBottom: gapTop + OBSTACLE_GAP
+      };
+    }
+
+    // --- Collision detection ---
+    function checkCollisions() {
+      const areaH = gameArea.clientHeight;
+      const areaW = gameArea.clientWidth;
+      const playerCenterX = areaW * PLAYER_X_PERCENT + PLAYER_SIZE / 2;
+      const playerCenterY = playerY + PLAYER_SIZE / 2;
+      const playerR = PLAYER_SIZE / 2 - HITBOX_SHRINK;
+
+      // Floor collision
+      if (playerY + PLAYER_SIZE >= areaH - FLOOR_HEIGHT) {
+        return 'floor';
+      }
+
+      // Ceiling
+      if (playerY < 0) {
+        playerY = 0;
+        playerVelocity = 0;
+      }
+
+      // Obstacle collision
+      for (const obs of obstacles) {
+        const obsLeft = obs.x + HITBOX_SHRINK;
+        const obsRight = obs.x + 60 - HITBOX_SHRINK;
+
+        if (playerCenterX + playerR > obsLeft && playerCenterX - playerR < obsRight) {
+          if (playerCenterY - playerR < obs.gapTop || playerCenterY + playerR > obs.gapBottom) {
+            return 'obstacle';
+          }
+        }
+
+        // Score
+        if (!obs.scored && obs.x + 60 < areaW * PLAYER_X_PERCENT) {
+          obs.scored = true;
+          score++;
+          scoreDisplay.textContent = 'DISTRACTIONS AVOIDED: ' + score;
+        }
+      }
+
+      // Client collision (win condition)
+      const clientCenterX = clientX + PLAYER_SIZE / 2;
+      const clientCenterY = clientY + PLAYER_SIZE / 2;
+      const dist = Math.sqrt(
+        (playerCenterX - clientCenterX) ** 2 +
+        (playerCenterY - clientCenterY) ** 2
+      );
+      if (dist < PLAYER_SIZE * 0.8) {
+        return 'win';
+      }
+
+      // Missed client - client hand has passed well beyond the player
+      if (clientCenterX < playerCenterX - PLAYER_SIZE * 2) {
+        return 'missed';
+      }
+
+      return null;
+    }
+
+    // --- Game loop ---
+    function gameLoop(timestamp) {
+      if (!gameRunning) return;
+
+      requestFrameId = requestAnimationFrame(gameLoop);
+
+      // Delta time capped at 32ms to prevent large jumps (e.g. first frame after idle)
+      if (lastFrameTime === 0) {
+        lastFrameTime = timestamp;
+        return;
+      }
+      const dt = Math.min((timestamp - lastFrameTime) / 1000, 0.32);
+      lastFrameTime = timestamp;
+      const dtScale = dt * 60; // Base physics on 60fps
+
+      const areaW = gameArea.clientWidth;
+      const areaH = gameArea.clientHeight;
+      gameTime += dt;
+
+      if (hasWon) {
+        // Win animation: show handshake, retract obstacles
+        winAnimTimer += dt;
+
+        // Handshake position
+        const shakeX = areaW * PLAYER_X_PERCENT + PLAYER_SIZE / 2;
+        handshakeAnim.style.left = (shakeX - 36) + 'px';
+        handshakeAnim.style.top = (playerY - 4) + 'px';
+
+        // Retract obstacles
+        obstacleRetractSpeed += 0.05 * dtScale;
+        for (const obs of obstacles) {
+          const topObs = obs.el.querySelector('.obstacle-top');
+          const bottomObs = obs.el.querySelector('.obstacle-bottom');
+          if (topObs) topObs.style.transform = `translateY(${-obstacleRetractSpeed * 60}px)`;
+          if (bottomObs) bottomObs.style.transform = `translateY(${obstacleRetractSpeed * 60}px)`;
+        }
+
+        // Hide player and client, show handshake
+        playerEl.style.display = 'none';
+        clientEl.style.display = 'none';
+        playerArmSvg.innerHTML = '';
+        clientArmSvg.innerHTML = '';
+
+        if (winAnimTimer > 3.5) {
+          gameRunning = false;
+          handshakeAnim.classList.remove('active');
+          handshakeAnim.style.display = 'none';
+          for (let i = obstacles.length - 1; i >= 0; i--) {
+            obstacles[i].el.style.display = 'none';
+          }
+          showOverlay(winScreen);
+        }
+        return;
+      }
+
+      // Player physics
+      playerVelocity += GRAVITY * dtScale;
+      playerY += playerVelocity * dtScale;
+
+      // Position player
+      playerEl.style.top = playerY + 'px';
+
+      // Draw player noodle arm (wrist to fixed point off-screen left at mid-height)
+      const playerHandX = areaW * PLAYER_X_PERCENT + 20;
+      const playerHandY = playerY + PLAYER_SIZE / 2 + 16;
+      const armEndX = -60;
+      const armEndY = areaH / 2;
+      drawNoodleArm(playerArmSvg, playerHandX, playerHandY, armEndX, armEndY, '#3a3a50', 22, gameTime);
+
+      // Move obstacles
+      obstacleTimer += OBSTACLE_SPEED * dtScale;
+      for (let i = obstacles.length - 1; i >= 0; i--) {
+        obstacles[i].x -= OBSTACLE_SPEED * dtScale;
+        obstacles[i].el.style.left = obstacles[i].x + 'px';
+
+        if (obstacles[i].x < -80) {
+          obstacles[i].el.remove();
+          obstacles.splice(i, 1);
+        }
+      }
+
+      // Spawn obstacles
+      const lastObs = obstacles[obstacles.length - 1];
+      if (!lastObs || lastObs.x < areaW - OBSTACLE_SPACING) {
+        obstacles.push(createObstaclePair(areaW + 20));
+      }
+
+      // Wobble obstacle arms
+      for (const obs of obstacles) {
+        const arms = obs.el.querySelectorAll('.arm-segment');
+        arms.forEach((arm, idx) => {
+          const wobble = Math.sin(gameTime * 3 + obs.x * 0.01 + idx * Math.PI) * 1.5;
+          arm.style.transform = `skewX(${wobble}deg)`;
+        });
+      }
+
+      // Move client hand toward player
+      clientX -= CLIENT_SPEED * dtScale;
+      clientEl.style.left = clientX + 'px';
+
+      // Client Y: gently bobs up and down around center
+      const centerY = (areaH - FLOOR_HEIGHT) / 2 - PLAYER_SIZE / 2;
+      clientY = centerY + Math.sin(gameTime * 1.5) * 20;
+      clientEl.style.top = clientY + 'px';
+
+      // Draw client noodle arm (wrist to fixed point off-screen right at mid-height)
+      const clientHandX = clientX + PLAYER_SIZE - 4;
+      const clientHandY = clientY + PLAYER_SIZE / 2 + 16;
+      const clientArmEndX = areaW + 60;
+      const clientArmEndY = areaH / 2;
+      drawNoodleArm(clientArmSvg, clientHandX, clientHandY, clientArmEndX, clientArmEndY, '#2a3a50', 22, gameTime);
+
+      // Check collisions
+      const result = checkCollisions();
+      if (result === 'floor') {
+        endGame('floor');
+        return;
+      } else if (result === 'obstacle') {
+        endGame('obstacle');
+        return;
+      } else if (result === 'missed') {
+        endGame('missed');
+        return;
+      } else if (result === 'win') {
+        startWinSequence();
+      }
+    }
+
+    // --- Win sequence ---
+    function startWinSequence() {
+      hasWon = true;
+      winAnimTimer = 0;
+      obstacleRetractSpeed = 0;
+      handshakeAnim.style.display = 'block';
+      handshakeAnim.classList.add('active');
+    }
+
+    function endGame(reason) {
+      gameRunning = false;
+      if (requestFrameId) cancelAnimationFrame(requestFrameId);
+      requestFrameId = null;
+      if (reason === 'floor') {
+        showOverlay(gameoverFloor);
+      } else if (reason === 'missed') {
+        showOverlay(gameoverMissed);
+      } else {
+        showOverlay(gameoverObstacle);
+      }
+    }
+
+    // --- Start game ---
+    function startGame() {
+      const areaW = gameArea.clientWidth;
+      const areaH = gameArea.clientHeight;
+
+      // Reset state
+      playerY = (areaH - FLOOR_HEIGHT) / 2 - PLAYER_SIZE / 2;
+      playerVelocity = 0;
+      obstacles = [];
+      score = 0;
+      gameTime = 0;
+      obstacleTimer = 0;
+      hasWon = false;
+      winAnimTimer = 0;
+      obstacleRetractSpeed = 0;
+      lastGapTop = -1;
+      scoreDisplay.textContent = 'DISTRACTIONS AVOIDED: 0';
+
+      // Clear obstacles DOM
+      obstaclesContainer.innerHTML = '';
+
+      // Reset player display
+      playerEl.style.display = 'block';
+      playerEl.style.top = playerY + 'px';
+
+      // Client starts at the right of the screen
+      clientX = areaW;
+
+      clientY = (areaH - FLOOR_HEIGHT) / 2 - PLAYER_SIZE / 2;
+      clientEl.style.left = clientX + 'px';
+      clientEl.style.top = clientY + 'px';
+      clientEl.style.display = 'block';
+
+      // Hide handshake
+      handshakeAnim.style.display = 'none';
+      handshakeAnim.classList.remove('active');
+
+      // Clear arm SVGs
+      playerArmSvg.innerHTML = '';
+      clientArmSvg.innerHTML = '';
+
+      // Hide all overlays
+      hideAllOverlays();
+
+      gameRunning = true;
+      lastFrameTime = 0;
+      if (requestFrameId) cancelAnimationFrame(requestFrameId);
+      requestFrameId = requestAnimationFrame(gameLoop);
+    }
+
+    // --- Flap ---
+    function flap() {
+      if (!gameRunning || hasWon) return;
+      playerVelocity = FLAP_STRENGTH;
+    }
+
+    // --- Overlay helpers ---
+    function showOverlay(el) {
+      el.classList.remove('hidden');
+    }
+
+    function hideAllOverlays() {
+      titleScreen.classList.add('hidden');
+      gameoverFloor.classList.add('hidden');
+      gameoverObstacle.classList.add('hidden');
+      gameoverMissed.classList.add('hidden');
+      winScreen.classList.add('hidden');
+    }
+
+    // --- Input ---
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'F5') return;
+      if (gameRunning && !hasWon) {
+        e.preventDefault();
+        flap();
+      } else if (e.key === 'Enter') {
+        startGame();
+      }
+    });
+
+    document.addEventListener('mousedown', (e) => {
+      if (gameRunning && !hasWon && !e.target.closest('button')) {
+        flap();
+      }
+    });
+
+    document.addEventListener('touchstart', (e) => {
+      if (gameRunning && !hasWon && !e.target.closest('button')) {
+        e.preventDefault();
+        flap();
+      }
+    }, { passive: false });
+
+    // --- Buttons ---
+    document.querySelectorAll('.btn-start, .btn-retry').forEach(
+      (element) => element.addEventListener('click', startGame)
+    );
+
+    function exitGame() { window.location.href = pageRandomiser.nextOne(); }
+    document.querySelectorAll('.btn-exit').forEach(
+      (element) => element.addEventListener('click', exitGame)
+    );
+  </script>
+</body>
+
+</html>

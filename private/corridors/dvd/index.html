@@ -29,7 +29,7 @@
       height: auto;
     }
 
-    .scanlines {
+    #scanlines {
       position: fixed;
       top: 0;
       left: 0;
@@ -48,7 +48,7 @@
 </head>
 
 <body>
-  <div class="scanlines"></div>
+  <div id="scanlines"></div>
   <a id="dvd-link" href="#">
     <img id="dvd-logo" src="dvd-logo.png" alt="DVD">
   </a>
@@ -95,7 +95,7 @@
       y = Math.random() * (window.innerHeight - 150);
 
       // 45 degree angle: absolute dx and dy are equal
-      const speed = 3.5;
+      const speed = 3.2;
       dx = (Math.random() > 0.5 ? 1 : -1) * speed;
       dy = (Math.random() > 0.5 ? 1 : -1) * speed;
 

@@ -389,7 +389,6 @@ Let me know if you find a layout that is impossible to win.
       }
 
       checkWin();
-      checkAllPipesFullOfWater();
     }
 
     // Check if the fire is out, or if the fire is citywide
@@ -422,6 +421,7 @@ Let me know if you find a layout that is impossible to win.
       } else {
         statusElement.style.visibility = 'hidden';
       }
+      checkAllPipesFullOfWater();
     }
 
     // Check if all pipes are full of water

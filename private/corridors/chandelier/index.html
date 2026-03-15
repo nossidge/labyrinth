@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="won't look down, won't open my eyes">
+  <title>holding on for dear life</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #0a0808;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    svg {
+      display: block;
+    }
+
+    .part {
+      cursor: pointer;
+    }
+
+    .part:hover * {
+      filter: brightness(1.8) drop-shadow(0 0 8px rgba(255, 230, 180, 0.6));
+    }
+
+    .flame {
+      animation: flicker 2.5s ease-in-out infinite;
+    }
+
+    @keyframes flicker {
+
+      0%,
+      100% {
+        opacity: 0.65;
+      }
+
+      30% {
+        opacity: 1;
+      }
+
+      60% {
+        opacity: 0.8;
+      }
+
+      85% {
+        opacity: 0.95;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <svg id="ch" xmlns="http://www.w3.org/2000/svg"></svg>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/chandelier";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    // --- Helpers ---
+    function rand(a, b) { return a + Math.random() * (b - a); }
+    function randInt(a, b) { return Math.floor(rand(a, b + 1)); }
+    function sample(a) { return a[Math.floor(Math.random() * a.length)]; }
+    function el(tag, attrs) {
+      const e = document.createElementNS('http://www.w3.org/2000/svg', tag);
+      for (const [k, v] of Object.entries(attrs || {})) e.setAttribute(k, v);
+      return e;
+    }
+    function link(child) {
+      const a = el('a', { href: pageRandomiser.nextOne(), class: 'part' });
+      a.appendChild(child);
+      return a;
+    }
+
+    // --- Palette ---
+    const PALETTE_POOLS = [
+      { m: '#c9a84c', md: '#8a6d2b', cr: '#e8dcc8', fl: '#ffcc44', ft: '#ff8800', ch: '#9a7b3a' },
+      { m: '#b8b8c8', md: '#6a6a7a', cr: '#d0d8e8', fl: '#ffeebb', ft: '#ffaa44', ch: '#8888a0' },
+      { m: '#cd7f32', md: '#8b4513', cr: '#f0e0c0', fl: '#ffd700', ft: '#ff6600', ch: '#a0622e' },
+      { m: '#b0a090', md: '#706050', cr: '#e0d8d0', fl: '#ffe8aa', ft: '#ee9944', ch: '#908070' },
+      { m: '#d4af37', md: '#a07820', cr: '#fff8e0', fl: '#ffe066', ft: '#ff9933', ch: '#b8942e' },
+    ];
+    let P;
+
+    const svg = document.getElementById('ch');
+    const W = 900;
+    const cx = W / 2;
+
+    function generate() {
+      P = sample(PALETTE_POOLS);
+      svg.innerHTML = '';
+
+      // --- Structure parameters ---
+      const numTiers = randInt(3, 6);
+      const tierGap = randInt(55, 85);
+      const chainLen = randInt(30, 70);
+      const totalH = chainLen + 30 + numTiers * tierGap + 80;
+
+      svg.setAttribute('viewBox', `0 0 ${W} ${totalH}`);
+
+      // Defs
+      const defs = el('defs');
+
+      // Glow filter
+      const gf = el('filter', { id: 'glo', x: '-50%', y: '-50%', width: '200%', height: '200%' });
+      gf.appendChild(el('feGaussianBlur', { in: 'SourceGraphic', stdDeviation: '4', result: 'b' }));
+      const mg = el('feMerge');
+      mg.appendChild(el('feMergeNode', { in: 'b' }));
+      mg.appendChild(el('feMergeNode', { in: 'SourceGraphic' }));
+      gf.appendChild(mg);
+      defs.appendChild(gf);
+
+      // Crystal gradient
+      const cg = el('linearGradient', { id: 'cg', x1: '0', y1: '0', x2: '0', y2: '1' });
+      cg.appendChild(el('stop', { offset: '0%', 'stop-color': P.cr, 'stop-opacity': '0.9' }));
+      cg.appendChild(el('stop', { offset: '100%', 'stop-color': P.m, 'stop-opacity': '0.4' }));
+      defs.appendChild(cg);
+      svg.appendChild(defs);
+
+      // Add to this as the top parts of the chandelier are drawn
+      let y = -5;
+
+      // --- Ceiling rose ---
+      if (randInt(0, 1)) {
+        const rg = el('g');
+        rg.appendChild(el('ellipse', { cx, cy: y + 6, rx: 28, ry: 7, fill: P.md, stroke: P.m, 'stroke-width': 1.5 }));
+        svg.appendChild(link(rg));
+      }
+
+      // --- Chain ---
+      const segs = randInt(3, 7);
+      const segH = chainLen / segs;
+      for (let i = 0; i < segs; i++) {
+        const sy = y + 4 + i * segH;
+        svg.appendChild(el('ellipse', {
+          cx, cy: sy + segH / 2,
+          rx: 4, ry: segH * 0.4,
+          fill: 'none', stroke: P.ch, 'stroke-width': 1.5
+        }));
+      }
+      y += 2 + chainLen;
+
+      // --- Top crown ---
+      if (randInt(0, 1)) {
+        const crownW = randInt(18, 32);
+        const crownH = randInt(10, 18);
+        const crg = el('g');
+        crg.appendChild(el('circle', { cx, cy: y - 3, r: 5, fill: P.m }));
+        crg.appendChild(el('ellipse', { cx, cy: y + crownH / 2, rx: crownW, ry: crownH, fill: P.md, stroke: P.m, 'stroke-width': 1.5 }));
+        svg.appendChild(link(crg));
+        y += crownH + 5;
+      }
+
+      // --- Central spine ---
+      const spineEnd = y + numTiers * tierGap + 15;
+      svg.appendChild(el('line', {
+        x1: cx, y1: y, x2: cx, y2: spineEnd,
+        stroke: P.m, 'stroke-width': 2
+      }));
+
+      // --- Tiers ---
+      // Each tier is drawn symmetrically: generate the left half, then mirror
+      for (let t = 0; t < numTiers; t++) {
+        const tierY = y + t * tierGap + 15;
+        const maxR = 70 + t * 55 + randInt(-10, 15);
+        const numArmsPerSide = randInt(1, 4);
+        const armStyle = sample(['curve', 'scroll', 'straight']);
+        const droop = randInt(10, 30);
+        const dangleType = sample(['teardrop', 'drop', 'beads', 'prism']);
+        const hasSwoops = Math.random() > 0.4;
+
+        // Hub
+        const hubR = randInt(6, 12);
+        const hg = el('g');
+        hg.appendChild(el('circle', { cx, cy: tierY, r: hubR, fill: P.md, stroke: P.m, 'stroke-width': 1.5 }));
+        hg.appendChild(el('circle', { cx, cy: tierY, r: hubR + 4, fill: 'none', stroke: P.m, 'stroke-width': 0.6, opacity: '0.4' }));
+        svg.appendChild(link(hg));
+
+        // Pre-generate arm data so both sides mirror exactly
+        const armDefs = [];
+        for (let a = 0; a < numArmsPerSide; a++) {
+          const frac = (a + 1) / (numArmsPerSide + 1);
+          const nd = randInt(0, 2);
+          armDefs.push({
+            r: maxR * (0.3 + frac * 0.7),
+            candleH: randInt(12, 20),
+            cpy: randInt(8, 20),
+            cp1y: randInt(10, 22),
+            cp2y: randInt(5, 12),
+            numDangles: nd,
+            dangleLens: Array.from({ length: nd }, () => randInt(10, 25)),
+            flameDelay: rand(0, 4).toFixed(1) * -1
+          });
+        }
+
+        // Full arm at max radius
+        const ndTip = randInt(0, 2);
+        armDefs.push({
+          r: maxR,
+          candleH: randInt(12, 20),
+          cpy: randInt(8, 20),
+          cp1y: randInt(10, 22),
+          cp2y: randInt(5, 12),
+          numDangles: ndTip,
+          dangleLens: Array.from({ length: ndTip }, () => randInt(10, 25)),
+          flameDelay: rand(0, 4).toFixed(1) * -1
+        });
+
+        // Draw arms (left and right mirrored)
+        const allEndpoints = [];
+        // Use `toReversed()` because we want the inner ones to be drawn first for z-index
+        for (const arm of armDefs.toReversed()) {
+          for (const side of [-1, 1]) {
+            const ex = cx + side * arm.r;
+            const ey = tierY + droop;
+            allEndpoints.push({ x: ex, y: ey, side });
+
+            const ag = el('g');
+            if (armStyle === 'curve') {
+              const cpx = cx + side * arm.r * 0.5;
+              const cpy = tierY - arm.cpy;
+              ag.appendChild(el('path', {
+                d: `M ${cx} ${tierY} Q ${cpx} ${cpy} ${ex} ${ey}`,
+                fill: 'none', stroke: P.m, 'stroke-width': 2
+              }));
+            } else if (armStyle === 'scroll') {
+              const cp1x = cx + side * arm.r * 0.3;
+              const cp1y = tierY - arm.cp1y;
+              const cp2x = cx + side * arm.r * 0.75;
+              const cp2y = tierY + droop + arm.cp2y;
+              ag.appendChild(el('path', {
+                d: `M ${cx} ${tierY} C ${cp1x} ${cp1y} ${cp2x} ${cp2y} ${ex} ${ey}`,
+                fill: 'none', stroke: P.m, 'stroke-width': 2
+              }));
+            } else {
+              ag.appendChild(el('line', {
+                x1: cx, y1: tierY, x2: ex, y2: ey,
+                stroke: P.m, 'stroke-width': 2
+              }));
+            }
+
+            // Bobeche + candle + flame
+            const bg = el('g');
+            bg.appendChild(el('ellipse', { cx: ex, cy: ey, rx: 8, ry: 3, fill: P.md, stroke: P.m, 'stroke-width': 1 }));
+            bg.appendChild(el('rect', {
+              x: ex - 2.5, y: ey - arm.candleH, width: 5, height: arm.candleH,
+              fill: '#e8e0d0', rx: 1
+            }));
+            const fg = el('g', { class: 'flame' });
+            fg.style.animationDelay = arm.flameDelay + 's';
+            const fy = ey - arm.candleH - 7;
+            fg.appendChild(el('ellipse', { cx: ex, cy: fy + 2, rx: 4, ry: 6, fill: P.fl, opacity: '0.6', filter: 'url(#glo)' }));
+            fg.appendChild(el('ellipse', { cx: ex, cy: fy, rx: 2, ry: 4, fill: P.ft, opacity: '0.9' }));
+            bg.appendChild(fg);
+            ag.appendChild(link(bg));
+
+            // Dangles along the arm
+            for (let d = 0; d < arm.numDangles; d++) {
+              const frac = 0.35 + d * 0.2;
+              const dx = cx + side * arm.r * frac;
+              const dy = tierY + droop * frac * 0.5;
+              drawDangle(ag, dx, dy, dangleType, arm.dangleLens[d]);
+            }
+
+            svg.appendChild(ag);
+          }
+        }
+
+        // Swoops between arm tips (on each side, mirrored)
+        if (hasSwoops) {
+          // Pre-generate swoop data for one side
+          const swoopDepths = [];
+          const swoopCrystals = [];
+          const swoopCrystalLens = [];
+          for (let s = 0; s < armDefs.length - 1; s++) {
+            swoopDepths.push(randInt(12, 28));
+            const sc = randInt(1, 3);
+            swoopCrystals.push(sc);
+            swoopCrystalLens.push(Array.from({ length: sc }, () => randInt(5, 10)));
+          }
+          for (const side of [-1, 1]) {
+            const sidePoints = allEndpoints.filter(p => p.side === side).sort((a, b) => side * (a.x - b.x));
+            for (let s = 0; s < sidePoints.length - 1; s++) {
+              const p1 = sidePoints[s];
+              const p2 = sidePoints[s + 1];
+              const midX = (p1.x + p2.x) / 2;
+              const midY = Math.max(p1.y, p2.y) + swoopDepths[s];
+              svg.appendChild(el('path', {
+                d: `M ${p1.x} ${p1.y} Q ${midX} ${midY} ${p2.x} ${p2.y}`,
+                fill: 'none', stroke: P.cr, 'stroke-width': 0.8, opacity: '0.45'
+              }));
+              const sc = swoopCrystals[s];
+              for (let si = 0; si < sc; si++) {
+                const st = (si + 1) / (sc + 1);
+                const sx = (1 - st) * (1 - st) * p1.x + 2 * (1 - st) * st * midX + st * st * p2.x;
+                const sy = (1 - st) * (1 - st) * p1.y + 2 * (1 - st) * st * midY + st * st * p2.y;
+                drawSmallCrystal(svg, sx, sy, swoopCrystalLens[s][si]);
+              }
+            }
+          }
+        }
+
+        // Hanging crystal garlands from outermost arm tips
+        if (Math.random() > 0.5) {
+          const garlandType = sample(['teardrop', 'prism']);
+          const garlandLen = randInt(10, 25);
+          for (const side of [-1, 1]) {
+            const tipX = cx + side * maxR;
+            const tipY = tierY + droop;
+            drawDangle(svg, tipX, tipY, garlandType, garlandLen);
+          }
+        }
+      }
+
+      // --- Bottom finial ---
+      const finY = spineEnd;
+      const fg = el('g');
+      const finType = sample(['teardrop', 'ball', 'spear']);
+      if (finType === 'teardrop') {
+        fg.appendChild(el('path', {
+          d: `M ${cx} ${finY} Q ${cx + 14} ${finY + 18} ${cx} ${finY + 42} Q ${cx - 14} ${finY + 18} ${cx} ${finY}`,
+          fill: 'url(#cg)', stroke: P.m, 'stroke-width': 1
+        }));
+      } else if (finType === 'ball') {
+        fg.appendChild(el('circle', { cx, cy: finY + 10, r: 10, fill: P.m, stroke: P.md, 'stroke-width': 1 }));
+        fg.appendChild(el('path', {
+          d: `M ${cx - 4} ${finY + 20} L ${cx} ${finY + 32} L ${cx + 4} ${finY + 20}`,
+          fill: P.m
+        }));
+      } else {
+        fg.appendChild(el('line', { x1: cx, y1: finY, x2: cx, y2: finY + 38, stroke: P.m, 'stroke-width': 2 }));
+        fg.appendChild(el('path', {
+          d: `M ${cx - 6} ${finY + 30} L ${cx} ${finY + 44} L ${cx + 6} ${finY + 30}`,
+          fill: P.m
+        }));
+      }
+      svg.appendChild(link(fg));
+    }
+
+    // --- Dangle ---
+    function drawDangle(parent, x, y, type, preLen) {
+      const g = el('g');
+      const len = preLen || randInt(10, 25);
+      g.appendChild(el('line', { x1: x, y1: y, x2: x, y2: y + len, stroke: P.ch, 'stroke-width': 0.7 }));
+
+      if (type === 'teardrop') {
+        g.appendChild(el('path', {
+          d: `M ${x} ${y + len} Q ${x + 4} ${y + len + 5} ${x} ${y + len + 14} Q ${x - 4} ${y + len + 5} ${x} ${y + len}`,
+          fill: 'url(#cg)', stroke: P.cr, 'stroke-width': 0.5, opacity: '0.7'
+        }));
+      } else if (type === 'drop') {
+        g.appendChild(el('circle', { cx: x, cy: y + len + 3, r: 3, fill: P.cr, opacity: '0.6' }));
+      } else if (type === 'beads') {
+        const nb = 2 + (len % 3);
+        for (let b = 0; b < nb; b++) {
+          g.appendChild(el('circle', {
+            cx: x, cy: y + (b + 1) * (len / nb),
+            r: 1.5, fill: P.cr, opacity: '0.5'
+          }));
+        }
+      } else {
+        // Prism
+        const py = y + len;
+        g.appendChild(el('path', {
+          d: `M ${x} ${py} L ${x + 3} ${py + 6} L ${x} ${py + 12} L ${x - 3} ${py + 6} Z`,
+          fill: 'url(#cg)', stroke: P.cr, 'stroke-width': 0.5, opacity: '0.6'
+        }));
+      }
+      parent.appendChild(link(g));
+    }
+
+    // --- Small crystal ---
+    function drawSmallCrystal(parent, x, y, preLen) {
+      const g = el('g');
+      const len = preLen || randInt(5, 10);
+      g.appendChild(el('line', { x1: x, y1: y, x2: x, y2: y + len, stroke: P.ch, 'stroke-width': 0.5 }));
+      g.appendChild(el('circle', { cx: x, cy: y + len + 2, r: 1.5, fill: P.cr, opacity: '0.5' }));
+      parent.appendChild(link(g));
+    }
+
+    // --- Init ---
+    generate();
+    document.body.addEventListener('click', (e) => {
+      if (e.target.closest('.part')) return;
+      generate();
+      resize();
+    });
+
+    function resize() {
+      const vb = svg.getAttribute('viewBox').split(' ');
+      const vw = parseFloat(vb[2]);
+      const vh = parseFloat(vb[3]);
+      const sw = window.innerWidth / vw;
+      const sh = window.innerHeight / vh;
+      const s = Math.min(sw, sh, 1.5);
+      svg.style.width = (vw * s) + 'px';
+      svg.style.height = (vh * s) + 'px';
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+  </script>
+</body>
+
+</html>

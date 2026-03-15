@@ -213,16 +213,11 @@ https://pineco.de/wp-content/uploads/2019/09/modify-the-css-box-model-with-box-s
 
     boxFront.addEventListener('click', createSpider);
 
-    // Create spider on any key press (except browser specific ones)
-    window.addEventListener('keydown', (e) => {
-      // Ignore if user is tabbing
-      if (e.key === 'Tab') {
-        return;
-      }
-      // Ignore if a modifier key is pressed (e.g., Ctrl, Alt, Meta, Shift, F5)
-      if (e.ctrlKey || e.altKey || e.metaKey || e.shiftKey || e.keyCode == 116) {
-        return;
-      }
+    // Create spider on keydown
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey || e.altKey || e.shiftKey || e.metaKey) return;
+      if (e.key === 'Tab' || e.key === 'F5') return;
+
       createSpider();
     });
 

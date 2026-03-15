@@ -409,16 +409,11 @@ musicians) break creative blocks by encouraging lateral thinking.
 
     deck.addEventListener('click', drawCard);
 
-    // Draw card on any key press (except when interacting with the deck specifically)
-    window.addEventListener('keydown', (e) => {
-      // Ignore if user is tabbing
-      if (e.key === 'Tab') {
-        return;
-      }
-      // Ignore if a modifier key is pressed (e.g., Ctrl, Alt, Meta, Shift, F5)
-      if (e.ctrlKey || e.altKey || e.metaKey || e.shiftKey || e.keyCode == 116) {
-        return;
-      }
+    // Draw card on keydown
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey || e.altKey || e.shiftKey || e.metaKey) return;
+      if (e.key === 'Tab' || e.key === 'F5') return;
+
       drawCard();
     });
 

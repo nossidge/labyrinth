@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Submitted for the approval of the Midnight Society">
+  <title>The embers remember</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+      font-family: monospace;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+    }
+
+    #sky {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 67%;
+      background: radial-gradient(ellipse at 50% 100%, #1a0800 0%, #050008 40%, #000 100%);
+      z-index: 0;
+    }
+
+    #moon {
+      position: fixed;
+      left: 8%;
+      top: 8%;
+      font-size: 48px;
+      z-index: 2;
+      filter: drop-shadow(0 0 12px rgba(255, 255, 200, 0.3));
+      pointer-events: auto;
+      text-decoration: none;
+    }
+
+    #moon:hover {
+      filter: drop-shadow(0 0 12px rgba(255, 255, 200, 0.9));
+    }
+
+    .star {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      background: #fff;
+      border-radius: 50%;
+      animation: twinkle var(--dur) ease-in-out infinite;
+      opacity: 0.4;
+    }
+
+    @keyframes twinkle {
+
+      0%,
+      100% {
+        opacity: 0.2;
+      }
+
+      50% {
+        opacity: var(--peak);
+      }
+    }
+
+    #ground {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 33%;
+      background: linear-gradient(to bottom, #1a1208 0%, #0d0a04 40%, #060402 100%);
+      z-index: 1;
+    }
+
+    #fire-pit {
+      position: fixed;
+      bottom: 16%;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      width: 120px;
+      height: 140px;
+    }
+
+    .logs {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 40px;
+      text-decoration: none;
+      z-index: 12;
+      white-space: nowrap;
+      filter: drop-shadow(0 0 8px rgba(255, 120, 0, 0.6));
+    }
+
+    #fire-container {
+      text-decoration: none;
+      display: block;
+    }
+
+    #fire-container:hover .flame {
+      filter: brightness(1.3) drop-shadow(0 0 20px #ff6600);
+    }
+
+    #fire-container:hover .logs {
+      filter: drop-shadow(0 0 16px rgba(255, 180, 0, 0.9));
+    }
+
+    .flame {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 11;
+    }
+
+    .flame-shape {
+      position: absolute;
+      bottom: 0;
+      border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+    }
+
+    .flame-outer {
+      width: 60px;
+      height: 90px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(to top, #ff4500 0%, #ff8c00 40%, #ffd700 80%, rgba(255, 215, 0, 0) 100%);
+      clip-path: polygon(50% 0%, 15% 45%, 0% 100%, 100% 100%, 85% 45%);
+      animation: flicker1 0.4s ease-in-out infinite alternate;
+      opacity: 0.9;
+    }
+
+    .flame-mid {
+      width: 40px;
+      height: 70px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(to top, #ff6600 0%, #ffaa00 50%, #ffdd44 100%);
+      clip-path: polygon(50% 0%, 20% 50%, 5% 100%, 95% 100%, 80% 50%);
+      animation: flicker2 0.3s ease-in-out infinite alternate;
+      opacity: 0.95;
+    }
+
+    .flame-inner {
+      width: 20px;
+      height: 50px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(to top, #ffcc00 0%, #fff5aa 60%, #fff 100%);
+      clip-path: polygon(50% 0%, 20% 55%, 10% 100%, 90% 100%, 80% 55%);
+      animation: flicker3 0.25s ease-in-out infinite alternate;
+    }
+
+    @keyframes flicker1 {
+      0% {
+        transform: translateX(-50%) scaleX(1) scaleY(1);
+      }
+
+      25% {
+        transform: translateX(-52%) scaleX(0.95) scaleY(1.04);
+      }
+
+      50% {
+        transform: translateX(-48%) scaleX(1.05) scaleY(0.96);
+      }
+
+      75% {
+        transform: translateX(-51%) scaleX(0.98) scaleY(1.02);
+      }
+
+      100% {
+        transform: translateX(-50%) scaleX(1.02) scaleY(0.98);
+      }
+    }
+
+    @keyframes flicker2 {
+      0% {
+        transform: translateX(-50%) scaleX(1) scaleY(1) skewX(0deg);
+      }
+
+      33% {
+        transform: translateX(-48%) scaleX(1.06) scaleY(0.95) skewX(2deg);
+      }
+
+      66% {
+        transform: translateX(-53%) scaleX(0.94) scaleY(1.05) skewX(-2deg);
+      }
+
+      100% {
+        transform: translateX(-50%) scaleX(1) scaleY(1) skewX(0deg);
+      }
+    }
+
+    @keyframes flicker3 {
+      0% {
+        transform: translateX(-50%) scaleY(1);
+      }
+
+      50% {
+        transform: translateX(-49%) scaleY(1.08);
+      }
+
+      100% {
+        transform: translateX(-51%) scaleY(0.94);
+      }
+    }
+
+    #fire-glow {
+      position: fixed;
+      bottom: 20%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 500px;
+      height: 200px;
+      background: radial-gradient(ellipse, rgba(255, 100, 0, 0.15) 0%, rgba(255, 60, 0, 0.05) 50%, transparent 70%);
+      z-index: 2;
+      pointer-events: none;
+      animation: glow-pulse 2s ease-in-out infinite alternate;
+    }
+
+    @keyframes glow-pulse {
+      0% {
+        opacity: 0.7;
+      }
+
+      100% {
+        opacity: 1;
+      }
+    }
+
+    .spark {
+      position: fixed;
+      width: 3px;
+      height: 3px;
+      border-radius: 50%;
+      z-index: 15;
+      pointer-events: none;
+      animation: rise-and-fade var(--spark-dur) linear forwards;
+    }
+
+    @keyframes rise-and-fade {
+      0% {
+        opacity: 1;
+        transform: translate(0, 0) scale(1);
+      }
+
+      60% {
+        opacity: 0.8;
+      }
+
+      100% {
+        opacity: 0;
+        transform: translate(var(--drift-x), var(--drift-y)) scale(0.3);
+      }
+    }
+
+    .person {
+      position: fixed;
+      font-size: 36px;
+      text-decoration: none;
+      z-index: 10;
+      transition: transform 0.5s ease;
+      animation: sway var(--sway-dur) ease-in-out infinite;
+      transform-origin: bottom center;
+      filter: drop-shadow(0 0 4px rgba(255, 100, 0, 0.3));
+      transform: translateX(-50%);
+    }
+
+    .person:hover {
+      filter: drop-shadow(0 0 12px rgba(255, 150, 0, 0.7));
+      animation-play-state: paused;
+      transform: translateX(-50%) rotate(var(--lean-angle)) scale(1.15) !important;
+    }
+
+    @keyframes sway {
+
+      0%,
+      100% {
+        transform: translateX(-50%) rotate(calc(var(--sway-deg) * -1));
+      }
+
+      50% {
+        transform: translateX(-50%) rotate(var(--sway-deg));
+      }
+    }
+
+    /* Mountains - far background, sitting at the ground line */
+    .mountain {
+      position: fixed;
+      z-index: 3;
+      pointer-events: none;
+      filter: brightness(0.3);
+    }
+
+    /* Trees - mid background, silhouetted */
+    .tree {
+      position: fixed;
+      z-index: 4;
+      pointer-events: none;
+      filter: brightness(0.2);
+    }
+
+    /* Nearer trees get slightly more firelight */
+    .tree.near {
+      filter: brightness(0.25) drop-shadow(0 0 6px rgba(255, 80, 0, 0.08));
+      z-index: 5;
+    }
+
+    /* CRT overlay, my beloved */
+    #overlays {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 100;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 255, 0, 0.03));
+      background-size: 100% 2px, 3px 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="overlays"></div>
+
+  <div id="sky">
+    <a id="moon" href="../index.html">🌕</a>
+  </div>
+
+  <div id="ground"></div>
+
+  <div id="fire-glow"></div>
+
+  <a id="fire-container" href="../index.html">
+    <div id="fire-pit">
+      <div class="flame">
+        <div class="flame-shape flame-outer"></div>
+        <div class="flame-shape flame-mid"></div>
+        <div class="flame-shape flame-inner"></div>
+      </div>
+      <div class="logs">🪵🪵</div>
+    </div>
+  </a>
+
+  <!-- People placed by JS -->
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/campfire";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    // Useful randomisation helpers
+    function rand(min, max) { return Math.random() * (max - min) + min; }
+    function randInt(min, max) { return Math.floor(rand(min, max + 1)); }
+    function randIndex(array) { return randInt(0, array.length - 1); }
+    function sample(array) { return array[randIndex(array)]; }
+
+    // Moon - phase-accurate emoji in the top left
+    function getMoonPhase(date = new Date()) {
+      const cycleLength = 29.5305882;
+      const knownNewMoon = new Date('2026-02-17T16:30:00+00:00');
+      const secondsSince = (date - knownNewMoon) / 1000;
+      const daysSince = secondsSince / 60 / 60 / 24;
+      const currentPhaseDays = daysSince % cycleLength;
+      if (currentPhaseDays < 1.84566) return '🌑';
+      if (currentPhaseDays < 5.53699) return '🌒';
+      if (currentPhaseDays < 9.22831) return '🌓';
+      if (currentPhaseDays < 12.91963) return '🌔';
+      if (currentPhaseDays < 16.61096) return '🌕';
+      if (currentPhaseDays < 20.30228) return '🌖';
+      if (currentPhaseDays < 23.99361) return '🌗';
+      if (currentPhaseDays < 27.68493) return '🌘';
+      return '🌑';
+    }
+    const moonEl = document.getElementById('moon');
+    moonEl.textContent = getMoonPhase();
+
+    // Ground is height:33%, so its top edge is at bottom:33%
+    // We use bottom % for all scenery so layers sit relative to the ground
+    const MAX_MOUNTAINS = 22;
+    const MAX_TREES_BACKGROUND = 54;
+    const MAX_TREES_FOREGROUND = 24;
+
+    // Generate mostly-equidistant positions with slight variance
+    function generatePositions(count, xMin, xMax, baseBottom, bottomVariance, sizeMin, sizeMax) {
+      const items = [];
+      const span = xMax - xMin;
+      const step = span / count;
+      for (let i = 0; i < count; i++) {
+        const xJitter = rand(-0.5, 0.5) * step * 0.5;
+        const x = xMin + step * (i + 0.5) + xJitter;
+        const bottom = baseBottom + rand(-0.5, 0.5) * bottomVariance;
+        const size = rand(sizeMin, sizeMax);
+        items.push({ x, bottom, size });
+      }
+      return items;
+    }
+
+    // This function works for the mountains and trees
+    function placeElements(items, className, emojis) {
+      items.forEach(item => {
+        const el = document.createElement('div');
+        el.className = className;
+        el.textContent = sample(emojis);
+        el.style.left = item.x + '%';
+        el.style.bottom = item.bottom + '%';
+        el.style.fontSize = Math.round(item.size) + 'px';
+        el.style.transform = 'translateX(-50%)';
+        document.body.appendChild(el);
+      });
+    }
+
+    // Mountains: bottom ~28%, spread across full width
+    placeElements(
+      generatePositions(MAX_MOUNTAINS, -5, 105, 28, 2, 140, 190),
+      'mountain', ['⛰️']
+    );
+
+    // Background trees: bottom ~24%, spread across full width
+    placeElements(
+      generatePositions(MAX_TREES_BACKGROUND, -3, 103, 24, 2, 60, 75),
+      'tree', ['🌲', '🌳']
+    );
+
+    // Foreground trees: bottom ~20%, flanking the sides (leaving centre clear)
+    const fgLeft = generatePositions(
+      Math.ceil(MAX_TREES_FOREGROUND / 2), -3, 30, 20, 2, 90, 120
+    );
+    const fgRight = generatePositions(
+      Math.floor(MAX_TREES_FOREGROUND / 2), 70, 103, 20, 2, 90, 120
+    );
+    placeElements(fgLeft.concat(fgRight), 'tree near', ['🌲', '🌳']);
+
+    // Stars
+    const skyEl = document.getElementById('sky');
+    for (let i = 0; i < 120; i++) {
+      const star = document.createElement('div');
+      star.className = 'star';
+      star.style.left = rand(0, 100) + '%';
+      star.style.top = rand(0, 90) + '%';
+      star.style.setProperty('--dur', rand(2, 6).toFixed(1) + 's');
+      star.style.setProperty('--peak', rand(0.4, 0.9).toFixed(2));
+      star.style.animationDelay = '-' + rand(0, 5).toFixed(1) + 's';
+      const size = randInt(1, 3);
+      star.style.width = size + 'px';
+      star.style.height = size + 'px';
+      skyEl.appendChild(star);
+    }
+
+    // People in a symmetric semicircle around the fire
+    const PEOPLE_POOL = ['🧑', '👩', '👨', '👩‍🦰', '🧔', '👱', '👩‍🦱', '🧑‍🦳',];
+    const peopleRandomiser = new CyclicRandomiser(PEOPLE_POOL);
+    const peopleCount = 8; // number of people to render
+    const fireCenterX = 50; // percent of viewport width
+    const fireCenterY = 80; // percent from top
+    const radiusX = 10; // horizontal spread (percent)
+    const radiusY = 8; // vertical spread (percent)
+
+    // Distribute people evenly along a semicircle (π to 0, i.e. left to right)
+    // Symmetric because angle is centred on π/2 (straight down)
+    for (let i = 0; i < peopleCount; i++) {
+      const angle = Math.PI - (Math.PI * i / (peopleCount - 1));
+      const x = fireCenterX + radiusX * Math.cos(angle);
+      const y = fireCenterY + radiusY * Math.sin(angle);
+      const emoji = peopleRandomiser.nextOne();
+
+      // Calculate lean angle toward fire (used on hover)
+      const dx = fireCenterX - x;
+      const leanAngle = Math.max(-20, Math.min(20, dx * 0.8));
+
+      const a = document.createElement('a');
+      a.href = pageRandomiser.nextOne();
+      a.className = 'person';
+      a.textContent = emoji;
+      a.style.left = x + '%';
+      a.style.top = y + '%';
+      a.style.zIndex = parseInt(y);
+      a.style.transform = 'translate(-50%, -50%)';
+      a.style.setProperty('--sway-dur', rand(2.5, 4.5).toFixed(1) + 's');
+      a.style.setProperty('--sway-deg', rand(1, 3).toFixed(1) + 'deg');
+      a.style.setProperty('--lean-angle', leanAngle.toFixed(0) + 'deg');
+      a.style.animationDelay = '-' + rand(0, 3).toFixed(1) + 's';
+
+      document.body.appendChild(a);
+    }
+
+    // Spark particles
+    function spawnSpark() {
+      const spark = document.createElement('div');
+      spark.className = 'spark';
+
+      // Spawn near the fire
+      spark.style.left = rand(47.5, 52.5) + '%';
+      spark.style.top = rand(68.5, 71.5) + '%';
+
+      // Random warm colour
+      const colours = ['#ff6600', '#ff9900', '#ffcc00', '#ffaa33', '#ff4400'];
+      spark.style.background = sample(colours);
+
+      const dur = rand(1.5, 3.5).toFixed(1);
+      spark.style.setProperty('--spark-dur', dur + 's');
+      spark.style.setProperty('--drift-x', rand(-40, 40) + 'px');
+      spark.style.setProperty('--drift-y', -rand(100, 300) + 'px');
+
+      const size = randInt(2, 4);
+      spark.style.width = size + 'px';
+      spark.style.height = size + 'px';
+
+      document.body.appendChild(spark);
+
+      setTimeout(() => spark.remove(), parseFloat(dur) * 1000);
+    }
+
+    setInterval(spawnSpark, 150);
+
+  </script>
+</body>
+
+</html>

@@ -322,17 +322,11 @@
       seaweed: ['#1a5e2a', '#2a7e3a', '#0e4a1e', '#3a8e4a', '#1a6e30'],
     };
 
-    function rand(min, max) {
-      return Math.random() * (max - min) + min;
-    }
-
-    function randInt(min, max) {
-      return Math.floor(rand(min, max));
-    }
-
-    function pick(arr) {
-      return arr[Math.floor(Math.random() * arr.length)];
-    }
+    // Useful randomisation helpers
+    function rand(min, max) { return Math.random() * (max - min) + min; }
+    function randInt(min, max) { return Math.floor(rand(min, max + 1)); }
+    function randIndex(array) { return randInt(0, array.length - 1); }
+    function sample(array) { return array[randIndex(array)]; }
 
     // Seabed boundary: top of the sandy area
     const seabedTop = vh * 0.33;
@@ -412,7 +406,7 @@
         const rx = rand(3, 12);
         const ry = rx * rand(0.4, 0.8);
         const rot = rand(0, 180);
-        const col = pick(pebbleColors);
+        const col = sample(pebbleColors);
         svgContent += `<ellipse cx="${px}" cy="${py}" rx="${rx}" ry="${ry}"
           fill="${col}" opacity="${rand(0.2, 0.5)}"
           transform="rotate(${rot} ${px} ${py})"/>`;
@@ -439,7 +433,7 @@
       a.style.width = size + 'px';
       a.style.height = size + 'px';
       const rotation = rand(0, 360);
-      const color = pick(palettes.starfish);
+      const color = sample(palettes.starfish);
 
       a.innerHTML = `<svg viewBox="0 0 100 100" style="transform:rotate(${rotation}deg)">
         <polygon points="50,5 61,35 95,35 67,55 78,90 50,70 22,90 33,55 5,35 39,35"
@@ -460,7 +454,7 @@
       a.style.height = height + 'px';
 
       const numTendrils = randInt(7, 16);
-      const baseColor = pick(palettes.anemone);
+      const baseColor = sample(palettes.anemone);
 
       for (let i = 0; i < numTendrils; i++) {
         const t = document.createElement('div');
@@ -510,7 +504,7 @@
       a.style.width = size + 'px';
       a.style.height = size + 'px';
 
-      const color = pick(palettes.urchin);
+      const color = sample(palettes.urchin);
 
       const body = document.createElement('div');
       body.className = 'urchin-body';
@@ -544,7 +538,7 @@
       a.style.top = y + 'px';
       a.style.animation = `jellyBob ${rand(3, 6)}s ease-in-out infinite`;
 
-      const color = pick(palettes.jellyfish);
+      const color = sample(palettes.jellyfish);
       const bellWidth = rand(35, 60);
       const bellHeight = rand(25, 40);
 
@@ -586,7 +580,7 @@
       a.style.left = x + 'px';
       a.style.top = y + 'px';
 
-      const color = pick(palettes.seaweed);
+      const color = sample(palettes.seaweed);
       const numFronds = randInt(4, 10);
       const totalHeight = rand(60, 140);
 

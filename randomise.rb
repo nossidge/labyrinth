@@ -33,7 +33,8 @@ def load_corridor_metadata
     id = corridor['id']
     metadata[id] = {
       'title' => corridor['title'],
-      'created' => corridor['created']
+      'created' => corridor['created'],
+      'mobile' => corridor['mobile'],
     }
   end
   metadata
@@ -77,13 +78,14 @@ def generate_dir_files(dir_path)
       id: corridor_id,
       title: metadata['title'],
       created: metadata['created'],
+      mobile: metadata['mobile'] || false,
       url: "../../#{rel_path}"
     }
   end
 
   # Build JavaScript object literals for corridorsData
   corridors_data_js = corridors_data_entries.map do |entry|
-    "  { id: \"#{entry[:id]}\", title: \"#{entry[:title]}\", created: \"#{entry[:created]}\", url: \"#{entry[:url]}\" },"
+    "  { id: \"#{entry[:id]}\", title: \"#{entry[:title]}\", created: \"#{entry[:created]}\", url: \"#{entry[:url]}\", mobile: #{entry[:mobile]} },"
   end.join("\n")
 
   js_content = <<~JSCRIPT
@@ -159,7 +161,7 @@ public_index_content = File.read('template/index.html')
 current_date = Time.now.strftime('%Y-%m-%d')
 total_pages = corridors.length
 
-public_index_content.gsub!(/(<strong id="date-last-randomised">).*?(<\/strong>)/m, "\\1\n          #{current_date}\n        \\2")
+public_index_content.gsub!(/(<strong id="date-last-updated">).*?(<\/strong>)/m, "\\1\n          #{current_date}\n        \\2")
 public_index_content.gsub!(/(<strong id="page-count">).*?(<\/strong>)/m, "\\1\n          #{total_pages}\n        \\2")
 
 File.write(File.join(TARGET_DIR, 'index.html'), public_index_content)

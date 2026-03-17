@@ -39,6 +39,27 @@
       filter: blur(5px);
     }
 
+    @media (max-width: 1024px) {
+      .circle {
+        width: 240px;
+        height: 240px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .circle {
+        width: 190px;
+        height: 190px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .circle {
+        width: 160px;
+        height: 160px;
+      }
+    }
+
     .circle:active {
       cursor: grabbing;
     }
@@ -103,39 +124,39 @@
       opacity: 0.8;
     }
 
+    #btn-m {
+      background-color: #ff00ff;
+      justify-self: start;
+      align-self: start;
+    }
+
     #btn-r {
       background-color: #ff0000;
-      justify-self: start;
+      justify-self: center;
       align-self: start;
     }
 
     #btn-y {
       background-color: #ffff00;
-      justify-self: center;
-      align-self: start;
-    }
-
-    #btn-g {
-      background-color: #00ff00;
       justify-self: end;
       align-self: start;
     }
 
-    #btn-m {
-      background-color: #ff00ff;
+    #btn-b {
+      background-color: #0000ff;
+      color: #fff;
       justify-self: start;
       align-self: end;
     }
 
-    #btn-b {
-      background-color: #0000ff;
-      justify-self: center;
-      align-self: end;
-      color: #fff;
-    }
-
     #btn-c {
       background-color: #00ffff;
+      justify-self: center;
+      align-self: end;
+    }
+
+    #btn-g {
+      background-color: #00ff00;
       justify-self: end;
       align-self: end;
     }
@@ -178,12 +199,12 @@
   </div>
 
   <div id="color-nav">
+    <a href="../index.html" class="color-btn" id="btn-m">M</a>
     <a href="../index.html" class="color-btn" id="btn-r">R</a>
     <a href="../index.html" class="color-btn" id="btn-y">Y</a>
-    <a href="../index.html" class="color-btn" id="btn-g">G</a>
-    <a href="../index.html" class="color-btn" id="btn-m">M</a>
     <a href="../index.html" class="color-btn" id="btn-b">B</a>
     <a href="../index.html" class="color-btn" id="btn-c">C</a>
+    <a href="../index.html" class="color-btn" id="btn-g">G</a>
   </div>
 
   <script src="../../common/labyrinthPages.js"></script>
@@ -209,15 +230,40 @@
     const centerX = window.innerWidth / 2;
     const centerY = window.innerHeight / 2;
 
-    const circles = [
-      { id: 'red', el: red, x: centerX - 100, y: centerY - 60 },
-      { id: 'green', el: green, x: centerX + 100, y: centerY - 60 },
-      { id: 'blue', el: blue, x: centerX, y: centerY + 80 }
-    ];
+    function getSpacing() {
+      const windowWidth = window.innerWidth;
+      if (windowWidth <= 480) {
+        return 60;
+      } else if (windowWidth <= 768) {
+        return 70;
+      } else if (windowWidth <= 1024) {
+        return 90;
+      } else {
+        return 110;
+      }
+    }
 
-    const radius = 150;
+    function createCircles() {
+      const spacing = getSpacing();
+      const sqrt3Half = Math.sqrt(3) / 2;
+      return [
+        { id: 'red', el: red, x: centerX, y: centerY - spacing },
+        { id: 'green', el: green, x: centerX + spacing * sqrt3Half, y: centerY + spacing / 2 },
+        { id: 'blue', el: blue, x: centerX - spacing * sqrt3Half, y: centerY + spacing / 2 }
+      ];
+    }
+
+    let circles = createCircles();
+
+    let radius = 150;
+
+    function getRadius() {
+      const circleSize = red.offsetWidth;
+      return circleSize / 2;
+    }
 
     function updateCirclePositions() {
+      radius = getRadius();
       circles.forEach(c => {
         c.el.style.left = (c.x - radius) + 'px';
         c.el.style.top = (c.y - radius) + 'px';
@@ -317,6 +363,12 @@
     mixer.addEventListener('touchstart', handleStart);
     window.addEventListener('touchmove', handleMove);
     window.addEventListener('touchend', handleEnd);
+
+    // Update radius and positions on window resize
+    window.addEventListener('resize', () => {
+      circles = createCircles();
+      updateCirclePositions();
+    });
 
   </script>
 </body>

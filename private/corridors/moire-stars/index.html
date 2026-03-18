@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+When a large-scale wave interference pattern produced from a partially opaque
+ruled pattern with transparent gaps being overlaid on another similar pattern
+hits your eye like a big pizza pie, that's a moiré.
+-->
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Vince Moiré">
+  <title>Moiré stars</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body,
+    html {
+      width: 100%;
+      height: 100%;
+      background: #080808;
+      overflow: hidden;
+    }
+
+    #scene {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    svg {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform-origin: center center;
+    }
+
+    #layer-a {
+      animation: spin-clockwise 120s linear infinite;
+    }
+
+    #layer-b {
+      animation: spin-anticlockwise 180s linear infinite;
+    }
+
+    @keyframes spin-clockwise {
+      from {
+        transform: translate(-50%, -50%) rotate(0deg);
+      }
+
+      to {
+        transform: translate(-50%, -50%) rotate(360deg);
+      }
+    }
+
+    @keyframes spin-anticlockwise {
+      from {
+        transform: translate(-50%, -50%) rotate(0deg);
+      }
+
+      to {
+        transform: translate(-50%, -50%) rotate(-360deg);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <a id="scene" href="../index.html"></a>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/moire-stars";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const scene = document.getElementById('scene');
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const diagonal = Math.sqrt(vw * vw + vh * vh);
+    const svgSize = diagonal * 1.4;
+
+    // Useful randomisation helpers
+    function rand(min, max) { return Math.random() * (max - min) + min; }
+    function randInt(min, max) { return Math.floor(rand(min, max + 1)); }
+
+    // Generate a random colour palette for the two layers
+    // Pick two hues at least 60° apart, with high saturation and lightness
+    function generatePalette() {
+      const hueA = randInt(0, 360);
+      const hueB = hueA + randInt(60, 300);
+      const satA = randInt(50, 100);
+      const satB = randInt(50, 100);
+      const lightA = randInt(55, 85);
+      const lightB = randInt(55, 85);
+      const alphaA = rand(0.35, 0.90);
+      const alphaB = rand(0.35, 0.90);
+
+      return {
+        a: `hsla(${hueA}, ${satA}%, ${lightA}%, ${alphaA})`,
+        b: `hsla(${hueB % 360}, ${satB}%, ${lightB}%, ${alphaB})`,
+      };
+    }
+
+    function buildLineLayer(id, color, numLines, strokeWidth) {
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('id', id);
+      svg.setAttribute('width', svgSize);
+      svg.setAttribute('height', svgSize);
+      svg.setAttribute('viewBox', `0 0 ${svgSize} ${svgSize}`);
+      svg.style.width = svgSize + 'px';
+      svg.style.height = svgSize + 'px';
+
+      const cx = svgSize / 2;
+      const cy = svgSize / 2;
+      const maxRadius = svgSize / 2;
+
+      for (let i = 0; i < numLines; i++) {
+        const angle = (i / numLines) * Math.PI * 2;
+        const x2 = cx + Math.cos(angle) * maxRadius;
+        const y2 = cy + Math.sin(angle) * maxRadius;
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', cx);
+        line.setAttribute('y1', cy);
+        line.setAttribute('x2', x2);
+        line.setAttribute('y2', y2);
+        line.setAttribute('stroke', color);
+        line.setAttribute('stroke-width', strokeWidth);
+        svg.appendChild(line);
+      }
+
+      return svg;
+    }
+
+    // History of generated patterns
+    // Each entry: { palette: {...}, numLinesA, numLinesB, href }
+    let history = [];
+    let historyIndex = -1;
+
+    function createNewEntry() {
+      const numLinesA = randInt(100, 200);
+      const numLinesB = numLinesA - randInt(3, 12);
+      return {
+        palette: generatePalette(),
+        numLinesA,
+        numLinesB,
+        href: pageRandomiser.nextOne(),
+      };
+    }
+
+    function renderFromHistory(entry) {
+      scene.innerHTML = '';
+      scene.appendChild(buildLineLayer('layer-a', entry.palette.a, entry.numLinesA, 1.2));
+      scene.appendChild(buildLineLayer('layer-b', entry.palette.b, entry.numLinesB, 1));
+      scene.href = entry.href;
+    }
+
+    function goToNext() {
+      if (historyIndex < history.length - 1) {
+        historyIndex++;
+      } else {
+        history.push(createNewEntry());
+        historyIndex = history.length - 1;
+      }
+      renderFromHistory(history[historyIndex]);
+    }
+
+    function goToPrev() {
+      if (historyIndex > 0) {
+        historyIndex--;
+      } else {
+        history.unshift(createNewEntry());
+        historyIndex = 0;
+      }
+      renderFromHistory(history[historyIndex]);
+    }
+
+    // Arrow keys, WASD keys, HJKL keys
+    const LEFT_OR_DOWN = new Set(['ArrowLeft', 'ArrowDown', 'h', 'j', 'a', 's']);
+    const RIGHT_OR_UP = new Set(['ArrowRight', 'ArrowUp', 'k', 'l', 'd', 'w']);
+    function keyLeftOrDown(key) { return LEFT_OR_DOWN.has(key); }
+    function keyRightOrUp(key) { return RIGHT_OR_UP.has(key); }
+
+    document.addEventListener('keydown', (e) => {
+      if (keyLeftOrDown(e.key)) {
+        e.preventDefault();
+        goToPrev();
+      } else if (keyRightOrUp(e.key)) {
+        e.preventDefault();
+        goToNext();
+      }
+    });
+
+    // Initial render
+    goToNext();
+
+  </script>
+</body>
+
+</html>

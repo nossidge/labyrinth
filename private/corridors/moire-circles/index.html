@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+When a large-scale wave interference pattern produced from a partially opaque
+ruled pattern with transparent gaps being overlaid on another similar pattern
+hits your eye like a big pizza pie, that's a moiré.
+-->
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Film Moiré">
+  <title>Moiré circles</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body,
+    html {
+      width: 100%;
+      height: 100%;
+      background: #080808;
+      overflow: hidden;
+    }
+
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    /* CRT scanline */
+    #crt {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 200;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+      background-size: 100% 2px, 3px 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt"></div>
+  <a href="../index.html">
+    <canvas id="canvas"></canvas>
+  </a>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/moire-circles";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    let W, H;
+    function resize() {
+      W = window.innerWidth;
+      H = window.innerHeight;
+      canvas.width = W;
+      canvas.height = H;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    const palettes = [
+      { h: 180, s: 70, l: 50 },
+      { h: 300, s: 60, l: 45 },
+      { h: 45, s: 80, l: 50 },
+      { h: 120, s: 50, l: 40 },
+      { h: 220, s: 70, l: 55 },
+      { h: 0, s: 70, l: 50 },
+      { h: 60, s: 90, l: 55 },
+    ];
+
+    function rand(min, max) { return Math.random() * (max - min) + min; }
+    function randInt(min, max) { return Math.floor(rand(min, max + 1)); }
+
+    function shuffleArray(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = randInt(0, i);
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function hsla(col, alpha) {
+      return `hsla(${col.h}, ${col.s}%, ${col.l}%, ${alpha})`;
+    }
+
+    const emitterCount = randInt(3, 5);
+    const chosenPalettes = shuffleArray([...palettes]).slice(0, emitterCount);
+
+    function randomEmitterPos() {
+      return {
+        x: rand(0.15, 0.85) * W,
+        y: rand(0.15, 0.85) * H,
+      };
+    }
+
+    const emitters = [];
+    for (let i = 0; i < emitterCount; i++) {
+      const pos = randomEmitterPos();
+      emitters.push({
+        x: pos.x, y: pos.y,
+        color: chosenPalettes[i],
+        ringCount: randInt(38, 43),
+        baseSpeed: rand(0.3, 0.7),
+        phaseOffset: rand(0, Math.PI * 2),
+        driftAngle: rand(0, Math.PI * 2),
+        driftSpeed: rand(0.08, 0.2),
+        originX: pos.x,
+        originY: pos.y,
+        driftRadius: rand(30, 90),
+      });
+    }
+
+    // Build ring data
+    // Array of just hashes, not proper class instances
+    const allRings = [];
+    emitters.forEach((em, ei) => {
+      const spacing = Math.max(W, H) / em.ringCount;
+      for (let r = 0; r < em.ringCount; r++) {
+        const highlighted = (r % 2 === 1);
+        const baseRadius = (r + 1) * spacing * 0.5;
+        const ring = { emitterIndex: ei, ringIndex: r, baseRadius, highlighted, el: null };
+
+        allRings.push(ring);
+      }
+    });
+
+    let t = 0;
+    function animate() {
+      t += 0.016;
+
+      // Drift emitter positions
+      for (let i = 0; i < emitters.length; i++) {
+        const em = emitters[i];
+        em.x = em.originX + Math.cos(em.driftAngle + t * em.driftSpeed) * em.driftRadius;
+        em.y = em.originY + Math.sin(em.driftAngle * 1.3 + t * em.driftSpeed * 0.7) * em.driftRadius;
+      }
+
+      // Clear and draw all rings on canvas
+      ctx.clearRect(0, 0, W, H);
+
+      for (let i = 0; i < allRings.length; i++) {
+        const ring = allRings[i];
+        const em = emitters[ring.emitterIndex];
+        const pulse = Math.sin(t * em.baseSpeed + em.phaseOffset + ring.ringIndex * 0.5);
+        const radius = Math.max(2, ring.baseRadius + pulse * 20);
+
+        const baseAlpha = ring.highlighted ? 0.6 : 0.5;
+        const breathe = 0.1 * Math.sin(t * 1.2 + ring.ringIndex * 0.8 + em.phaseOffset);
+        const alpha = Math.max(0.05, baseAlpha + breathe);
+
+        ctx.beginPath();
+        ctx.arc(em.x, em.y, radius, 0, Math.PI * 2);
+        ctx.strokeStyle = hsla(em.color, alpha);
+        ctx.lineWidth = ring.highlighted ? 3 : 2;
+        ctx.stroke();
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+
+    // Regenerate positions (but not colours) on keydown
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey || e.altKey || e.shiftKey || e.metaKey) return;
+      if (e.key === 'Tab' || e.key === 'F5') return;
+
+      emitters.forEach(em => {
+        const pos = randomEmitterPos();
+        em.originX = pos.x;
+        em.originY = pos.y;
+        em.driftAngle = rand(0, Math.PI * 2);
+        em.phaseOffset = rand(0, Math.PI * 2);
+      });
+    });
+
+  </script>
+</body>
+
+</html>

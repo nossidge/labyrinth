@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+When a large-scale wave interference pattern produced from a partially opaque
+ruled pattern with transparent gaps being overlaid on another similar pattern
+hits your eye like a big pizza pie, that's a moiré.
+-->
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Jim Moiré">
+  <title>Moiré lines</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body,
+    html {
+      width: 100%;
+      height: 100%;
+      background: #0a0a0a;
+      overflow: hidden;
+    }
+
+    canvas {
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    #nodes {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+    }
+
+    .node {
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      text-decoration: none;
+      display: block;
+      opacity: 0;
+      transition: opacity 0.6s ease, box-shadow 0.3s ease;
+    }
+
+    .node:hover {
+      opacity: 1 !important;
+      transform: translate(-50%, -50%) scale(2.5);
+      z-index: 100;
+    }
+
+    /* CRT scanline */
+    #crt {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 200;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+      background-size: 100% 2px, 3px 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt"></div>
+  <canvas id="field"></canvas>
+  <div id="nodes"></div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/moire-lines";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const canvas = document.getElementById('field');
+    const ctx = canvas.getContext('2d');
+    const nodesContainer = document.getElementById('nodes');
+
+    let W, H;
+    let time = 0;
+
+    const PALETTES = [
+      ['#ff003c', '#00fff0', '#ff00ff'],
+      ['#ffcc00', '#00ff66', '#ff6600'],
+      ['#00ccff', '#ff0066', '#ccff00'],
+      ['#9966ff', '#ff3399', '#00ffcc'],
+      ['#ff4444', '#4444ff', '#44ff44'],
+    ];
+    const palette = PALETTES[Math.floor(Math.random() * PALETTES.length)];
+
+    // Grid config
+    const SPACING = 60;
+    const LINE_COUNT = 40;
+
+    function resize() {
+      W = canvas.width = window.innerWidth;
+      H = canvas.height = window.innerHeight;
+      placeNodes();
+    }
+
+    // Place invisible clickable nodes in a scattered grid
+    function placeNodes() {
+      nodesContainer.innerHTML = '';
+      const cols = Math.floor(W / 90);
+      const rows = Math.floor(H / 90);
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const node = document.createElement('a');
+          node.className = 'node';
+          node.href = pageRandomiser.nextOne();
+
+          // Offset every other row for a more organic feel
+          const offsetX = (r % 2) * 45;
+          const x = 45 + c * 90 + offsetX;
+          const y = 45 + r * 90;
+
+          node.style.left = x + 'px';
+          node.style.top = y + 'px';
+
+          // Each node gets a colour from the palette
+          const col = palette[Math.floor(Math.random() * palette.length)];
+          node.style.backgroundColor = col;
+          node.style.boxShadow = `0 0 8px ${col}, 0 0 20px ${col}`;
+
+          // Store for animation
+          node.dataset.baseX = x;
+          node.dataset.baseY = y;
+          node.dataset.phase = Math.random() * Math.PI * 2;
+
+          nodesContainer.appendChild(node);
+        }
+      }
+    }
+
+    function drawLineSet(angle, offset, color, alpha) {
+      ctx.save();
+      ctx.translate(W / 2, H / 2);
+      ctx.rotate(angle);
+      ctx.strokeStyle = color;
+      ctx.globalAlpha = alpha;
+      ctx.lineWidth = 2;
+
+      const diagonal = Math.sqrt(W * W + H * H);
+
+      for (let i = -LINE_COUNT; i <= LINE_COUNT; i++) {
+        const x = i * SPACING + offset;
+        ctx.beginPath();
+        ctx.moveTo(x, -diagonal);
+        ctx.lineTo(x, diagonal);
+        ctx.stroke();
+      }
+
+      ctx.restore();
+    }
+
+    function animateNodes() {
+      const nodes = nodesContainer.querySelectorAll('.node');
+      nodes.forEach(node => {
+        const phase = parseFloat(node.dataset.phase);
+        // Pulse opacity based on time
+        const pulse = 0.15 + 0.35 * Math.sin(time * 0.8 + phase);
+        if (!node.matches(':hover')) {
+          node.style.opacity = Math.max(0, pulse);
+        }
+      });
+    }
+
+    function draw() {
+      time += 0.008;
+
+      ctx.fillStyle = 'rgba(10, 10, 10, 0.15)';
+      ctx.fillRect(0, 0, W, H);
+
+      // Two sets of lines rotating in opposite directions
+      const angle1 = time * 0.15;
+      const angle2 = -time * 0.11;
+
+      // Slowly drifting offset creates the moiré shift
+      const drift1 = Math.sin(time * 0.3) * 20;
+      const drift2 = Math.cos(time * 0.25) * 15;
+
+      drawLineSet(angle1, drift1, palette[0], 0.4);
+      drawLineSet(angle2, drift2, palette[1], 0.35);
+
+      // Third layer - very faint, different angle
+      const angle3 = time * 0.07 + Math.PI / 3;
+      const drift3 = Math.sin(time * 0.18) * 10;
+      drawLineSet(angle3, drift3, palette[2], 0.15);
+
+      animateNodes();
+      requestAnimationFrame(draw);
+    }
+
+    window.addEventListener('resize', resize);
+    resize();
+
+    // Initial full clear
+    ctx.fillStyle = '#0a0a0a';
+    ctx.fillRect(0, 0, W, H);
+
+    draw();
+
+  </script>
+</body>
+
+</html>

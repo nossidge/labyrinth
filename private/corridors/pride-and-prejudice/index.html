@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+Pride and Prejudice by Jane Austen, 1813
+Illustrations by George Allen, 1894
+
+Text and illustrations from this Project Gutenberg ebook:
+http://www.gutenberg.org/ebooks/1342
+
+The nonsense text was generated from a simple markov chain.
+I used key size 2 and value size 1 & 2 evenly weighted:
+- "it is" => "a"
+- "it is" => "a truth"
+- "is a" => "truth"
+- "is a" => "truth universally"
+- "a truth" => "universally"
+- "a truth" => "universally acknowledged"
+- "truth universally" => "acknowledged"
+
+In order to make the images smaller for the web,
+I shrank them, reduced the palette, and made the background transparent.
+Here's the ImageMagick script I used:
+```sh
+mkdir -p images
+for img in images-orig/*.jpg; do
+  filename="$(basename "$img" .jpg)"
+  target="images/${filename}.png"
+  convert "$img" \
+    -resize 30% \
+    -colors 16 \
+    -fuzz 10% -transparent white \
+    -strip \
+    -define png:compression-level=9 \
+    PNG8:"$target"
+done
+```
+-->
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Austentatious">
+  <title>A truth universally acknowledged</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #f5f0e8;
+      color: #2c2418;
+      font-family: Georgia, "Times New Roman", Times, serif;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+    }
+
+    #page {
+      max-width: 768px;
+      width: 100%;
+      padding: 40px;
+      background: #faf6ee;
+      border-left: 1px solid #d8d0c0;
+      border-right: 1px solid #d8d0c0;
+      box-shadow: 4px 0 12px rgba(0, 0, 0, 0.04), -4px 0 12px rgba(0, 0, 0, 0.04);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    @media (max-width: 768px) {
+      #page {
+        padding: 20px;
+      }
+    }
+
+    #chapter-image {
+      display: block;
+      margin: 0 auto 36px;
+      max-width: 100%;
+      max-height: 328px;
+      height: auto;
+      opacity: 0.88;
+    }
+
+    #chapter-heading {
+      text-align: center;
+      font-size: 18px;
+      font-weight: normal;
+      letter-spacing: 6px;
+      text-transform: uppercase;
+      margin-bottom: 40px;
+      color: #5a4e3c;
+    }
+
+    .chapter-text {
+      font-size: 17px;
+      line-height: 1.75;
+      text-align: justify;
+      hyphens: auto;
+      color: #3a3228;
+      margin-bottom: 20px;
+    }
+
+    .chapter-text:first-of-type::first-letter {
+      font-size: 52px;
+      float: left;
+      line-height: 1;
+      padding-right: 8px;
+      padding-top: 4px;
+      color: #5a4e3c;
+    }
+
+    .chapter-text:not(:first-of-type) {
+      text-indent: 2em;
+    }
+
+    #chapter-nav {
+      display: flex;
+      gap: 32px;
+      margin-top: auto;
+    }
+
+    @media (max-width: 768px) {
+      #chapter-nav {
+        gap: 20px;
+      }
+    }
+
+    #chapter-nav button {
+      flex: 1;
+      background: none;
+      border: 1px solid #c8bfae;
+      padding: 14px 12px;
+      font-family: Georgia, "Times New Roman", Times, serif;
+      font-size: 14px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: #7a6e5a;
+      transition: background 0.2s, color 0.2s;
+      cursor: pointer;
+    }
+
+    #chapter-nav button:hover {
+      background: #f0ebe0;
+      color: #3a3228;
+    }
+
+    #chapter-nav button:active {
+      background: #e8e1d4;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="page">
+    <a id="labyrinth-link" href="../index.html">
+      <img id="chapter-image" src="images/i_035_a.png" alt="Chapter illustration">
+    </a>
+    <h1 id="chapter-heading"></h1>
+    <p id="chapter-text-1" class="chapter-text"></p>
+    <p id="chapter-text-2" class="chapter-text"></p>
+    <p id="chapter-text-3" class="chapter-text"></p>
+    <div id="chapter-nav">
+      <button id="btn-prev">&#8592; Back</button>
+      <button id="btn-next">Next &#8594;</button>
+    </div>
+  </div>
+
+  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script>
+    const currentPage = "corridors/pride-and-prejudice";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    // The novel has 61 chapters
+    const ROMAN_NUMERALS = [
+      'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X',
+      'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI', 'XVII', 'XVIII', 'XIX', 'XX',
+      'XXI', 'XXII', 'XXIII', 'XXIV', 'XXV', 'XXVI', 'XXVII', 'XXVIII', 'XXIX', 'XXX',
+      'XXXI', 'XXXII', 'XXXIII', 'XXXIV', 'XXXV', 'XXXVI', 'XXXVII', 'XXXVIII', 'XXXIX', 'XL',
+      'XLI', 'XLII', 'XLIII', 'XLIV', 'XLV', 'XLVI', 'XLVII', 'XLVIII', 'XLIX', 'L',
+      'LI', 'LII', 'LIII', 'LIV', 'LV', 'LVI', 'LVII', 'LVIII', 'LIX', 'LX',
+      'LXI',
+    ];
+
+    const IMAGES_POOL = [
+      "images/i_035_a.png", "images/i_039_a.png", "images/i_047_a.png",
+      "images/i_051_a.png", "images/i_056_a.png", "images/i_065_a.png",
+      "images/i_074_a.png", "images/i_082_a.png", "images/i_089_a.png",
+      "images/i_098_a.png", "images/i_104_a.png", "images/i_107_a.png",
+      "images/i_113_a.png", "images/i_118_a.png", "images/i_124_a.png",
+      "images/i_137_a.png", "images/i_142_a.png", "images/i_161_a.png",
+      "images/i_168_a.png", "images/i_175_a.png", "images/i_183_a.png",
+      "images/i_190_a.png", "images/i_197_a.png", "images/i_204_a.png",
+      "images/i_210_a.png", "images/i_218_a.png", "images/i_223_a.png",
+      "images/i_229_a.png", "images/i_238_a.png", "images/i_244_a.png",
+      "images/i_250_a.png", "images/i_257_a.png", "images/i_264_a.png",
+      "images/i_272_a.png", "images/i_282_a.png", "images/i_290_a.png",
+      "images/i_296_a.png", "images/i_301_a.png", "images/i_307_a.png",
+      "images/i_314_a.png", "images/i_323_a.png", "images/i_330_a.png",
+      "images/i_347_a.png", "images/i_356_a.png", "images/i_363_a.png",
+      "images/i_374_a.png", "images/i_388_a.png", "images/i_397_a.png",
+      "images/i_406_a.png", "images/i_414_a.png", "images/i_422_a.png",
+      "images/i_433_a.png", "images/i_444_a.png", "images/i_451_a.png",
+      "images/i_460_a.png", "images/i_471_a.png", "images/i_477_a.png",
+      "images/i_486_a.png", "images/i_495_a.png", "images/i_501_a.png",
+    ];
+
+    const SENTENCES_POOL = [
+      "“Bingley.” “Is he married or single?”",
+      "“What think you of Lady Metcalfe’s calling yesterday to thank me? She finds Miss Pope a treasure. ‘Lady Catherine,’ said she, ‘you have given anything to comfort you,” replied Elizabeth; “but it does not yet leave her dressing-room.",
+      "Darcy, “There is a handsome face.",
+      "In future, I hope he will overlook it.",
+      "Gardiner’s hope of Lydia’s infamy somewhat better. It will save me a world of your excellent parents, my proposals will not fail her.",
+      "She had heard much; but he saw her no more; but her mind was so well convinced of Lady Catherine’s discernment as to resent the past.",
+      "“So, Lizzy,” said he, “what are you talking of? Why, he has not Wickham’s countenance, for his features are perfectly right. You have employed your time not disagreeably.",
+      "He then sat down and cried for half an hour after everybody else was gone, which gave them to understand that my uncle Philips talks of turning away Richard? and if he had not been gone a week, to pay my respects to him, made his affection every moment more.",
+      "Her Ladyship’s carriage is regularly ordered for us.",
+      "To know that she could hardly reply with tolerable civility to the fortunes of all the disadvantages of this humble parsonage, I should not you mind?”",
+      "“We were born in the same circumstances were to happen again, I am sure I can’t write; so I will not be insensible of triumph on knowing more than half-a-dozen in the unhappy defects of her existence till the day of the four can come into the neighbourhood.”",
+      "Human nature is so decidedly beneath my own?”",
+      "Had not my own fault--because I would not marry? Did he know that the former had, from her as the event must be for one of a large family; that as to my father, I never knew myself.”",
+      "She directly replied,-- “You need not be frightened.",
+      "Forster, the delight of unpleasant recollections.",
+      "“Mr. Darcy,” cried a young olive-branch. “But, Lizzy, you can tell you, to be making new acquaintances every day; but for you, dearest, loveliest Elizabeth!”",
+      "Mr. Bennet was a single failure. It is possible that the delightful intercourse you have heard of such a comfort to think how much they were grieved, how shocking it was to have it taken, for what he must always be welcome here, to be proud, to be above his company.",
+      "Only let me assure you, my dear Mr. Collins.",
+      "“While Mary is adjusting her ideas,” he continued, “Lizzy, I bear you no ill-will for being justified in your advice to me as either Mrs. Hurst were going to the novelty of attention in the whole course of their meetings she must wait for his reason.",
+      "Mr. Collins, awkward and solemn, apologizing instead of attending, and often without any intermission till coffee came in, delivering her opinion of Mr. Collins.",
+      "Elizabeth’s impatience to acquaint Jane with what had passed. He thought too ill of Wickham. Can you, yourself, when last at Longbourn, and depend on my notice. I must now mention a word about fishing, as he might always be flying about from one place to get husbands.",
+      "“Oh, well! it is the first place, the book (it may be as useful as anything.”",
+      "“Well,” said Charlotte, wish Jane success with all that embarrassment which, though proceeding from the serenity of a bad day.",
+      "Mr. Collins first came to make such an awkward taste. They were all of them much to be talked of, in marrying her; and the agreeable manner himself. The liberty of wishing them to stay two months.",
+      "“Your cousin’s conduct does not suit my feelings.",
+      "“Oh yes. Do let me ask my partner to introduce him, for she will not have their share of society and amusement, because the elder may not have him; and while Meryton was within a walk to Meryton was not told you so from feeling a dislike against him, that.",
+      "Not these two or three years, perhaps.” “Write to me as either of them.”",
+      "Miss Bingley would be soon down again, wonder, and probably would blame her; and though the suddenness of their supposed marriage, and planning his happiness in such a part of the invitation to dinner, which he thought it an age since they had entirely mistaken his character, after all.",
+      "Mary had heard herself mentioned to me, and we are ever able to learn some from their aunt.",
+      "His character was decided.",
+      "Caroline did not return it. “And that,” said Mrs. Reynolds, either from pride or attachment, had evidently great pleasure in thinking you will be to receive a more awful object than Darcy on particular occasions, and once or twice pleased herself with an answer; and, therefore, gave them to understand.",
+      "“If it were merely a fine countenance, a good figure, and very unwillingly said so. Miss Bingley offered her the very day of the interested people who have valued myself on my own performance.”",
+      "Haggerston has our directions, and all that I despair. I sincerely hope your Christmas in Hertfordshire a few of the subject, and Mrs. Bennet half opened the door was then allowed to invite them.”",
+      "When a woman has five grown-up daughters, she could not have happened.",
+      "“Pray tell your sister at Pemberley with you.”",
+      "But Georgiana would not be secure.",
+      "“Had you then persuaded yourself that no ungenerous reproach shall ever pass my lips when we are better acquainted----” He was interrupted again.",
+      "Her curiosity, however, was of the servant who preceded it, were familiar to them.",
+      "With the Gardiners they were always long expected, and always very short.",
+      "Mrs. Bennet, Elizabeth, and one way of procuring.",
+      "Darcy.” “He likes to have the presumption to aspire, can never take place. No, never.",
+      "“The letter shall certainly not depart from it.",
+      "Even now I do assure you that my niece should be married by a distinction so ill applied.",
+      "Bennet’s consent should be afraid of his marrying whichever he chooses of the girls--though I must call it.”",
+      "Bennet planned the courses that were necessary. Those who chose to be otherwise?” said she. “Yet why did she come?",
+      "“Most willingly.” “You shall have it more than they ought, his smiles and his spirits so greatly discomposed, that I may have alienated them, without actual blame on them. Our distress, my dear Lizzy, they must desire the connection as much as I do.",
+      "Mr. Bingley. They attacked him in various ways, with barefaced questions, ingenious suppositions, and distant surmises; but he eluded the skill of them frequently stayed so long, that even Bingley’s good-humour encouraged; yet, whenever she spoke in a low voice, to Mrs. Jenkinson, in whose character we were most steadily resisted.",
+      "What sister would think herself at liberty to do it, she turned over some music-books that lay on the instrument, Eliza, and you know where I shall find a man on whom she had her share of business as well dressed as any I ever saw.",
+      "Is it in address that he would return to his mistaken pride, and confessed that he should give up the fire, lest she should be noticed again by his coming.",
+      "Gardiner soon wrote again to his wife; but where other powers of conversation were considerable. They could describe an entertainment with accuracy, relate an anecdote with humour, and laugh at them in silent indignation at such unnecessary, such officious attention!",
+      "Darcy had been overrated, Elizabeth had received none since her return, that could come from Pemberley.",
+      "She would not listen, therefore, to be importuned no further attempt to deny.",
+      "Much as I wished it to take a stroll in the most idle and frivolous gallantry; and while she was immensely the better of it; and, after sitting a few minutes.",
+      "Arguments are too much interested in their concerns, as I trust they will yet be happy.",
+      "It drew from her, and moving with his behaviour to Jane to her sister.",
+      "In his present behaviour to herself, and she told me last night acknowledged to Mrs. Gardiner; “but perhaps, to the last question, ‘Oh, the eldest Miss Bennet, beyond a doubt: there cannot be too much on your guard.",
+      "But to live with him on his dancing and his compliments to your mother.",
+      "“May we take my uncle’s letter to read it” “The spiteful old ladies in Meryton, lost but little time for anything but a blush of surprise, Mrs. Bennet was satisfied, and soon afterwards.",
+      "This match, to which of his marrying one of them.”",
+      "But tell me, what did you admire me for my clothes when I get to Longbourn; and I suppose he will make him a disgust to his business and to point him out to my friend from your own observation,” said she, as they had not a letter arrived from.",
+      "“You are not going to the date” Heading to Pemberley, I am determined never to speak of it was overheard by Mr. Darcy.",
+      "The respect created by the conviction that Mr. Darcy.",
+      "Mr. Darcy seemed much pleased with the cold and ceremonious politeness of her knowing her master. “Does that young lady know Mr. Darcy?”",
+      "But he is an excellent manager, I dare not hope,” he continued, after a pause, “can have been a prior acquaintance between him and said,-- “Did not you like to have her judgment controverted.",
+      "While there was an animating subject, and Mrs.",
+      "“Ten thousand pounds! Heaven forbid! How is half such a misfortune as this, one cannot see too little to care for at a ball.",
+      "Your sweetness and disinterestedness are really angelic; I do not know anybody who seems more to ask of the former.",
+      "And rising as she entered the room. He assured her again of his earnest endeavours in the cause, could not acquiesce. The possibility of his having met with in the company of his dear Charlotte’s situation, and his right as a rector, made him just to him.” Elizabeth was again.",
+      "Elizabeth’s collected behaviour, however, soon quieted his emotion; and as to his nieces a source of happiness, were within thirty miles of us. Colonel Forster will, I dare say Mr. Darcy.",
+      "Scarcely a syllable was uttered by either; and Elizabeth was positively resolved--nor did she grieve over every ungracious sensation she had ever witnessed in him. Your alliance will be a pleasure to Mrs. Bennet.",
+      "Mr. Collins’s making two offers of marriage may ever be made out from them. His principal object must be done.” And so saying, he turned back with us? Change of scene might be from Lady Catherine. She had been before. “What!",
+      "Their fortune on both sides! But I am going away again, when Bingley, who as well as I have actually seen Pemberley.”",
+      "Mr. Bingley was a housemaid, and some time afterwards from the friendship of such a temptation to go. Conjectures as to the meaning of principle and integrity, nor endeavour to persuade her Ladyship would at all disapprove of you.",
+      "Mr. Darcy’s letter to Lady Lucas, that he was at Rosings?”",
+      "Hurst thought the same, and added,-- “She has one only daughter, the heiress of Rosings, and had sent Caroline an early answer to her friends. This was a welcome relief to him to-morrow, I should think she had been by the morning’s walk, they had no opportunity. Your mother should.",
+      "Your idea of the word; that he has been always remarkably kind to him, she felt that to me? If he fears me, why silent? Teasing, teasing man!",
+      "“Yes; she will remain there till Christmas.” “And quite alone?",
+      "I feel he may spend half his time there in future. He has many friends, and bent on making her sister the excuse, said she would not place herself as his principal inducement, she could perhaps believe, that remaining partiality for her probably more than she expected.",
+      "He comes down on Thursday, at the latest, very likely have taken you to a review at the expense of your father to be acquired without constant practice.",
+      "“Oh, do not repeat what I suffer! But it is about dear Wickham; too good for the waiter, is not sound, and that you would be accomplished, is their marriage put an end to by the entrance of Jane and Elizabeth attempted to explain their proceedings, and, perhaps, announce the.",
+      "Oh! here comes Hill.",
+      "When Mr. Bennet wrote again to Netherfield must give way.",
+      "“Offended two or three young ladies” by George Their sister’s wedding-day arrived; and Jane has written to beg for a walker than a reader, was extremely well pleased with it.",
+      "He keeps a man-servant, does he?",
+      "Is it true?” Elizabeth replied that he did, done gracefully.",
+      "It vexed her to dance with him.” “His pride,” said Miss Lucas, and then we may expect this peace-making gentleman,” said Mr. Bennet.",
+      "I defy even Sir William did not look on the subject of tenderness than of pride.",
+      "Lizzy is not a great walker, could go no farther, and thought only of returning to Netherfield again?”",
+      "His plan did not appear to him! In what a young-man ought to be,” said she, “as soon as I entered the house with her brother, “he may go to town on business the day before, was now established only as a man violently in love with you on the.",
+      "What shall we do with him?",
+      "Could she have seen half as delightful as Pemberley.” wish it may.”",
+      "But above all, above respect and affection (affection and respect of a certain fearlessness very uncommon in heroines of her congratulations to her brother appeared, and this formidable introduction took place. With astonishment did Elizabeth see that her sister was meant to be impartiality--deliberated on the whole, to that of.",
+      "Mr. Collins were once silent.",
+      "Does he know his real character?”",
+      "Mr. Darcy by character perfectly well. Here, consequently, was an inexhaustible subject of tenderness than of pride.",
+      "She remembered that he was indeed; and his utterances are the most beautiful creature I ever had; and the consciousness of this invitation, was complete. The power of doing what he likes than Mr. Bennet.",
+      "Catherine and Lydia neither the letter convinced her that all must speedily be concluded, unless Mr. Darcy.",
+      "She is grown so brown and coarse! Louisa and I were agreeing that we never let them know what has happened to sit near Elizabeth, began inquiring after his acquaintance in that mansion; and she lay awake two whole hours, endeavouring to recover herself.",
+      "But it must not, shall not be! If you were wrong in saying what you did.”",
+      "Amongst the most violent against him had been driven from her face whenever she was alone, than she expected, she soon regained her composure, and calmly replied,-- “Why should you wish to owe to his wife; but where other powers of entertainment are wanting, the true Darcy spirit, she may.",
+      "That is the place entirely at Michaelmas; but, however, I hope it is not everybody as happy?” Elizabeth’s congratulations were given with a sincerity, a warmth, a delight, which words could but go to bed, if he chooses, before it begins; but as for her to name the day that.",
+      "Wickham began to speak whenever there was an inexhaustible subject of discourse.",
+      "Mr. Bingley’s invitation, and if a smart young colonel, with five or six thousand a year, should want one of my family I should not have been too proud to be in this way yourself.”",
+      "Balls will be absolutely prohibited, unless you stand up with only having the probable credit of it, which I should have advised her most peculiar and characteristic dialogue; such figures as Miss Bates, as the Eltons, Mrs. Norris, and one of the housekeeper whether her master and his marriage been.",
+      "Mr. Darcy is a most conscientious and polite young man, upon my word; and, I understand, highly accomplished. Since her father’s behaviour as a husband.",
+    ];
+
+    const imagesRandomiser = new CyclicRandomiser(IMAGES_POOL);
+    const sentencesRandomiser = new CyclicRandomiser(SENTENCES_POOL);
+
+    function makeParagraph() {
+      const picked = [];
+      let length = 0;
+      while (length < 200) {
+        const s = sentencesRandomiser.nextOne();
+        picked.push(s);
+        length += s.length;
+      }
+      return picked.join(' ');
+    }
+
+    // History of generated pages
+    // Each entry: { image, paragraphs: [p1, p2, p3], href }
+    let history = [];
+    let historyIndex = -1;
+
+    // ROMAN_NUMERALS index for the `history[0]` element.
+    // We only need to store this for the first element in the array,
+    // since the actual chapter can be calucated using `historyIndex`.
+    let chapterStart = 0;
+
+    function chapterForIndex(i) {
+      const n = ROMAN_NUMERALS.length;
+      return ROMAN_NUMERALS[((chapterStart + i) % n + n) % n];
+    }
+
+    function createNewEntry() {
+      return {
+        image: imagesRandomiser.nextOne(),
+        paragraphs: [makeParagraph(), makeParagraph(), makeParagraph()],
+        href: pageRandomiser.nextOne(),
+      };
+    }
+
+    function applyEntry(entry, index) {
+      document.getElementById('chapter-image').src = entry.image;
+      document.getElementById('chapter-heading').textContent = 'Chapter ' + chapterForIndex(index);
+      document.getElementById('chapter-text-1').textContent = entry.paragraphs[0];
+      document.getElementById('chapter-text-2').textContent = entry.paragraphs[1];
+      document.getElementById('chapter-text-3').textContent = entry.paragraphs[2];
+      document.getElementById('labyrinth-link').href = entry.href;
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    }
+
+    function goToNext() {
+      if (historyIndex < history.length - 1) {
+        historyIndex++;
+      } else {
+        history.push(createNewEntry());
+        historyIndex = history.length - 1;
+      }
+      applyEntry(history[historyIndex], historyIndex);
+    }
+
+    function goToPrev() {
+      if (historyIndex > 0) {
+        historyIndex--;
+      } else {
+        chapterStart = (chapterStart - 1 + ROMAN_NUMERALS.length) % ROMAN_NUMERALS.length;
+        history.unshift(createNewEntry());
+        historyIndex = 0;
+      }
+      applyEntry(history[historyIndex], historyIndex);
+    }
+
+    // Initialise with first entry (Chapter I)
+    history.push(createNewEntry());
+    historyIndex = 0;
+    applyEntry(history[0], 0);
+
+    // Chapter nav buttons
+    document.getElementById('btn-prev').addEventListener('click', goToPrev);
+    document.getElementById('btn-next').addEventListener('click', goToNext);
+
+    // Arrow keys, WASD keys, HJKL keys
+    const LEFT_OR_DOWN = new Set(['ArrowLeft', 'ArrowDown', 'h', 'j', 'a', 's']);
+    const RIGHT_OR_UP = new Set(['ArrowRight', 'ArrowUp', 'k', 'l', 'd', 'w']);
+    function keyLeftOrDown(key) { return LEFT_OR_DOWN.has(key); }
+    function keyRightOrUp(key) { return RIGHT_OR_UP.has(key); }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey || e.altKey || e.shiftKey || e.metaKey) return;
+      if (keyLeftOrDown(e.key)) {
+        e.preventDefault();
+        goToPrev();
+      } else if (keyRightOrUp(e.key)) {
+        e.preventDefault();
+        goToNext();
+      }
+    });
+
+  </script>
+</body>
+
+</html>

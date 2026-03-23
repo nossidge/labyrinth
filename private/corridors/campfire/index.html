@@ -32,7 +32,7 @@
       top: 0;
       left: 0;
       width: 100%;
-      height: 67%;
+      height: 70%;
       background: radial-gradient(ellipse at 50% 100%, #1a0800 0%, #050008 40%, #000 100%);
       z-index: 0;
     }
@@ -79,7 +79,7 @@
       bottom: 0;
       left: 0;
       width: 100%;
-      height: 33%;
+      height: 30%;
       background: linear-gradient(to bottom, #1a1208 0%, #0d0a04 40%, #060402 100%);
       z-index: 1;
     }
@@ -94,16 +94,58 @@
       height: 140px;
     }
 
-    .logs {
+    .stone-ring {
       position: absolute;
-      bottom: 0;
       left: 50%;
-      transform: translateX(-50%);
-      font-size: 40px;
+      height: 0;
+      pointer-events: none;
+    }
+
+    .stone-ring .stone {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      filter: brightness(0.5) drop-shadow(0 0 3px rgba(255, 80, 0, 0.15));
+    }
+
+    .stone-ring-back {
+      z-index: 10;
+      bottom: 14px;
+    }
+
+    .stone-ring-front {
+      z-index: 14;
+      bottom: 14px;
+    }
+
+    .log {
+      position: absolute;
+      display: inline-block;
       text-decoration: none;
-      z-index: 12;
-      white-space: nowrap;
       filter: drop-shadow(0 0 8px rgba(255, 120, 0, 0.6));
+    }
+
+    .log-bottom {
+      bottom: -6px;
+      left: 38px;
+      font-size: 30px;
+      transform: rotate(-90deg);
+      z-index: 10;
+    }
+
+    .log-left {
+      bottom: 0px;
+      left: 13px;
+      font-size: 38px;
+      transform: rotate(30deg);
+      z-index: 11;
+    }
+
+    .log-right {
+      bottom: 0px;
+      left: 60px;
+      font-size: 38px;
+      transform: rotate(-30deg);
+      z-index: 11;
     }
 
     #fire-container {
@@ -121,10 +163,10 @@
 
     .flame {
       position: absolute;
-      bottom: 20px;
+      bottom: 16px;
       left: 50%;
       transform: translateX(-50%);
-      z-index: 11;
+      z-index: 12;
     }
 
     .flame-shape {
@@ -350,12 +392,16 @@
 
   <a id="fire-container" href="../index.html">
     <div id="fire-pit">
+      <div class="stone-ring stone-ring-back" id="stones-back"></div>
+      <span class="log log-bottom">🪵</span>
+      <span class="log log-left">🪵</span>
+      <span class="log log-right">🪵</span>
       <div class="flame">
         <div class="flame-shape flame-outer"></div>
         <div class="flame-shape flame-mid"></div>
         <div class="flame-shape flame-inner"></div>
       </div>
-      <div class="logs">🪵🪵</div>
+      <div class="stone-ring stone-ring-front" id="stones-front"></div>
     </div>
   </a>
 
@@ -374,6 +420,21 @@
     function randIndex(array) { return randInt(0, array.length - 1); }
     function sample(array) { return array[randIndex(array)]; }
 
+    const moonEl = document.getElementById('moon');
+    const skyEl = document.getElementById('sky');
+
+    // Populate people emoji
+    const PEOPLE_POOL = ['🧑', '👩', '👨', '👩‍🦰', '🧔', '👱', '👩‍🦱', '🧑‍🦳'];
+    const peopleRandomiser = new CyclicRandomiser(PEOPLE_POOL);
+    const peopleCount = 8;
+    const people = [];
+    for (let i = 0; i < peopleCount; i++) {
+      people.push({
+        emoji: peopleRandomiser.nextOne(),
+        link: pageRandomiser.nextOne(),
+      });
+    };
+
     // Moon - phase-accurate emoji in the top left
     function getMoonPhase(date = new Date()) {
       const cycleLength = 29.5305882;
@@ -391,14 +452,36 @@
       if (currentPhaseDays < 27.68493) return '🌘';
       return '🌑';
     }
-    const moonEl = document.getElementById('moon');
     moonEl.textContent = getMoonPhase();
 
-    // Ground is height:33%, so its top edge is at bottom:33%
-    // We use bottom % for all scenery so layers sit relative to the ground
-    const MAX_MOUNTAINS = 22;
-    const MAX_TREES_BACKGROUND = 54;
-    const MAX_TREES_FOREGROUND = 24;
+    // Stone ring around the fire pit
+    // Back stones form the top arc, front stones form the bottom arc
+    const STONES_BACK = 8;   // number of stones in the back semicircle
+    const STONES_FRONT = 8;  // number of stones in the front semicircle
+    const stoneSize = 22;    // font-size in px
+    const ovalRadiusX = 50;  // horizontal radius of the oval in px
+    const ovalRadiusY = 17;  // vertical radius of the oval in px (for perspective)
+
+    function placeStones(container, count, arcStart, arcEnd) {
+      for (let i = 0; i < count; i++) {
+        const angle = arcStart + (arcEnd - arcStart) * (i / (count - 1));
+        const x = Math.cos(angle) * ovalRadiusX;
+        const y = Math.sin(angle) * ovalRadiusY;
+        const stone = document.createElement('span');
+        stone.className = 'stone';
+        stone.textContent = '🪨';
+        stone.style.left = x + 'px';
+        stone.style.top = -y + 'px';
+        stone.style.fontSize = stoneSize + 'px';
+        container.appendChild(stone);
+      }
+    }
+
+    // Back arc: π to 0 (top half of oval, left to right)
+    placeStones(document.getElementById('stones-back'), STONES_BACK, Math.PI, 0);
+
+    // Front arc: 0 to -π (bottom half of oval, right to left)
+    placeStones(document.getElementById('stones-front'), STONES_FRONT, 0, -Math.PI);
 
     // Generate mostly-equidistant positions with slight variance
     function generatePositions(count, xMin, xMax, baseBottom, bottomVariance, sizeMin, sizeMax) {
@@ -415,11 +498,11 @@
       return items;
     }
 
-    // This function works for the mountains and trees
+    // This function works for both the mountains and trees
     function placeElements(items, className, emojis) {
       items.forEach(item => {
         const el = document.createElement('div');
-        el.className = className;
+        el.className = className + ' generated';
         el.textContent = sample(emojis);
         el.style.left = item.x + '%';
         el.style.bottom = item.bottom + '%';
@@ -429,78 +512,84 @@
       });
     }
 
-    // Mountains: bottom ~28%, spread across full width
-    placeElements(
-      generatePositions(MAX_MOUNTAINS, -5, 105, 28, 2, 140, 190),
-      'mountain', ['⛰️']
-    );
+    function resize() {
+      // Clear previously generated elements
+      document.querySelectorAll('.generated').forEach(el => el.remove());
 
-    // Background trees: bottom ~24%, spread across full width
-    placeElements(
-      generatePositions(MAX_TREES_BACKGROUND, -3, 103, 24, 2, 60, 75),
-      'tree', ['🌲', '🌳']
-    );
+      // Scale element counts to screen width (tuned at 2400px)
+      const screenScale = Math.max(0.2, window.innerWidth / 2400);
+      const MAX_MOUNTAINS = Math.round(22 * screenScale);
+      const MAX_TREES_BACKGROUND = Math.round(54 * screenScale);
+      const MAX_TREES_FOREGROUND = Math.round(24 * screenScale);
 
-    // Foreground trees: bottom ~20%, flanking the sides (leaving centre clear)
-    const fgLeft = generatePositions(
-      Math.ceil(MAX_TREES_FOREGROUND / 2), -3, 30, 20, 2, 90, 120
-    );
-    const fgRight = generatePositions(
-      Math.floor(MAX_TREES_FOREGROUND / 2), 70, 103, 20, 2, 90, 120
-    );
-    placeElements(fgLeft.concat(fgRight), 'tree near', ['🌲', '🌳']);
+      // Mountains: bottom ~28%, spread across full width
+      placeElements(
+        generatePositions(MAX_MOUNTAINS, -5, 105, 28, 2, 140, 190),
+        'mountain', ['⛰️']
+      );
 
-    // Stars
-    const skyEl = document.getElementById('sky');
-    for (let i = 0; i < 120; i++) {
-      const star = document.createElement('div');
-      star.className = 'star';
-      star.style.left = rand(0, 100) + '%';
-      star.style.top = rand(0, 90) + '%';
-      star.style.setProperty('--dur', rand(2, 6).toFixed(1) + 's');
-      star.style.setProperty('--peak', rand(0.4, 0.9).toFixed(2));
-      star.style.animationDelay = '-' + rand(0, 5).toFixed(1) + 's';
-      const size = randInt(1, 3);
-      star.style.width = size + 'px';
-      star.style.height = size + 'px';
-      skyEl.appendChild(star);
-    }
+      // Background trees: bottom ~24%, spread across full width
+      placeElements(
+        generatePositions(MAX_TREES_BACKGROUND, -3, 103, 24, 2, 60, 75),
+        'tree', ['🌲', '🌳']
+      );
 
-    // People in a symmetric semicircle around the fire
-    const PEOPLE_POOL = ['🧑', '👩', '👨', '👩‍🦰', '🧔', '👱', '👩‍🦱', '🧑‍🦳',];
-    const peopleRandomiser = new CyclicRandomiser(PEOPLE_POOL);
-    const peopleCount = 8; // number of people to render
-    const fireCenterX = 50; // percent of viewport width
-    const fireCenterY = 80; // percent from top
-    const radiusX = 10; // horizontal spread (percent)
-    const radiusY = 8; // vertical spread (percent)
+      // Foreground trees: bottom ~20%, flanking the sides (leaving centre clear)
+      const fgLeft = generatePositions(
+        Math.ceil(MAX_TREES_FOREGROUND / 2), -3, 30, 20, 2, 90, 120
+      );
+      const fgRight = generatePositions(
+        Math.floor(MAX_TREES_FOREGROUND / 2), 70, 103, 20, 2, 90, 120
+      );
+      placeElements(fgLeft.concat(fgRight), 'tree near', ['🌲', '🌳']);
 
-    // Distribute people evenly along a semicircle (π to 0, i.e. left to right)
-    // Symmetric because angle is centred on π/2 (straight down)
-    for (let i = 0; i < peopleCount; i++) {
-      const angle = Math.PI - (Math.PI * i / (peopleCount - 1));
-      const x = fireCenterX + radiusX * Math.cos(angle);
-      const y = fireCenterY + radiusY * Math.sin(angle);
-      const emoji = peopleRandomiser.nextOne();
+      // Stars
+      skyEl.querySelectorAll('.star').forEach(el => el.remove());
+      for (let i = 0; i < 120; i++) {
+        const star = document.createElement('div');
+        star.className = 'star';
+        star.style.left = rand(0, 100) + '%';
+        star.style.top = rand(0, 90) + '%';
+        star.style.setProperty('--dur', rand(2, 6).toFixed(1) + 's');
+        star.style.setProperty('--peak', rand(0.4, 0.9).toFixed(2));
+        star.style.animationDelay = '-' + rand(0, 5).toFixed(1) + 's';
+        const size = randInt(1, 3);
+        star.style.width = size + 'px';
+        star.style.height = size + 'px';
+        skyEl.appendChild(star);
+      }
 
-      // Calculate lean angle toward fire (used on hover)
-      const dx = fireCenterX - x;
-      const leanAngle = Math.max(-20, Math.min(20, dx * 0.8));
+      // People in a symmetric semicircle around the fire
+      const fireCenterX = 50;  // percent of viewport width
+      const fireCenterY = 80;  // percent from top
+      const radiusX = Math.min(10 / screenScale, 40); // horizontal spread (scales with screen)
+      const radiusY = 8;       // vertical spread (percent)
 
-      const a = document.createElement('a');
-      a.href = pageRandomiser.nextOne();
-      a.className = 'person';
-      a.textContent = emoji;
-      a.style.left = x + '%';
-      a.style.top = y + '%';
-      a.style.zIndex = parseInt(y);
-      a.style.transform = 'translate(-50%, -50%)';
-      a.style.setProperty('--sway-dur', rand(2.5, 4.5).toFixed(1) + 's');
-      a.style.setProperty('--sway-deg', rand(1, 3).toFixed(1) + 'deg');
-      a.style.setProperty('--lean-angle', leanAngle.toFixed(0) + 'deg');
-      a.style.animationDelay = '-' + rand(0, 3).toFixed(1) + 's';
+      document.querySelectorAll('.person').forEach(el => el.remove());
+      for (let i = 0; i < peopleCount; i++) {
+        const angle = Math.PI - (Math.PI * i / (peopleCount - 1));
+        const x = fireCenterX + radiusX * Math.cos(angle);
+        const y = fireCenterY + radiusY * Math.sin(angle);
 
-      document.body.appendChild(a);
+        // Calculate lean angle toward fire (used on hover)
+        const dx = fireCenterX - x;
+        const leanAngle = Math.max(-20, Math.min(20, dx * 0.8));
+
+        const a = document.createElement('a');
+        a.className = 'person';
+        a.textContent = people[i].emoji;
+        a.href = people[i].link;
+        a.style.left = x + '%';
+        a.style.top = y + '%';
+        a.style.zIndex = parseInt(y);
+        a.style.transform = 'translate(-50%, -50%)';
+        a.style.setProperty('--sway-dur', rand(2.5, 4.5).toFixed(1) + 's');
+        a.style.setProperty('--sway-deg', rand(1, 3).toFixed(1) + 'deg');
+        a.style.setProperty('--lean-angle', leanAngle.toFixed(0) + 'deg');
+        a.style.animationDelay = '-' + rand(0, 3).toFixed(1) + 's';
+
+        document.body.appendChild(a);
+      }
     }
 
     // Spark particles
@@ -527,10 +616,20 @@
 
       document.body.appendChild(spark);
 
+      // Tidy up the DOM when the element is no longer needed
       setTimeout(() => spark.remove(), parseFloat(dur) * 1000);
     }
 
     setInterval(spawnSpark, 150);
+
+    resize();
+
+    window.addEventListener('resize', resize);
+
+    // Resize function for those who know the secret key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === '`') resize();
+    });
 
   </script>
 </body>

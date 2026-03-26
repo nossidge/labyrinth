@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+You are a splendid butterfly
+It is your wings that make you beautiful
+And I could make you fly away
+But I could never make you stay
+-->
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Come my lady. Come, come my lady.">
+  <title>Papillon</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+    }
+
+    canvas {
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+      cursor: pointer;
+    }
+
+    #crt {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 100;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+      background-size: 100% 2px, 3px 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="canvas"></canvas>
+  <div id="crt"></div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/butterfly";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    let W, H;
+
+    // Colour palettes
+    const PALETTES_POOL = [
+      { // Morpho blue
+        wing1: '#0044aa', wing2: '#0066dd', wing3: '#0088ff',
+        accent: '#00ccff', vein: '#002255', body: '#1a1a2e',
+        glow: '#4488ff', bg: '#020812'
+      },
+      { // Monarch orange
+        wing1: '#cc4400', wing2: '#ee6600', wing3: '#ff8800',
+        accent: '#ffcc00', vein: '#441100', body: '#2a1a0e',
+        glow: '#ff6622', bg: '#0a0400'
+      },
+      { // Swallowtail violet
+        wing1: '#6600aa', wing2: '#8822cc', wing3: '#aa44ee',
+        accent: '#ee88ff', vein: '#330055', body: '#1a0a2e',
+        glow: '#aa66ff', bg: '#080012'
+      },
+      { // Luna moth green
+        wing1: '#116633', wing2: '#228844', wing3: '#44bb66',
+        accent: '#88ffaa', vein: '#0a3320', body: '#0e1a12',
+        glow: '#44dd77', bg: '#020a04'
+      },
+      { // Painted Lady rose
+        wing1: '#aa2255', wing2: '#cc3366', wing3: '#ee5588',
+        accent: '#ffaacc', vein: '#551133', body: '#2a0e1a',
+        glow: '#ff4488', bg: '#0a0208'
+      },
+    ];
+    const palettesRandomiser = new CyclicRandomiser(PALETTES_POOL);
+
+    let pal;
+    let time = 0;
+    const flapSpeed = 0.025;
+
+    // Randomised wing features
+    let forewingVeins = [];
+    let hindwingVeins = [];
+
+    // Particle dust
+    const dustParticles = [];
+    const dustCount = 60;
+
+    function initDust() {
+      dustParticles.length = 0;
+      for (let i = 0; i < dustCount; i++) {
+        dustParticles.push({
+          x: Math.random() * 2 - 1,
+          y: Math.random() * 2 - 1,
+          vx: (Math.random() - 0.5) * 0.002,
+          vy: -Math.random() * 0.003 - 0.001,
+          size: Math.random() * 3 + 1,
+          alpha: Math.random() * 0.6 + 0.2,
+          phase: Math.random() * Math.PI * 2,
+        });
+      }
+    }
+
+    function randBetween(a, b) {
+      return a + Math.random() * (b - a);
+    }
+
+    function randInt(a, b) {
+      return Math.floor(randBetween(a, b + 1));
+    }
+
+    // Generate randomised vein paths for forewing
+    function generateForewingVeins() {
+      const count = randInt(3, 7);
+      const veins = [];
+      for (let i = 0; i < count; i++) {
+        const t = i / (count - 1);
+        const startY = -15 + t * 30;
+        const midX = randBetween(25, 55);
+        const midY = startY + randBetween(-20, -5) * (1 - t) + randBetween(5, 15) * t;
+        const endX = randBetween(65, 92);
+        const endY = startY + randBetween(-30, -10) * (1 - t) + randBetween(0, 10) * t;
+        veins.push({ startY, midX, midY, endX, endY });
+      }
+      return veins;
+    }
+
+    // Generate randomised vein paths for hindwing
+    function generateHindwingVeins() {
+      const count = randInt(2, 5);
+      const veins = [];
+      for (let i = 0; i < count; i++) {
+        const t = i / Math.max(count - 1, 1);
+        const startY = 18 + t * 15;
+        const midX = randBetween(20, 45);
+        const midY = startY + randBetween(8, 25);
+        const endX = randBetween(45, 72);
+        const endY = startY + randBetween(10, 35);
+        veins.push({ startY, midX, midY, endX, endY });
+      }
+      return veins;
+    }
+
+    function generateButterfly() {
+      pal = palettesRandomiser.nextOne();
+      forewingVeins = generateForewingVeins();
+      hindwingVeins = generateHindwingVeins();
+    }
+
+    generateButterfly();
+    initDust();
+
+    function drawButterfly() {
+      const cx = W / 2;
+      const cy = H / 2;
+      const scale = Math.min(W, H) * 0.0028;
+
+      const flapAngle = Math.sin(time * flapSpeed) * 0.3 + 0.05;
+      const flapScale = Math.cos(flapAngle);
+
+      ctx.save();
+      ctx.translate(cx, cy);
+
+      const bobY = Math.sin(time * flapSpeed * 2) * 2 * scale;
+      ctx.translate(0, bobY);
+
+      drawWingGlow(scale, flapScale);
+
+      drawWing(scale, flapScale, 1);
+      drawWing(scale, flapScale, -1);
+
+      drawBody(scale);
+      drawAntenna(scale);
+      drawHead(scale);
+
+      ctx.restore();
+
+      drawDust(cx, cy, scale);
+    }
+
+    function drawWingGlow(scale, flapScale) {
+      const glowRadius = 120 * scale;
+      const grad = ctx.createRadialGradient(0, 10 * scale, 0, 0, 10 * scale, glowRadius);
+      grad.addColorStop(0, pal.glow + '18');
+      grad.addColorStop(0.5, pal.glow + '08');
+      grad.addColorStop(1, 'transparent');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.ellipse(0, 10 * scale, glowRadius * Math.abs(flapScale), glowRadius, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function drawWing(scale, flapScale, side) {
+      ctx.save();
+      ctx.scale(side * flapScale, 1);
+      drawForewing(scale);
+      drawHindwing(scale);
+      ctx.restore();
+    }
+
+    function forewingPath(s) {
+      ctx.beginPath();
+      ctx.moveTo(8 * s, -15 * s);
+      ctx.bezierCurveTo(25 * s, -70 * s, 80 * s, -80 * s, 95 * s, -55 * s);
+      ctx.bezierCurveTo(105 * s, -35 * s, 100 * s, -10 * s, 80 * s, 5 * s);
+      ctx.bezierCurveTo(55 * s, 18 * s, 30 * s, 20 * s, 8 * s, 15 * s);
+      ctx.closePath();
+    }
+
+    function hindwingPath(s) {
+      ctx.beginPath();
+      ctx.moveTo(6 * s, 12 * s);
+      ctx.bezierCurveTo(20 * s, 20 * s, 65 * s, 30 * s, 75 * s, 35 * s);
+      ctx.bezierCurveTo(85 * s, 45 * s, 80 * s, 65 * s, 60 * s, 75 * s);
+      ctx.bezierCurveTo(50 * s, 85 * s, 40 * s, 90 * s, 35 * s, 88 * s);
+      ctx.bezierCurveTo(30 * s, 82 * s, 20 * s, 70 * s, 10 * s, 55 * s);
+      ctx.bezierCurveTo(5 * s, 40 * s, 4 * s, 25 * s, 6 * s, 12 * s);
+      ctx.closePath();
+    }
+
+    function drawForewing(scale) {
+      const s = scale;
+
+      ctx.save();
+
+      // Clip to wing shape
+      forewingPath(s);
+      ctx.save();
+      ctx.clip();
+
+      // Gradient fill
+      const grad = ctx.createRadialGradient(50 * s, -30 * s, 5 * s, 50 * s, -30 * s, 80 * s);
+      grad.addColorStop(0, pal.wing3);
+      grad.addColorStop(0.4, pal.wing2);
+      grad.addColorStop(0.8, pal.wing1);
+      grad.addColorStop(1, pal.vein);
+      ctx.fillStyle = grad;
+      ctx.fillRect(-10 * s, -90 * s, 120 * s, 120 * s);
+
+      // Eye spot
+      drawEyeSpot(65 * s, -35 * s, 12 * s);
+
+      // Veins
+      ctx.strokeStyle = pal.vein;
+      ctx.lineWidth = 0.8 * s;
+      ctx.globalAlpha = 0.5;
+      for (const v of forewingVeins) {
+        ctx.beginPath();
+        ctx.moveTo(8 * s, v.startY * s);
+        ctx.bezierCurveTo(
+          v.midX * s, v.midY * s,
+          (v.midX + v.endX) / 2 * s, v.endY * s,
+          v.endX * s, v.endY * s
+        );
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+
+      // Scalloped edge detail
+      ctx.globalAlpha = 0.3;
+      ctx.fillStyle = pal.accent;
+      const edgePoints = [
+        { x: 85, y: -52 }, { x: 90, y: -38 }, { x: 90, y: -22 },
+        { x: 85, y: -8 }, { x: 78, y: 2 }, { x: 70, y: 8 }
+      ];
+      for (const pt of edgePoints) {
+        ctx.beginPath();
+        ctx.arc(pt.x * s, pt.y * s, 3 * s, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+
+      ctx.restore(); // end clip
+
+      // Wing border on top
+      forewingPath(s);
+      ctx.strokeStyle = pal.vein;
+      ctx.lineWidth = 1.5 * s;
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    function drawEyeSpot(x, y, r) {
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fillStyle = pal.vein;
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(x, y, r * 0.67, 0, Math.PI * 2);
+      ctx.fillStyle = pal.accent;
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(x, y, r * 0.33, 0, Math.PI * 2);
+      ctx.fillStyle = pal.wing3;
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(x, y, r * 0.17, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffffff';
+      ctx.globalAlpha = 0.7;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+
+    function drawHindwing(scale) {
+      const s = scale;
+
+      ctx.save();
+
+      // Clip to wing shape
+      hindwingPath(s);
+      ctx.save();
+      ctx.clip();
+
+      // Gradient fill
+      const grad = ctx.createRadialGradient(40 * s, 45 * s, 5 * s, 40 * s, 45 * s, 60 * s);
+      grad.addColorStop(0, pal.wing3);
+      grad.addColorStop(0.4, pal.wing2);
+      grad.addColorStop(0.8, pal.wing1);
+      grad.addColorStop(1, pal.vein);
+      ctx.fillStyle = grad;
+      ctx.fillRect(-5 * s, 5 * s, 100 * s, 95 * s);
+
+      // Eye spot
+      drawEyeSpot(50 * s, 50 * s, 10 * s);
+
+      // Crescents near tail
+      ctx.globalAlpha = 0.4;
+      ctx.fillStyle = pal.accent;
+      const crescents = [
+        { x: 55, y: 68 }, { x: 45, y: 75 }, { x: 35, y: 78 }
+      ];
+      for (const c of crescents) {
+        ctx.beginPath();
+        ctx.ellipse(c.x * s, c.y * s, 4 * s, 2 * s, Math.PI * 0.3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+
+      // Veins
+      ctx.strokeStyle = pal.vein;
+      ctx.lineWidth = 0.7 * s;
+      ctx.globalAlpha = 0.4;
+      for (const v of hindwingVeins) {
+        ctx.beginPath();
+        ctx.moveTo(7 * s, v.startY * s);
+        ctx.bezierCurveTo(
+          v.midX * s, v.midY * s,
+          (v.midX + v.endX) / 2 * s, v.endY * s,
+          v.endX * s, v.endY * s
+        );
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+
+      ctx.restore(); // end clip
+
+      // Wing border
+      hindwingPath(s);
+      ctx.strokeStyle = pal.vein;
+      ctx.lineWidth = 1.5 * s;
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    function drawBody(scale) {
+      const s = scale;
+
+      ctx.save();
+
+      const abdSegments = 8;
+      for (let i = 0; i < abdSegments; i++) {
+        const t = i / abdSegments;
+        const y = 15 * s + t * 40 * s;
+        const w = (5 - t * 3) * s;
+        ctx.beginPath();
+        ctx.ellipse(0, y, w, 3 * s, 0, 0, Math.PI * 2);
+        ctx.fillStyle = pal.body;
+        ctx.fill();
+        ctx.strokeStyle = pal.vein;
+        ctx.lineWidth = 0.5 * s;
+        ctx.globalAlpha = 0.3;
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+      }
+
+      ctx.beginPath();
+      ctx.ellipse(0, 5 * s, 6 * s, 14 * s, 0, 0, Math.PI * 2);
+      ctx.fillStyle = pal.body;
+      ctx.fill();
+      ctx.strokeStyle = pal.vein;
+      ctx.lineWidth = 0.5 * s;
+      ctx.globalAlpha = 0.3;
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+
+      // Fur texture on thorax
+      ctx.globalAlpha = 0.15;
+      for (let i = 0; i < 20; i++) {
+        const fx = (Math.random() - 0.5) * 10 * s;
+        const fy = (Math.random() - 0.5) * 24 * s + 5 * s;
+        ctx.beginPath();
+        ctx.moveTo(fx, fy);
+        ctx.lineTo(fx + (Math.random() - 0.5) * 3 * s, fy + Math.random() * 4 * s);
+        ctx.strokeStyle = pal.accent;
+        ctx.lineWidth = 0.5 * s;
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+
+      ctx.restore();
+    }
+
+    function drawHead(scale) {
+      const s = scale;
+
+      ctx.beginPath();
+      ctx.arc(0, -18 * s, 6 * s, 0, Math.PI * 2);
+      ctx.fillStyle = pal.body;
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.arc(-3 * s, -19 * s, 2 * s, 0, Math.PI * 2);
+      ctx.fillStyle = pal.accent;
+      ctx.globalAlpha = 0.8;
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(3 * s, -19 * s, 2 * s, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.arc(-2.5 * s, -19.5 * s, 0.8 * s, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffffff';
+      ctx.globalAlpha = 0.6;
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(3.5 * s, -19.5 * s, 0.8 * s, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+
+      ctx.beginPath();
+      ctx.moveTo(0, -13 * s);
+      ctx.bezierCurveTo(2 * s, -10 * s, 4 * s, -10 * s, 3 * s, -12 * s);
+      ctx.strokeStyle = pal.body;
+      ctx.lineWidth = 0.8 * s;
+      ctx.stroke();
+    }
+
+    function drawAntenna(scale) {
+      const s = scale;
+      const sway = Math.sin(time * 0.03) * 3 * s;
+
+      ctx.beginPath();
+      ctx.moveTo(-3 * s, -23 * s);
+      ctx.bezierCurveTo(-15 * s, -55 * s, -25 * s + sway, -70 * s, -30 * s + sway, -75 * s);
+      ctx.strokeStyle = pal.body;
+      ctx.lineWidth = 1.2 * s;
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(-30 * s + sway, -75 * s, 2.5 * s, 0, Math.PI * 2);
+      ctx.fillStyle = pal.body;
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.moveTo(3 * s, -23 * s);
+      ctx.bezierCurveTo(15 * s, -55 * s, 25 * s - sway, -70 * s, 30 * s - sway, -75 * s);
+      ctx.strokeStyle = pal.body;
+      ctx.lineWidth = 1.2 * s;
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(30 * s - sway, -75 * s, 2.5 * s, 0, Math.PI * 2);
+      ctx.fillStyle = pal.body;
+      ctx.fill();
+    }
+
+    function drawDust(cx, cy, scale) {
+      for (const d of dustParticles) {
+        d.x += d.vx;
+        d.y += d.vy;
+        d.x += Math.sin(time * 0.01 + d.phase) * 0.001;
+
+        if (d.y < -1.5 || d.x < -1.5 || d.x > 1.5) {
+          d.x = Math.random() * 2 - 1;
+          d.y = 1 + Math.random() * 0.5;
+          d.alpha = Math.random() * 0.6 + 0.2;
+        }
+
+        const px = cx + d.x * 100 * scale;
+        const py = cy + d.y * 100 * scale;
+        const shimmer = 0.5 + 0.5 * Math.sin(time * 0.05 + d.phase);
+
+        ctx.globalAlpha = d.alpha * shimmer;
+        ctx.beginPath();
+        ctx.arc(px, py, d.size * scale * 0.5, 0, Math.PI * 2);
+        ctx.fillStyle = pal.accent;
+        ctx.fill();
+
+        ctx.globalAlpha = d.alpha * shimmer * 0.3;
+        ctx.beginPath();
+        ctx.arc(px, py, d.size * scale * 1.5, 0, Math.PI * 2);
+        const dg = ctx.createRadialGradient(px, py, 0, px, py, d.size * scale * 1.5);
+        dg.addColorStop(0, pal.glow);
+        dg.addColorStop(1, 'transparent');
+        ctx.fillStyle = dg;
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    function drawBackground() {
+      const bgGrad = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, Math.max(W, H) * 0.7);
+      bgGrad.addColorStop(0, pal.bg);
+      bgGrad.addColorStop(1, '#000000');
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, W, H);
+    }
+
+    function resize() {
+      W = canvas.width = window.innerWidth;
+      H = canvas.height = window.innerHeight;
+    }
+    resize();
+
+    function loop() {
+      time++;
+      drawBackground();
+      drawButterfly();
+      requestAnimationFrame(loop);
+    }
+
+    loop();
+
+    window.addEventListener('resize', resize);
+
+    // Click anywhere to navigate
+    canvas.addEventListener('click', () => {
+      window.location.href = pageRandomiser.nextOne();
+    });
+
+    // Keypress regenerates the butterfly
+    window.addEventListener('keydown', (e) => {
+      if (e.ctrlKey || e.altKey || e.shiftKey || e.metaKey) return;
+      generateButterfly();
+    });
+
+  </script>
+</body>
+
+</html>

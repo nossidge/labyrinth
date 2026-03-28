@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Middlest">
+  <title>where did the blue sky go?</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #2a2a28;
+      font-family: monospace;
+    }
+
+    body {
+      position: relative;
+    }
+
+    #sky {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 55%;
+      background: linear-gradient(to bottom, #3a3a3c 0%, #5a5a58 40%, #6e6e68 80%, #7a7a72 100%);
+      z-index: 0;
+    }
+
+    #ground {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 50%;
+      background: linear-gradient(to bottom, #6b6354 0%, #5a5348 20%, #4a443c 50%, #3a352e 100%);
+      z-index: 1;
+    }
+
+    #horizon {
+      position: fixed;
+      top: 50%;
+      left: 0;
+      width: 100%;
+      height: 12%;
+      background: linear-gradient(to bottom, rgba(120, 115, 100, 0.4) 0%, transparent 100%);
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    /* The person + cloud container */
+    #wanderer {
+      position: fixed;
+      z-index: 10;
+      transition: none;
+      pointer-events: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-decoration: none;
+    }
+
+    #wanderer:hover #cloud,
+    #wanderer:hover #person {
+      filter: drop-shadow(0 0 10px rgba(200, 210, 220, 0.5));
+    }
+
+    #wanderer.walking {
+      transition: left 1.6s ease-out, top 1.6s ease-out, transform 1.6s ease-out;
+    }
+
+    #cloud {
+      font-size: 82px;
+      line-height: 1;
+      filter: drop-shadow(0 0 6px rgba(80, 80, 80, 0.5));
+      margin-bottom: 28px;
+      user-select: none;
+      opacity: 0.85;
+    }
+
+    #person {
+      font-size: 70px;
+      line-height: 1;
+      user-select: none;
+      filter: drop-shadow(2px 4px 3px rgba(0, 0, 0, 0.4));
+    }
+
+    .raindrop {
+      position: absolute;
+      width: 2px;
+      background: linear-gradient(to bottom, rgba(160, 175, 190, 0.0), rgba(160, 175, 190, 0.6));
+      pointer-events: none;
+      z-index: 9;
+      border-radius: 0 0 1px 1px;
+    }
+
+    .splash {
+      position: absolute;
+      width: 3px;
+      height: 3px;
+      background: rgba(160, 175, 190, 0.5);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9;
+    }
+
+    #click-area {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 5;
+    }
+
+    #scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 51;
+      pointer-events: none;
+      background: repeating-linear-gradient(to bottom,
+          transparent 0px,
+          transparent 3px,
+          rgba(0, 0, 0, 0.06) 3px,
+          rgba(0, 0, 0, 0.06) 4px);
+    }
+  </style>
+</head>
+
+<body>
+  <div id="sky"></div>
+  <div id="horizon"></div>
+  <div id="ground"></div>
+
+  <div id="click-area"></div>
+
+  <a id="wanderer" href="../index.html">
+    <div id="cloud">☁️</div>
+    <div id="person">🧍</div>
+  </a>
+
+  <div id="scanlines"></div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/travis";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    // Useful helpers
+    function rand(min, max) { return Math.random() * (max - min) + min; }
+    function randInt(min, max) { return Math.floor(rand(min, max + 1)); }
+    function clamp(value, low, high) { return Math.max(low, Math.min(high, value)); }
+
+    const wanderer = document.getElementById('wanderer');
+    const clickArea = document.getElementById('click-area');
+
+    // Position as percentage of viewport
+    let posX = 50;
+    let posY = 46.5;
+
+    // Movement locking
+    let isWalking = false;
+
+    // Movement via arrow keys
+    const STEP = 2;
+    const keysDown = {};
+    function anyKeyDown() { return Object.values(keysDown).some(Boolean); }
+
+    // Perspective scaling: closer to bottom = larger
+    // posY ranges from ~40 (far/top of ground) to ~90 (near/bottom)
+    function getScale(y) {
+      const minY = 40;
+      const maxY = 90;
+      const t = clamp((y - minY) / (maxY - minY), 0, 1);
+      return 0.4 + t * 2.0;
+    }
+
+    function updatePosition() {
+      const scale = getScale(posY);
+      wanderer.style.left = posX + '%';
+      wanderer.style.top = posY + '%';
+      wanderer.style.transform = 'translate(-50%, -50%) scale(' + scale + ')';
+    }
+
+    // Clamp position to stay on the ground
+    const minX = 5;
+    const maxX = 95;
+    const minY = 46;
+    const maxY = 78;
+    function clampPosition() {
+      posX = clamp(posX, minX, maxX);
+      posY = clamp(posY, minY, maxY);
+    }
+
+    // Click to move
+    clickArea.addEventListener('click', function (e) {
+      if (isWalking || anyKeyDown()) return;
+
+      const rect = document.body.getBoundingClientRect();
+      const targetX = ((e.clientX - rect.left) / rect.width) * 100;
+      const targetY = ((e.clientY - rect.top) / rect.height) * 100;
+
+      posX = clamp(targetX, minX, maxX);
+      posY = clamp(targetY, minY, maxY);
+
+      isWalking = true;
+      wanderer.classList.add('walking');
+      updatePosition();
+
+      // Remove transition class after animation completes
+      setTimeout(function () {
+        wanderer.classList.remove('walking');
+        isWalking = false;
+      }, 1650);
+    });
+
+    // Arrow keys, WASD keys, HJKL keys
+    const KEY_LEFT = new Set(['ArrowLeft', 'h', 'a']);
+    const KEY_RIGHT = new Set(['ArrowRight', 'l', 'd']);
+    const KEY_UP = new Set(['ArrowUp', 'k', 'w']);
+    const KEY_DOWN = new Set(['ArrowDown', 'j', 's']);
+    function keyLeft(key) { return KEY_LEFT.has(key); }
+    function keyRight(key) { return KEY_RIGHT.has(key); }
+    function keyUp(key) { return KEY_UP.has(key); }
+    function keyDown(key) { return KEY_DOWN.has(key); }
+
+    // Arrow key movement
+    document.addEventListener('keydown', function (e) {
+      if (keyLeft(e.key) || keyRight(e.key) || keyUp(e.key) || keyDown(e.key)) {
+        e.preventDefault();
+        keysDown[e.key] = true;
+      }
+    });
+
+    document.addEventListener('keyup', function (e) {
+      keysDown[e.key] = false;
+    });
+
+    // Game loop for smooth arrow key movement
+    function gameLoop() {
+      if (!isWalking) {
+        let moved = false;
+
+        // Make sure that if you press e.g. A and H and the left arrow key at
+        // the same time, the little man will not move left 3 times as quick.
+        let movedLeft = false;
+        let movedRight = false;
+        let movedUp = false;
+        let movedDown = false;
+
+        // Perspective-based velocity: slower when far, faster when near
+        const t = clamp((posY - minY) / (maxY - minY), 0, 1);
+        const horizontalStep = 0.08 + t * 0.24;
+        const verticalStep = 0.12 + t * 0.36;
+
+        for (const key in keysDown) {
+          if (!keysDown[key]) continue;
+
+          if (!movedLeft && keyLeft(key)) {
+            posX -= STEP * horizontalStep;
+            moved = true;
+            movedLeft = true;
+          }
+          else if (!movedRight && keyRight(key)) {
+            posX += STEP * horizontalStep;
+            moved = true;
+            movedRight = true;
+          }
+          else if (!movedUp && keyUp(key)) {
+            posY -= STEP * verticalStep;
+            moved = true;
+            movedUp = true;
+          }
+          else if (!movedDown && keyDown(key)) {
+            posY += STEP * verticalStep;
+            moved = true;
+            movedDown = true;
+          }
+        }
+
+        if (moved) {
+          clampPosition();
+          updatePosition();
+        }
+      }
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    // Rain system
+    function spawnRaindrop() {
+      const drop = document.createElement('div');
+      drop.className = 'raindrop';
+
+      // Spawn relative to the wanderer container
+      const wandererRect = wanderer.getBoundingClientRect();
+      const cloudWidth = 78 * getScale(posY);
+
+      // Random position within cloud width
+      const offsetX = rand(-cloudWidth * 0.5, cloudWidth * 0.5);
+      const startX = wandererRect.left + wandererRect.width / 2 + offsetX;
+      const startY = wandererRect.top + 50 * getScale(posY);
+
+      const scale = getScale(posY);
+      const dropHeight = rand(8, 16) * scale;
+      const dropWidth = Math.max(1, 2 * scale);
+
+      drop.style.left = startX + 'px';
+      drop.style.top = startY + 'px';
+      drop.style.width = dropWidth + 'px';
+      drop.style.height = dropHeight + 'px';
+
+      document.body.appendChild(drop);
+
+      // Animate falling
+      const fallDistance = rand(110, 160) * scale;
+      const duration = rand(300, 500);
+      const drift = rand(-3, 3);
+
+      let start = null;
+      function animateDrop(ts) {
+        if (!start) start = ts;
+        const t = (ts - start) / duration;
+        if (t >= 1) {
+          // Spawn splash
+          spawnSplash(startX + drift, startY + fallDistance);
+          drop.remove();
+          return;
+        }
+        drop.style.transform = 'translate(' + (drift * t) + 'px, ' + (fallDistance * t) + 'px)';
+        drop.style.opacity = 1 - t * 0.3;
+        requestAnimationFrame(animateDrop);
+      }
+      requestAnimationFrame(animateDrop);
+    }
+
+    // Splash a raindrop on the ground
+    function spawnSplash(x, y) {
+      const count = randInt(2, 4);
+      for (let i = 0; i < count; i++) {
+        const splash = document.createElement('div');
+        splash.className = 'splash';
+        splash.style.left = x + 'px';
+        splash.style.top = y + 'px';
+
+        const scale = getScale(posY);
+        const size = Math.max(1, randInt(1, 3) * scale);
+        splash.style.width = size + 'px';
+        splash.style.height = size + 'px';
+
+        document.body.appendChild(splash);
+
+        const vx = rand(-8, 8);
+        const vy = rand(-6, -1);
+        const dur = rand(200, 400);
+        let start = null;
+
+        function animateSplash(ts) {
+          if (!start) start = ts;
+          const t = (ts - start) / dur;
+          if (t >= 1) {
+            splash.remove();
+            return;
+          }
+          splash.style.transform = 'translate(' + (vx * t) + 'px, ' + (vy * t + 12 * t * t) + 'px)';
+          splash.style.opacity = 1 - t;
+          requestAnimationFrame(animateSplash);
+        }
+        requestAnimationFrame(animateSplash);
+      }
+    }
+
+    // Spawn rain at regular intervals
+    setInterval(spawnRaindrop, 50);
+
+    // Initialise
+    clampPosition();
+    updatePosition();
+    requestAnimationFrame(gameLoop);
+
+  </script>
+</body>
+
+</html>

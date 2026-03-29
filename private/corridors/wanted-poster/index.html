@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Rannygazoo, let's have a tune">
+  <title>Have you seen this varmint?</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Rye&family=Special+Elite&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 100%;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #4a3728;
+      background-image:
+        repeating-linear-gradient(90deg,
+          transparent,
+          transparent 58px,
+          rgba(0, 0, 0, 0.15) 58px,
+          rgba(0, 0, 0, 0.15) 62px),
+        repeating-linear-gradient(0deg,
+          transparent,
+          transparent 3px,
+          rgba(0, 0, 0, 0.04) 3px,
+          rgba(0, 0, 0, 0.04) 4px),
+        linear-gradient(90deg,
+          #5c4433 0%, #6b5240 15%, #5a4030 30%,
+          #6e5643 45%, #5c4433 60%, #6b5240 75%,
+          #5a4030 90%, #6e5643 100%);
+      overflow-y: auto;
+    }
+
+    .nail {
+      position: absolute;
+      top: 18px;
+      transform: translateX(-50%);
+      width: 24px;
+      height: 24px;
+      background: radial-gradient(circle at 40% 35%, #b0a89c, #706860 60%, #4a4340);
+      border-radius: 50%;
+      box-shadow:
+        0 2px 4px rgba(0, 0, 0, 0.6),
+        inset 0 -2px 3px rgba(0, 0, 0, 0.3),
+        inset 0 1px 2px rgba(255, 255, 255, 0.2);
+      z-index: 10;
+    }
+
+    .nail::after {
+      content: '+';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 14px;
+      color: rgba(0, 0, 0, 0.4);
+      font-family: monospace;
+      line-height: 1;
+    }
+
+    #nail-left {
+      left: 30px;
+    }
+
+    #nail-right {
+      right: 6px;
+    }
+
+    #poster {
+      position: relative;
+      width: 480px;
+      max-width: 92vw;
+      margin: 40px auto;
+      padding: 40px 36px 36px;
+      background: #e8d5a3;
+      background-image:
+        radial-gradient(ellipse at 20% 80%, rgba(160, 120, 60, 0.15), transparent 50%),
+        radial-gradient(ellipse at 80% 20%, rgba(160, 120, 60, 0.1), transparent 50%),
+        radial-gradient(ellipse at 50% 50%, rgba(180, 150, 90, 0.08), transparent 70%),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
+      clip-path: polygon(0% 2%, 3% 0%, 8% 1.5%, 14% 0.3%, 20% 1.8%, 26% 0%,
+          33% 1.2%, 40% 0.5%, 48% 2%, 55% 0.2%, 62% 1.5%, 68% 0.8%,
+          75% 1.8%, 82% 0%, 88% 1.2%, 94% 0.5%, 97% 1.8%, 100% 0%,
+          100% 3%, 99% 8%, 100% 14%, 98.5% 20%, 100% 27%, 99% 33%,
+          100% 40%, 98.5% 48%, 100% 55%, 99% 62%, 100% 70%, 98.5% 78%,
+          100% 85%, 99% 92%, 100% 97%,
+          100% 100%, 97% 99%, 92% 100%, 86% 98.5%, 80% 100%, 74% 99%,
+          68% 100%, 60% 98.5%, 52% 100%, 45% 99%, 38% 100%, 30% 98.5%,
+          22% 100%, 15% 99%, 8% 100%, 3% 98.5%, 0% 100%,
+          0% 97%, 1.5% 92%, 0% 86%, 1.5% 78%, 0% 70%, 1.5% 62%,
+          0% 55%, 1.5% 48%, 0% 40%, 1.5% 33%, 0% 27%, 1.5% 20%,
+          0% 14%, 1.5% 8%);
+      box-shadow: 4px 6px 20px rgba(0, 0, 0, 0.5);
+      text-align: center;
+    }
+
+    #poster::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border: 3px double #8b7355;
+      margin: 12px;
+      pointer-events: none;
+      clip-path: inherit;
+    }
+
+    #wanted {
+      font-family: 'Rye', serif;
+      font-size: clamp(28px, 12vw, 80px);
+      color: #2b1a0e;
+      letter-spacing: 8px;
+      line-height: 1.1;
+      margin-bottom: 4px;
+      text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.15);
+    }
+
+    #dead-or-alive {
+      font-family: 'Rye', serif;
+      font-size: clamp(14px, 4vw, 22px);
+      color: #3e2415;
+      letter-spacing: 6px;
+      border-top: 2px solid #8b7355;
+      border-bottom: 2px solid #8b7355;
+      padding: 6px 0;
+      margin: 0 20px 20px;
+    }
+
+    #portrait {
+      font-size: 145px;
+      line-height: 1;
+      margin: 16px auto;
+      width: 180px;
+      height: 180px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 3px solid #5c3d1e;
+      background: rgba(0, 0, 0, 0.04);
+    }
+
+    #portrait a {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+    }
+
+    #for-the-crime-of {
+      font-family: 'Special Elite', monospace;
+      font-size: clamp(11px, 2.8vw, 15px);
+      color: #4a3018;
+      margin: 12px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    #crime {
+      font-family: 'Special Elite', monospace;
+      font-size: clamp(14px, 3.5vw, 19px);
+      color: #2b1a0e;
+      margin: 4px 10px 10px;
+      line-height: 1.5;
+      min-height: 3em;
+    }
+
+    #separator {
+      width: 60%;
+      margin: 0 auto 12px;
+      border: none;
+      border-top: 1px solid #8b7355;
+    }
+
+    #reward {
+      font-family: 'Rye', serif;
+      font-size: clamp(24px, 7vw, 42px);
+      color: #2b1a0e;
+      letter-spacing: 3px;
+      margin-top: 8px;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+      display: block;
+    }
+
+    a:hover {
+      text-shadow: 0 0 2px rgba(80, 50, 20, 0.6);
+    }
+  </style>
+</head>
+
+<body>
+  <div id="poster">
+    <div id="nail-left" class="nail"></div>
+    <div id="nail-right" class="nail"></div>
+
+    <div id="wanted">
+      <a id="link-wanted" href="../index.html">
+        WANTED
+      </a>
+    </div>
+
+    <div id="dead-or-alive">
+      <a id="link-dead-or-alive" href="../index.html">
+        DEAD OR ALIVE
+      </a>
+    </div>
+
+    <div id="portrait">
+      <a id="link-portrait" href="../index.html"></a>
+    </div>
+
+    <div id="for-the-crime-of">
+      <a id="link-crime-label" href="../index.html">
+        For the crime of
+      </a>
+    </div>
+
+    <div id="crime">
+      <a id="link-crime" href="../index.html"></a>
+    </div>
+
+    <hr id="separator">
+
+    <div id="reward">
+      <a id="link-reward" href="../index.html"></a>
+    </div>
+  </div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/wanted-poster";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const MALE_EMOJIS_POOL = [
+      '👨', '👨‍🦰', '👨‍🦱', '👨‍🦳', '👨‍🦲', '👱‍♂️', '👴', '🧔',
+      '👮‍♂️', '🕵️‍♂️', '💂‍♂️', '👷‍♂️', '🤴', '🤵‍♂️', '🧙‍♂️', '🧛‍♂️', '🧝‍♂️', '🤹‍♂️',
+      '👨‍💻', '👨‍💼', '👨‍🔬', '👨‍⚕️', '👨‍🏫', '👨‍⚖️', '👨‍🌾', '👨‍🍳', '👨‍🔧', '👨‍🏭',
+      '👨‍🚒', '👨‍🚀', '👨‍✈️', '👨‍🎨', '👨‍🎤',
+    ];
+    const FEMALE_EMOJIS_POOL = [
+      '👩', '👩‍🦰', '👩‍🦱', '👩‍🦳', '👩‍🦲', '👱‍♀️', '👵', '🧕',
+      '👮‍♀️', '🕵️‍♀️', '💂‍♀️', '👷‍♀️', '👸', '🤵‍♀️', '🧙‍♀️', '🧛‍♀️', '🧝‍♀️', '🤹‍♀️',
+      '👩‍💻', '👩‍💼', '👩‍🔬', '👩‍⚕️', '👩‍🏫', '👩‍⚖️', '👩‍🌾', '👩‍🍳', '👩‍🔧', '👩‍🏭',
+      '👩‍🚒', '👩‍🚀', '👩‍✈️', '👩‍🎨', '👩‍🎤',
+    ];
+    const EMOJIS_POOL = [...MALE_EMOJIS_POOL, ...FEMALE_EMOJIS_POOL];
+    const emojisRandomiser = new CyclicRandomiser(EMOJIS_POOL);
+
+    const CRIMES_POOL = [
+      "Aggravated tumbleweed harassment",
+      "Assault with a deadly corn cob",
+      "Attempting to cheat a mule at cards",
+      "Bringing a knife to a gun fight",
+      "Challenging a cactus to a duel",
+      "Cheating at poker with an extra deck up each sleeve",
+      "Counterfeiting gold nuggets using spray-painted potatoes",
+      "Counterfeiting wanted posters of themselves",
+      "Disturbing the peace with an out-of-tune washboard",
+      "Excessive use of the word 'varmint' in a residential area",
+      "Failure to yield to a crossing tumbleweed",
+      "Grand theft cactus in the first degree",
+      "Impersonating a cactus for tax-evasion purposes",
+      "Impersonating a ghost in an illegitimate ghost town",
+      "Importing horses in a formerly one-horse town",
+      "Improper disposal of a poncho",
+      "Inciting a riot among the local prairie dogs",
+      "Lassoing the mayor's toupee with intent to embarrass",
+      "Leading a horse to water and making it drown",
+      "Loitering with a suspicious amount of dynamite",
+      "Operating a spittoon without a splash guard",
+      "Operating a stagecoach under the influence of beans",
+      "Panning for gold in a spittoon",
+      "Parking a mule outside the designated mule zone",
+      "Public indecency: wearing spurs with sandals",
+      "Selling 'invisible horses' to unsuspecting tourists",
+      "Selling snake oil to a snake",
+      "Smuggling beans across state lines",
+      "Stealing a train and returning it to the wrong station",
+      "Teaching a donkey to play the banjo without a permit",
+      "Teaching a parrot to give incorrect legal advice",
+      "Tumbleweed rustling",
+      "Unlicensed finger gun duelling",
+      "Wearing a poncho backwards with intent to confuse",
+      "Wearing a ten-gallon hat on a five-gallon head",
+      "Wearing spurs in a bathtub",
+      "Willful and malicious yodelling after midnight",
+    ];
+    const crimesRandomiser = new CyclicRandomiser(CRIMES_POOL);
+
+    const rewardAmounts = [
+      1000, 1500, 2000, 2500, 3000, 5000, 10000
+    ];
+
+    function sample(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+    const linkIds = [
+      'link-wanted', 'link-dead-or-alive', 'link-portrait',
+      'link-crime-label', 'link-crime', 'link-reward'
+    ];
+
+    // History of generated posters
+    // Each entry: { emoji, crime, reward, hrefs: [...] }
+    let history = [];
+    let historyIndex = -1;
+
+    function createNewEntry() {
+      return {
+        emoji: emojisRandomiser.nextOne(),
+        crime: crimesRandomiser.nextOne(),
+        reward: 'REWARD: $' + sample(rewardAmounts).toLocaleString(),
+        hrefs: linkIds.map(() => pageRandomiser.nextOne()),
+      };
+    }
+
+    function displayEntry(entry) {
+      document.getElementById('link-portrait').textContent = entry.emoji;
+      document.getElementById('link-crime').textContent = entry.crime;
+      document.getElementById('link-reward').textContent = entry.reward;
+      linkIds.forEach((id, i) => {
+        document.getElementById(id).href = entry.hrefs[i];
+      });
+    }
+
+    function goToNext() {
+      if (historyIndex < history.length - 1) {
+        historyIndex++;
+      } else {
+        history.push(createNewEntry());
+        historyIndex = history.length - 1;
+      }
+      displayEntry(history[historyIndex]);
+    }
+
+    function goToPrev() {
+      if (historyIndex > 0) {
+        historyIndex--;
+      } else {
+        history.unshift(createNewEntry());
+        historyIndex = 0;
+      }
+      displayEntry(history[historyIndex]);
+    }
+
+    // Arrow keys, WASD keys, HJKL keys
+    const LEFT_OR_DOWN = new Set(['ArrowLeft', 'ArrowDown', 'h', 'j', 'a', 's']);
+    const RIGHT_OR_UP = new Set(['ArrowRight', 'ArrowUp', 'k', 'l', 'd', 'w']);
+    function keyLeftOrDown(key) { return LEFT_OR_DOWN.has(key); }
+    function keyRightOrUp(key) { return RIGHT_OR_UP.has(key); }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey || e.altKey || e.shiftKey || e.metaKey) return;
+      if (keyLeftOrDown(e.key)) {
+        e.preventDefault();
+        goToPrev();
+      } else if (keyRightOrUp(e.key)) {
+        e.preventDefault();
+        goToNext();
+      }
+    });
+
+    // Click anywhere on the page (except poster and anchors) to go forward
+    document.body.addEventListener('click', (e) => {
+      if (e.target.matches('#poster, a')) return;
+      goToNext();
+    });
+
+    // Init with first entry
+    goToNext();
+
+  </script>
+</body>
+
+</html>

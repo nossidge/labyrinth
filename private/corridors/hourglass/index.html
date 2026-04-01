@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+I'm very much not an expert at making images via SVGs, but I do like how this ended up turning out.
+It isn't perfect (especially when it flips upside down), but I think that's okay.
+The whole point of this project is not to make perfect things, it's just to make interesting things.
+And I think this is interesting enough to put in the labyrinth.
+-->
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="To see a World in a Grain of Sand">
+  <title>Eternity in an hour</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #3b1f1a;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      overflow: hidden;
+      font-family: serif;
+    }
+
+    #hourglass-link {
+      display: block;
+      position: relative;
+      width: 280px;
+      height: 500px;
+      text-decoration: none;
+      transition: filter 0.4s ease;
+    }
+
+    #hourglass-link:hover {
+      filter: drop-shadow(0 0 4px rgba(218, 165, 32, 0.5)) drop-shadow(0 0 8px rgba(218, 165, 32, 0.25));
+    }
+
+    #hourglass-svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    #sand-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .sand-grain {
+      position: absolute;
+      width: 3px;
+      height: 3px;
+      background: #c2956b;
+      border-radius: 1px;
+    }
+
+    .sand-grain.falling {
+      animation: fall var(--fall-duration, 1.2s) linear forwards;
+    }
+
+    @keyframes fall {
+      0% {
+        transform: translateY(0);
+        opacity: 1;
+      }
+
+      100% {
+        transform: translateY(var(--fall-distance, 180px));
+        opacity: 1;
+      }
+    }
+
+    #hourglass-link.flipping {
+      animation: flip 1.2s ease-in-out;
+    }
+
+    @keyframes flip {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      50% {
+        transform: rotate(90deg) scale(0.9);
+      }
+
+      100% {
+        transform: rotate(180deg);
+      }
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      border: 0;
+    }
+  </style>
+</head>
+
+<body>
+  <a id="hourglass-link" href="#">
+    <svg id="hourglass-svg" viewBox="0 0 280 500" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="brass" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#d4a843" />
+          <stop offset="30%" stop-color="#c9952e" />
+          <stop offset="50%" stop-color="#b8860b" />
+          <stop offset="70%" stop-color="#c9952e" />
+          <stop offset="100%" stop-color="#dab44e" />
+        </linearGradient>
+        <linearGradient id="brass-dark" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#a67c20" />
+          <stop offset="50%" stop-color="#8b6914" />
+          <stop offset="100%" stop-color="#a67c20" />
+        </linearGradient>
+        <linearGradient id="glass-fill" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="rgba(180,220,240,0.08)" />
+          <stop offset="40%" stop-color="rgba(200,230,250,0.12)" />
+          <stop offset="100%" stop-color="rgba(180,220,240,0.05)" />
+        </linearGradient>
+        <clipPath id="upper-chamber">
+          <path d="M70,80 Q70,70 80,70 L200,70 Q210,70 210,80 L210,85
+                   Q210,200 145,235 L140,237 L135,235
+                   Q70,200 70,85 Z" />
+        </clipPath>
+        <clipPath id="lower-chamber">
+          <path d="M135,263 L140,261 L145,263
+                   Q210,298 210,415 L210,420 Q210,430 200,430 L80,430 Q70,430 70,420
+                   L70,415 Q70,298 135,263 Z" />
+        </clipPath>
+      </defs>
+
+      <!-- Top bar brass frame -->
+      <rect x="45" y="48" width="190" height="8" rx="3" fill="url(#brass)" />
+      <rect x="55" y="56" width="170" height="5" rx="2" fill="url(#brass-dark)" />
+      <rect x="40" y="40" width="200" height="10" rx="4" fill="url(#brass)" />
+
+      <!-- Top finials -->
+      <circle cx="42" cy="45" r="8" fill="url(#brass)" />
+      <circle cx="238" cy="45" r="8" fill="url(#brass)" />
+      <circle cx="42" cy="45" r="4" fill="url(#brass-dark)" />
+      <circle cx="238" cy="45" r="4" fill="url(#brass-dark)" />
+
+      <!-- Bottom bar brass frame -->
+      <rect x="45" y="444" width="190" height="8" rx="3" fill="url(#brass)" />
+      <rect x="55" y="439" width="170" height="5" rx="2" fill="url(#brass-dark)" />
+      <rect x="40" y="450" width="200" height="10" rx="4" fill="url(#brass)" />
+
+      <!-- Bottom finials -->
+      <circle cx="42" cy="455" r="8" fill="url(#brass)" />
+      <circle cx="238" cy="455" r="8" fill="url(#brass)" />
+      <circle cx="42" cy="455" r="4" fill="url(#brass-dark)" />
+      <circle cx="238" cy="455" r="4" fill="url(#brass-dark)" />
+
+      <!-- Side pillars -->
+      <rect x="52" y="55" width="7" height="390" rx="3" fill="url(#brass)" />
+      <rect x="221" y="55" width="7" height="390" rx="3" fill="url(#brass)" />
+
+      <!-- Inner pillar highlights (these are kinda hard to see, but they're there!) -->
+      <rect x="54" y="55" width="2" height="390" fill="rgba(255,255,200,0.15)" />
+      <rect x="223" y="55" width="2" height="390" fill="rgba(255,255,200,0.15)" />
+
+      <!-- Glass body upper bulb -->
+      <path d="M70,80 Q70,68 82,66 L198,66 Q210,68 210,80 L210,85
+               Q210,205 145,238 L140,240 L135,238
+               Q70,205 70,85 Z" fill="url(#glass-fill)" stroke="rgba(180,200,210,0.2)"
+        stroke-width="1" />
+
+      <!-- Glass body lower bulb -->
+      <path d="M135,260 L140,258 L145,260
+               Q210,295 210,415 L210,420 Q210,432 198,434 L82,434 Q70,432 70,420
+               L70,415 Q70,295 135,260 Z" fill="url(#glass-fill)" stroke="rgba(180,200,210,0.2)"
+        stroke-width="1" />
+
+      <!-- Thin in-between neck section -->
+      <path d="M135,238 Q138,248 140,249 Q142,248 145,238" fill="none"
+        stroke="rgba(180,200,210,0.2)" stroke-width="1" />
+      <path d="M135,260 Q138,252 140,249 Q142,252 145,260" fill="none"
+        stroke="rgba(180,200,210,0.2)" stroke-width="1" />
+
+      <!-- Glass shine highlight (I did lots of manual tweaking for these ones!) -->
+      <path d="M85,80 Q85,120 100,180" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="4"
+        stroke-linecap="round" />
+      <path d="M110,310 Q85,370 90,410" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="4"
+        stroke-linecap="round" />
+
+      <!-- Upper sand -->
+      <g id="upper-sand" clip-path="url(#upper-chamber)">
+        <rect id="upper-sand-level" x="70" y="70" width="140" height="170" fill="#c2956b" />
+      </g>
+
+      <!-- Lower sand pile -->
+      <g id="lower-sand" clip-path="url(#lower-chamber)">
+        <rect id="lower-sand-level" x="70" y="434" width="140" height="0" fill="#c2956b" />
+      </g>
+
+      <!-- Falling stream through neck -->
+      <line id="sand-stream" x1="140" y1="238" x2="140" y2="260" stroke="#c2956b" stroke-width="1.5"
+        opacity="0.8" />
+    </svg>
+
+    <div id="sand-container"></div>
+  </a>
+
+  <h1 class="sr-only">Hourglass</h1>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/hourglass";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const link = document.getElementById('hourglass-link');
+    link.href = pageRandomiser.nextOne();
+
+    const upperSandLevel = document.getElementById('upper-sand-level');
+    const lowerSandLevel = document.getElementById('lower-sand-level');
+    const sandStream = document.getElementById('sand-stream');
+    const sandContainer = document.getElementById('sand-container');
+
+    const TOTAL_DURATION = 45000;
+    const GRAIN_INTERVAL = 300;
+    const TOTAL_GRAINS = Math.floor(TOTAL_DURATION / GRAIN_INTERVAL);
+
+    const UPPER_SAND_TOP = 70;
+    const UPPER_SAND_MAX_H = 170;
+    const LOWER_SAND_MAX_H = 170;
+    const LOWER_SAND_BOTTOM = 434;
+
+    let grainCount = 0;
+    let intervalId = null;
+
+    function resetSand() {
+      grainCount = 0;
+      upperSandLevel.setAttribute('y', UPPER_SAND_TOP);
+      upperSandLevel.setAttribute('height', UPPER_SAND_MAX_H);
+      lowerSandLevel.setAttribute('y', LOWER_SAND_BOTTOM);
+      lowerSandLevel.setAttribute('height', 0);
+      sandStream.style.opacity = '0.8';
+
+      // Clear old grains
+      sandContainer.innerHTML = '';
+    }
+
+    function spawnFallingGrain() {
+      const grain = document.createElement('div');
+      grain.className = 'sand-grain';
+
+      // Position at the neck of the hourglass
+      // The SVG viewBox is 280x500, container is sized to match
+      const neckX = 140;
+      const neckY = 240;
+      const pileY = 420;
+
+      // Slight random horizontal offset
+      const xOffset = (Math.random() - 0.5) * 6;
+      const fallDist = pileY - neckY - Math.random() * 30;
+
+      grain.style.left = `calc(${(neckX / 280) * 100}% + ${xOffset}px)`;
+      grain.style.top = `${(neckY / 500) * 100}%`;
+      grain.style.setProperty('--fall-distance', `${(fallDist / 500) * sandContainer.offsetHeight}px`);
+      grain.style.setProperty('--fall-duration', `${0.6 + Math.random() * 0.6}s`);
+      grain.classList.add('falling');
+
+      sandContainer.appendChild(grain);
+
+      // Remove after animation
+      setTimeout(() => {
+        grain.remove();
+      }, 1500);
+    }
+
+    function tick() {
+      grainCount++;
+
+      const progress = grainCount / TOTAL_GRAINS;
+
+      // Drain upper chamber
+      const upperH = UPPER_SAND_MAX_H * (1 - progress);
+      const upperY = UPPER_SAND_TOP + (UPPER_SAND_MAX_H - upperH);
+      upperSandLevel.setAttribute('y', upperY);
+      upperSandLevel.setAttribute('height', Math.max(0, upperH));
+
+      // Fill lower chamber
+      const lowerH = LOWER_SAND_MAX_H * progress;
+      const lowerY = LOWER_SAND_BOTTOM - lowerH;
+      lowerSandLevel.setAttribute('y', lowerY);
+      lowerSandLevel.setAttribute('height', lowerH);
+
+      // Spawn a falling grain particle
+      spawnFallingGrain();
+
+      if (grainCount >= TOTAL_GRAINS) {
+        sandStream.style.opacity = '0';
+        clearInterval(intervalId);
+        setTimeout(flipHourglass, 1500);
+      }
+    }
+
+    function flipHourglass() {
+      link.classList.add('flipping');
+
+      // Update link destination on each flip
+      link.href = pageRandomiser.nextOne();
+
+      link.addEventListener('animationend', function onEnd() {
+        link.classList.remove('flipping');
+        link.removeEventListener('animationend', onEnd);
+
+        // Frame is symmetric, so snap back to 0° and refill upper chamber
+        link.style.transform = '';
+        resetSand();
+        intervalId = setInterval(tick, GRAIN_INTERVAL);
+      });
+    }
+
+    // Start
+    resetSand();
+    intervalId = setInterval(tick, GRAIN_INTERVAL);
+
+  </script>
+</body>
+
+</html>

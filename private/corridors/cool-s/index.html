@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+https://en.wikipedia.org/wiki/Cool_S
+-->
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Every school desk in every school in every country">
+  <title>Stüssy or not Stüssy</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      background: url("bg.png") repeat;
+      background-size: 320px;
+    }
+
+    #central-s {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      max-height: 80dvh;
+      max-width: 80dvw;
+      z-index: 50;
+      filter: drop-shadow(0 0 6px rgba(0, 0, 0, 0.3));
+      transition: filter 0.3s ease, transform 0.3s ease;
+      cursor: pointer;
+    }
+
+    .spawned-s {
+      position: fixed;
+      pointer-events: none;
+      z-index: 10;
+      opacity: 0;
+      transition: opacity 0.4s ease-in;
+    }
+
+    .spawned-s.visible {
+      opacity: 1;
+    }
+
+    .spawned-s.fading {
+      transition: opacity 1.2s ease-out;
+      opacity: 0;
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 100;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.12) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
+      background-size: 100% 2px, 3px 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+
+  <a id="central-link" href="../index.html">
+    <svg id="central-s" xmlns="http://www.w3.org/2000/svg"
+      xmlns:xlink="http://www.w3.org/1999/xlink" viewBox=".5 .5 5 11">
+      <path id="a" fill="none" stroke="lightgray" stroke-width=".4"
+        d="M3 9V7L1 5V3L3 1 5 3V5L4 6" />
+      <use xlink:href="#a" transform="rotate(180 3 6)" />
+    </svg>
+  </a>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/cool-s";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    function rand(min, max) { return Math.random() * (max - min) + min; }
+
+    const SPAWN_DELAY = 60;
+
+    const SPRAY_COLORS_POOL = [
+      '#ff073a', '#ff6fff', '#ff00ff', '#fe01b1',
+      '#39ff14', '#0fff50', '#7fff00', '#ccff00',
+      '#00ffff', '#04d9ff', '#4dffff', '#0ff0fc',
+      '#ffff00', '#fffc01', '#fff01f', '#ffcf00',
+      '#ff6700', '#ff4500', '#ff3503', '#fc6600',
+      '#bf00ff', '#b026ff', '#9d00ff', '#7b68ee',
+    ];
+    const coloursRandomiser = new CyclicRandomiser(SPRAY_COLORS_POOL);
+
+    const centralLink = document.getElementById('central-link');
+    const centralS = document.getElementById('central-s');
+    const spawned = [];
+    let hovering = false;
+    let spawnInterval = null;
+
+    function svgToDataUri(svgString) {
+      return 'data:image/svg+xml,' + encodeURIComponent(svgString);
+    }
+
+    function coolSvg(colour) {
+      return `<svg xmlns="http://www.w3.org/2000/svg"
+        xmlns:xlink="http://www.w3.org/1999/xlink" viewBox=".5 .5 5 11">
+        <path id="a" fill="none" stroke="${colour}" stroke-width=".4"
+          d="M3 9V7L1 5V3L3 1 5 3V5L4 6" />
+        <use xlink:href="#a" transform="rotate(180 3 6)" />
+      </svg>`;
+    }
+
+    function spawnS() {
+      const colour = coloursRandomiser.nextOne();
+      const img = document.createElement('img');
+      img.src = svgToDataUri(coolSvg(colour));
+      img.className = 'spawned-s';
+
+      const size = rand(30, 120);
+      img.style.width = size + 'px';
+      img.style.height = 'auto';
+
+      const offset = 40;
+      img.style.left = rand(-offset, offset + window.innerWidth - size) + 'px';
+      img.style.top = rand(-offset, offset + window.innerHeight - size * 2) + 'px';
+
+      const rotation = rand(-30, 30);
+      img.style.transform = 'rotate(' + rotation + 'deg)';
+
+      img.style.filter = 'drop-shadow(0 0 4px ' + colour + ')';
+
+      document.body.appendChild(img);
+      spawned.push(img);
+
+      // Fade in.
+      // Use nested requestAnimationFrame (double rAF) to ensure the browser paints the
+      // card's initial state at the deck before applying the transformation. Without
+      // this, the browser might batch the styles and skip the transition animation.
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          img.classList.add('visible');
+        });
+      });
+    }
+
+    function fadeOutAll() {
+      spawned.forEach(img => {
+        img.classList.remove('visible');
+        img.classList.add('fading');
+        img.addEventListener('transitionend', () => {
+          if (img.parentNode) {
+            img.parentNode.removeChild(img);
+          }
+        }, { once: true });
+      });
+      spawned.length = 0;
+    }
+
+    //// Desktop
+    // Hover over central S to spawn, moouse away to stop
+    centralS.addEventListener('mouseenter', () => {
+      hovering = true;
+
+      // Spawn one immediately
+      spawnS();
+
+      // Then keep spawning at random intervals
+      function scheduleNext() {
+        if (!hovering) return;
+        spawnInterval = setTimeout(() => {
+          if (!hovering) return;
+          spawnS();
+          scheduleNext();
+        }, SPAWN_DELAY);
+      }
+      scheduleNext();
+    });
+
+    centralS.addEventListener('mouseleave', () => {
+      hovering = false;
+      if (spawnInterval) {
+        clearTimeout(spawnInterval);
+        spawnInterval = null;
+      }
+      fadeOutAll();
+    });
+
+    //// Mobile
+    // Hold background to spawn, lift to stop
+    let touchSpawning = false;
+
+    document.body.addEventListener('touchstart', (e) => {
+      if (centralLink.contains(e.target)) return;
+      e.preventDefault();
+      touchSpawning = true;
+      hovering = true;
+      spawnS();
+      function scheduleNext() {
+        if (!hovering) return;
+        spawnInterval = setTimeout(() => {
+          if (!hovering) return;
+          spawnS();
+          scheduleNext();
+        }, SPAWN_DELAY);
+      }
+      scheduleNext();
+    }, { passive: false });
+
+    document.body.addEventListener('touchend', (e) => {
+      if (!touchSpawning) return;
+      touchSpawning = false;
+      hovering = false;
+      if (spawnInterval) {
+        clearTimeout(spawnInterval);
+        spawnInterval = null;
+      }
+      fadeOutAll();
+    });
+
+    document.body.addEventListener('touchcancel', () => {
+      if (!touchSpawning) return;
+      touchSpawning = false;
+      hovering = false;
+      if (spawnInterval) {
+        clearTimeout(spawnInterval);
+        spawnInterval = null;
+      }
+      fadeOutAll();
+    });
+
+  </script>
+</body>
+
+</html>

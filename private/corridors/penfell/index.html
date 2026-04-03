@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+This was supposed to be an implementation of penrose tiling.
+But as you can see, it's not working correctly at all.
+So instead of penrose, penfell.
+
+This one was based on a Processing sketch:
+"Penrose Tile L-System" by Geraldine Sarmiento
+https://processing.org/examples/penrosetile.html
+-->
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Failure to implement penrose tiling">
+  <title>Aperiodiction</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body,
+    html {
+      width: 100%;
+      height: 100%;
+      background: #0a0a0f;
+      overflow: hidden;
+    }
+
+    canvas {
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    #link-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    #link-layer a {
+      position: absolute;
+      display: block;
+      text-decoration: none;
+    }
+
+    #link-layer a:hover polygon,
+    #link-layer a:hover line {
+      stroke: #fff;
+      stroke-width: 2;
+    }
+
+    /* My very best friend CRT scanlines */
+    body::after {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 10;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 255, 0, 0.03));
+      background-size: 100% 2px, 3px 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="penrose-canvas"></canvas>
+  <svg id="link-layer" xmlns="http://www.w3.org/2000/svg"></svg>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/penrose";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    // Penrose L-System
+    const axiom = '[X]++[X]++[X]++[X]++[X]';
+    const ruleW = 'YF++ZF4-XF[-YF4-WF]++';
+    const ruleX = '+YF--ZF[3-WF--XF]+';
+    const ruleY = '-WF++XF[+++YF++ZF]-';
+    const ruleZ = '--YF++++WF[+ZF++++XF]--XF';
+    const theta = (36 * Math.PI) / 180;
+
+    let startLength = 460;
+    let drawLength = startLength;
+    let production = axiom;
+
+    function iterate(prod) {
+      let newProd = '';
+      for (let i = 0; i < prod.length; i++) {
+        const ch = prod.charAt(i);
+        if (ch === 'W') newProd += ruleW;
+        else if (ch === 'X') newProd += ruleX;
+        else if (ch === 'Y') newProd += ruleY;
+        else if (ch === 'Z') newProd += ruleZ;
+        else if (ch !== 'F') newProd += ch;
+      }
+      drawLength *= 0.5;
+      return newProd;
+    }
+
+    // Run generations
+    const generations = 4;
+    for (let g = 0; g < generations; g++) {
+      production = iterate(production);
+    }
+
+    // Collect line segments by tracing the L-system
+    function traceSegments(prod, len, w, h) {
+      const segments = [];
+      let x = w / 2;
+      let y = h / 2;
+      let angle = -Math.PI / 2;
+      const stack = [];
+      let repeats = 1;
+
+      for (let i = 0; i < prod.length; i++) {
+        const ch = prod.charAt(i);
+        if (ch === 'F') {
+          for (let j = 0; j < repeats; j++) {
+            const nx = x + Math.cos(angle) * len;
+            const ny = y + Math.sin(angle) * len;
+            segments.push({ x1: x, y1: y, x2: nx, y2: ny });
+            x = nx;
+            y = ny;
+          }
+          repeats = 1;
+        } else if (ch === '+') {
+          angle += theta * repeats;
+          repeats = 1;
+        } else if (ch === '-') {
+          angle -= theta * repeats;
+          repeats = 1;
+        } else if (ch === '[') {
+          stack.push({ x, y, angle });
+        } else if (ch === ']') {
+          const s = stack.pop();
+          x = s.x;
+          y = s.y;
+          angle = s.angle;
+        } else {
+          const code = ch.charCodeAt(0);
+          if (code >= 48 && code <= 57) {
+            repeats = code - 48;
+          }
+        }
+      }
+      return segments;
+    }
+
+    // Build rhombus shapes from adjacent segment pairs
+    // Group segments into rhombuses by finding pairs that share an endpoint
+    function buildShapes(segments, len) {
+      const tolerance = len * 0.01;
+      const used = new Set();
+      const shapes = [];
+
+      function ptKey(x, y) {
+        return Math.round(x / tolerance) + ',' + Math.round(y / tolerance);
+      }
+
+      // Index segments by their endpoints
+      const byStart = {};
+      const byEnd = {};
+      segments.forEach((seg, idx) => {
+        const sk = ptKey(seg.x1, seg.y1);
+        const ek = ptKey(seg.x2, seg.y2);
+        if (!byStart[sk]) byStart[sk] = [];
+        if (!byEnd[ek]) byEnd[ek] = [];
+        byStart[sk].push(idx);
+        byEnd[ek].push(idx);
+      });
+
+      // Try to form rhombuses: two segments sharing a start point
+      for (const key in byStart) {
+        const indices = byStart[key];
+        for (let a = 0; a < indices.length; a++) {
+          for (let b = a + 1; b < indices.length; b++) {
+            const ia = indices[a];
+            const ib = indices[b];
+            if (used.has(ia) || used.has(ib)) continue;
+            const sa = segments[ia];
+            const sb = segments[ib];
+
+            // Form a rhombus: shared start -> end_a, shared start -> end_b
+            // Fourth point = end_a + end_b - start
+            const x4 = sa.x2 + sb.x2 - sa.x1;
+            const y4 = sa.y2 + sb.y2 - sa.y1;
+
+            shapes.push({
+              points: [
+                { x: sa.x1, y: sa.y1 },
+                { x: sa.x2, y: sa.y2 },
+                { x: x4, y: y4 },
+                { x: sb.x2, y: sb.y2 }
+              ]
+            });
+            used.add(ia);
+            used.add(ib);
+          }
+        }
+      }
+
+      // Any remaining unpaired segments become thin clickable lines
+      segments.forEach((seg, idx) => {
+        if (!used.has(idx)) {
+          shapes.push({
+            points: [
+              { x: seg.x1, y: seg.y1 },
+              { x: seg.x2, y: seg.y2 }
+            ]
+          });
+        }
+      });
+
+      return shapes;
+    }
+
+    // Colour palettes
+    const PALETTES = [
+      ['#c8a2c8', '#8e6b8e', '#d4a0d4', '#6a4c6a', '#b388b3'],
+      ['#e8c170', '#c49840', '#f0d890', '#a07830', '#d8b060'],
+      ['#70c8e8', '#4098c0', '#90d8f0', '#3078a0', '#60b0d8'],
+      ['#c8e870', '#98c040', '#d8f090', '#78a030', '#b0d860'],
+      ['#e87070', '#c04040', '#f09090', '#a03030', '#d86060'],
+    ];
+    const paletteRandomiser = new CyclicRandomiser(PALETTES);
+
+    function render() {
+      const canvas = document.getElementById('penrose-canvas');
+      const ctx = canvas.getContext('2d');
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      canvas.width = w;
+      canvas.height = h;
+
+      const svg = document.getElementById('link-layer');
+      svg.setAttribute('width', w);
+      svg.setAttribute('height', h);
+      svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+      svg.innerHTML = '';
+
+      // Scale drawLength to fit the screen
+      const minDim = Math.min(w, h);
+      const scaledLen = drawLength * (minDim / 520);
+
+      const segments = traceSegments(production, scaledLen, w, h);
+      const shapes = buildShapes(segments, scaledLen);
+
+      // Pick a random palette
+      const palette = paletteRandomiser.nextOne();
+
+      // Draw on canvas (the visual layer)
+      ctx.fillStyle = '#0a0a0f';
+      ctx.fillRect(0, 0, w, h);
+
+      shapes.forEach((shape, i) => {
+        const color = palette[i % palette.length];
+        if (shape.points.length >= 3) {
+          // Rhombus
+          ctx.beginPath();
+          ctx.moveTo(shape.points[0].x, shape.points[0].y);
+          for (let p = 1; p < shape.points.length; p++) {
+            ctx.lineTo(shape.points[p].x, shape.points[p].y);
+          }
+          ctx.closePath();
+          ctx.fillStyle = color + '40';
+          ctx.fill();
+          ctx.strokeStyle = color + 'cc';
+          ctx.lineWidth = 0.8;
+          ctx.stroke();
+        } else {
+          // Line segment
+          ctx.beginPath();
+          ctx.moveTo(shape.points[0].x, shape.points[0].y);
+          ctx.lineTo(shape.points[1].x, shape.points[1].y);
+          ctx.strokeStyle = color + '99';
+          ctx.lineWidth = 0.6;
+          ctx.stroke();
+        }
+      });
+
+      // Create SVG link overlays
+      shapes.forEach((shape, i) => {
+        const a = document.createElementNS('http://www.w3.org/2000/svg', 'a');
+        a.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', pageRandomiser.nextOne());
+        a.setAttribute('href', pageRandomiser.nextOne());
+
+        const color = palette[i % palette.length];
+
+        if (shape.points.length >= 3) {
+          const poly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+          const pts = shape.points.map(p => `${p.x},${p.y}`).join(' ');
+          poly.setAttribute('points', pts);
+          poly.setAttribute('fill', 'transparent');
+          poly.setAttribute('stroke', 'transparent');
+          poly.setAttribute('stroke-width', '1');
+          poly.style.cssText = 'cursor:pointer;';
+
+          poly.addEventListener('mouseenter', () => {
+            poly.setAttribute('fill', color + '60');
+            poly.setAttribute('stroke', '#ffffff99');
+            poly.setAttribute('stroke-width', '1.5');
+          });
+          poly.addEventListener('mouseleave', () => {
+            poly.setAttribute('fill', 'transparent');
+            poly.setAttribute('stroke', 'transparent');
+            poly.setAttribute('stroke-width', '1');
+          });
+
+          a.appendChild(poly);
+        } else {
+          const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+          line.setAttribute('x1', shape.points[0].x);
+          line.setAttribute('y1', shape.points[0].y);
+          line.setAttribute('x2', shape.points[1].x);
+          line.setAttribute('y2', shape.points[1].y);
+          line.setAttribute('stroke', 'transparent');
+          line.setAttribute('stroke-width', '6');
+          line.style.cssText = 'cursor:pointer;';
+
+          line.addEventListener('mouseenter', () => {
+            line.setAttribute('stroke', '#ffffff66');
+            line.setAttribute('stroke-width', '6');
+          });
+          line.addEventListener('mouseleave', () => {
+            line.setAttribute('stroke', 'transparent');
+          });
+
+          a.appendChild(line);
+        }
+
+        svg.appendChild(a);
+      });
+    }
+
+    render();
+
+    window.addEventListener('resize', render);
+
+    // Regenerate on keydown
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey || e.altKey || e.shiftKey || e.metaKey) return;
+      if (e.key === 'Tab' || e.key === 'F5') return;
+
+      render();
+    });
+
+  </script>
+</body>
+
+</html>

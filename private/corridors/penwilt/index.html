@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+Another try at an implementation of penrose tiling (see "penfell")
+This one is even worse though.
+And because it's even worse, I need an even worse pun: the penrose penwilted.
+
+I'm still going to publish both of these, because I do think they're interesting.
+That's one of the fun things about making proc-gen stuff.
+The failures are often as pretty as the intended result.
+-->
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Failure to implement penrose tiling">
+  <title>Aperiodicted</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body,
+    html {
+      width: 100%;
+      height: 100%;
+      background: #0a0a0f;
+      overflow: hidden;
+    }
+
+    svg {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    .tile {
+      stroke: rgba(255, 255, 255, 0.15);
+      stroke-width: 0.8;
+      cursor: pointer;
+      transition: opacity 0.3s ease;
+      text-decoration: none;
+    }
+
+    .tile:hover polygon {
+      stroke: rgba(255, 255, 255, 0.8);
+      stroke-width: 1.5;
+      filter: brightness(1.6);
+    }
+
+    /* Will I ever get bored of CRT scanlines? */
+    body::after {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 10;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 255, 0, 0.03));
+      background-size: 100% 2px, 3px 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <svg id="svg-canvas" xmlns="http://www.w3.org/2000/svg"></svg>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/penfell";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const svg = document.getElementById('svg-canvas');
+    const PHI = (1 + Math.sqrt(5)) / 2;
+
+    // Colour palettes
+    const PALETTES = [
+      { thin: '#2a1a4e', thick: '#4a2a7a', name: 'ultraviolet' },
+      { thin: '#1a3a2e', thick: '#2a6a4e', name: 'malachite' },
+      { thin: '#3a1a1a', thick: '#7a2a2a', name: 'garnet' },
+      { thin: '#1a2a3a', thick: '#2a4a6a', name: 'midnight' },
+      { thin: '#3a2a1a', thick: '#6a4a2a', name: 'amber' },
+      { thin: '#2a2a3a', thick: '#4a4a6a', name: 'slate' },
+    ];
+    const paletteRandomiser = new CyclicRandomiser(PALETTES);
+
+    // Penrose P3 tiling via de Bruijn subdivision
+    // Triangle types: 0 = thin half, 1 = thick half
+    function subdivide(triangles) {
+      const result = [];
+      for (const [type, a, b, c] of triangles) {
+        if (type === 0) {
+          // Thin triangle subdivision
+          const p = [
+            a[0] + (b[0] - a[0]) / PHI,
+            a[1] + (b[1] - a[1]) / PHI
+          ];
+          result.push([0, c, p, b]);
+          result.push([1, p, c, a]);
+        } else {
+          // Thick triangle subdivision
+          const q = [
+            b[0] + (a[0] - b[0]) / PHI,
+            b[1] + (a[1] - b[1]) / PHI
+          ];
+          const r = [
+            b[0] + (c[0] - b[0]) / PHI,
+            b[1] + (c[1] - b[1]) / PHI
+          ];
+          result.push([1, q, r, b]);
+          result.push([1, r, q, a]);
+          result.push([0, r, c, a]);
+        }
+      }
+      return result;
+    }
+
+    // Merge triangle halves into rhombuses
+    function mergeToRhombi(triangles) {
+      const EPS = 0.5;
+      const key = (p) => `${Math.round(p[0] * 10)}:${Math.round(p[1] * 10)}`;
+
+      const used = new Set();
+      const rhombi = [];
+
+      for (let i = 0; i < triangles.length; i++) {
+        if (used.has(i)) continue;
+        const [t1, a1, b1, c1] = triangles[i];
+
+        let matched = false;
+        for (let j = i + 1; j < triangles.length; j++) {
+          if (used.has(j)) continue;
+          const [t2, a2, b2, c2] = triangles[j];
+          if (t1 !== t2) continue;
+
+          // Check if they share edge b-c (mirrored)
+          const d1 = Math.hypot(b1[0] - c2[0], b1[1] - c2[1]);
+          const d2 = Math.hypot(c1[0] - b2[0], c1[1] - b2[1]);
+
+          if (d1 < EPS && d2 < EPS) {
+            // Merge into rhombus: a1, b1, a2, c1
+            rhombi.push({ type: t1, points: [a1, b1, a2, c1] });
+            used.add(i);
+            used.add(j);
+            matched = true;
+            break;
+          }
+        }
+
+        if (!matched) {
+          // Unpaired triangle - show as-is
+          rhombi.push({ type: t1, points: [a1, b1, c1] });
+          used.add(i);
+        }
+      }
+
+      return rhombi;
+    }
+
+    function render() {
+      const W = window.innerWidth;
+      const H = window.innerHeight;
+      const cx = W / 2;
+      const cy = H / 2;
+      const radius = Math.max(W, H) * 0.9;
+
+      // Start with a wheel of thick triangles
+      let triangles = [];
+      const n = 10;
+      for (let i = 0; i < n; i++) {
+        const a1 = (2 * Math.PI * i) / n - Math.PI / 2;
+        const a2 = (2 * Math.PI * (i + 1)) / n - Math.PI / 2;
+
+        const p0 = [cx, cy];
+        const p1 = [cx + radius * Math.cos(a1), cy + radius * Math.sin(a1)];
+        const p2 = [cx + radius * Math.cos(a2), cy + radius * Math.sin(a2)];
+
+        if (i % 2 === 0) {
+          triangles.push([1, p0, p1, p2]);
+        } else {
+          triangles.push([1, p0, p2, p1]);
+        }
+      }
+
+      // Subdivide
+      const iterations = 6;
+      for (let i = 0; i < iterations; i++) {
+        triangles = subdivide(triangles);
+      }
+
+      // Merge into rhombi
+      const shapes = mergeToRhombi(triangles);
+
+      // Filter to visible shapes
+      const visible = shapes.filter(s => {
+        return s.points.some(p =>
+          p[0] >= -50 && p[0] <= W + 50 &&
+          p[1] >= -50 && p[1] <= H + 50
+        );
+      });
+
+      // Write to the SVG
+      const palette = paletteRandomiser.nextOne();
+      svg.innerHTML = '';
+
+      for (const shape of visible) {
+        const pts = shape.points.map(p => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ');
+        const fill = shape.type === 0 ? palette.thin : palette.thick;
+
+        const a = document.createElementNS('http://www.w3.org/2000/svg', 'a');
+        a.setAttributeNS('http://www.w3.org/1999/xlink', 'href', pageRandomiser.nextOne());
+        a.setAttribute('class', 'tile');
+
+        const poly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+        poly.setAttribute('points', pts);
+        poly.setAttribute('fill', fill);
+
+        a.appendChild(poly);
+        svg.appendChild(a);
+      }
+    }
+
+    render();
+
+    window.addEventListener('resize', render);
+
+    // Rerender on keydown
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey || e.altKey || e.shiftKey || e.metaKey) return;
+      if (e.key === 'Tab' || e.key === 'F5') return;
+
+      render();
+    });
+
+  </script>
+</body>
+
+</html>

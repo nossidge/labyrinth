@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Shell shock">
+  <title>They think it's all ova</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #1a0a2e;
+    }
+
+    #egg-field {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .egg-group {
+      position: absolute;
+      pointer-events: none;
+    }
+
+    .egg-group a {
+      pointer-events: auto;
+      display: block;
+      position: absolute;
+      text-decoration: none;
+      transition: transform 0.2s ease;
+    }
+
+    .egg-group a:hover {
+      transform: scale(1.15);
+      filter: brightness(1.3);
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 100;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.10) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
+      background-size: 100% 2px, 3px 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+  <div id="egg-field"></div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/easter-eggs";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const field = document.getElementById('egg-field');
+
+    // Bright Easter palette pools
+    const SHELL_COLORS = [
+      '#ff6b9d', '#ff85a1', '#ff1493', '#ff69b4',
+      '#a855f7', '#c084fc', '#9333ea', '#7c3aed',
+      '#38bdf8', '#22d3ee', '#06b6d4', '#67e8f9',
+      '#4ade80', '#34d399', '#22c55e', '#86efac',
+      '#fbbf24', '#f59e0b', '#facc15', '#fde047',
+      '#fb923c', '#f97316', '#fdba74', '#fed7aa',
+      '#f472b6', '#ec4899', '#e879f9', '#d946ef',
+    ];
+    const ACCENT_COLORS = [
+      '#ffffff', '#fff9c4', '#fce4ec', '#e1f5fe',
+      '#f3e5f5', '#e8f5e9', '#fff3e0', '#fff8e1',
+    ];
+
+    const shellRandomiser = new CyclicRandomiser(SHELL_COLORS);
+    const accentRandomiser = new CyclicRandomiser(ACCENT_COLORS);
+
+    // 20 egg decoration types
+    // Each returns SVG markup for the egg interior decorations
+    // This was designed to be very easy to add more to later if I wanted
+    // Add new designs as a function, taking in (w, h, accent)
+    // They'll be curried later on, so make sure the signatures are the same
+
+    // 1. Zigzag band across the middle
+    function makeZigzagBand(w, h, accent) {
+      const cy = h * 0.5;
+      const amp = h * 0.08;
+      const teeth = 6;
+      const step = w / teeth;
+      let d = `M 0 ${cy}`;
+      for (let i = 0; i < teeth; i++) {
+        const x1 = step * (i + 0.5);
+        const y1 = cy + (i % 2 === 0 ? -amp : amp);
+        const x2 = step * (i + 1);
+        d += ` L ${x1} ${y1} L ${x2} ${cy}`;
+      }
+      return `<path d="${d}" fill="none" stroke="${accent}" stroke-width="${w * 0.03}" stroke-linecap="round"/>`;
+    }
+
+    // 2. Three rows of dots
+    function makeDotRings(w, h, accent) {
+      let dots = '';
+      const rows = [0.3, 0.5, 0.7];
+      for (const ry of rows) {
+        const cy = h * ry;
+        const count = 5;
+        for (let i = 0; i < count; i++) {
+          const cx = w * (0.25 + (i / (count - 1)) * 0.5);
+          const r = w * 0.03;
+          dots += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${accent}"/>`;
+        }
+      }
+      return dots;
+    }
+
+    // 3. Cool S glyph
+    function makeCoolS(w, h, accent) {
+      const cx = w / 2;
+      const cy = h / 2;
+      const s = Math.min(w, h) * 0.25;
+      const sx = cx - s * 0.42;
+      const sy = cy - s * 0.92;
+      return `<g transform="translate(${sx}, ${sy}) scale(${s / 6})">
+        <path fill="none" stroke="${accent}" stroke-width="0.5" stroke-linecap="round" stroke-linejoin="round"
+          d="M3 9V7L1 5V3L3 1 5 3V5L4 6"/>
+        <path fill="none" stroke="${accent}" stroke-width="0.5" stroke-linecap="round" stroke-linejoin="round"
+          d="M3 3V5L5 7V9L3 11 1 9V7L2 6"/>
+      </g>`;
+    }
+
+    // 4. Diagonal stripes
+    function makeStripes(w, h, accent) {
+      let s = '';
+      const count = 7;
+      for (let i = 0; i < count; i++) {
+        const x = w * (i / count);
+        s += `<line x1="${x}" y1="0" x2="${x + w * 0.15}" y2="${h}"
+          stroke="${accent}" stroke-width="${w * 0.025}" opacity="0.7"/>`;
+      }
+      return s;
+    }
+
+    // 5. Horizontal bands
+    function makeHorizontalBands(w, h, accent) {
+      let s = '';
+      const bands = [0.3, 0.45, 0.6, 0.75];
+      for (const y of bands) {
+        s += `<line x1="${w * 0.1}" y1="${h * y}" x2="${w * 0.9}" y2="${h * y}"
+          stroke="${accent}" stroke-width="${w * 0.03}" stroke-linecap="round"/>`;
+      }
+      return s;
+    }
+
+    // 6. Concentric ovals
+    function makeConcentricOvals(w, h, accent) {
+      let s = '';
+      for (let i = 3; i >= 1; i--) {
+        const rx = w * 0.12 * i;
+        const ry = h * 0.1 * i;
+        s += `<ellipse cx="${w / 2}" cy="${h * 0.55}" rx="${rx}" ry="${ry}"
+          fill="none" stroke="${accent}" stroke-width="${w * 0.02}" opacity="${0.4 + i * 0.2}"/>`;
+      }
+      return s;
+    }
+
+    // 7. Cross / plus sign
+    function makeCross(w, h, accent) {
+      const cx = w / 2, cy = h * 0.55;
+      const arm = Math.min(w, h) * 0.2;
+      return `<line x1="${cx - arm}" y1="${cy}" x2="${cx + arm}" y2="${cy}"
+        stroke="${accent}" stroke-width="${w * 0.04}" stroke-linecap="round"/>
+      <line x1="${cx}" y1="${cy - arm}" x2="${cx}" y2="${cy + arm}"
+        stroke="${accent}" stroke-width="${w * 0.04}" stroke-linecap="round"/>`;
+    }
+
+    // 8. Diamond shape
+    function makeDiamond(w, h, accent) {
+      const cx = w / 2, cy = h * 0.55;
+      const dx = w * 0.2, dy = h * 0.18;
+      return `<polygon points="${cx},${cy - dy} ${cx + dx},${cy} ${cx},${cy + dy} ${cx - dx},${cy}"
+        fill="none" stroke="${accent}" stroke-width="${w * 0.025}"/>`;
+    }
+
+    // 9. Wavy horizontal lines
+    function makeWaves(w, h, accent) {
+      let s = '';
+      const rows = [0.35, 0.5, 0.65];
+      for (const ry of rows) {
+        const y = h * ry;
+        const amp = h * 0.04;
+        let d = `M ${w * 0.15} ${y}`;
+        for (let x = 0.2; x <= 0.85; x += 0.05) {
+          const py = y + Math.sin((x - 0.15) * 40) * amp;
+          d += ` L ${w * x} ${py}`;
+        }
+        s += `<path d="${d}" fill="none" stroke="${accent}" stroke-width="${w * 0.02}" stroke-linecap="round"/>`;
+      }
+      return s;
+    }
+
+    // 10. Starburst / asterisk
+    function makeStarburst(w, h, accent) {
+      let s = '';
+      const cx = w / 2, cy = h * 0.55;
+      const r = Math.min(w, h) * 0.2;
+      for (let i = 0; i < 6; i++) {
+        const a = (Math.PI / 3) * i;
+        s += `<line x1="${cx}" y1="${cy}" x2="${cx + Math.cos(a) * r}" y2="${cy + Math.sin(a) * r}"
+          stroke="${accent}" stroke-width="${w * 0.02}" stroke-linecap="round"/>`;
+      }
+      return s;
+    }
+
+    // 11. Polka dots scattered
+    function makePolkaDots(w, h, accent) {
+      let s = '';
+      const positions = [
+        [0.35, 0.35], [0.65, 0.35], [0.50, 0.50],
+        [0.35, 0.65], [0.65, 0.65], [0.50, 0.80],
+        [0.35, 0.50], [0.65, 0.50],
+      ];
+      for (const [px, py] of positions) {
+        s += `<circle cx="${w * px}" cy="${h * py}" r="${w * 0.04}" fill="${accent}" opacity="0.8"/>`;
+      }
+      return s;
+    }
+
+    // 12. Chevrons (V shapes stacked)
+    function makeChevrons(w, h, accent) {
+      let s = '';
+      const rows = [0.40, 0.55, 0.70];
+      for (const ry of rows) {
+        const y = h * ry;
+        const span = w * 0.25;
+        s += `<polyline points="${w / 2 - span},${y - h * 0.04} ${w / 2},${y + h * 0.04} ${w / 2 + span},${y - h * 0.04}"
+          fill="none" stroke="${accent}" stroke-width="${w * 0.025}" stroke-linecap="round" stroke-linejoin="round"/>`;
+      }
+      return s;
+    }
+
+    // 13. Spiral
+    function makeSpiral(w, h, accent) {
+      const cx = w / 2, cy = h * 0.55;
+      let d = `M ${cx} ${cy}`;
+      const turns = 2.5;
+      const steps = 40;
+      for (let i = 1; i <= steps; i++) {
+        const t = (i / steps) * turns * Math.PI * 2;
+        const r = (i / steps) * Math.min(w, h) * 0.22;
+        d += ` L ${cx + Math.cos(t) * r} ${cy + Math.sin(t) * r}`;
+      }
+      return `<path d="${d}" fill="none" stroke="${accent}" stroke-width="${w * 0.02}" stroke-linecap="round"/>`;
+    }
+
+    // 14. White rose of Yorkshire
+    function makeWhiteRose(w, h, accent) {
+      let s = '';
+      const cx = w / 2, cy = h * 0.55;
+      const r = Math.min(w, h) * 0.15;
+      for (let i = 0; i < 5; i++) {
+        const a = (Math.PI * 2 / 5) * i - Math.PI / 2;
+        const px = cx + Math.cos(a) * r * 0.6;
+        const py = cy + Math.sin(a) * r * 0.6;
+        s += `<ellipse cx="${px}" cy="${py}" rx="${r * 0.45}" ry="${r * 0.25}"
+          fill="none" stroke="${accent}" stroke-width="${w * 0.02}"
+          transform="rotate(${(a * 180 / Math.PI) + 90}, ${px}, ${py})"/>`;
+      }
+      s += `<circle cx="${cx}" cy="${cy}" r="${w * 0.04}" fill="${accent}"/>`;
+      return s;
+    }
+
+    // 15. Grid / windowpane
+    function makeGrid(w, h, accent) {
+      let s = '';
+      for (let i = 1; i <= 2; i++) {
+        const x = w * (0.25 + i * 0.17);
+        s += `<line x1="${x}" y1="${h * 0.3}" x2="${x}" y2="${h * 0.8}"
+          stroke="${accent}" stroke-width="${w * 0.015}"/>`;
+      }
+      for (let i = 1; i <= 3; i++) {
+        const y = h * (0.2 + i * 0.15);
+        s += `<line x1="${w * 0.2}" y1="${y}" x2="${w * 0.8}" y2="${y}"
+          stroke="${accent}" stroke-width="${w * 0.015}"/>`;
+      }
+      return s;
+    }
+
+    // 16. Hearts
+    function makeHearts(w, h, accent) {
+      let s = '';
+      const positions = [[0.5, 0.45], [0.35, 0.6], [0.65, 0.6]];
+      for (const [px, py] of positions) {
+        const x = w * px, y = h * py;
+        const sz = w * 0.06;
+        s += `<path d="M ${x} ${y + sz * 0.3}
+          C ${x} ${y - sz * 0.3} ${x - sz} ${y - sz * 0.3} ${x - sz} ${y + sz * 0.1}
+          C ${x - sz} ${y + sz * 0.6} ${x} ${y + sz} ${x} ${y + sz}
+          C ${x} ${y + sz} ${x + sz} ${y + sz * 0.6} ${x + sz} ${y + sz * 0.1}
+          C ${x + sz} ${y - sz * 0.3} ${x} ${y - sz * 0.3} ${x} ${y + sz * 0.3} Z"
+          fill="${accent}" opacity="0.8"/>`;
+      }
+      return s;
+    }
+
+    // 17. Stars (five-pointed)
+    function makeStars(w, h, accent) {
+      let s = '';
+      const positions = [[0.5, 0.45], [0.35, 0.65], [0.65, 0.65]];
+      for (const [px, py] of positions) {
+        const cx = w * px, cy = h * py;
+        const r = w * 0.07, ri = r * 0.4;
+        let pts = '';
+        for (let i = 0; i < 5; i++) {
+          const aOuter = (Math.PI * 2 / 5) * i - Math.PI / 2;
+          const aInner = aOuter + Math.PI / 5;
+          pts += `${cx + Math.cos(aOuter) * r},${cy + Math.sin(aOuter) * r} `;
+          pts += `${cx + Math.cos(aInner) * ri},${cy + Math.sin(aInner) * ri} `;
+        }
+        s += `<polygon points="${pts}" fill="${accent}" opacity="0.8"/>`;
+      }
+      return s;
+    }
+
+    // 18. Criss-cross / hatching
+    function makeCrissCross(w, h, accent) {
+      let s = '';
+      const count = 5;
+      for (let i = 0; i < count; i++) {
+        const x = w * (0.2 + (i / (count - 1)) * 0.6);
+        s += `<line x1="${x}" y1="${h * 0.3}" x2="${w - x}" y2="${h * 0.75}"
+          stroke="${accent}" stroke-width="${w * 0.015}" opacity="0.6"/>`;
+      }
+      return s;
+    }
+
+    // 19. Scalloped edge band
+    function makeScallops(w, h, accent) {
+      let s = '';
+      const rows = [0.4, 0.6];
+      for (const ry of rows) {
+        const y = h * ry;
+        const count = 5;
+        const step = (w * 0.7) / count;
+        const startX = w * 0.15;
+        let d = `M ${startX} ${y}`;
+        for (let i = 0; i < count; i++) {
+          const x1 = startX + step * i;
+          const x2 = x1 + step;
+          d += ` Q ${(x1 + x2) / 2} ${y - h * 0.06} ${x2} ${y}`;
+        }
+        s += `<path d="${d}" fill="none" stroke="${accent}" stroke-width="${w * 0.02}" stroke-linecap="round"/>`;
+      }
+      return s;
+    }
+
+    // 20. Dotted ring around the middle
+    function makeDottedRing(w, h, accent) {
+      let s = '';
+      const cx = w / 2, cy = h * 0.55;
+      const rx = w * 0.3, ry = h * 0.22;
+      const count = 12;
+      for (let i = 0; i < count; i++) {
+        const a = (Math.PI * 2 / count) * i;
+        const x = cx + Math.cos(a) * rx;
+        const y = cy + Math.sin(a) * ry;
+        s += `<circle cx="${x}" cy="${y}" r="${w * 0.025}" fill="${accent}"/>`;
+      }
+      return s;
+    }
+
+    const decorators = [
+      makeZigzagBand, makeDotRings, makeCoolS, makeStripes,
+      makeHorizontalBands, makeConcentricOvals, makeCross, makeDiamond,
+      makeWaves, makeStarburst, makePolkaDots, makeChevrons,
+      makeSpiral, makeWhiteRose, makeGrid, makeHearts,
+      makeStars, makeCrissCross, makeScallops, makeDottedRing,
+    ];
+    const decorRandomiser = new CyclicRandomiser(
+      Array.from({ length: decorators.length }, (_, i) => i)
+    );
+
+    function createEggSVG(size) {
+      const w = size;
+      const h = size * 1.3;
+      const shell = shellRandomiser.nextOne();
+      const accent = accentRandomiser.nextOne();
+      const decorIdx = decorRandomiser.nextOne();
+      const decoration = decorators[decorIdx](w, h, accent);
+
+      // Egg shape via ellipse with a slightly pointy top
+      const clipId = 'ec-' + Math.random().toString(36).slice(2);
+      return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+        <defs>
+          <clipPath id="${clipId}">
+            <ellipse cx="${w / 2}" cy="${h * 0.55}" rx="${w * 0.45}" ry="${h * 0.44}"/>
+          </clipPath>
+        </defs>
+        <ellipse cx="${w / 2}" cy="${h * 0.55}" rx="${w * 0.45}" ry="${h * 0.44}"
+          fill="${shell}" stroke="${accent}" stroke-width="${w * 0.02}"/>
+        <g clip-path="url(#${clipId})">
+          ${decoration}
+        </g>
+        <ellipse cx="${w / 2}" cy="${h * 0.55}" rx="${w * 0.45}" ry="${h * 0.44}"
+          fill="none" stroke="${accent}" stroke-width="${w * 0.015}" opacity="0.4"/>
+      </svg>`;
+    }
+
+    // Checkerboard formation:
+    // NW=small  NE=large
+    // SW=large  SE=small
+    const SMALL_SIZE = 50;
+    const LARGE_SIZE = 100;
+    const GROUP_W = LARGE_SIZE + SMALL_SIZE + 20;
+    const GROUP_H = LARGE_SIZE * 1.3 + SMALL_SIZE * 1.3 + 20;
+
+    function createEggGroup() {
+      const group = document.createElement('div');
+      group.className = 'egg-group';
+      group.style.width = GROUP_W + 'px';
+      group.style.height = GROUP_H + 'px';
+
+      // NW - small
+      const nw = document.createElement('a');
+      nw.classList.add('egg-nw');
+      nw.href = pageRandomiser.nextOne();
+      nw.innerHTML = createEggSVG(SMALL_SIZE);
+      nw.style.left = '0px';
+      nw.style.top = '65px';
+      group.appendChild(nw);
+
+      // NE - large
+      const ne = document.createElement('a');
+      nw.classList.add('egg-ne');
+      ne.href = pageRandomiser.nextOne();
+      ne.innerHTML = createEggSVG(LARGE_SIZE);
+      ne.style.left = (SMALL_SIZE + 10) + 'px';
+      ne.style.top = '0px';
+      group.appendChild(ne);
+
+      // SW - large
+      const sw = document.createElement('a');
+      nw.classList.add('egg-sw');
+      sw.href = pageRandomiser.nextOne();
+      sw.innerHTML = createEggSVG(LARGE_SIZE);
+      sw.style.left = '0px';
+      sw.style.top = (LARGE_SIZE * 1.3 + 10) + 'px';
+      group.appendChild(sw);
+
+      // SE - small
+      const se = document.createElement('a');
+      nw.classList.add('egg-se');
+      se.href = pageRandomiser.nextOne();
+      se.innerHTML = createEggSVG(SMALL_SIZE);
+      se.style.left = (LARGE_SIZE + 10) + 'px';
+      se.style.top = (LARGE_SIZE * 1.3 + 10) + 'px';
+      group.appendChild(se);
+
+      return group;
+    }
+
+    // Movement: each group is an independent container moving toward the top-right
+    // Groups spawn off-screen bottom-left and are destroyed when they exit top-right
+    const SPEED = 0.8;
+    const ANGLE = -Math.PI / 6; // 30 degrees above horizontal, toward top-right
+    const DX = Math.cos(ANGLE) * SPEED;
+    const DY = Math.sin(ANGLE) * SPEED;
+
+    const groups = [];
+    const GAP_W = 0;
+    const GAP_H = 26;
+    const TILE_W = GROUP_W + GAP_W;
+    const TILE_H = GROUP_H + GAP_H;
+
+    // Work out how many columns and rows we need to cover the screen,
+    // plus a buffer ring so groups are ready just off-screen
+    const COLS = Math.ceil(window.innerWidth / TILE_W) + 3;
+    const ROWS = Math.ceil(window.innerHeight / TILE_H) + 3;
+
+    function addGroup(x, y) {
+      const g = createEggGroup();
+      g._x = x;
+      g._y = y;
+      g.style.left = x + 'px';
+      g.style.top = y + 'px';
+      field.appendChild(g);
+      groups.push(g);
+    }
+
+    // Seed the screen with groups in a grid, offset so some start off-screen
+    // on all sides to avoid a visible "pop-in"
+    for (let row = -2; row < ROWS; row++) {
+      for (let col = -2; col < COLS; col++) {
+        addGroup(col * TILE_W, row * TILE_H);
+      }
+    }
+
+    // Track the cumulative offset so we know exactly where the grid has drifted
+    let offsetX = 0;
+    let offsetY = 0;
+
+    // Track which grid slots (col, row) have a live group so we don't double-spawn
+    const liveSlots = new Set();
+
+    // Register the initial seed groups
+    for (const g of groups) {
+      const col = Math.round(g._x / TILE_W);
+      const row = Math.round(g._y / TILE_H);
+      g._col = col;
+      g._row = row;
+      liveSlots.add(col + ',' + row);
+    }
+
+    function animate() {
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+
+      // Advance the global offset
+      offsetX += DX;
+      offsetY += DY;
+
+      // Move all groups
+      for (let i = groups.length - 1; i >= 0; i--) {
+        const g = groups[i];
+        g._x += DX;
+        g._y += DY;
+
+        // Destroy if fully off-screen toward top-right
+        if (g._x > vw + GROUP_W || g._y < -GROUP_H * 2) {
+          liveSlots.delete(g._col + ',' + g._row);
+          field.removeChild(g);
+          groups.splice(i, 1);
+        } else {
+          g.style.left = g._x + 'px';
+          g.style.top = g._y + 'px';
+        }
+      }
+
+      // Work out which grid slots should be visible right now
+      // A slot (col, row) maps to screen position:
+      //   x = col * TILE_W + offsetX
+      //   y = row * TILE_H + offsetY
+      // We need to cover from a bit off-screen left/top to a bit off-screen right/bottom
+      const minCol = Math.floor((-offsetX - GROUP_W) / TILE_W) - 1;
+      const maxCol = Math.ceil((-offsetX + vw + GROUP_W) / TILE_W) + 1;
+      const minRow = Math.floor((-offsetY - GROUP_H * 2) / TILE_H) - 1;
+      const maxRow = Math.ceil((-offsetY + vh + GROUP_H) / TILE_H) + 1;
+
+      for (let col = minCol; col <= maxCol; col++) {
+        for (let row = minRow; row <= maxRow; row++) {
+          const key = col + ',' + row;
+          if (liveSlots.has(key)) continue;
+
+          const x = col * TILE_W + offsetX;
+          const y = row * TILE_H + offsetY;
+
+          // Only spawn if it's in the buffer zone (not already way off-screen)
+          if (x > vw + GROUP_W || x < -GROUP_W * 2) continue;
+          if (y > vh + GROUP_H || y < -GROUP_H * 2) continue;
+
+          const g = createEggGroup();
+          g._x = x;
+          g._y = y;
+          g._col = col;
+          g._row = row;
+          g.style.left = x + 'px';
+          g.style.top = y + 'px';
+          field.appendChild(g);
+          groups.push(g);
+          liveSlots.add(key);
+        }
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    requestAnimationFrame(animate);
+
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+This was originally going to be a crystal ball, but I liked the effect that I created,
+so I've pivoted the theming. This is now sort of a cross between a plasma ball and
+a Van de Graaff generator, with a bit of "Galaxy on Orion's belt" in there too.
+-->
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Great balls of Tesla">
+  <title>Electrostatics</title>
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #0a0a12;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: Georgia, serif;
+      user-select: none;
+    }
+
+    #globe-container {
+      position: relative;
+      width: clamp(220px, 50vw, 420px);
+      height: clamp(220px, 50vw, 420px);
+      border-radius: 50%;
+      background: radial-gradient(circle at 40% 35%, rgba(80, 60, 120, 0.2), rgba(10, 5, 30, 0.7));
+      border: 2px solid rgba(140, 120, 200, 0.25);
+      box-shadow:
+        inset 0 0 80px rgba(100, 60, 180, 0.15),
+        0 0 60px rgba(100, 60, 180, 0.1),
+        0 8px 40px rgba(0, 0, 0, 0.5);
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    /* Canvas for the swirling galaxy inside */
+    #galaxy-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      z-index: 1;
+    }
+
+    /* Lightning arc canvas (Van de Graaff effect) */
+    #arc-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 20;
+    }
+  </style>
+</head>
+
+<body>
+  <a id="globe-container" href="../index.html">
+    <canvas id="galaxy-canvas"></canvas>
+  </a>
+  <canvas id="arc-canvas"></canvas>
+
+  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script>
+    const currentPage = "corridors/plasma-ball";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const globe = document.getElementById('globe-container');
+    const galaxyCanvas = document.getElementById('galaxy-canvas');
+    const arcCanvas = document.getElementById('arc-canvas');
+    const gCtx = galaxyCanvas.getContext('2d');
+    const aCtx = arcCanvas.getContext('2d');
+
+    // Useful randomisation helper
+    function rand(min, max) { return Math.random() * (max - min) + min; }
+
+    // Swirling nebula/galaxy inside the ball
+    let gW, gH, gCx, gCy;
+    function resizeGalaxy() {
+      const rect = globe.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      galaxyCanvas.width = rect.width * dpr;
+      galaxyCanvas.height = rect.height * dpr;
+      gCtx.scale(dpr, dpr);
+      gW = rect.width;
+      gH = rect.height;
+      gCx = gW / 2;
+      gCy = gH / 2;
+    }
+
+    // Nebula particles
+    const nebulae = [];
+    const NEBULA_COUNT = 120;
+
+    function initNebulae() {
+      nebulae.length = 0;
+      for (let i = 0; i < NEBULA_COUNT; i++) {
+        const angle = rand(0, Math.PI * 2);
+        const dist = rand(0, gW * 0.38);
+        nebulae.push({
+          angle: angle,
+          dist: dist,
+          speed: rand(0.002, 0.008) * (Math.random() < 0.5 ? 1 : -1),
+          size: rand(1.5, 4),
+          hue: rand(240, 320),
+          saturation: rand(50, 100),
+          lightness: rand(40, 80),
+          alpha: rand(0.3, 0.8),
+          drift: rand(-0.3, 0.3),
+        });
+      }
+    }
+
+    function drawGalaxy(time) {
+      gCtx.clearRect(0, 0, gW, gH);
+
+      // Swirling fog
+      const fogGrad = gCtx.createRadialGradient(gCx, gCy, 0, gCx, gCy, gW * 0.45);
+      fogGrad.addColorStop(0, 'rgba(30, 15, 60, 0.6)');
+      fogGrad.addColorStop(0.5, 'rgba(15, 8, 40, 0.4)');
+      fogGrad.addColorStop(1, 'rgba(5, 2, 15, 0.2)');
+      gCtx.fillStyle = fogGrad;
+      gCtx.fillRect(0, 0, gW, gH);
+
+      // Draw nebula wisps
+      for (let i = 0; i < nebulae.length; i++) {
+        const n = nebulae[i];
+        n.angle += n.speed;
+        n.dist += n.drift * 0.1;
+
+        // Keep within the ball!
+        if (n.dist > gW * 0.4) n.dist = gW * 0.05;
+        if (n.dist < 0) n.dist = gW * 0.35;
+
+        const x = gCx + Math.cos(n.angle) * n.dist;
+        const y = gCy + Math.sin(n.angle) * n.dist;
+
+        const pulse = 0.6 + 0.4 * Math.sin(time * 0.001 + i);
+        const alpha = n.alpha * pulse;
+
+        gCtx.beginPath();
+        gCtx.arc(x, y, n.size, 0, Math.PI * 2);
+        gCtx.fillStyle = `hsla(${n.hue}, ${n.saturation}%, ${n.lightness}%, ${alpha})`;
+        gCtx.fill();
+
+        // A radius of a glow effect
+        gCtx.beginPath();
+        gCtx.arc(x, y, n.size * 3, 0, Math.PI * 2);
+        gCtx.fillStyle = `hsla(${n.hue}, ${n.saturation}%, ${n.lightness}%, ${alpha * 0.15})`;
+        gCtx.fill();
+      }
+
+      // Central core, brighter than the rest of the nebula
+      const coreGrad = gCtx.createRadialGradient(gCx, gCy, 0, gCx, gCy, gW * 0.12);
+      const corePulse = 0.4 + 0.3 * Math.sin(time * 0.0008);
+      coreGrad.addColorStop(0, `rgba(200, 160, 255, ${corePulse * 0.5})`);
+      coreGrad.addColorStop(0.5, `rgba(120, 80, 200, ${corePulse * 0.2})`);
+      coreGrad.addColorStop(1, 'rgba(60, 30, 120, 0)');
+      gCtx.fillStyle = coreGrad;
+      gCtx.fillRect(0, 0, gW, gH);
+    }
+
+    // Van de Graaff style lightning arcs
+    let mouseX = -1, mouseY = -1;
+    let mouseOver = false;
+
+    // How many globe-radii away the arcs begin to appear
+    const ARC_RANGE = 4;
+
+    function resizeArcCanvas() {
+      const dpr = window.devicePixelRatio || 1;
+      arcCanvas.width = window.innerWidth * dpr;
+      arcCanvas.height = window.innerHeight * dpr;
+      aCtx.scale(dpr, dpr);
+    }
+
+    function getGlobeCenter() {
+      const rect = globe.getBoundingClientRect();
+      return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2, r: rect.width / 2 };
+    }
+
+    // Generate a jagged lightning bolt path between two points
+    function generateArc(x1, y1, x2, y2, segments) {
+      const points = [{ x: x1, y: y1 }];
+      const dx = x2 - x1;
+      const dy = y2 - y1;
+      const len = Math.sqrt(dx * dx + dy * dy);
+      const perpX = -dy / len;
+      const perpY = dx / len;
+
+      for (let i = 1; i < segments; i++) {
+        const t = i / segments;
+        const jag = rand(-len * 0.08, len * 0.08);
+        points.push({
+          x: x1 + dx * t + perpX * jag,
+          y: y1 + dy * t + perpY * jag,
+        });
+      }
+      points.push({ x: x2, y: y2 });
+      return points;
+    }
+
+    function drawArcs() {
+      aCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+      if (!mouseOver) return;
+
+      const gc = getGlobeCenter();
+      const dx = mouseX - gc.x;
+      const dy = mouseY - gc.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      // Proximity: 0 at ARC_RANGE distance, 1 at globe edge or inside
+      const proximity = Math.max(0, 1 - Math.max(dist - gc.r, 0) / (gc.r * (ARC_RANGE - 1)));
+
+      // How close to center (0 = on edge, 1 = dead center)
+      const centerness = Math.max(0, 1 - dist / gc.r);
+
+      // Spread: near edge = narrow arc, center = full circumference
+      const spread = 0.4 + centerness * (Math.PI - 0.4);
+
+      // Arc count scales with proximity (1 at max range, full count when close)
+      const baseCount = Math.floor(8 + centerness * 11);
+      const ARC_COUNT = Math.max(1, Math.floor(baseCount * proximity));
+
+      // Opacity scales with proximity
+      const glowAlpha = 0.3 * proximity;
+      const coreAlphaMin = 0.5 * proximity;
+      const coreAlphaMax = 0.9 * proximity;
+
+      const baseAngle = Math.atan2(dy, dx);
+
+      for (let a = 0; a < ARC_COUNT; a++) {
+        const t = ARC_COUNT === 1 ? 0 : (a / (ARC_COUNT - 1)) * 2 - 1;
+        const arcAngle = baseAngle + t * spread + rand(-0.15, 0.15);
+
+        const startX = gc.x + Math.cos(arcAngle) * gc.r;
+        const startY = gc.y + Math.sin(arcAngle) * gc.r;
+
+        const points = generateArc(startX, startY, mouseX, mouseY, 8 + Math.floor(rand(0, 6)));
+
+        // Draw glow
+        aCtx.beginPath();
+        aCtx.moveTo(points[0].x, points[0].y);
+        for (let i = 1; i < points.length; i++) {
+          aCtx.lineTo(points[i].x, points[i].y);
+        }
+        aCtx.strokeStyle = `hsla(${270 + rand(-20, 20)}, 80%, 70%, ${glowAlpha})`;
+        aCtx.lineWidth = rand(3, 6);
+        aCtx.stroke();
+
+        // Draw core
+        aCtx.beginPath();
+        aCtx.moveTo(points[0].x, points[0].y);
+        for (let i = 1; i < points.length; i++) {
+          aCtx.lineTo(points[i].x, points[i].y);
+        }
+        aCtx.strokeStyle = `hsla(${270 + rand(-20, 20)}, 90%, 88%, ${rand(coreAlphaMin, coreAlphaMax)})`;
+        aCtx.lineWidth = rand(1, 2);
+        aCtx.stroke();
+      }
+    }
+
+    // Update arc state from a pointer position
+    function updatePointer(x, y) {
+      mouseX = x;
+      mouseY = y;
+
+      const gc = getGlobeCenter();
+      const dx = mouseX - gc.x;
+      const dy = mouseY - gc.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      mouseOver = dist < gc.r * ARC_RANGE;
+
+      if (mouseOver) {
+        const intensity = Math.max(0, 1 - dist / (gc.r * ARC_RANGE));
+        globe.style.boxShadow = `
+          inset 0 0 ${60 + intensity * 40}px rgba(140, 80, 220, ${0.15 + intensity * 0.25}),
+          0 0 ${40 + intensity * 60}px rgba(140, 80, 220, ${0.1 + intensity * 0.3}),
+          0 8px 40px rgba(0, 0, 0, 0.5)`;
+      } else {
+        globe.style.boxShadow = '';
+      }
+    }
+
+    function clearPointer() {
+      mouseOver = false;
+      globe.style.boxShadow = '';
+    }
+
+    // Mouse events
+    document.addEventListener('mousemove', (e) => updatePointer(e.clientX, e.clientY));
+    document.addEventListener('mouseleave', clearPointer);
+
+    // Touch events
+    let touchMoved = false;
+    document.addEventListener('touchstart', (e) => {
+      touchMoved = false;
+      const t = e.touches[0];
+      updatePointer(t.clientX, t.clientY);
+    }, { passive: true });
+
+    document.addEventListener('touchmove', (e) => {
+      touchMoved = true;
+      const t = e.touches[0];
+      updatePointer(t.clientX, t.clientY);
+    }, { passive: true });
+
+    document.addEventListener('touchend', (e) => {
+      if (!touchMoved) {
+        // It was a tap - navigate if inside the globe
+        const gc = getGlobeCenter();
+        const dx = mouseX - gc.x;
+        const dy = mouseY - gc.y;
+        if (Math.sqrt(dx * dx + dy * dy) < gc.r) {
+          window.location.href = pageRandomiser.nextOne();
+          return;
+        }
+      }
+      clearPointer();
+    });
+
+    // Desktop click to navigate
+    globe.addEventListener('click', () => {
+      window.location.href = pageRandomiser.nextOne();
+    });
+
+    // Animation loop
+    function animate(time) {
+      drawGalaxy(time);
+      drawArcs();
+      requestAnimationFrame(animate);
+    }
+
+    // Initialise
+    function init() {
+      resizeGalaxy();
+      resizeArcCanvas();
+      initNebulae();
+    }
+
+    window.addEventListener('resize', init);
+
+    init();
+    requestAnimationFrame(animate);
+
+  </script>
+</body>
+
+</html>

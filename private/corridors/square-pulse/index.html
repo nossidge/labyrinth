@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="pulsing matilda">
+  <title>□▣■▣□▣■▣□</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+    }
+
+    canvas {
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1;
+    }
+
+    #links {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+    }
+
+    #links a {
+      position: absolute;
+      display: block;
+      text-decoration: none;
+    }
+
+    #links a:hover {
+      outline: 2px solid rgba(255, 255, 255, 0.4);
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 100;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.04), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.04));
+      background-size: 100% 2px, 3px 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+  <canvas id="canvas"></canvas>
+  <div id="links"></div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/square-pulse";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    // Useful randomisation helpers
+    function rand(min, max) { return Math.random() * (max - min) + min; }
+    function randInt(min, max) { return Math.floor(rand(min, max + 1)); }
+    function randIndex(array) { return randInt(0, array.length - 1); }
+    function sample(array) { return array[randIndex(array)]; }
+
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const linksContainer = document.getElementById('links');
+
+    let W, H;
+
+    function resize() {
+      W = canvas.width = window.innerWidth;
+      H = canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    const palettes = [
+      ['#ff003c', '#00fff0', '#ff00ff', '#ffffff', '#000000'],
+      ['#00ff41', '#ff00ff', '#ffff00', '#000000', '#111111'],
+      ['#0000ff', '#ff6600', '#ffffff', '#000000', '#222222'],
+      ['#ff003c', '#ffffff', '#000000', '#333333', '#666666'],
+      ['#00fff0', '#ff003c', '#000000', '#111111', '#ffffff'],
+    ];
+
+    let palette = sample(palettes);
+
+    // Concentric rectangle blocks that decay and reform
+    // It should look like they are growing/shrinking, or breathing sort of
+    const CELL_SIZE = 100;
+    let COLS, ROWS;
+    const blocks = [];
+
+    function initBlocks() {
+      blocks.length = 0;
+      COLS = Math.max(1, Math.round(W / CELL_SIZE));
+      ROWS = Math.max(1, Math.round(H / CELL_SIZE));
+      const cellW = W / COLS;
+      const cellH = H / ROWS;
+
+      for (let row = 0; row < ROWS; row++) {
+        for (let col = 0; col < COLS; col++) {
+          const cx = col * cellW + cellW / 2;
+          const cy = row * cellH + cellH / 2;
+          const layers = randInt(3, 6);
+
+          blocks.push({
+            cx, cy,
+            cellW, cellH,
+            col, row,
+            layers,
+            phase: rand(0, Math.PI * 2),
+            speed: rand(0.005, 0.025),
+            color1: sample(palette),
+            color2: sample(palette),
+            decayOffset: rand(0, 1000),
+            glitchTimer: 0,
+            glitchDuration: 0,
+            glitchShiftX: 0,
+            glitchShiftY: 0,
+          });
+        }
+      }
+    }
+
+    initBlocks();
+    createLinks();
+
+    // Create clickable link regions over each block
+    function createLinks() {
+      linksContainer.innerHTML = '';
+      const cellW = W / COLS;
+      const cellH = H / ROWS;
+
+      for (let row = 0; row < ROWS; row++) {
+        for (let col = 0; col < COLS; col++) {
+          const a = document.createElement('a');
+          a.href = pageRandomiser.nextOne();
+          a.style.left = (col * cellW) + 'px';
+          a.style.top = (row * cellH) + 'px';
+          a.style.width = cellW + 'px';
+          a.style.height = cellH + 'px';
+          linksContainer.appendChild(a);
+        }
+      }
+    }
+
+    let time = 0;
+
+    function draw() {
+      time++;
+
+      // Use alpha to leave a bit of a trail
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+      ctx.fillRect(0, 0, W, H);
+
+      for (const b of blocks) {
+        const t = time * b.speed + b.phase;
+
+        // Decay factor oscillates - the shape should come and go
+        const decay = (Math.sin(t) + 1) / 2;
+        const breathe = (Math.sin(t * 0.7 + 1.3) + 1) / 2;
+
+        // Occasional glitch
+        if (b.glitchTimer <= 0 && Math.random() < 0.003) {
+          b.glitchTimer = randInt(5, 14);
+          b.glitchDuration = b.glitchTimer;
+          b.glitchShiftX = rand(-0.5, 0.5) * b.cellW * 0.4;
+          b.glitchShiftY = rand(-0.5, 0.5) * b.cellH * 0.1;
+        }
+
+        let ox = 0, oy = 0;
+        if (b.glitchTimer > 0) {
+          const gProgress = b.glitchTimer / b.glitchDuration;
+          ox = b.glitchShiftX * gProgress;
+          oy = b.glitchShiftY * gProgress;
+          b.glitchTimer--;
+        }
+
+        // Draw concentric rectangles
+        for (let i = b.layers; i >= 0; i--) {
+          const ratio = i / b.layers;
+          const layerDecay = decay * ratio + (1 - ratio) * breathe;
+
+          const maxW = b.cellW * 0.9;
+          const maxH = b.cellH * 0.9;
+          const w = maxW * ratio * layerDecay;
+          const h = maxH * ratio * layerDecay;
+
+          if (w < 1 || h < 1) continue;
+
+          const x = b.cx - w / 2 + ox * ratio;
+          const y = b.cy - h / 2 + oy * ratio;
+
+          // Alternate colours per layer
+          const alpha = 0.3 + 0.7 * layerDecay;
+          ctx.strokeStyle = (i % 2 === 0) ? b.color1 : b.color2;
+          ctx.globalAlpha = alpha;
+          ctx.lineWidth = 1 + decay * 2;
+
+          ctx.strokeRect(x, y, w, h);
+
+          // Inner fill on some layers for depth
+          if (i === 0) {
+            ctx.fillStyle = b.color1;
+            ctx.globalAlpha = alpha * 0.1;
+            ctx.fillRect(x, y, w, h);
+          }
+        }
+      }
+
+      ctx.globalAlpha = 1;
+
+      // Horizontal glitch bands
+      // These span the entire width of the screen
+      if (Math.random() < 0.04) {
+        const bandY = rand(0, H);
+        const bandH = rand(2, 8);
+        const shift = rand(-20, 20);
+        const imgData = ctx.getImageData(0, bandY, W, bandH);
+        ctx.putImageData(imgData, shift, bandY);
+      }
+
+      requestAnimationFrame(draw);
+    }
+
+    draw();
+
+    // On resize, reinitialise
+    window.addEventListener('resize', () => {
+      resize();
+      initBlocks();
+      createLinks();
+    });
+
+    // Press any key to shift palette
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey || e.altKey || e.shiftKey || e.metaKey) return;
+      if (e.key === 'Tab' || e.key === 'F5') return;
+
+      palette = sample(palettes);
+      for (const b of blocks) {
+        b.color1 = sample(palette);
+        b.color2 = sample(palette);
+      }
+    });
+
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="it's a sin">
+  <title>hot fuzz</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body,
+    html {
+      width: 100%;
+      height: 100%;
+      background: #0a0a0a;
+      overflow: hidden;
+      font-family: monospace;
+    }
+
+    canvas {
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    .bar {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      text-decoration: none;
+      background: transparent;
+      z-index: 10;
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 100;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 255, 0, 0.03));
+      background-size: 100% 2px, 3px 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+  <canvas id="waves"></canvas>
+  <div id="bars"></div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/fuzzy-waves";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    function rand(min, max) { return Math.random() * (max - min) + min; }
+
+    const canvas = document.getElementById('waves');
+    const ctx = canvas.getContext('2d');
+    const barsContainer = document.getElementById('bars');
+
+    let W, H;
+    let time = 0;
+    let entropy = 0;
+    let hoveredWaveIndex = -1;
+
+    const palettes = [
+      ['#00ff41', '#00cc33', '#009926'],
+      ['#ff0066', '#cc0052', '#99003d'],
+      ['#00ccff', '#0099cc', '#006699'],
+      ['#ff9900', '#cc7a00', '#995c00'],
+      ['#cc00ff', '#9900cc', '#660099'],
+      ['#ffff00', '#cccc00', '#999900'],
+    ];
+    let paletteIndex = 0;
+    let palette = palettes[0];
+
+    const waveCount = 7;
+    const waves = [];
+
+    function initWaves() {
+      waves.length = 0;
+      for (let i = 0; i < waveCount; i++) {
+        waves.push({
+          y: (H / (waveCount + 1)) * (i + 1),
+          freq: rand(0.005, 0.02),
+          amp: rand(20, 60),
+          speed: rand(0.3, 1.0),
+          phase: rand(0, Math.PI * 2),
+          color: palette[i % palette.length],
+          decay: 0,
+          glitchOffset: 0,
+          thickness: rand(1.5, 3.0),
+          highlight: 0,
+        });
+      }
+    }
+
+    function placeBars() {
+      barsContainer.innerHTML = '';
+      const barHeight = H / waveCount;
+
+      for (let i = 0; i < waveCount; i++) {
+        const a = document.createElement('a');
+        a.className = 'bar';
+        a.href = pageRandomiser.nextOne();
+        a.style.top = (i * barHeight) + 'px';
+        a.style.height = barHeight + 'px';
+
+        a.addEventListener('mouseenter', () => { hoveredWaveIndex = i; });
+        a.addEventListener('mouseleave', () => { hoveredWaveIndex = -1; });
+
+        barsContainer.appendChild(a);
+      }
+    }
+
+    function resize() {
+      W = canvas.width = window.innerWidth;
+      H = canvas.height = window.innerHeight;
+      initWaves();
+      placeBars();
+    }
+
+    function drawWave(wave, t, index) {
+      const isHovered = index === hoveredWaveIndex;
+
+      // Smoothly animate highlight
+      const targetHighlight = isHovered ? 1 : 0;
+      wave.highlight += (targetHighlight - wave.highlight) * 0.1;
+
+      ctx.beginPath();
+      ctx.strokeStyle = wave.color;
+
+      const baseThickness = wave.thickness;
+      const highlightThickness = baseThickness + wave.highlight * 4;
+      ctx.lineWidth = highlightThickness;
+
+      const baseAlpha = Math.max(0.15, 1 - wave.decay * 0.7);
+      const highlightAlpha = baseAlpha + wave.highlight * (1 - baseAlpha);
+      ctx.globalAlpha = highlightAlpha;
+
+      // Add glow when highlighted
+      if (wave.highlight > 0.01) {
+        ctx.shadowColor = wave.color;
+        ctx.shadowBlur = wave.highlight * 25;
+      } else {
+        ctx.shadowBlur = 0;
+      }
+
+      for (let x = 0; x < W; x++) {
+        const baseY = wave.y;
+        const sinVal = Math.sin(x * wave.freq + t * wave.speed + wave.phase);
+        const harmonic = Math.sin(x * wave.freq * 2.7 + t * wave.speed * 0.6) * wave.amp * 0.3;
+
+        const noiseAmt = wave.decay * 60;
+        const noise = noiseAmt > 0 ? rand(-0.5, 0.5) * noiseAmt : 0;
+
+        const glitch = wave.glitchOffset;
+
+        const y = baseY + sinVal * wave.amp + harmonic + noise + glitch;
+
+        if (x === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
+        }
+      }
+
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      ctx.globalAlpha = 1;
+    }
+
+    function drawEchoes(t) {
+      ctx.globalAlpha = 0.04;
+      for (let i = 0; i < waveCount; i++) {
+        const wave = waves[i];
+        for (let echo = 1; echo <= 3; echo++) {
+          ctx.beginPath();
+          ctx.strokeStyle = wave.color;
+          ctx.lineWidth = 0.5;
+          for (let x = 0; x < W; x++) {
+            const sinVal = Math.sin(x * wave.freq + (t - echo * 0.5) * wave.speed + wave.phase);
+            const y = wave.y + sinVal * wave.amp * (1 + echo * 0.15);
+            if (x === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          ctx.stroke();
+        }
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    function drawGlitchTear() {
+      if (rand(0, 1) > 0.03) return;
+      const y = rand(0, H);
+      const h = rand(2, 8);
+      const shift = rand(-20, 20);
+      const imgData = ctx.getImageData(0, y, W, h);
+      ctx.putImageData(imgData, shift, y);
+    }
+
+    function animate() {
+      ctx.fillStyle = 'rgba(10, 10, 10, 0.15)';
+      ctx.fillRect(0, 0, W, H);
+
+      time += 0.016;
+      entropy += 0.0001;
+
+      waves.forEach(wave => {
+        wave.decay = Math.min(1, entropy + Math.sin(time * 0.2 + wave.phase) * 0.15);
+
+        if (rand(0, 1) < 0.02 + entropy * 0.05) {
+          wave.glitchOffset = rand(-15, 15) * wave.decay;
+        } else {
+          wave.glitchOffset *= 0.9;
+        }
+      });
+
+      drawEchoes(time);
+      waves.forEach((wave, i) => drawWave(wave, time, i));
+      drawGlitchTear();
+
+      requestAnimationFrame(animate);
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey || e.altKey || e.shiftKey || e.metaKey) return;
+      if (e.key === 'Tab' || e.key === 'F5') return;
+
+      paletteIndex = (paletteIndex + 1) % palettes.length;
+      palette = palettes[paletteIndex];
+      entropy = 0;
+      waves.forEach((wave, i) => {
+        wave.color = palette[i % palette.length];
+        wave.decay = 0;
+      });
+    });
+
+    window.addEventListener('resize', resize);
+
+    resize();
+    animate();
+
+  </script>
+</body>
+
+</html>

@@ -94,18 +94,38 @@ The CSS effects are really subtle, but I think they work.
       align-items: center;
       justify-content: center;
       text-decoration: none;
-      transition: filter 0.3s ease;
+      pointer-events: none;
     }
 
+    /* The PNG is visible but ignores pointer events */
     .fish img {
       width: 100%;
       height: 100%;
       object-fit: contain;
       display: block;
       filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+      pointer-events: none;
+      transition: filter 0.3s ease;
     }
 
-    .fish:hover img {
+    /* The SVG sits on top, is invisible, and ignores pointer events by default */
+    .fish svg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* Only the hit-area path captures pointer events */
+    .fish svg .hit-area {
+      pointer-events: fill;
+    }
+
+    /* When JS adds the hovered class, style the img */
+    .fish.hovered img {
       filter: drop-shadow(0 6px 16px rgba(100, 200, 255, 0.6)) brightness(1.1);
     }
 
@@ -194,10 +214,60 @@ The CSS effects are really subtle, but I think they work.
 <body>
   <div class="pond">
     <div class="fish-container">
-      <a href="#" class="fish" id="fish1">
+      <a href="../index.html" class="fish" id="fish1">
+        <svg viewBox="0 0 600 600" preserveAspectRatio="xMidYMid meet"
+          xmlns="http://www.w3.org/2000/svg">
+          <g transform="translate(0,600) scale(0.1,-0.1)" fill="#000000" stroke="none">
+            <path class="hit-area" d="
+              M1287 5946 c-110 -40 -248 -194 -428 -480 -74 -119 -224 -424 -272
+              -556 -77 -208 -117 -474 -117 -768 l0 -182 -27 17 c-41 27 -179 21 -249 -11
+              -81 -37 -134 -123 -154 -254 -6 -37 -18 -106 -27 -153 -20 -115 -12 -138 77
+              -222 120 -114 278 -187 401 -187 79 0 104 -10 195 -78 43 -32 70 -63 94 -106
+              243 -439 664 -1013 952 -1298 l118 -116 -93 5 c-69 4 -100 2 -119 -8 -34 -18
+              -170 -165 -235 -254 -62 -86 -76 -128 -71 -210 5 -81 38 -127 116 -162 49 -23
+              63 -25 151 -21 132 7 258 51 542 188 124 61 231 110 237 110 7 0 56 -22 110
+              -49 215 -108 490 -211 708 -265 78 -20 366 -75 394 -76 3 0 -33 -21 -80 -46
+              -116 -62 -126 -83 -104 -217 29 -170 105 -349 175 -412 106 -96 284 -123 363
+              -56 42 35 181 219 201 266 30 68 78 294 73 344 -3 35 -1 41 15 41 11 0 137
+              -16 281 -35 297 -39 498 -61 669 -71 65 -4 120 -11 123 -15 3 -5 16 -6 29 -3
+              12 3 36 -1 53 -10 36 -18 73 -21 88 -6 6 6 49 15 96 20 181 18 313 78 363 164
+              31 55 69 235 61 290 -10 64 -57 155 -150 290 -108 156 -197 258 -323 371 -252
+              226 -527 387 -972 569 -101 41 -185 77 -186 78 -1 2 -46 92 -101 201 -107 215
+              -149 273 -243 336 -154 103 -311 117 -462 40 -67 -34 -72 -47 -57 -167 5 -46
+              7 -86 5 -89 -3 -2 -97 25 -209 60 -111 36 -302 95 -423 132 -121 36 -260 82
+              -310 102 -308 122 -596 314 -851 568 -135 135 -188 201 -384 474 -265 371
+              -295 437 -339 746 -58 402 -52 491 48 700 68 144 112 207 173 251 29 20 75 54
+              101 73 72 53 96 111 61 145 -19 19 -37 19 -87 2z" />
+          </g>
+        </svg>
         <img src="koi.png" alt="First koi fish">
       </a>
-      <a href="#" class="fish" id="fish2">
+      <a href="../index.html" class="fish" id="fish2">
+        <svg viewBox="0 0 600 600" preserveAspectRatio="xMidYMid meet"
+          xmlns="http://www.w3.org/2000/svg">
+          <g transform="translate(0,600) scale(0.1,-0.1)" fill="#000000" stroke="none">
+            <path class="hit-area" d="
+              M1287 5946 c-110 -40 -248 -194 -428 -480 -74 -119 -224 -424 -272
+              -556 -77 -208 -117 -474 -117 -768 l0 -182 -27 17 c-41 27 -179 21 -249 -11
+              -81 -37 -134 -123 -154 -254 -6 -37 -18 -106 -27 -153 -20 -115 -12 -138 77
+              -222 120 -114 278 -187 401 -187 79 0 104 -10 195 -78 43 -32 70 -63 94 -106
+              243 -439 664 -1013 952 -1298 l118 -116 -93 5 c-69 4 -100 2 -119 -8 -34 -18
+              -170 -165 -235 -254 -62 -86 -76 -128 -71 -210 5 -81 38 -127 116 -162 49 -23
+              63 -25 151 -21 132 7 258 51 542 188 124 61 231 110 237 110 7 0 56 -22 110
+              -49 215 -108 490 -211 708 -265 78 -20 366 -75 394 -76 3 0 -33 -21 -80 -46
+              -116 -62 -126 -83 -104 -217 29 -170 105 -349 175 -412 106 -96 284 -123 363
+              -56 42 35 181 219 201 266 30 68 78 294 73 344 -3 35 -1 41 15 41 11 0 137
+              -16 281 -35 297 -39 498 -61 669 -71 65 -4 120 -11 123 -15 3 -5 16 -6 29 -3
+              12 3 36 -1 53 -10 36 -18 73 -21 88 -6 6 6 49 15 96 20 181 18 313 78 363 164
+              31 55 69 235 61 290 -10 64 -57 155 -150 290 -108 156 -197 258 -323 371 -252
+              226 -527 387 -972 569 -101 41 -185 77 -186 78 -1 2 -46 92 -101 201 -107 215
+              -149 273 -243 336 -154 103 -311 117 -462 40 -67 -34 -72 -47 -57 -167 5 -46
+              7 -86 5 -89 -3 -2 -97 25 -209 60 -111 36 -302 95 -423 132 -121 36 -260 82
+              -310 102 -308 122 -596 314 -851 568 -135 135 -188 201 -384 474 -265 371
+              -295 437 -339 746 -58 402 -52 491 48 700 68 144 112 207 173 251 29 20 75 54
+              101 73 72 53 96 111 61 145 -19 19 -37 19 -87 2z" />
+          </g>
+        </svg>
         <img src="koi.png" alt="Second koi fish">
       </a>
     </div>
@@ -210,13 +280,13 @@ The CSS effects are really subtle, but I think they work.
     const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
     const pageRandomiser = new CyclicRandomiser(otherPages);
 
-    window.addEventListener('DOMContentLoaded', () => {
-      const fish1 = document.getElementById('fish1');
-      const fish2 = document.getElementById('fish2');
-
-      fish1.href = pageRandomiser.nextOne();
-      fish2.href = pageRandomiser.nextOne();
+    // When the SVG is hovered over, apply the class to the closest PNG
+    document.querySelectorAll('.hit-area').forEach(path => {
+      const fish = path.closest('.fish');
+      path.addEventListener('mouseenter', () => fish.classList.add('hovered'));
+      path.addEventListener('mouseleave', () => fish.classList.remove('hovered'));
     });
+
   </script>
 </body>
 

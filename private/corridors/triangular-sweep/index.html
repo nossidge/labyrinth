@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="tri and tri again">
+  <title>△▼△▼△▼△▼△</title>
+  <style>
+    /* Default values, these will be overwritten by the JS */
+    :root {
+      --tri-width: 40px;
+      --tri-height: 34px;
+    }
+
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      background: #888;
+    }
+
+    #grid {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-wrap: wrap;
+      align-content: flex-start;
+    }
+
+    .tri {
+      width: var(--tri-width);
+      height: var(--tri-height);
+      display: block;
+      position: absolute;
+      z-index: 1;
+      transition: transform 0.5s ease-in, z-index 0.5s ease-in;
+    }
+
+    .tri:hover {
+      z-index: 10;
+      transform: scale(4) rotate(180deg);
+      transition: transform 0.5s ease-out, z-index 0.5s ease-out;
+    }
+
+    .tri-white {
+      background-color: #fff;
+    }
+
+    .tri-dark {
+      background-color: #111;
+    }
+
+    /* Need to find the centroid and rotate around that point */
+    .tri-up {
+      transform-origin: 50% calc(100% - (var(--tri-height) / 3));
+      clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+    }
+
+    /* Same here, need the centroid point */
+    .tri-down {
+      transform-origin: 50% calc(var(--tri-height) / 3);
+      clip-path: polygon(0% 0%, 100% 0%, 50% 100%);
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 100;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 255, 0, 0.03));
+      background-size: 100% 2px, 3px 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+  <div id="grid"></div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/triangular-sweep";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const grid = document.getElementById('grid');
+
+    const tideSpeed = 0.3;
+    const tidePause = 1000;
+
+    const triWidth = 80;
+    const triHeight = (Math.sqrt(3) / 2) * triWidth;
+
+    document.documentElement.style.setProperty('--tri-width', triWidth + 'px');
+    document.documentElement.style.setProperty('--tri-height', triHeight + 'px');
+
+    let cols, rows, triangles, baseColours;
+    let tidePos = 0;
+    let pauseStartTimestamp = 0;
+
+    // Basic state machine enum:
+    // 0 = inverting sweep (L to R)
+    // 1 = pause (all inverted)
+    // 2 = restoring sweep (L to R)
+    // 3 = pause (all restored)
+    let phase = 0;
+
+    function buildGrid() {
+      grid.innerHTML = '';
+      cols = Math.ceil(window.innerWidth / (triWidth / 2)) + 2;
+      rows = Math.ceil(window.innerHeight / triHeight) + 1;
+
+      if (cols % 2 !== 0) cols++;
+
+      triangles = [];
+      baseColours = [];
+
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const isUp = (r + c) % 2 === 0;
+          const isWhite = (r + c) % 2 === 0;
+
+          const tri = document.createElement('a');
+          tri.href = pageRandomiser.nextOne();
+
+          tri.classList.add('tri');
+          tri.classList.add(isUp ? 'tri-up' : 'tri-down');
+          tri.classList.add(isWhite ? 'tri-white' : 'tri-dark');
+
+          tri.style.left = (c * triWidth / 2 - triWidth / 2) + 'px';
+          tri.style.top = (r * triHeight) + 'px';
+
+          grid.appendChild(tri);
+          triangles.push({ el: tri, col: c, row: r });
+          baseColours.push(isWhite);
+        }
+      }
+
+      tidePos = 0;
+      phase = 0;
+    }
+
+    function animate(animationTimestamp) {
+      if (phase === 0 || phase === 2) {
+        tidePos += tideSpeed;
+        const tideLead = Math.floor(tidePos);
+
+        for (let i = 0; i < triangles.length; i++) {
+          const c = triangles[i].col;
+          const swept = c < tideLead;
+
+          let isWhite;
+          if (phase === 0) {
+            isWhite = swept ? !baseColours[i] : baseColours[i];
+          } else {
+            isWhite = swept ? baseColours[i] : !baseColours[i];
+          }
+
+          const el = triangles[i].el;
+          if (isWhite) {
+            el.classList.remove('tri-dark');
+            el.classList.add('tri-white');
+          } else {
+            el.classList.remove('tri-white');
+            el.classList.add('tri-dark');
+          }
+        }
+
+        if (tidePos >= cols) {
+          tidePos = 0;
+          phase++;
+          pauseStartTimestamp = animationTimestamp;
+        }
+      } else {
+        if (animationTimestamp - pauseStartTimestamp >= tidePause) {
+          phase = phase === 1 ? 2 : 0;
+        }
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    buildGrid();
+    requestAnimationFrame(animate);
+
+    // There was a little bit of a CPU hog here
+    // This time out should solve it without being too annoying
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(buildGrid, 200);
+    });
+
+  </script>
+</body>
+
+</html>

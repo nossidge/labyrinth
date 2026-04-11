@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="i'm 'aving 'oops">
+  <title>Exhalation</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+    }
+
+    #grid {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-wrap: wrap;
+      align-content: flex-start;
+      z-index: 1;
+    }
+
+    #grid a {
+      display: block;
+      width: var(--cell-size);
+      height: var(--cell-size);
+      margin: var(--cell-gap);
+      background: transparent;
+      text-decoration: none;
+      transition: box-shadow 0.2s ease;
+    }
+
+    #grid a:hover {
+      background: #fff !important;
+      box-shadow: 0 0 6px rgba(255, 255, 255, 0.6);
+    }
+
+    #canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 0;
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 100;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 255, 0, 0.03));
+      background-size: 100% 2px, 3px 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="canvas"></canvas>
+  <div id="grid"></div>
+  <div id="crt-scanlines"></div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/breathing-grid";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const grid = document.getElementById('grid');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const cellSize = 12;
+    const gap = 2;
+    const halfGap = gap / 2;
+    const step = cellSize + gap;
+
+    document.documentElement.style.setProperty('--cell-size', cellSize + 'px');
+    document.documentElement.style.setProperty('--cell-gap', halfGap + 'px');
+
+    let cols, rows, dists, offsetX, offsetY;
+
+    function buildGrid() {
+      grid.innerHTML = '';
+      cols = Math.floor(window.innerWidth / step);
+      rows = Math.floor(window.innerHeight / step);
+      dists = new Float32Array(cols * rows);
+
+      offsetX = (window.innerWidth - cols * step) / 2;
+      offsetY = (window.innerHeight - rows * step) / 2;
+
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      grid.style.left = offsetX + 'px';
+      grid.style.top = offsetY + 'px';
+      grid.style.width = (cols * step) + 'px';
+
+      const centerCol = (cols - 1) / 2;
+      const centerRow = (rows - 1) / 2;
+
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const a = document.createElement('a');
+          a.href = pageRandomiser.nextOne();
+          grid.appendChild(a);
+
+          const dx = c - centerCol;
+          const dy = r - centerRow;
+          dists[r * cols + c] = Math.sqrt(dx * dx + dy * dy);
+        }
+      }
+    }
+
+    buildGrid();
+
+    let time = 0;
+    const speed = 0.0015;
+    const waveFreq = 0.4;
+
+    function animate(timestamp) {
+      time = timestamp * speed;
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      let i = 0;
+      for (let r = 0; r < rows; r++) {
+        const y = offsetY + r * step + halfGap;
+        for (let c = 0; c < cols; c++) {
+          const val = Math.sin(dists[i] * waveFreq - time);
+          if (val > 0) {
+            const bright = Math.floor(val * 255);
+            ctx.fillStyle = 'rgb(' + bright + ',' + bright + ',' + bright + ')';
+            ctx.fillRect(offsetX + c * step + halfGap, y, cellSize, cellSize);
+          }
+          i++;
+        }
+      }
+      requestAnimationFrame(animate);
+    }
+
+    requestAnimationFrame(animate);
+
+    // There was a little bit of a CPU hog here
+    // This time out should solve it without being too annoying
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(buildGrid, 200);
+    });
+
+  </script>
+</body>
+
+</html>

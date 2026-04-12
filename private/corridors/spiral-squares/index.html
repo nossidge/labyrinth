@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Waiting for my moment to come">
+  <title>■ ■ ■ spiral ■ ■ ■</title>
+  <style>
+    :root {
+      --hatch-width: 100px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+    }
+
+    #grid {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: grid;
+    }
+
+    /* Use CSS backgrounds to create X shapes */
+    .cell {
+      width: var(--cell-size);
+      height: var(--cell-size);
+      display: block;
+      text-decoration: none;
+      position: relative;
+      transition: transform 0.15s ease, background-color 0.15s ease;
+    }
+
+    .cell::before,
+    .cell::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      transition: opacity 0.15s ease;
+    }
+
+    .cell::before {
+      background: linear-gradient(to bottom right,
+          transparent calc(50% - var(--hatch-width)),
+          var(--line-color, #fff) calc(50% - var(--hatch-width)),
+          var(--line-color, #fff) calc(50% + var(--hatch-width)),
+          transparent calc(50% + var(--hatch-width)));
+    }
+
+    .cell::after {
+      background: linear-gradient(to bottom left,
+          transparent calc(50% - var(--hatch-width)),
+          var(--line-color, #fff) calc(50% - var(--hatch-width)),
+          var(--line-color, #fff) calc(50% + var(--hatch-width)),
+          transparent calc(50% + var(--hatch-width)));
+    }
+
+    .cell:hover {
+      background-color: #fff;
+      transform: scale(1.15);
+      z-index: 10;
+      --line-color: #000;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="grid"></div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/spiral-square";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const grid = document.getElementById('grid');
+    const cells = [];
+
+    const PERCENTAGE = 80;
+    const COLS = 21;
+    const ROWS = 21;
+
+    function updateGridSize() {
+      const maxW = window.innerWidth * (PERCENTAGE / 100);
+      const maxH = window.innerHeight * (PERCENTAGE / 100);
+      const cellSize = Math.floor(Math.min(maxW / COLS, maxH / ROWS));
+      document.documentElement.style.setProperty('--cell-size', cellSize + 'px');
+      grid.style.gridTemplateColumns = 'repeat(' + COLS + ', ' + cellSize + 'px)';
+      grid.style.gridTemplateRows = 'repeat(' + ROWS + ', ' + cellSize + 'px)';
+    }
+    updateGridSize();
+    window.addEventListener('resize', updateGridSize);
+
+    for (let row = 0; row < ROWS; row++) {
+      for (let col = 0; col < COLS; col++) {
+        const a = document.createElement('a');
+        a.className = 'cell';
+        a.href = pageRandomiser.nextOne();
+
+        const dx = col - (COLS - 1) / 2;
+        const dy = row - (ROWS - 1) / 2;
+        const angle = Math.atan2(dy, dx);
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        cells.push({ el: a, angle: angle, dist: dist });
+        grid.appendChild(a);
+      }
+    }
+
+    const maxDist = Math.sqrt(Math.pow((COLS - 1) / 2, 2) + Math.pow((ROWS - 1) / 2, 2));
+
+    function animate(time) {
+      const t = time * 0.001;
+
+      for (let i = 0; i < cells.length; i++) {
+        const c = cells[i];
+        const spiral = c.angle - c.dist * 0.5 + t * 2;
+        const pulse = (Math.sin(spiral) + 1) / 2;
+        const opacity = 0.05 + pulse * 0.95;
+        c.el.style.opacity = opacity;
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    requestAnimationFrame(animate);
+
+  </script>
+</body>
+
+</html>

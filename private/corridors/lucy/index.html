@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+She dwelt among the untrodden ways
+  Beside the springs of Dove;
+A maid whom there were none to praise,
+  And very few to love.
+
+A violet by a mossy stone
+  Half hidden from the eye!
+- Fair as a star, when only one
+  Is shining in the sky.
+
+She lived unknown, and few could know
+  When Lucy ceased to be;
+But she is in her grave, and O
+  The difference to me!
+-->
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="She dwelt among the untrodden ways">
+  <title>Beside the springs of Dove</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+      font-family: monospace;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+    }
+
+    #sky {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 58%;
+      background: linear-gradient(to bottom,
+          #020010 0%,
+          #060828 40%,
+          #0c1638 60%,
+          #162044 80%,
+          #1e2a50 100%);
+      z-index: 0;
+    }
+
+    #star {
+      position: fixed;
+      right: 15%;
+      top: 12%;
+      width: 6px;
+      height: 6px;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    #star-link {
+      position: fixed;
+      right: calc(15% - 40px);
+      top: calc(12% - 40px);
+      width: 86px;
+      height: 86px;
+      z-index: 60;
+      display: block;
+      border-radius: 50%;
+    }
+
+    #violet-link {
+      position: fixed;
+      z-index: 60;
+      display: block;
+    }
+
+    .star-core {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 4px;
+      height: 4px;
+      background: #fff;
+      border-radius: 50%;
+      box-shadow:
+        0 0 6px 2px rgba(255, 255, 255, 0.9),
+        0 0 15px 5px rgba(200, 210, 255, 0.6),
+        0 0 30px 10px rgba(180, 190, 255, 0.3),
+        0 0 60px 20px rgba(160, 170, 255, 0.15);
+      animation: star-pulse 4s ease-in-out infinite;
+      transition: box-shadow 0.4s ease;
+    }
+
+    .star-ray {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      background: linear-gradient(to right,
+          rgba(220, 225, 255, 0.5) 0%,
+          rgba(220, 225, 255, 0) 100%);
+      transform-origin: 0 50%;
+      height: 1px;
+      animation: ray-pulse 4s ease-in-out infinite;
+      transition: opacity 0.4s ease;
+    }
+
+    .star-ray:nth-child(2) {
+      width: 18px;
+      transform: rotate(0deg);
+    }
+
+    .star-ray:nth-child(3) {
+      width: 18px;
+      transform: rotate(90deg);
+    }
+
+    .star-ray:nth-child(4) {
+      width: 12px;
+      transform: rotate(45deg);
+    }
+
+    .star-ray:nth-child(5) {
+      width: 12px;
+      transform: rotate(135deg);
+    }
+
+    .star-ray:nth-child(6) {
+      width: 18px;
+      transform: rotate(180deg);
+    }
+
+    .star-ray:nth-child(7) {
+      width: 18px;
+      transform: rotate(270deg);
+    }
+
+    .star-ray:nth-child(8) {
+      width: 12px;
+      transform: rotate(225deg);
+    }
+
+    .star-ray:nth-child(9) {
+      width: 12px;
+      transform: rotate(315deg);
+    }
+
+    @keyframes star-pulse {
+
+      0%,
+      100% {
+        opacity: 0.8;
+        transform: translate(-50%, -50%) scale(1);
+      }
+
+      50% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.3);
+      }
+    }
+
+    @keyframes ray-pulse {
+
+      0%,
+      100% {
+        opacity: 0.4;
+      }
+
+      50% {
+        opacity: 0.8;
+      }
+    }
+
+    #hills {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 50%;
+      z-index: 2;
+    }
+
+    #stream-container {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 50%;
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    #grass-container {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 45%;
+      z-index: 4;
+      pointer-events: none;
+    }
+
+    #foreground-container {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 50%;
+      z-index: 5;
+      pointer-events: none;
+    }
+
+    #cluster-group {
+      transition: filter 0.4s ease;
+    }
+
+    #cluster-group.hover-glow {
+      filter: drop-shadow(0 0 6px rgba(120, 80, 180, 0.3)) drop-shadow(0 0 12px rgba(120, 80, 180, 0.15));
+    }
+
+    #star.hover-glow .star-core {
+      box-shadow:
+        0 0 8px 3px rgba(255, 255, 255, 1),
+        0 0 20px 8px rgba(200, 210, 255, 0.8),
+        0 0 40px 15px rgba(180, 190, 255, 0.5),
+        0 0 80px 30px rgba(160, 170, 255, 0.25);
+    }
+
+    #star.hover-glow .star-ray {
+      opacity: 1;
+    }
+
+    #star {
+      transition: filter 0.4s ease;
+    }
+
+    .grass-blade {
+      position: absolute;
+      bottom: 0;
+      width: 2px;
+      transform-origin: bottom center;
+      animation: sway var(--sway-dur) ease-in-out infinite;
+      animation-delay: var(--sway-delay);
+      will-change: transform;
+    }
+
+    @keyframes sway {
+
+      0%,
+      100% {
+        transform: rotate(calc(var(--sway-deg) * -1));
+      }
+
+      50% {
+        transform: rotate(var(--sway-deg));
+      }
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 100;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 255, 0, 0.03));
+      background-size: 100% 2px, 3px 100%;
+    }
+
+    #horizon-svg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    #brightness-indicator {
+      position: fixed;
+      bottom: 12px;
+      right: 12px;
+      color: #aaa;
+      font: 14px monospace;
+      z-index: 200;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+
+  <div id="sky"></div>
+
+  <div id="star">
+    <div class="star-core"></div>
+    <div class="star-ray"></div>
+    <div class="star-ray"></div>
+    <div class="star-ray"></div>
+    <div class="star-ray"></div>
+    <div class="star-ray"></div>
+    <div class="star-ray"></div>
+    <div class="star-ray"></div>
+    <div class="star-ray"></div>
+  </div>
+
+  <svg id="hills" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"></svg>
+  <svg id="stream-container" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"></svg>
+  <div id="grass-container"></div>
+  <svg id="foreground-container" xmlns="http://www.w3.org/2000/svg"
+    preserveAspectRatio="none"></svg>
+
+  <a id="star-link" href="../index.html"></a>
+  <a id="violet-link" href="../index.html"></a>
+  <svg id="horizon-svg" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"></svg>
+
+  <div id="brightness-indicator"></div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/lucy";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    function rand(min, max) { return Math.random() * (max - min) + min; }
+    function randInt(min, max) { return Math.floor(rand(min, max + 1)); }
+    function sample(array) { return array[Math.floor(Math.random() * array.length)]; }
+
+    const hillsSvg = document.getElementById('hills');
+    const streamSvg = document.getElementById('stream-container');
+    const grassDiv = document.getElementById('grass-container');
+    const fgSvg = document.getElementById('foreground-container');
+    const starEl = document.getElementById('star');
+    const starLink = document.getElementById('star-link');
+    const violetLink = document.getElementById('violet-link');
+    const brightnessIndicator = document.getElementById('brightness-indicator');
+
+    // Colour palettes
+    const HILL_COLOURS = [
+      '#0a1a0a', '#0d1f0d', '#0f2410', '#112811', '#0b1e0e',
+      '#101d14', '#0e2212', '#132a15'
+    ];
+    const GRASS_COLOURS = [
+      '#1a3a1a', '#1e3e1e', '#224422', '#1b3b1b', '#203d20',
+      '#183618', '#264a26', '#1c3c1c', '#2a4e2a', '#1f4020',
+      '#143014', '#284c28', '#0f280f', '#324e32', '#2c502c'
+    ];
+    const ROCK_BASE = ['#3a3a38', '#4a4840', '#35352f', '#504e45', '#42403a', '#585550'];
+    const MOSS_COLOURS = ['#2a4a20', '#1e3a16', '#3a5a2a', '#2e4e22', '#1a3612'];
+    const LICHEN_COLOURS = ['#8a9a70', '#a0ab80', '#7a8a60', '#92a272', '#6a7a58'];
+
+    function drawHills(w, h) {
+      hillsSvg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+      hillsSvg.innerHTML = '';
+
+      // Background fill
+      const bgRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      bgRect.setAttribute('width', w);
+      bgRect.setAttribute('height', h);
+      bgRect.setAttribute('fill', '#0a0f0a');
+      hillsSvg.appendChild(bgRect);
+
+      // Draw 4 layers of rolling hills, back to front
+      const layers = [
+        { yBase: 0.15, amplitude: 0.10, segments: 5, colour: '#0a160a' },
+        { yBase: 0.28, amplitude: 0.08, segments: 6, colour: '#0d1c0d' },
+        { yBase: 0.40, amplitude: 0.07, segments: 7, colour: '#10220f' },
+        { yBase: 0.55, amplitude: 0.06, segments: 8, colour: '#142814' },
+      ];
+
+      layers.forEach(layer => {
+        let d = `M 0 ${h}`;
+        const points = layer.segments + 1;
+        const stepX = w / layer.segments;
+        for (let i = 0; i <= layer.segments; i++) {
+          const x = i * stepX;
+          const yOffset = Math.sin(i * 1.2 + rand(0, 2)) * layer.amplitude * h;
+          const y = layer.yBase * h - yOffset;
+          if (i === 0) {
+            d += ` L ${x} ${y}`;
+          } else {
+            const cpx1 = (i - 0.5) * stepX + rand(-20, 20);
+            const cpy1 = y + rand(-15, 15);
+            d += ` Q ${cpx1} ${cpy1} ${x} ${y}`;
+          }
+        }
+        d += ` L ${w} ${h} Z`;
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', d);
+        path.setAttribute('fill', layer.colour);
+        hillsSvg.appendChild(path);
+      });
+
+      // Ground plane - lower portion
+      const ground = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      ground.setAttribute('y', h * 0.55);
+      ground.setAttribute('width', w);
+      ground.setAttribute('height', h * 0.45);
+      ground.setAttribute('fill', '#142814');
+      hillsSvg.appendChild(ground);
+    }
+
+    function drawStream(w, h) {
+      streamSvg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+      streamSvg.innerHTML = '';
+
+      const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+
+      // Stream gradient
+      const grad = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+      grad.setAttribute('id', 'stream-grad');
+      grad.setAttribute('x1', '0'); grad.setAttribute('y1', '0');
+      grad.setAttribute('x2', '1'); grad.setAttribute('y2', '0');
+      const stops = [
+        { offset: '0%', color: 'rgba(30,50,80,0.6)' },
+        { offset: '50%', color: 'rgba(40,65,100,0.7)' },
+        { offset: '100%', color: 'rgba(30,50,80,0.6)' },
+      ];
+      stops.forEach(s => {
+        const stop = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+        stop.setAttribute('offset', s.offset);
+        stop.setAttribute('stop-color', s.color);
+        grad.appendChild(stop);
+      });
+      defs.appendChild(grad);
+
+      // Seamless stream flow using tiled turbulence noise.
+      // A 200x200 fixed tile size makes the loop short and seamless,
+      // without leaving a hole in the offset when sliding across screen.
+      const tileW = 200;
+      const tileH = 200;
+      const flowSpeed = 25;
+      const cycleDur = tileW / flowSpeed;
+
+      const filter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
+      filter.setAttribute('id', 'stream-shimmer');
+      filter.setAttribute('filterUnits', 'userSpaceOnUse');
+      filter.setAttribute('x', String(-w * 0.2));
+      filter.setAttribute('y', String(-h * 0.2));
+      filter.setAttribute('width', String(w * 1.4));
+      filter.setAttribute('height', String(h * 1.4));
+
+      const turb = document.createElementNS('http://www.w3.org/2000/svg', 'feTurbulence');
+      turb.setAttribute('type', 'fractalNoise');
+      turb.setAttribute('baseFrequency', '0.02 0.05');
+      turb.setAttribute('numOctaves', '1');
+      turb.setAttribute('seed', String(randInt(0, 100)));
+      turb.setAttribute('stitchTiles', 'stitch');
+      turb.setAttribute('x', '0');
+      turb.setAttribute('y', '0');
+      turb.setAttribute('width', String(tileW));
+      turb.setAttribute('height', String(tileH));
+      turb.setAttribute('result', 'noise');
+      filter.appendChild(turb);
+
+      const tile = document.createElementNS('http://www.w3.org/2000/svg', 'feTile');
+      tile.setAttribute('in', 'noise');
+
+      // Provide a large enough buffer area so offset doesn't drag transparency into view
+      tile.setAttribute('x', String(-w * 0.5 - tileW));
+      tile.setAttribute('y', String(-h * 0.5));
+      tile.setAttribute('width', String(w * 2 + tileW * 2));
+      tile.setAttribute('height', String(h * 2));
+      tile.setAttribute('result', 'tiledNoise');
+      filter.appendChild(tile);
+
+      const offset = document.createElementNS('http://www.w3.org/2000/svg', 'feOffset');
+      offset.setAttribute('in', 'tiledNoise');
+      offset.setAttribute('result', 'movedNoise');
+      const offsetAnim = document.createElementNS('http://www.w3.org/2000/svg', 'animate');
+      offsetAnim.setAttribute('attributeName', 'dx');
+      offsetAnim.setAttribute('from', '0');
+      offsetAnim.setAttribute('to', String(tileW));
+      offsetAnim.setAttribute('dur', cycleDur + 's');
+      offsetAnim.setAttribute('repeatCount', 'indefinite');
+      offset.appendChild(offsetAnim);
+      filter.appendChild(offset);
+
+      const disp = document.createElementNS('http://www.w3.org/2000/svg', 'feDisplacementMap');
+      disp.setAttribute('in', 'SourceGraphic');
+      disp.setAttribute('in2', 'movedNoise');
+      disp.setAttribute('scale', '6');
+      filter.appendChild(disp);
+      defs.appendChild(filter);
+
+      streamSvg.appendChild(defs);
+
+      // Meandering stream path across the width
+      const streamWidth = 28;
+      const yCenter = h * 0.55;
+      const amplitude = h * 0.08;
+
+      // Build a wavy centre line
+      const segments = 8;
+      const stepX = w / segments;
+      let centrePath = `M ${-10} ${yCenter + rand(-10, 10)}`;
+      const centrePoints = [{ x: -10, y: yCenter + rand(-10, 10) }];
+
+      for (let i = 1; i <= segments + 1; i++) {
+        const x = Math.min(i * stepX, w + 10);
+        const y = yCenter + Math.sin(i * 0.9 + 0.5) * amplitude + rand(-10, 10);
+        centrePoints.push({ x, y });
+      }
+
+      // Top bank
+      let topPath = `M ${centrePoints[0].x} ${centrePoints[0].y - streamWidth / 2}`;
+      for (let i = 1; i < centrePoints.length; i++) {
+        const prev = centrePoints[i - 1];
+        const cur = centrePoints[i];
+        const cpx = (prev.x + cur.x) / 2;
+        const cpy = (prev.y + cur.y) / 2 - streamWidth / 2 + rand(-3, 3);
+        topPath += ` Q ${cpx} ${cpy} ${cur.x} ${cur.y - streamWidth / 2}`;
+      }
+
+      // Bottom bank (reversed)
+      let botPath = '';
+      for (let i = centrePoints.length - 1; i >= 0; i--) {
+        const cur = centrePoints[i];
+        if (i === centrePoints.length - 1) {
+          botPath += ` L ${cur.x} ${cur.y + streamWidth / 2}`;
+        } else {
+          const next = centrePoints[i + 1];
+          const cpx = (next.x + cur.x) / 2;
+          const cpy = (next.y + cur.y) / 2 + streamWidth / 2 + rand(-3, 3);
+          botPath += ` Q ${cpx} ${cpy} ${cur.x} ${cur.y + streamWidth / 2}`;
+        }
+      }
+
+      const fullPath = topPath + botPath + ' Z';
+
+      // Dark bank edges
+      const bankPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      bankPath.setAttribute('d', fullPath);
+      bankPath.setAttribute('fill', '#0a1a12');
+      bankPath.setAttribute('stroke', '#0d1f14');
+      bankPath.setAttribute('stroke-width', '4');
+      streamSvg.appendChild(bankPath);
+
+      // Water fill
+      const water = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      water.setAttribute('d', fullPath);
+      water.setAttribute('fill', 'url(#stream-grad)');
+      water.setAttribute('filter', 'url(#stream-shimmer)');
+      water.setAttribute('opacity', '0.7');
+      streamSvg.appendChild(water);
+
+      return centrePoints;
+    }
+
+    function drawGrass(w, h) {
+      grassDiv.innerHTML = '';
+      const density = Math.round(w * 0.12);
+
+      for (let i = 0; i < density; i++) {
+        const blade = document.createElement('div');
+        blade.className = 'grass-blade';
+        const x = rand(0, 100);
+        const height = rand(10, 35);
+        const bottomPos = rand(0, 38);
+        blade.style.left = x + '%';
+        blade.style.bottom = bottomPos + '%';
+        blade.style.height = height + 'px';
+        blade.style.background = sample(GRASS_COLOURS);
+        blade.style.opacity = rand(0.4, 0.9);
+        blade.style.setProperty('--sway-dur', rand(2, 5).toFixed(1) + 's');
+        blade.style.setProperty('--sway-delay', '-' + rand(0, 4).toFixed(1) + 's');
+        blade.style.setProperty('--sway-deg', rand(2, 8).toFixed(1) + 'deg');
+        grassDiv.appendChild(blade);
+      }
+    }
+
+    function createRock(cx, cy, radiusX, radiusY, rotation) {
+      const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      const baseColour = sample(ROCK_BASE);
+
+      // Irregular rock shape using a bumpy ellipse
+      const points = randInt(8, 12);
+      let d = '';
+      const vertices = [];
+      for (let i = 0; i < points; i++) {
+        const angle = (Math.PI * 2 * i) / points;
+        const rx = radiusX * (0.8 + rand(0, 0.4));
+        const ry = radiusY * (0.85 + rand(0, 0.3));
+        const px = cx + Math.cos(angle) * rx;
+        const py = cy + Math.sin(angle) * ry;
+        vertices.push({ x: px, y: py });
+      }
+
+      // Build smooth closed path
+      d = `M ${vertices[0].x} ${vertices[0].y}`;
+      for (let i = 0; i < vertices.length; i++) {
+        const curr = vertices[i];
+        const next = vertices[(i + 1) % vertices.length];
+        const cpx = (curr.x + next.x) / 2 + rand(-3, 3);
+        const cpy = (curr.y + next.y) / 2 + rand(-3, 3);
+        d += ` Q ${cpx} ${cpy} ${next.x} ${next.y}`;
+      }
+      d += ' Z';
+
+      // Rock body
+      const rock = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      rock.setAttribute('d', d);
+      rock.setAttribute('fill', baseColour);
+      rock.setAttribute('stroke', '#2a2a25');
+      rock.setAttribute('stroke-width', '0.5');
+      if (rotation) {
+        rock.setAttribute('transform', `rotate(${rotation} ${cx} ${cy})`);
+      }
+      g.appendChild(rock);
+
+      // Moss patches on top portion
+      const mossCount = randInt(2, 5);
+      for (let m = 0; m < mossCount; m++) {
+        const angle = rand(-0.8, 0.8) - Math.PI / 2; // upper area
+        const dist = rand(0.3, 0.8);
+        const mx = cx + Math.cos(angle) * radiusX * dist;
+        const my = cy + Math.sin(angle) * radiusY * dist;
+        const moss = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+        moss.setAttribute('cx', mx);
+        moss.setAttribute('cy', my);
+        moss.setAttribute('rx', rand(3, radiusX * 0.4));
+        moss.setAttribute('ry', rand(2, radiusY * 0.3));
+        moss.setAttribute('fill', sample(MOSS_COLOURS));
+        moss.setAttribute('opacity', rand(0.3, 0.7).toFixed(2));
+        if (rotation) {
+          moss.setAttribute('transform', `rotate(${rotation} ${cx} ${cy})`);
+        }
+        g.appendChild(moss);
+      }
+
+      // Lichen spots scattered
+      const lichenCount = randInt(1, 4);
+      for (let l = 0; l < lichenCount; l++) {
+        const angle = rand(0, Math.PI * 2);
+        const dist = rand(0.2, 0.7);
+        const lx = cx + Math.cos(angle) * radiusX * dist;
+        const ly = cy + Math.sin(angle) * radiusY * dist;
+        const lichen = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        lichen.setAttribute('cx', lx);
+        lichen.setAttribute('cy', ly);
+        lichen.setAttribute('r', rand(1.5, 4));
+        lichen.setAttribute('fill', sample(LICHEN_COLOURS));
+        lichen.setAttribute('opacity', rand(0.2, 0.5).toFixed(2));
+        if (rotation) {
+          lichen.setAttribute('transform', `rotate(${rotation} ${cx} ${cy})`);
+        }
+        g.appendChild(lichen);
+      }
+
+      return g;
+    }
+
+    function drawForeground(w, h) {
+      fgSvg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+      fgSvg.innerHTML = '';
+
+      // Glow filter for the violet
+      const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+      const glowFilter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
+      glowFilter.setAttribute('id', 'violet-glow');
+      glowFilter.setAttribute('x', '-50%');
+      glowFilter.setAttribute('y', '-50%');
+      glowFilter.setAttribute('width', '200%');
+      glowFilter.setAttribute('height', '200%');
+      const blur = document.createElementNS('http://www.w3.org/2000/svg', 'feGaussianBlur');
+      blur.setAttribute('stdDeviation', '4');
+      glowFilter.appendChild(blur);
+      defs.appendChild(glowFilter);
+      fgSvg.appendChild(defs);
+
+      // Scattered rocks (drawn first, behind the cluster)
+      const scattered = [
+        { x: w * 0.45, y: h * 0.58, rx: 18, ry: 13 },
+        { x: w * 0.55, y: h * 0.52, rx: 15, ry: 11 },
+        { x: w * 0.70, y: h * 0.60, rx: 22, ry: 16 },
+        { x: w * 0.85, y: h * 0.65, rx: 14, ry: 10 },
+        { x: w * 0.35, y: h * 0.70, rx: 16, ry: 12 },
+        { x: w * 0.60, y: h * 0.72, rx: 12, ry: 9 },
+        { x: w * 0.12, y: h * 0.75, rx: 14, ry: 10 },
+        { x: w * 0.78, y: h * 0.68, rx: 17, ry: 12 },
+        { x: w * 0.90, y: h * 0.73, rx: 13, ry: 10 },
+      ];
+
+      scattered.forEach(r => {
+        fgSvg.appendChild(createRock(r.x, r.y, r.rx, r.ry, rand(-20, 20)));
+      });
+
+      // Cluster rocks + violet (wrapped in a group for mouse hover interaction)
+      const clusterGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      clusterGroup.setAttribute('id', 'cluster-group');
+
+      const clusterX = w * 0.22;
+      const clusterY = h * 0.70;
+
+      const clusterRocks = [
+        { ox: -35, oy: -10, rx: 28, ry: 20, rot: rand(-15, 15) },
+        { ox: 10, oy: -18, rx: 35, ry: 24, rot: rand(-10, 10) },
+        { ox: -15, oy: 15, rx: 25, ry: 18, rot: rand(-20, 20) },
+        { ox: 40, oy: 5, rx: 22, ry: 16, rot: rand(-12, 12) },
+        { ox: -50, oy: 8, rx: 20, ry: 14, rot: rand(-18, 18) },
+        { ox: 25, oy: 22, rx: 18, ry: 13, rot: rand(-15, 15) },
+        { ox: -10, oy: -30, rx: 20, ry: 15, rot: rand(-10, 10) },
+      ];
+
+      clusterRocks.forEach(r => {
+        clusterGroup.appendChild(createRock(
+          clusterX + r.ox, clusterY + r.oy,
+          r.rx, r.ry, r.rot
+        ));
+      });
+
+      // The violet is pinned relative to the rock cluster
+      // On narrow screens, place this on the right so it stays visible
+      const vx = (w < 768) ? clusterX + 75 : clusterX - 82;
+      const vy = clusterY - 3;
+
+      // This is the violet flower element
+      const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      g.setAttribute('id', 'violet');
+
+      // Zoom the flower in a bit, since it's a bit small right now
+      g.setAttribute('transform', `translate(${vx}, ${vy}) scale(1.4) translate(${-vx}, ${-vy})`);
+
+      // Stem
+      const stem = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      stem.setAttribute('d', `M ${vx} ${vy} Q ${vx - 2} ${vy + 18} ${vx + 1} ${vy + 30}`);
+      stem.setAttribute('stroke', '#2a5a20');
+      stem.setAttribute('stroke-width', '1.5');
+      stem.setAttribute('fill', 'none');
+      g.appendChild(stem);
+
+      // Small leaf
+      const leaf = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+      leaf.setAttribute('cx', vx + 5);
+      leaf.setAttribute('cy', vy + 20);
+      leaf.setAttribute('rx', 6);
+      leaf.setAttribute('ry', 3);
+      leaf.setAttribute('fill', '#2a5a20');
+      leaf.setAttribute('transform', `rotate(-30 ${vx + 5} ${vy + 20})`);
+      leaf.setAttribute('opacity', '0.8');
+      g.appendChild(leaf);
+
+      // Second leaf, other side
+      const leaf2 = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+      leaf2.setAttribute('cx', vx - 4);
+      leaf2.setAttribute('cy', vy + 14);
+      leaf2.setAttribute('rx', 5);
+      leaf2.setAttribute('ry', 2.5);
+      leaf2.setAttribute('fill', '#245218');
+      leaf2.setAttribute('transform', `rotate(25 ${vx - 4} ${vy + 14})`);
+      leaf2.setAttribute('opacity', '0.7');
+      g.appendChild(leaf2);
+
+      // Flower head - 5 petals
+      const petalCount = 5;
+      const petalLength = 7;
+      const petalWidth = 4;
+      const petalColours = ['#6a3d9a', '#7b52ab', '#5e2d91', '#8b6aae', '#7244a0'];
+
+      for (let i = 0; i < petalCount; i++) {
+        const angle = (Math.PI * 2 * i) / petalCount - Math.PI / 2;
+        const px = vx + Math.cos(angle) * petalLength;
+        const py = vy + Math.sin(angle) * petalLength;
+        const petal = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+        petal.setAttribute('cx', (vx + px) / 2);
+        petal.setAttribute('cy', (vy + py) / 2);
+        petal.setAttribute('rx', petalWidth);
+        petal.setAttribute('ry', petalLength / 2 + 1);
+        petal.setAttribute('fill', petalColours[i]);
+        const rotDeg = (angle * 180) / Math.PI + 90;
+        petal.setAttribute('transform', `rotate(${rotDeg} ${(vx + px) / 2} ${(vy + py) / 2})`);
+        petal.setAttribute('opacity', '0.85');
+        g.appendChild(petal);
+      }
+
+      // Centre of the flower
+      const centre = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      centre.setAttribute('cx', vx);
+      centre.setAttribute('cy', vy);
+      centre.setAttribute('r', 2.5);
+      centre.setAttribute('fill', '#f0d050');
+      g.appendChild(centre);
+
+      // Subtle glow around the violet
+      const glow = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      glow.setAttribute('cx', vx);
+      glow.setAttribute('cy', vy);
+      glow.setAttribute('r', 12);
+      glow.setAttribute('fill', 'none');
+      glow.setAttribute('stroke', 'rgba(120, 80, 180, 0.15)');
+      glow.setAttribute('stroke-width', '8');
+      glow.setAttribute('filter', 'url(#violet-glow)');
+      g.appendChild(glow);
+
+      // Position the violet link over the cluster + violet area
+      clusterGroup.appendChild(g);
+      fgSvg.appendChild(clusterGroup);
+
+      // The SVG container covers bottom 50% of viewport
+      // Convert SVG coords to viewport coords
+      const viewportH = window.innerHeight;
+      const svgTop = viewportH * 0.5; // container starts at 50% from top
+
+      // Bounding box of cluster + violet in SVG coords
+      const padding = 20;
+      const minX = Math.min(vx - 10, clusterX - 70) - padding;
+      const maxX = clusterX + 62 + padding;
+      const minY = Math.min(vy - 10, clusterY - 45) - padding;
+      const maxY = Math.max(vy + 30, clusterY + 35) + padding;
+
+      // SVG viewBox maps 1:1 to pixel coords (viewBox = w x h, element = w x h)
+      violetLink.style.left = minX + 'px';
+      violetLink.style.top = (svgTop + minY) + 'px';
+      violetLink.style.width = (maxX - minX) + 'px';
+      violetLink.style.height = (maxY - minY) + 'px';
+    }
+
+    // Hover glow for the star
+    starLink.addEventListener('mouseenter', () => starEl.classList.add('hover-glow'));
+    starLink.addEventListener('mouseleave', () => starEl.classList.remove('hover-glow'));
+
+    // Hover glow for the violet/rocks cluster (targets the inner group, not all rocks)
+    violetLink.addEventListener('mouseenter', () => {
+      const cg = document.getElementById('cluster-group');
+      if (cg) cg.classList.add('hover-glow');
+    });
+    violetLink.addEventListener('mouseleave', () => {
+      const cg = document.getElementById('cluster-group');
+      if (cg) cg.classList.remove('hover-glow');
+    });
+
+    function drawHorizon(w, h) {
+      const svg = document.getElementById('horizon-svg');
+      svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+      svg.innerHTML = '';
+
+      // Gentle rolling horizon line where sky meets ground
+      const horizonY = h * 0.46;
+      const amplitude = h * 0.012;
+      const segments = 26;
+      const stepX = w / segments;
+
+      // Build a gently rolling path across the top of the ground
+      let d = `M 0 ${h}`;
+      d += ` L 0 ${horizonY + Math.sin(0.7) * amplitude}`;
+      for (let i = 1; i <= segments; i++) {
+        const x = i * stepX;
+        const y = horizonY + Math.sin(i * 0.8 + 0.7) * amplitude;
+        const cpx = (i - 0.5) * stepX;
+        const cpy = horizonY + Math.sin((i - 0.5) * 0.8 + 0.7) * amplitude + rand(-2, 2);
+        d += ` Q ${cpx} ${cpy} ${x} ${y}`;
+      }
+      d += ` L ${w} ${h} Z`;
+
+      // Dark ground colour covering the sky gradient below the horizon
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', d);
+      path.setAttribute('fill', '#0a0f0a');
+      svg.appendChild(path);
+    }
+
+    function resize() {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+
+      drawHorizon(w, h);
+      drawHills(w, h * 0.5);
+      drawStream(w, h * 0.5);
+      drawGrass(w, h * 0.45);
+      drawForeground(w, h * 0.5);
+    }
+
+    resize();
+    window.addEventListener('resize', resize);
+
+    // Brightness control: keys 1-9
+    // Level 1 = current darkness, level 9 = brightest
+    // Uses a CSS filter on the scene elements (not the overlay indicator)
+    const brightnessLevels = {
+      '1': 1.0,
+      '2': 1.15,
+      '3': 1.3,
+      '4': 1.45,
+      '5': 1.6,
+      '6': 1.8,
+      '7': 2.0,
+      '8': 2.25,
+      '9': 2.5,
+    };
+
+    let indicatorTimeout = null;
+
+    const sceneEls = [
+      document.getElementById('sky'),
+      document.getElementById('star'),
+      hillsSvg, streamSvg, grassDiv, fgSvg,
+      document.getElementById('horizon-svg'),
+    ];
+
+    function updateBrightnessIndicator(level) {
+      brightnessIndicator.textContent = `brightness: ${level}`;
+      brightnessIndicator.style.opacity = '1';
+      clearTimeout(indicatorTimeout);
+      indicatorTimeout = setTimeout(() => {
+        brightnessIndicator.style.opacity = '0';
+      }, 1500);
+    }
+
+    function setBrightness(level) {
+      const val = brightnessLevels[level];
+      sceneEls.forEach(el => {
+        el.style.filter = val === 1.0 ? '' : `brightness(${val})`;
+      });
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === '`') resize();
+      if (brightnessLevels[e.key]) {
+        setBrightness(e.key);
+        updateBrightnessIndicator(e.key);
+      };
+    });
+
+    setBrightness(5);
+
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+Nobody heard him, the dead man,
+But still he lay moaning:
+I was much further out than you thought
+And not waving but drowning.
+
+Poor chap, he always loved larking
+And now he's dead
+It must have been too cold for him his heart gave way,
+They said.
+
+Oh, no no no, it was too cold always
+(Still the dead one lay moaning)
+I was much too far out all my life
+And not waving but drowning.
+-->
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Poor chap, he always loved larking">
+  <title>much too far out</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: Georgia, 'Times New Roman', serif;
+    }
+
+    body {
+      background: linear-gradient(180deg, #4a5568 0%, #2d3748 30%, #1a2332 60%, #0f1a2a 100%);
+      position: relative;
+    }
+
+    #scene {
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #drowning-hand {
+      position: absolute;
+      left: 50%;
+      bottom: 11%;
+      transform: translateX(-50%);
+      z-index: 20;
+      display: block;
+      text-decoration: none;
+    }
+
+    #drowning-hand:hover {
+      filter: brightness(1.5);
+    }
+
+    #drowning-hand svg {
+      display: block;
+    }
+
+    @keyframes handWave {
+
+      0%,
+      100% {
+        transform: rotate(-15deg);
+      }
+
+      50% {
+        transform: rotate(15deg);
+      }
+    }
+
+    @keyframes handBob {
+
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-6px);
+      }
+    }
+
+    .hand-bob {
+      animation: handBob 3s ease-in-out infinite;
+    }
+
+    .hand-wave {
+      transform-origin: 18px 50px;
+      animation: handWave 4s ease-in-out infinite;
+    }
+
+    .wave-layer {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      z-index: 5;
+      pointer-events: none;
+    }
+
+    #poem-text {
+      position: absolute;
+      z-index: 15;
+      color: #8a9aaa00;
+      font-size: 18px;
+      font-style: italic;
+      letter-spacing: 0.15em;
+      text-align: center;
+      width: 80%;
+      left: 10%;
+      pointer-events: none;
+      animation: fadeInText 12s ease-in 3s forwards;
+    }
+
+    @keyframes fadeInText {
+      to {
+        color: #8a9aaa;
+      }
+    }
+
+    #grain {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48ZmlsdGVyIGlkPSJuIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iMC44NSIgbnVtT2N0YXZlcz0iMyIgc3RpdGNoVGlsZXM9InN0aXRjaCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbHRlcj0idXJsKCNuKSIvPjwvc3ZnPg==');
+      opacity: 0.25;
+      z-index: 100;
+      pointer-events: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="grain"></div>
+  <div id="scene">
+    <div id="poem-text">
+      I was much further out than you thought
+    </div>
+
+    <a id="drowning-hand" href="../index.html">
+      <div class="hand-bob">
+        <svg class="hand-wave" width="36" height="50" viewBox="0 0 36 50">
+          <line x1="18" y1="50" x2="18" y2="28" stroke="#8a9aaa" stroke-width="2" />
+          <line x1="18" y1="28" x2="7" y2="19" stroke="#8a9aaa" stroke-width="1.5" />
+          <line x1="18" y1="28" x2="11" y2="13" stroke="#8a9aaa" stroke-width="1.5" />
+          <line x1="18" y1="28" x2="18" y2="10" stroke="#8a9aaa" stroke-width="1.5" />
+          <line x1="18" y1="28" x2="23" y2="13" stroke="#8a9aaa" stroke-width="1.5" />
+          <line x1="18" y1="28" x2="26" y2="19" stroke="#8a9aaa" stroke-width="1.5" />
+        </svg>
+      </div>
+    </a>
+  </div>
+
+  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script>
+    const currentPage = "corridors/not-waving";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const scene = document.getElementById('scene');
+
+    const waveColours = [
+      'rgba(25, 40, 58, 0.7)',
+      'rgba(30, 48, 68, 0.6)',
+      'rgba(20, 35, 52, 0.8)',
+      'rgba(35, 55, 75, 0.5)',
+      'rgba(22, 38, 55, 0.7)',
+      'rgba(28, 45, 62, 0.6)',
+      'rgba(18, 32, 48, 0.8)',
+    ];
+    const waveCount = waveColours.length;
+
+    function buildWaves() {
+      document.querySelectorAll('.wave-layer').forEach(el => el.remove());
+      document.querySelectorAll('style[data-wave]').forEach(el => el.remove());
+
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const waterTop = vh * 0.33;
+
+      for (let i = 0; i < waveCount; i++) {
+        const waveY = waterTop + (i * (vh * 0.67) / waveCount);
+        const div = document.createElement('div');
+        div.className = 'wave-layer';
+        div.style.top = waveY + 'px';
+        div.style.height = (vh - waveY + 20) + 'px';
+
+        const svgNS = 'http://www.w3.org/2000/svg';
+        const svg = document.createElementNS(svgNS, 'svg');
+        svg.setAttribute('width', '100%');
+        svg.setAttribute('height', '100%');
+        svg.style.position = 'absolute';
+        svg.style.top = '0';
+        svg.style.left = '0';
+
+        // Generate wave path
+        const amplitude = 8 + Math.random() * 10;
+        const freq = 0.003 + Math.random() * 0.004;
+        const phase = Math.random() * Math.PI * 2;
+
+        let d = `M 0 ${amplitude + 15}`;
+        for (let x = 0; x <= vw; x += 8) {
+          const y = Math.sin(x * freq + phase) * amplitude + amplitude + 5;
+          d += ` L ${x} ${y}`;
+        }
+        d += ` L ${vw} ${vh} L 0 ${vh} Z`;
+
+        const path = document.createElementNS(svgNS, 'path');
+        path.setAttribute('d', d);
+        path.setAttribute('fill', waveColours[i]);
+        svg.appendChild(path);
+
+        div.appendChild(svg);
+
+        // Animate undulation
+        const animDuration = 4 + Math.random() * 4;
+        const animDelay = Math.random() * 3;
+        div.style.animation = `waveUndulate${i} ${animDuration}s ease-in-out ${animDelay}s infinite alternate`;
+
+        // Inject keyframes
+        const style = document.createElement('style');
+        style.setAttribute('data-wave', '');
+        const drift = 3 + Math.random() * 5;
+        style.textContent = `
+          @keyframes waveUndulate${i} {
+            0% { transform: translateY(0) translateX(0); }
+            50% { transform: translateY(${drift}px) translateX(${drift * 0.5}px); }
+            100% { transform: translateY(-${drift * 0.5}px) translateX(-${drift * 0.3}px); }
+          }
+        `;
+        document.head.appendChild(style);
+
+        scene.appendChild(div);
+      }
+
+      // Poem position
+      const poemDiv = document.getElementById('poem-text');
+      poemDiv.style.top = (waterTop + vh * 0.254) + 'px';
+    }
+
+    buildWaves();
+    window.addEventListener('resize', buildWaves);
+
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="ten thousand coffee spoons when all you need is a coffee knife">
+  <title>an overwhelming question</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #1a0e04;
+      font-family: 'Times New Roman', Times, serif;
+      color: #c4956a;
+    }
+
+    /* CRT scanlines */
+    body::before {
+      content: "";
+      display: block;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%),
+        linear-gradient(90deg, rgba(255, 200, 100, 0.02), rgba(200, 150, 50, 0.01), rgba(255, 200, 100, 0.02));
+      background-size: 100% 2px, 3px 100%;
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    /* Noise overlay */
+    body::after {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0.04;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 1001;
+    }
+
+    #scene {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+
+    #pile {
+      position: absolute;
+      left: 50%;
+      bottom: 20px;
+      width: 0;
+      height: 0;
+      overflow: visible;
+    }
+
+    /* Spoon counter */
+    #counter {
+      display: none;
+      position: fixed;
+      top: 8px;
+      left: 8px;
+      font-size: 14px;
+      color: #6b4226;
+      font-style: italic;
+      z-index: 10;
+      letter-spacing: 1px;
+    }
+
+    #counter.visible {
+      display: block;
+    }
+
+    /* Poem lines */
+    #poem-line {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 24px;
+      font-style: italic;
+      color: #7c4b25;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      text-align: center;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    #poem-line.visible {
+      opacity: 1;
+    }
+
+    /* Fallen spoon links */
+    .spoon-link {
+      position: absolute;
+      display: block;
+      text-decoration: none;
+    }
+
+    .spoon-link:hover svg {
+      filter: brightness(1.6) drop-shadow(0 0 6px rgba(212, 175, 100, 0.5));
+    }
+
+    /* Gleam animation */
+    @keyframes gleam {
+
+      0%,
+      100% {
+        opacity: 0.7;
+      }
+
+      50% {
+        opacity: 1;
+      }
+    }
+
+    /* Falling spoon animation */
+    @keyframes fall {
+      0% {
+        top: -60px;
+        opacity: 0;
+      }
+
+      5% {
+        opacity: 1;
+      }
+
+      100% {
+        opacity: 1;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="scene">
+    <div id="pile"></div>
+  </div>
+  <div id="counter"></div>
+  <div id="poem-line"></div>
+
+  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script>
+    const currentPage = "corridors/prufrock";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const scene = document.getElementById('scene');
+    const pile = document.getElementById('pile');
+    const counter = document.getElementById('counter');
+    const poemEl = document.getElementById('poem-line');
+
+    const poemLines = [
+      "Let us go then, you and I,",
+      "When the evening is spread out against the sky",
+      "Like a patient etherized upon a table;",
+      "Let us go, through certain half-deserted streets,",
+      "The muttering retreats",
+      "Of restless nights in one-night cheap hotels",
+      "And sawdust restaurants with oyster-shells:",
+      "Streets that follow like a tedious argument",
+      "Of insidious intent",
+      "To lead you to an overwhelming question ...",
+      "Oh, do not ask, “What is it?”",
+      "Let us go and make our visit.",
+      "",
+      "In the room the women come and go",
+      "Talking of Michelangelo.",
+      "",
+      "The yellow fog that rubs its back upon the window-panes,",
+      "The yellow smoke that rubs its muzzle on the window-panes,",
+      "Licked its tongue into the corners of the evening,",
+      "Lingered upon the pools that stand in drains,",
+      "Let fall upon its back the soot that falls from chimneys,",
+      "Slipped by the terrace, made a sudden leap,",
+      "And seeing that it was a soft October night,",
+      "Curled once about the house, and fell asleep.",
+      "",
+      "And indeed there will be time",
+      "For the yellow smoke that slides along the street,",
+      "Rubbing its back upon the window-panes;",
+      "There will be time, there will be time",
+      "To prepare a face to meet the faces that you meet;",
+      "There will be time to murder and create,",
+      "And time for all the works and days of hands",
+      "That lift and drop a question on your plate;",
+      "Time for you and time for me,",
+      "And time yet for a hundred indecisions,",
+      "And for a hundred visions and revisions,",
+      "Before the taking of a toast and tea.",
+      "",
+      "In the room the women come and go",
+      "Talking of Michelangelo.",
+      "",
+      "And indeed there will be time",
+      "To wonder, “Do I dare?” and, “Do I dare?”",
+      "Time to turn back and descend the stair,",
+      "With a bald spot in the middle of my hair —",
+      "(They will say: “How his hair is growing thin!”)",
+      "My morning coat, my collar mounting firmly to the chin,",
+      "My necktie rich and modest, but asserted by a simple pin —",
+      "(They will say: “But how his arms and legs are thin!”)",
+      "Do I dare",
+      "Disturb the universe?",
+      "In a minute there is time",
+      "For decisions and revisions which a minute will reverse.",
+      "",
+      "For I have known them all already, known them all:",
+      "Have known the evenings, mornings, afternoons,",
+      "I have measured out my life with coffee spoons;",
+      "I know the voices dying with a dying fall",
+      "Beneath the music from a farther room.",
+      "    So how should I presume?",
+      "",
+      "And I have known the eyes already, known them all—",
+      "The eyes that fix you in a formulated phrase,",
+      "And when I am formulated, sprawling on a pin,",
+      "When I am pinned and wriggling on the wall,",
+      "Then how should I begin",
+      "To spit out all the butt-ends of my days and ways?",
+      "    And how should I presume?",
+      "",
+      "And I have known the arms already, known them all—",
+      "Arms that are braceleted and white and bare",
+      "(But in the lamplight, downed with light brown hair!)",
+      "Is it perfume from a dress",
+      "That makes me so digress?",
+      "Arms that lie along a table, or wrap about a shawl.",
+      "    And should I then presume?",
+      "    And how should I begin?",
+      "",
+      "Shall I say, I have gone at dusk through narrow streets",
+      "And watched the smoke that rises from the pipes",
+      "Of lonely men in shirt-sleeves, leaning out of windows? ...",
+      "",
+      "I should have been a pair of ragged claws",
+      "Scuttling across the floors of silent seas.",
+      "",
+      "And the afternoon, the evening, sleeps so peacefully!",
+      "Smoothed by long fingers,",
+      "Asleep ... tired ... or it malingers,",
+      "Stretched on the floor, here beside you and me.",
+      "Should I, after tea and cakes and ices,",
+      "Have the strength to force the moment to its crisis?",
+      "But though I have wept and fasted, wept and prayed,",
+      "Though I have seen my head (grown slightly bald) brought in upon a platter,",
+      "I am no prophet — and here’s no great matter;",
+      "I have seen the moment of my greatness flicker,",
+      "And I have seen the eternal Footman hold my coat, and snicker,",
+      "And in short, I was afraid.",
+      "",
+      "And would it have been worth it, after all,",
+      "After the cups, the marmalade, the tea,",
+      "Among the porcelain, among some talk of you and me,",
+      "Would it have been worth while,",
+      "To have bitten off the matter with a smile,",
+      "To have squeezed the universe into a ball",
+      "To roll it towards some overwhelming question,",
+      "To say: “I am Lazarus, come from the dead,",
+      "Come back to tell you all, I shall tell you all”—",
+      "If one, settling a pillow by her head",
+      "    Should say: “That is not what I meant at all;",
+      "    That is not it, at all.”",
+      "",
+      "And would it have been worth it, after all,",
+      "Would it have been worth while,",
+      "After the sunsets and the dooryards and the sprinkled streets,",
+      "After the novels, after the teacups, after the skirts that trail along the floor—",
+      "And this, and so much more?—",
+      "It is impossible to say just what I mean!",
+      "But as if a magic lantern threw the nerves in patterns on a screen:",
+      "Would it have been worth while",
+      "If one, settling a pillow or throwing off a shawl,",
+      "And turning toward the window, should say:",
+      "    “That is not it at all,",
+      "    That is not what I meant, at all.”",
+      "",
+      "No! I am not Prince Hamlet, nor was meant to be;",
+      "Am an attendant lord, one that will do",
+      "To swell a progress, start a scene or two,",
+      "Advise the prince; no doubt, an easy tool,",
+      "Deferential, glad to be of use,",
+      "Politic, cautious, and meticulous;",
+      "Full of high sentence, but a bit obtuse;",
+      "At times, indeed, almost ridiculous—",
+      "Almost, at times, the Fool.",
+      "",
+      "I grow old ... I grow old ...",
+      "I shall wear the bottoms of my trousers rolled.",
+      "",
+      "Shall I part my hair behind?   Do I dare to eat a peach?",
+      "I shall wear white flannel trousers, and walk upon the beach.",
+      "I have heard the mermaids singing, each to each.",
+      "",
+      "I do not think that they will sing to me.",
+      "",
+      "I have seen them riding seaward on the waves",
+      "Combing the white hair of the waves blown back",
+      "When the wind blows the water white and black.",
+      "We have lingered in the chambers of the sea",
+      "By sea-girls wreathed with seaweed red and brown",
+      "Till human voices wake us, and we drown.",
+    ];
+
+    let spoonCount = 0;
+    let poemIndex = 0;
+    const piledSpoons = [];
+
+    function createSpoonSVG(rotation) {
+      const hue = 30 + Math.random() * 15;
+      const lightness = 50 + Math.random() * 15;
+      const colour = `hsl(${hue}, 45%, ${lightness}%)`;
+      const gleamDelay = Math.random() * 4;
+
+      const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      svg.setAttribute("width", "50");
+      svg.setAttribute("height", "14");
+      svg.setAttribute("viewBox", "0 0 50 14");
+      svg.style.transform = `rotate(${rotation}deg)`;
+      svg.style.animation = `gleam ${3 + Math.random() * 2}s ease-in-out -${gleamDelay}s infinite`;
+
+      // Handle
+      const line = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+      line.setAttribute("x", "0");
+      line.setAttribute("y", "5");
+      line.setAttribute("width", "34");
+      line.setAttribute("height", "4");
+      line.setAttribute("rx", "2");
+      line.setAttribute("fill", colour);
+
+      // Bowl
+      const bowl = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
+      bowl.setAttribute("cx", "41");
+      bowl.setAttribute("cy", "7");
+      bowl.setAttribute("rx", "9");
+      bowl.setAttribute("ry", "7");
+      bowl.setAttribute("fill", colour);
+
+      // Gleam highlight
+      const highlight = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
+      highlight.setAttribute("cx", "41");
+      highlight.setAttribute("cy", "5");
+      highlight.setAttribute("rx", "4");
+      highlight.setAttribute("ry", "2");
+      highlight.setAttribute("fill", "rgba(255,240,200,0.3)");
+
+      svg.appendChild(line);
+      svg.appendChild(bowl);
+      svg.appendChild(highlight);
+      return svg;
+    }
+
+    function getPilePosition() {
+      const col = (spoonCount - 1) % 8;
+      const row = Math.floor((spoonCount - 1) / 8);
+      const spreadX = 260;
+      const spoonWidth = 50;
+
+      const x = -spreadX / 2 - spoonWidth / 2 + (col * (spreadX / 7)) + (Math.random() * 20 - 10);
+      const y = -(row * 12) + (Math.random() * 6 - 3);
+      return { x, y };
+    }
+
+    function dropSpoon() {
+      spoonCount++;
+      const rotation = Math.random() * 40 - 20;
+      const fallRotation = Math.random() * 360 - 180;
+      const pos = getPilePosition();
+      const fallDuration = 2500 + Math.random() * 1500;
+
+      const link = document.createElement('a');
+      link.href = pageRandomiser.nextOne();
+      link.className = 'spoon-link';
+      link.style.left = `${pos.x}px`;
+      link.style.zIndex = spoonCount;
+
+      const svg = createSpoonSVG(rotation);
+      link.appendChild(svg);
+      pile.appendChild(link);
+
+      // Animate the fall
+      // Start from above the viewport, relative to pile
+      const pileRect = pile.getBoundingClientRect();
+      let startTime = null;
+      const startTop = -pileRect.top - 60;
+      const endTop = pos.y;
+      const startRot = fallRotation;
+      const endRot = rotation;
+
+      function animateFall(timestamp) {
+        if (!startTime) startTime = timestamp;
+        const elapsed = timestamp - startTime;
+        const progress = Math.min(elapsed / fallDuration, 1);
+
+        // Easing: ease-in (accelerating like gravity)
+        const eased = progress * progress;
+
+        const currentTop = startTop + (endTop - startTop) * eased;
+        const currentRot = startRot + (endRot - startRot) * progress;
+
+        link.style.top = `${currentTop}px`;
+        svg.style.transform = `rotate(${currentRot}deg)`;
+
+        if (progress < 1) {
+          requestAnimationFrame(animateFall);
+        }
+      }
+
+      requestAnimationFrame(animateFall);
+
+      // Update counter
+      const label = spoonCount === 1 ? 'spoon' : 'spoons';
+      counter.textContent = `${spoonCount} ${label}...`;
+
+      showPoemLine();
+    }
+
+    function showPoemLine() {
+      if (poemIndex >= poemLines.length) return;
+      poemEl.textContent = poemLines[poemIndex];
+      poemEl.classList.add('visible');
+      poemIndex++;
+
+      setTimeout(() => {
+        poemEl.classList.remove('visible');
+      }, 3000);
+    }
+
+    // Drop spoons at a slow pace, so users can read each line
+    function scheduleNextSpoon() {
+      const delay = 3500;
+      setTimeout(() => {
+        dropSpoon();
+        scheduleNextSpoon();
+      }, delay);
+    }
+
+    // Start dropping spoons on page load
+    dropSpoon();
+    scheduleNextSpoon();
+
+    // Dev mode for those who know the secret key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === '`') counter.classList.toggle('visible');
+    });
+
+  </script>
+</body>
+
+</html>

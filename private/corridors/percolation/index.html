@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+I like my coffee like I like my formation of long-range connectivity in random systems.
+Percolated.
+-->
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="The percolations of listening to The Wallflowers">
+  <title>p = 0.5927</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      background: #0a0a0a;
+      overflow: hidden;
+      font-family: "Courier New", monospace;
+      color: #aaa;
+    }
+
+    #grid-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    canvas {
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    #hud {
+      background-color: #0a0a0a;
+      padding: 6px 10px;
+      position: fixed;
+      bottom: 0px;
+      left: 0px;
+      font-size: 22px;
+      letter-spacing: 2px;
+      z-index: 10;
+      pointer-events: none;
+      text-shadow: 0 0 4px rgba(170, 170, 170, 0.5);
+      display: none;
+    }
+
+    #hud .label {
+      color: #555;
+    }
+
+    #hud .value {
+      color: #ccc;
+    }
+
+    canvas {
+      cursor: pointer;
+    }
+
+    /* Everything's better with a CRT scanline overlay */
+    #grid-container::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: repeating-linear-gradient(0deg,
+          transparent,
+          transparent 2px,
+          rgba(0, 0, 0, 0.15) 2px,
+          rgba(0, 0, 0, 0.15) 4px);
+      pointer-events: none;
+      z-index: 8;
+    }
+
+    @keyframes flash-percolation {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.3;
+      }
+    }
+
+    .flash-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.08);
+      animation: flash-percolation 0.2s ease-in-out 3;
+      pointer-events: none;
+      z-index: 9;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="grid-container">
+    <canvas id="grid-canvas"></canvas>
+  </div>
+
+  <div id="hud">
+    <span class="label">CLUSTERS: </span><span class="value" id="cluster-count">0</span><br>
+    <span class="label">PERCENT: </span><span class="value" id="pct">0.00%</span><br>
+    <span class="label">STATUS: </span><span class="value" id="status">FILLING</span>
+  </div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/percolation";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const canvas = document.getElementById('grid-canvas');
+    const ctx = canvas.getContext('2d');
+    const pctEl = document.getElementById('pct');
+    const clusterCountEl = document.getElementById('cluster-count');
+    const statusEl = document.getElementById('status');
+
+    const CELL_SIZE = 14;
+    const GAP = 1;
+    const STEP = CELL_SIZE + GAP;
+
+    let cols, rows, totalCells;
+    let grid;           // 0 = blocked, 1 = open
+    let parent;         // union-find parent
+    let rank;           // union-find rank
+    let clusterColor;   // root -> colour string
+    let openCount;
+    let clusterCount;   // tracked incrementally
+    let closedIndices;
+    let percolated;
+    let animTimer;
+    let hueOffset;
+    let dirtyIndices;   // cells that need repainting this frame
+
+    // Palette: distinct hues for clusters
+    function hueForRoot(root) {
+      if (!clusterColor[root]) {
+        clusterColor[root] = `hsl(${(root * 137.508 + hueOffset) % 360}, 70%, 55%)`;
+      }
+      return clusterColor[root];
+    }
+
+    // Union-Find
+    function find(i) {
+      while (parent[i] !== i) {
+        parent[i] = parent[parent[i]];
+        i = parent[i];
+      }
+      return i;
+    }
+
+    function union(a, b) {
+      let ra = find(a), rb = find(b);
+      if (ra === rb) return;
+      // Two clusters merging into one - decrement count
+      clusterCount--;
+      if (rank[ra] < rank[rb]) { let t = ra; ra = rb; rb = t; }
+      parent[rb] = ra;
+      if (rank[ra] === rank[rb]) rank[ra]++;
+      if (!clusterColor[ra] && clusterColor[rb]) { clusterColor[ra] = clusterColor[rb]; }
+    }
+
+    function idx(c, r) { return r * cols + c; }
+
+    function shuffle(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function init() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      cols = Math.floor(canvas.width / STEP);
+      rows = Math.floor(canvas.height / STEP);
+      totalCells = cols * rows;
+
+      grid = new Uint8Array(totalCells);
+      parent = new Int32Array(totalCells);
+      rank = new Int32Array(totalCells);
+      clusterColor = {};
+      openCount = 0;
+      clusterCount = 0;
+      percolated = false;
+      hueOffset = Math.random() * 360;
+      dirtyIndices = [];
+
+      for (let i = 0; i < totalCells; i++) {
+        parent[i] = i;
+      }
+
+      closedIndices = shuffle(Array.from({ length: totalCells }, (_, i) => i));
+
+      // Draw initial dark grid
+      ctx.fillStyle = '#0a0a0a';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#181818';
+      for (let i = 0; i < totalCells; i++) {
+        const c = i % cols;
+        const r = Math.floor(i / cols);
+        ctx.fillRect(c * STEP, r * STEP, CELL_SIZE, CELL_SIZE);
+      }
+
+      updateHUD();
+    }
+
+    function openCell(index) {
+      grid[index] = 1;
+      openCount++;
+      clusterCount++; // new singleton cluster
+
+      const c = index % cols;
+      const r = Math.floor(index / cols);
+
+      // Collect neighbours that are open
+      // We need to repaint their entire clusters because root may change after union
+      const mergedRoots = new Set();
+
+      // Union with open neighbours
+      if (c > 0 && grid[index - 1]) { mergedRoots.add(find(index - 1)); union(index, index - 1); }
+      if (c < cols - 1 && grid[index + 1]) { mergedRoots.add(find(index + 1)); union(index, index + 1); }
+      if (r > 0 && grid[index - cols]) { mergedRoots.add(find(index - cols)); union(index, index - cols); }
+      if (r < rows - 1 && grid[index + cols]) { mergedRoots.add(find(index + cols)); union(index, index + cols); }
+
+      const root = find(index);
+      hueForRoot(root);
+
+      dirtyIndices.push(index);
+
+      // If merges happened, we need to repaint affected clusters
+      // Only repaint if roots actually changed (colour might differ)
+      if (mergedRoots.size > 0) {
+        // Mark all open neighbours for repaint - their colour might have changed
+        // We do a local BFS from the newly opened cell to repaint the merged cluster
+        const visited = new Uint8Array(totalCells);
+        const queue = [index];
+        visited[index] = 1;
+        while (queue.length > 0) {
+          const ci = queue.pop();
+          dirtyIndices.push(ci);
+          const cc = ci % cols;
+          const cr = Math.floor(ci / cols);
+          const nb = [];
+          if (cc > 0) nb.push(ci - 1);
+          if (cc < cols - 1) nb.push(ci + 1);
+          if (cr > 0) nb.push(ci - cols);
+          if (cr < rows - 1) nb.push(ci + cols);
+          for (const ni of nb) {
+            if (!visited[ni] && grid[ni]) {
+              visited[ni] = 1;
+              queue.push(ni);
+            }
+          }
+        }
+      }
+    }
+
+    function checkPercolation() {
+      const topRoots = new Set();
+      for (let c = 0; c < cols; c++) {
+        if (grid[c]) {
+          topRoots.add(find(c));
+        }
+      }
+      const bottomStart = (rows - 1) * cols;
+      for (let c = 0; c < cols; c++) {
+        const bi = bottomStart + c;
+        if (grid[bi]) {
+          if (topRoots.has(find(bi))) {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+
+    // This used to take loads of CPU, so I added this to only paint the newly changed cells
+    function paintDirty() {
+      for (let k = 0; k < dirtyIndices.length; k++) {
+        const i = dirtyIndices[k];
+        const c = i % cols;
+        const r = Math.floor(i / cols);
+        if (grid[i]) {
+          ctx.fillStyle = hueForRoot(find(i));
+        } else {
+          ctx.fillStyle = '#181818';
+        }
+        ctx.fillRect(c * STEP, r * STEP, CELL_SIZE, CELL_SIZE);
+      }
+      dirtyIndices.length = 0;
+    }
+
+    function updateHUD() {
+      const pct = totalCells > 0 ? (openCount / totalCells * 100) : 0;
+      pctEl.textContent = pct.toFixed(2) + '%';
+      clusterCountEl.textContent = clusterCount;
+      statusEl.textContent = percolated ? 'PERCOLATED' : 'FILLING';
+    }
+
+    function flashAndReset() {
+      percolated = true;
+      updateHUD();
+
+      const overlay = document.createElement('div');
+      overlay.className = 'flash-overlay';
+      document.body.appendChild(overlay);
+
+      // Find spanning roots
+      const topRoots = new Set();
+      for (let c = 0; c < cols; c++) {
+        if (grid[c]) topRoots.add(find(c));
+      }
+      const spanningRoots = new Set();
+      const bottomStart = (rows - 1) * cols;
+      for (let c = 0; c < cols; c++) {
+        const bi = bottomStart + c;
+        if (grid[bi]) {
+          const r = find(bi);
+          if (topRoots.has(r)) spanningRoots.add(r);
+        }
+      }
+
+      // Flash the spanning cluster bright white
+      ctx.fillStyle = '#ffffff';
+      for (let i = 0; i < totalCells; i++) {
+        if (grid[i] && spanningRoots.has(find(i))) {
+          const c = i % cols;
+          const r = Math.floor(i / cols);
+          ctx.fillRect(c * STEP, r * STEP, CELL_SIZE, CELL_SIZE);
+        }
+      }
+
+      setTimeout(() => {
+        overlay.remove();
+        init();
+        startSimulation();
+      }, 5800);
+    }
+
+    const BATCH_SIZE = 3;
+    const INTERVAL_MS = 16;
+
+    function step() {
+      if (percolated) return;
+
+      for (let b = 0; b < BATCH_SIZE; b++) {
+        if (closedIndices.length === 0) return;
+        openCell(closedIndices.pop());
+      }
+
+      paintDirty();
+      updateHUD();
+
+      if (checkPercolation()) {
+        flashAndReset();
+        return;
+      }
+
+      animTimer = setTimeout(step, INTERVAL_MS);
+    }
+
+    function startSimulation() {
+      if (animTimer) clearTimeout(animTimer);
+      animTimer = setTimeout(step, INTERVAL_MS);
+    }
+
+    canvas.addEventListener('click', () => {
+      window.location.href = pageRandomiser.nextOne();
+    });
+
+    // Click the ` key to toggle the HUD
+    const hud = document.getElementById('hud');
+    window.addEventListener('keydown', (e) => {
+      if (e.key === '`') {
+        hud.style.display = hud.style.display === 'block' ? 'none' : 'block';
+      }
+    });
+
+    window.addEventListener('resize', () => {
+      init();
+      startSimulation();
+    });
+
+    init();
+    startSimulation();
+
+  </script>
+</body>
+
+</html>

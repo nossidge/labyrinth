@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+This background was accidentally generated when I was talking to a chat bot.
+I didn't mean for it to make an image, but it created it anyway.
+My fault entirely, I know.
+Well, I'm not going to have it use up compute for nothing.
+Since I generated it, I have to use the image somehow.
+I came up with this page just to make use of it.
+I think that's the right thing to do, better than just deleting it?
+I'm not sure, but it seems correct?
+I don't know...
+
+But I did reduce the size of the image using ImageMagick:
+convert input.png -resize 30% -colors 16 -define png:compression-level=9 PNG8:output.png
+-->
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="ACAB Rocky">
+  <title>Nothing to see here</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: #1a1a1a;
+      background-image: url('chalk-outline.png');
+      background-repeat: no-repeat;
+      background-size: 100% 100%;
+      background-position: center;
+      background-attachment: fixed;
+      min-height: 100vh;
+      overflow: hidden;
+      cursor: default;
+    }
+
+    #scene {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    #scene * {
+      pointer-events: auto;
+    }
+
+    .tape {
+      position: absolute;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      white-space: nowrap;
+      text-decoration: none;
+      font-weight: 900;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      overflow: hidden;
+      transition: filter 0.15s;
+    }
+
+    .tape:hover {
+      filter: brightness(1.3);
+    }
+
+    .tape-text {
+      display: inline-block;
+      padding: 0 20px;
+    }
+
+    body::after {
+      content: "";
+      display: block;
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      right: 0;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.06) 50%);
+      z-index: 100;
+      background-size: 100% 4px;
+      pointer-events: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="scene"></div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/police-line";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    // Useful randomisation helpers
+    function rand(min, max) { return Math.random() * (max - min) + min; }
+    function randInt(min, max) { return Math.floor(rand(min, max + 1)); }
+    function randIndex(array) { return randInt(0, array.length - 1); }
+    function sample(array) { return array[randIndex(array)]; }
+
+    const TAPE_DESIGNS_POOL = [
+      // Classic blue/white
+      {
+        bg: '#0033a0',
+        color: '#ffffff',
+        border: '3px solid #fff',
+        fontFamily: '"Arial", "Helvetica", sans-serif',
+        shadow: '1px 1px 0 rgba(0,0,0,0.5)',
+      },
+      // Blue with white checkerboard band (Battenburg effect in JS below)
+      {
+        bg: '#002776',
+        color: '#ffffff',
+        border: 'none',
+        fontFamily: '"Arial Black", sans-serif',
+        checkerboard: true,
+        shadow: 'none',
+      },
+      // Yellow/black (Yank style)
+      {
+        bg: '#ffd100',
+        color: '#000000',
+        border: '3px solid #000',
+        fontFamily: '"Arial Black", "Impact", sans-serif',
+        shadow: '2px 2px 0 rgba(0,0,0,0.2)',
+      },
+      // Yellow with black chevrons pattern
+      {
+        bg: 'repeating-linear-gradient(-45deg, #ffd100, #ffd100 10px, #000 10px, #000 20px)',
+        color: '#ffd100',
+        border: '3px solid #000',
+        fontFamily: '"Impact", "Arial Black", sans-serif',
+        textBg: '#000',
+        shadow: 'none',
+      },
+      // Red/white
+      {
+        bg: '#cc0000',
+        color: '#ffffff',
+        border: '3px solid #fff',
+        fontFamily: '"Impact", sans-serif',
+        shadow: '2px 2px 0 rgba(0,0,0,0.3)',
+      },
+      // Reflective silver/black
+      {
+        bg: 'linear-gradient(180deg, #e8e8e8, #b0b0b0, #e8e8e8)',
+        color: '#000000',
+        border: '2px solid #333',
+        fontFamily: '"Courier New", monospace',
+        shadow: '0 0 6px rgba(255,255,255,0.3)',
+      },
+      // Fluorescent orange
+      {
+        bg: '#ff6600',
+        color: '#000000',
+        border: '3px solid #000',
+        fontFamily: '"Arial Black", sans-serif',
+        shadow: '0 0 8px rgba(255,102,0,0.4)',
+      },
+      // Black with yellow text
+      {
+        bg: '#111',
+        color: '#ffd100',
+        border: '3px solid #ffd100',
+        fontFamily: '"Impact", sans-serif',
+        shadow: '0 0 10px rgba(255,209,0,0.3)',
+      },
+      // White with blue text (forensics)
+      {
+        bg: '#f0f0f0',
+        color: '#003380',
+        border: '2px solid #003380',
+        fontFamily: '"Georgia", serif',
+        shadow: 'none',
+      },
+      // Neon green / black (hazmat kinda)
+      {
+        bg: '#39ff14',
+        color: '#000',
+        border: '3px solid #000',
+        fontFamily: '"Arial Black", sans-serif',
+        shadow: '0 0 12px rgba(57,255,20,0.5)',
+      },
+      // Yellow with red text
+      {
+        bg: '#ffd100',
+        color: '#cc0000',
+        border: '3px solid #cc0000',
+        fontFamily: '"Impact", sans-serif',
+        shadow: '1px 1px 0 rgba(0,0,0,0.15)',
+      },
+      // Dark navy with silver text
+      {
+        bg: '#0c1445',
+        color: '#c0c0c0',
+        border: '2px solid #c0c0c0',
+        fontFamily: '"Courier New", monospace',
+        shadow: '0 0 6px rgba(192,192,192,0.3)',
+      },
+    ];
+
+    const TAPE_TEXTS_POOL = [
+      "POLICE LINE DO NOT CROSS",
+      "POLICE LINE \u2022 DO NOT CROSS",
+      "\u26a0 POLICE LINE DO NOT CROSS \u26a0",
+      "POLICE LINE \u2500\u2500 DO NOT CROSS",
+      "\u2588 POLICE LINE DO NOT CROSS \u2588",
+      "DO NOT CROSS \u2014 POLICE LINE",
+      "POLICE \u00b7 LINE \u00b7 DO \u00b7 NOT \u00b7 CROSS",
+    ];
+
+    const scene = document.getElementById('scene');
+
+    function generateTapes() {
+      scene.innerHTML = '';
+      const count = 12;
+      const maxDim = Math.max(window.innerWidth, window.innerHeight);
+      const tapeWidth = maxDim * 2;
+      const viewW = window.innerWidth;
+      const viewH = window.innerHeight;
+
+      for (let i = 0; i < count; i++) {
+        const design = sample(TAPE_DESIGNS_POOL);
+        const text = sample(TAPE_TEXTS_POOL);
+
+        const tape = document.createElement('a');
+        tape.href = pageRandomiser.nextOne();
+        tape.className = 'tape';
+
+        const angle = rand(-65, 65);
+        const height = rand(28, 56);
+        const fontSize = height * 0.5;
+        const width = tapeWidth;
+        const x = (viewW - tapeWidth) / 2;
+        const y = rand(-30, viewH - 30);
+
+        tape.style.left = x + 'px';
+        tape.style.top = y + 'px';
+        tape.style.width = width + 'px';
+        tape.style.height = height + 'px';
+        tape.style.fontSize = fontSize + 'px';
+        tape.style.transform = `rotate(${angle}deg)`;
+        tape.style.zIndex = randInt(1, 20);
+        tape.style.opacity = rand(0.75, 1);
+
+        // This feels hacky, but it works :-)
+        if (design.bg.includes('gradient') || design.bg.includes('repeating')) {
+          tape.style.backgroundImage = design.bg;
+        } else {
+          tape.style.backgroundColor = design.bg;
+        }
+
+        tape.style.color = design.color;
+        tape.style.border = design.border;
+        tape.style.fontFamily = design.fontFamily;
+        tape.style.textShadow = design.shadow;
+
+        // Repeat the text enough to fill the tape
+        const repeats = Math.ceil(width / (text.length * fontSize * 0.55)) + 2;
+        let inner = '';
+
+        if (design.textBg) {
+          for (let r = 0; r < repeats; r++) {
+            inner += `<span class="tape-text" style="background:${design.textBg};padding:2px 12px;">${text}</span>`;
+          }
+        } else {
+          for (let r = 0; r < repeats; r++) {
+            inner += `<span class="tape-text">${text}</span>`;
+          }
+        }
+
+        // Checkerboard border effect (Battenburg style)
+        if (design.checkerboard) {
+          tape.style.borderTop = '6px solid transparent';
+          tape.style.borderBottom = '6px solid transparent';
+          tape.style.borderImage = 'repeating-linear-gradient(90deg, #fff 0 8px, #0033a0 8px 16px) 6';
+        }
+
+        tape.innerHTML = inner;
+        scene.appendChild(tape);
+      }
+    }
+
+    generateTapes();
+
+    window.addEventListener('resize', generateTapes);
+
+    // Click background to regenerate
+    document.body.addEventListener('click', function (e) {
+      if (e.target === document.body || e.target === scene) {
+        generateTapes();
+      }
+    });
+
+    // Regenerate on keydown
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey || e.altKey || e.shiftKey || e.metaKey) return;
+      if (e.key === 'Tab' || e.key === 'F5') return;
+
+      e.preventDefault();
+      generateTapes();
+    });
+
+  </script>
+</body>
+
+</html>

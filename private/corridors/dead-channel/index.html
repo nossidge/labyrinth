@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="the sky above the port">
+  <title>Dead Channel</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+    }
+
+    #grid {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: grid;
+    }
+
+    #grid a {
+      display: block;
+      text-decoration: none;
+      transition: transform 0.15s;
+    }
+
+    #grid a:hover {
+      transform: scale(1.6);
+      filter: brightness(2);
+      z-index: 10;
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 100;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+      background-size: 100% 2px, 3px 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+  <div id="grid"></div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/dead-channel";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    // Useful randomisation helpers
+    function rand(min, max) { return Math.random() * (max - min) + min; }
+    function randInt(min, max) { return Math.floor(rand(min, max + 1)); }
+    function randIndex(array) { return randInt(0, array.length - 1); }
+    function sample(array) { return array[randIndex(array)]; }
+    function chance(probability) { return rand(0, 1) < probability; }
+
+    const grid = document.getElementById('grid');
+    const cellW = 16;
+    const cellH = 12;
+    const baseLight = '#ccc';
+    const baseDark = '#222';
+    const flickerLight = '#333';
+    const flickerDark = '#bbb';
+    const waveSpeed = 0.004;
+    const waveWidth = 0.25;
+
+    let cols, rows, cells = [], columns = [];
+    let waveX = -0.5;
+
+    // The idea of this is that we should only update the cells that we know to be active.
+    // Hopefully this will reduce CPU usage.
+    let activeFlickers = new Set();
+
+    // The effect still reads well at 20fps.
+    // Avoids repainting thousands of cells 60 times a second.
+    const targetFrameMs = 1000 / 20;
+
+    function setCellColour(cell, flickering = false) {
+      if (flickering) {
+        cell.style.backgroundColor = cell._isLight ? flickerLight : flickerDark;
+        return;
+      }
+
+      cell.style.backgroundColor = cell._isLight ? baseLight : baseDark;
+    }
+
+    function chancePerStep(baseChance, dt) {
+      return 1 - Math.pow(1 - baseChance, dt / 16);
+    }
+
+    function randomCount(expectedCount) {
+      const whole = Math.floor(expectedCount);
+      return whole + (chance(expectedCount - whole) ? 1 : 0);
+    }
+
+    function startFlicker(cell, now) {
+      if (!cell || cell._flickerEnd) {
+        return false;
+      }
+
+      cell._flickerEnd = now + rand(80, 280);
+      activeFlickers.add(cell);
+      setCellColour(cell, true);
+      return true;
+    }
+
+    function stopFlicker(cell) {
+      cell._flickerEnd = 0;
+      activeFlickers.delete(cell);
+      setCellColour(cell);
+    }
+
+    function pickRandomCell(startCol = 0, endCol = cols - 1) {
+      if (startCol > endCol || !cells.length) {
+        return null;
+      }
+
+      if (startCol === 0 && endCol === cols - 1) {
+        return sample(cells);
+      }
+
+      const col = randInt(startCol, endCol);
+      const column = columns[col];
+      if (!column || !column.length) {
+        return null;
+      }
+
+      return sample(column);
+    }
+
+    function triggerRandomFlickers(count, now, startCol = 0, endCol = cols - 1) {
+      if (count <= 0) {
+        return;
+      }
+
+      let triggered = 0;
+      const attemptLimit = count * 3;
+
+      for (let attempt = 0; attempt < attemptLimit && triggered < count; attempt++) {
+        if (startFlicker(pickRandomCell(startCol, endCol), now)) {
+          triggered++;
+        }
+      }
+    }
+
+    function buildGrid() {
+      cols = Math.ceil(window.innerWidth / cellW);
+      rows = Math.ceil(window.innerHeight / cellH);
+      grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+      grid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+      cells = [];
+      columns = Array.from({ length: cols }, () => []);
+      activeFlickers = new Set();
+      const fragment = document.createDocumentFragment();
+
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const a = document.createElement('a');
+          a.href = pageRandomiser.nextOne();
+          const isLight = chance(0.5);
+          a._isLight = isLight;
+          a._flickerEnd = 0;
+          setCellColour(a);
+          fragment.appendChild(a);
+          cells.push(a);
+          columns[c].push(a);
+        }
+      }
+
+      grid.replaceChildren(fragment);
+    }
+
+    buildGrid();
+
+    // Rebuilding thousands of tiles on every resize event is expensive.
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(buildGrid, 200);
+    });
+
+    let previousTime = 0;
+    function animate(now) {
+      if (!previousTime) {
+        previousTime = now;
+        requestAnimationFrame(animate);
+        return;
+      }
+
+      const dt = now - previousTime;
+      if (dt < targetFrameMs) {
+        requestAnimationFrame(animate);
+        return;
+      }
+
+      previousTime = now;
+
+      waveX += waveSpeed * dt;
+      if (waveX > 1.5) waveX = -0.5;
+
+      const baseFlickerChance = chancePerStep(0.001, dt);
+      const waveFlickerChance = chancePerStep(0.04, dt);
+      const waveStart = Math.ceil((waveX - waveWidth) * (cols - 1));
+      const waveEnd = Math.floor((waveX + waveWidth) * (cols - 1));
+      const startCol = Math.max(0, waveStart);
+      const endCol = Math.min(cols - 1, waveEnd);
+
+      for (const cell of activeFlickers) {
+        if (now > cell._flickerEnd) {
+          stopFlicker(cell);
+        }
+      }
+
+      if (startCol <= endCol) {
+        const waveCellCount = (endCol - startCol + 1) * rows;
+        triggerRandomFlickers(randomCount(waveCellCount * waveFlickerChance), now, startCol, endCol);
+      }
+
+      triggerRandomFlickers(randomCount(cells.length * baseFlickerChance), now);
+
+      requestAnimationFrame(animate);
+    }
+
+    requestAnimationFrame(animate);
+
+  </script>
+</body>
+
+</html>

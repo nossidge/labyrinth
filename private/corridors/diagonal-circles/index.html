@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="⡾">
+  <title>⠠⠞⠁</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #111;
+    }
+
+    #grid {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .dot {
+      position: absolute;
+      border-radius: 50%;
+      display: block;
+      text-decoration: none;
+      border: 1px solid #333;
+      transition: transform 0.2s ease, filter 0.2s ease;
+    }
+
+    .dot.light {
+      background-color: #fff;
+      border-color: #fff;
+    }
+
+    .dot.dark {
+      background-color: #111;
+      border-color: #555;
+    }
+
+    .dot:hover {
+      transform: scale(1.4);
+      filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.6));
+      z-index: 50;
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 100;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 255, 0, 0.03));
+      background-size: 100% 2px, 3px 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+  <div id="grid"></div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/diagonal-circles";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const grid = document.getElementById('grid');
+    const dotSize = 16;
+    const spacing = 24;
+    const stripeWidth = 3;
+    const patternPeriod = stripeWidth * 2;
+    const scrollSpeed = 0.02;
+    const stripeStepDuration = (1000 / 60) / scrollSpeed;
+    const directions = {
+      arrowleft: { x: -1, y: 0 },
+      a: { x: -1, y: 0 },
+      h: { x: -1, y: 0 },
+      arrowright: { x: 1, y: 0 },
+      d: { x: 1, y: 0 },
+      l: { x: 1, y: 0 },
+      arrowup: { x: 0, y: -1 },
+      w: { x: 0, y: -1 },
+      k: { x: 0, y: -1 },
+      arrowdown: { x: 0, y: 1 },
+      s: { x: 0, y: 1 },
+      j: { x: 0, y: 1 },
+    };
+
+    let cols, rows, dots, padX, padY;
+    let offsetX = 0;
+    let offsetY = 0;
+    let stripeTimeout;
+
+    const randomDirection = ['w', 'a', 's', 'd'][Math.floor(Math.random() * 4)];
+    let direction = directions[randomDirection];
+
+    function getDotTone(row, col) {
+      const diag = row + col;
+      const stripe = Math.floor(diag / stripeWidth);
+      return stripe % 2 === 0 ? 'light' : 'dark';
+    }
+
+    function mod(value, size) {
+      return ((value % size) + size) % size;
+    }
+
+    function roundUpToMultiple(value, multiple) {
+      return Math.ceil(value / multiple) * multiple;
+    }
+
+    function buildGrid() {
+      cols = roundUpToMultiple(Math.ceil(window.innerWidth / spacing) + 1, patternPeriod);
+      rows = roundUpToMultiple(Math.ceil(window.innerHeight / spacing) + 1, patternPeriod);
+      offsetX = mod(offsetX, cols);
+      offsetY = mod(offsetY, rows);
+      dots = [];
+      const fragment = document.createDocumentFragment();
+
+      padX = (window.innerWidth - (cols - 1) * spacing) / 2;
+      padY = (window.innerHeight - (rows - 1) * spacing) / 2;
+
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const a = document.createElement('a');
+          a.href = pageRandomiser.nextOne();
+          a.className = 'dot ' + getDotTone(r, c);
+          a.style.width = dotSize + 'px';
+          a.style.height = dotSize + 'px';
+          fragment.appendChild(a);
+          dots.push({ el: a, row: r, col: c });
+        }
+      }
+
+      grid.replaceChildren(fragment);
+      renderDots();
+    }
+
+    function renderDots() {
+      for (const d of dots) {
+        const shiftedCol = mod(d.col + offsetX, cols);
+        const shiftedRow = mod(d.row + offsetY, rows);
+        d.el.style.left = (padX + shiftedCol * spacing - dotSize / 2) + 'px';
+        d.el.style.top = (padY + shiftedRow * spacing - dotSize / 2) + 'px';
+      }
+    }
+
+    function stepPattern() {
+      offsetX += direction.x;
+      offsetY += direction.y;
+      renderDots();
+    }
+
+    function scheduleNextStripeStep() {
+      clearTimeout(stripeTimeout);
+
+      stripeTimeout = setTimeout(() => {
+        stepPattern();
+        scheduleNextStripeStep();
+      }, stripeStepDuration);
+    }
+
+    buildGrid();
+    scheduleNextStripeStep();
+
+    window.addEventListener('keydown', (e) => {
+      if (e.ctrlKey || e.altKey || e.shiftKey || e.metaKey) return;
+
+      // I think it's OK to allow this. I'll just comment this out for now.
+      // if (e.repeat) return;
+
+      const nextDirection = directions[e.key.toLowerCase()];
+      if (!nextDirection) return;
+
+      e.preventDefault();
+      direction = nextDirection;
+      stepPattern();
+      scheduleNextStripeStep();
+    });
+
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(buildGrid, 200);
+    });
+
+  </script>
+</body>
+
+</html>

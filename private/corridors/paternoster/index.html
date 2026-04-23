@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="You and I forever baby">
+  <title>Elevation station</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #111;
+    }
+
+    #grid {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .col {
+      position: absolute;
+      top: 0;
+      will-change: transform;
+    }
+
+    .col.up {
+      animation: scroll-up linear infinite;
+    }
+
+    .col.down {
+      animation: scroll-down linear infinite;
+    }
+
+    @keyframes scroll-up {
+      from {
+        transform: translateY(0);
+      }
+
+      to {
+        transform: translateY(calc(-1 * var(--cycle-height)));
+      }
+    }
+
+    @keyframes scroll-down {
+      from {
+        transform: translateY(calc(-1 * var(--cycle-height)));
+      }
+
+      to {
+        transform: translateY(0);
+      }
+    }
+
+    .sq {
+      position: absolute;
+      left: 0;
+      display: block;
+      text-decoration: none;
+      border: 1px solid #444;
+      transition: transform 0.15s ease, filter 0.15s ease;
+    }
+
+    .sq.light {
+      background-color: #ddd;
+      border-color: #999;
+    }
+
+    .sq.dark {
+      background-color: #222;
+      border-color: #444;
+    }
+
+    .sq:hover {
+      transform: scale(1.25);
+      filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.6));
+      z-index: 50;
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 100;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 255, 0, 0.03));
+      background-size: 100% 2px, 3px 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+  <div id="grid"></div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/paternoster";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const grid = document.getElementById('grid');
+    const cellSize = 50;
+    const gap = 2;
+    const step = cellSize + gap;
+    const scrollSpeed = 0.5;
+    const pixelsPerSecond = scrollSpeed * 60;
+
+    function init() {
+      grid.innerHTML = '';
+
+      const W = window.innerWidth;
+      const H = window.innerHeight;
+
+      let visibleRows = Math.ceil(H / step) + 2;
+      if (visibleRows % 2 !== 0) visibleRows++;
+
+      const cycleHeight = visibleRows * step;
+      const duration = cycleHeight / pixelsPerSecond;
+      const cols = Math.ceil(W / step) + 1;
+      const padX = (W - cols * step + gap) / 2;
+
+      document.documentElement.style.setProperty('--cycle-height', cycleHeight + 'px');
+
+      for (let c = 0; c < cols; c++) {
+        const colDiv = document.createElement('div');
+        colDiv.className = 'col ' + (c % 2 === 0 ? 'up' : 'down');
+        colDiv.style.left = (padX + c * step) + 'px';
+        colDiv.style.width = cellSize + 'px';
+        colDiv.style.animationDuration = duration + 's';
+
+        const totalRows = visibleRows * 2;
+        for (let r = 0; r < totalRows; r++) {
+          const a = document.createElement('a');
+          a.href = pageRandomiser.nextOne();
+          const isLight = (r + c) % 2 === 0;
+          a.className = 'sq ' + (isLight ? 'light' : 'dark');
+          a.style.width = cellSize + 'px';
+          a.style.height = cellSize + 'px';
+          a.style.top = (r * step) + 'px';
+          colDiv.appendChild(a);
+        }
+
+        grid.appendChild(colDiv);
+      }
+    }
+
+    init();
+
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(init, 200);
+    });
+
+  </script>
+</body>
+
+</html>

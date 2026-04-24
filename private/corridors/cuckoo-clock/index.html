@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+This is probably the biggest static skeuomorphic CSS thing I've ever made.
+This took a few days while I pushed out quicker, easier pages.
+It's a bit pixel-specific, which might affect how it looks on some browsers.
+And I did cheat a bit by using JS to handle the clock numerals (I'm way better at JS than CSS).
+But I'm pretty happy with how it turned out.
+-->
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="nothing else compares">
+  <title>Black Forest tableau</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: serif;
+    }
+
+    /* This weird background image was an accident I made for a different page */
+    /* I used it here because I realised this needed an interesting background */
+    /* It's supposed to look like damask wallpaper from my grandparents' house */
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #1a1018;
+      background-image:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cpath d='M30 0c4 8 8 12 0 20s-12 4-20 0S0 8 0 0h10c2 4 4 8 0 12s-4 2-8 0 2-6 8-2 4-4 0-10h20zm0 60c-4-8-8-12 0-20s12-4 20 0 10 12 10 20H50c-2-4-4-8 0-12s4-2 8 0-2 6-8 2-4 4 0 10H30zm30-30c-8 4-12 8-20 0s-4-12 0-20S32 0 40 0v10c-4 2-8 4-12 0s-2-4 0-8 6 2 2 8-4 4-10 0V30zM0 30c8-4 12-8 20 0s4 12 0 20-8 10-20 10V50c4-2 8-4 12 0s2 4 0 8-6-2-2-8 4-4 10 0V30z' fill='%23241828' fill-opacity='0.4'/%3E%3C/svg%3E");
+    }
+
+    .clock-assembly {
+      display: block;
+      position: relative;
+      width: 320px;
+      height: 620px;
+      text-decoration: none;
+      color: inherit;
+      transition: transform 0.3s ease;
+    }
+
+    .clock-assembly:hover {
+      transform: scale(1.03);
+    }
+
+    /* Roof */
+    .roof {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 148px solid transparent;
+      border-right: 148px solid transparent;
+      border-bottom: 100px solid #5c3a1e;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+      z-index: 2;
+    }
+
+    .roof-trim {
+      position: absolute;
+      top: 92px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 310px;
+      height: 14px;
+      background: #3e2510;
+      border-top: 3px solid #8b6914;
+      border-bottom: 3px solid #8b6914;
+      z-index: 3;
+    }
+
+    .roof-peak {
+      position: absolute;
+      top: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 24px;
+      height: 24px;
+      background: #8b6914;
+      border-radius: 50%;
+      border: 3px solid #5c3a1e;
+      z-index: 4;
+    }
+
+    /* Clock body */
+    .body {
+      position: absolute;
+      top: 105px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 280px;
+      height: 320px;
+      background: linear-gradient(135deg, #7a4a2a 0%, #5c3a1e 40%, #4a2e14 100%);
+      border: 4px solid #3e2510;
+      border-top: none;
+      box-shadow:
+        inset 0 0 30px rgba(0, 0, 0, 0.3),
+        0 4px 20px rgba(0, 0, 0, 0.6);
+      z-index: 1;
+    }
+
+    /* Wood grain overlay */
+    .body::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: repeating-linear-gradient(90deg,
+          transparent,
+          transparent 8px,
+          rgba(0, 0, 0, 0.05) 8px,
+          rgba(0, 0, 0, 0.05) 9px);
+      pointer-events: none;
+    }
+
+    /* Carved decorations */
+    .carving-top {
+      position: absolute;
+      top: 112px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 240px;
+      height: 20px;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .carving-top .leaf {
+      width: 12px;
+      height: 12px;
+      border: 2px solid #8b6914;
+      border-radius: 0 50% 0 50%;
+      transform: rotate(45deg);
+      opacity: 0.7;
+    }
+
+    .carving-top .dot {
+      width: 6px;
+      height: 6px;
+      background: #8b6914;
+      border-radius: 50%;
+      opacity: 0.6;
+    }
+
+    .carving-side {
+      position: absolute;
+      top: 160px;
+      width: 20px;
+      height: 180px;
+      z-index: 5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-around;
+    }
+
+    .carving-side.left {
+      left: calc(50% - 130px);
+    }
+
+    .carving-side.right {
+      right: calc(50% - 130px);
+    }
+
+    .carving-side .diamond {
+      width: 10px;
+      height: 10px;
+      border: 2px solid #8b6914;
+      transform: rotate(45deg);
+      opacity: 0.5;
+    }
+
+    /* Bird door */
+    .door-frame {
+      position: absolute;
+      top: 140px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 44px;
+      height: 50px;
+      z-index: 6;
+    }
+
+    .door-arch {
+      width: 44px;
+      height: 50px;
+      background: #2a1a0a;
+      border: 3px solid #8b6914;
+      border-radius: 22px 22px 0 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .door-panel {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #6b3a1a, #4a2a10);
+      border-radius: 19px 19px 0 0;
+      transform-origin: left center;
+      transition: transform 0.4s ease-in-out;
+    }
+
+    .door-panel.open {
+      transform: perspective(200px) rotateY(-110deg);
+    }
+
+    .door-panel::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      right: 8px;
+      width: 4px;
+      height: 4px;
+      background: #8b6914;
+      border-radius: 50%;
+      transform: translateY(-50%);
+    }
+
+    .bird-container {
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%) scaleX(-1);
+      font-size: 22px;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      z-index: 5;
+      pointer-events: none;
+    }
+
+    .bird-container.visible {
+      opacity: 1;
+      pointer-events: auto;
+      cursor: pointer;
+    }
+
+    .bird-container.visible:hover {
+      filter: drop-shadow(0 0 8px rgba(255, 220, 100, 0.9));
+    }
+
+    .bird-container.bobbing {
+      animation: bird-bob 0.4s ease-in-out 2;
+    }
+
+    @keyframes bird-bob {
+
+      0%,
+      100% {
+        transform: translateX(-50%) scaleX(-1) translateY(0);
+      }
+
+      50% {
+        transform: translateX(-50%) scaleX(-1) translateY(-8px);
+      }
+    }
+
+    /* Clock face */
+    .clock-face-container {
+      position: absolute;
+      top: 210px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 6;
+    }
+
+    .clock-face {
+      width: 160px;
+      height: 160px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #f5f0e0 0%, #e8dcc0 70%, #d4c8a0 100%);
+      border: 6px solid #8b6914;
+      box-shadow:
+        0 0 0 3px #3e2510,
+        inset 0 0 20px rgba(0, 0, 0, 0.1),
+        0 2px 10px rgba(0, 0, 0, 0.4);
+      position: relative;
+    }
+
+    /* Roman numerals */
+    .numeral {
+      position: absolute;
+      font-size: 14px;
+      font-weight: bold;
+      color: #3e2510;
+      font-family: 'Times New Roman', serif;
+      transform: translate(-50%, -50%);
+    }
+
+    /* Clock hands */
+    .hand {
+      position: absolute;
+      bottom: 50%;
+      left: 50%;
+      transform-origin: 50% 100%;
+      border-radius: 2px;
+    }
+
+    .hour-hand {
+      width: 5px;
+      height: 42px;
+      background: #2a1a0a;
+      margin-left: -2.5px;
+      z-index: 8;
+      box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+    }
+
+    .minute-hand {
+      width: 3px;
+      height: 58px;
+      background: #1a0e04;
+      margin-left: -1.5px;
+      z-index: 9;
+      box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+    }
+
+    .center-pin {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 10px;
+      height: 10px;
+      background: #8b6914;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 10;
+      box-shadow: 0 0 3px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Bottom trim */
+    .bottom-trim {
+      position: absolute;
+      top: 420px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 310px;
+      height: 16px;
+      background: #3e2510;
+      border-top: 3px solid #8b6914;
+      border-bottom: 3px solid #8b6914;
+      z-index: 3;
+    }
+
+    .bottom-carving {
+      position: absolute;
+      top: 394px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 200px;
+      height: 20px;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .bottom-carving .scroll {
+      width: 18px;
+      height: 18px;
+      border: 2px solid #8b6914;
+      border-radius: 50%;
+      opacity: 0.5;
+    }
+
+    .bottom-carving .scroll-inner {
+      width: 8px;
+      height: 8px;
+      border: 2px solid #8b6914;
+      border-radius: 50%;
+      opacity: 0.5;
+    }
+
+    /* Pendulum */
+    .pendulum-rod {
+      position: absolute;
+      top: 425px;
+      left: 50%;
+      transform-origin: 50% 0%;
+      width: 3px;
+      height: 160px;
+      margin-left: -1.5px;
+      z-index: 0;
+    }
+
+    .pendulum-rod-inner {
+      width: 100%;
+      height: 100%;
+      background: #8b6914;
+    }
+
+    .pendulum-bob {
+      position: absolute;
+      bottom: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 50px;
+      height: 50px;
+      background: radial-gradient(circle at 35% 35%, #d4a832, #8b6914 60%, #5c4a0e);
+      border-radius: 50%;
+      border: 2px solid #3e2510;
+      box-shadow:
+        0 2px 8px rgba(0, 0, 0, 0.5),
+        inset 0 -4px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .pendulum-rod {
+      animation: pendulum-swing 2s ease-in-out infinite;
+    }
+
+    @keyframes pendulum-swing {
+
+      0%,
+      100% {
+        transform: rotate(15deg);
+      }
+
+      50% {
+        transform: rotate(-15deg);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <a class="clock-assembly" href="../index.html">
+    <!-- Roof -->
+    <div class="roof"></div>
+    <div class="roof-trim"></div>
+    <div class="roof-peak"></div>
+
+    <!-- Body -->
+    <div class="body"></div>
+
+    <!-- Carved decorations (top) -->
+    <div class="carving-top">
+      <div class="leaf"></div>
+      <div class="dot"></div>
+      <div class="leaf"></div>
+      <div class="dot"></div>
+      <div class="leaf"></div>
+      <div class="dot"></div>
+      <div class="leaf"></div>
+      <div class="dot"></div>
+      <div class="leaf"></div>
+    </div>
+
+    <!-- Carved decorations (sides) -->
+    <div class="carving-side left">
+      <div class="diamond"></div>
+      <div class="diamond"></div>
+      <div class="diamond"></div>
+      <div class="diamond"></div>
+      <div class="diamond"></div>
+    </div>
+    <div class="carving-side right">
+      <div class="diamond"></div>
+      <div class="diamond"></div>
+      <div class="diamond"></div>
+      <div class="diamond"></div>
+      <div class="diamond"></div>
+    </div>
+
+    <!-- Bird door -->
+    <div class="door-frame">
+      <div class="door-arch">
+        <div class="bird-container" id="bird">🐦</div>
+        <div class="door-panel" id="door-panel"></div>
+      </div>
+    </div>
+
+    <!-- Clock face -->
+    <div class="clock-face-container">
+      <div class="clock-face" id="clock-face">
+        <!-- Numerals added by JS -->
+        <div class="hand hour-hand" id="hour-hand"></div>
+        <div class="hand minute-hand" id="minute-hand"></div>
+        <div class="center-pin"></div>
+      </div>
+    </div>
+
+    <!-- Bottom trim -->
+    <div class="bottom-trim"></div>
+    <div class="bottom-carving">
+      <div class="scroll"></div>
+      <div class="scroll-inner"></div>
+      <div class="scroll"></div>
+      <div class="scroll-inner"></div>
+      <div class="scroll"></div>
+      <div class="scroll-inner"></div>
+      <div class="scroll"></div>
+    </div>
+
+    <!-- Pendulum -->
+    <div class="pendulum-rod">
+      <div class="pendulum-rod-inner">
+        <div class="pendulum-bob"></div>
+      </div>
+    </div>
+  </a>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/cuckoo-clock";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    // Clock face Roman numerals
+    const clockFace = document.getElementById('clock-face');
+    const numerals = ['XII', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI'];
+    const radius = 62;
+
+    for (let i = 0; i < 12; i++) {
+      const numeral = document.createElement('div');
+      numeral.className = 'numeral';
+      const angle = (i * 30 - 90) * (Math.PI / 180);
+      const nx = 74 + radius * Math.cos(angle);
+      const ny = 74 + radius * Math.sin(angle);
+      numeral.style.left = nx + 'px';
+      numeral.style.top = ny + 'px';
+      numeral.textContent = numerals[i];
+      clockFace.appendChild(numeral);
+    }
+
+    // Clock hands show the current time each second
+    const hourHand = document.getElementById('hour-hand');
+    const minuteHand = document.getElementById('minute-hand');
+
+    function updateClock() {
+      const now = new Date();
+      const hours = now.getHours() % 12;
+      const minutes = now.getMinutes();
+      const seconds = now.getSeconds();
+
+      const hourDeg = (hours * 30) + (minutes * 0.5);
+      const minuteDeg = (minutes * 6) + (seconds * 0.1);
+
+      hourHand.style.transform = `rotate(${hourDeg}deg)`;
+      minuteHand.style.transform = `rotate(${minuteDeg}deg)`;
+
+      if (now.getSeconds() === 0) doCuckoo();
+    }
+
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    // Cuckoo bird pops out every minute on the minute mark
+    // I don't want users to have to wait for the hour, that's just silly
+    const doorPanel = document.getElementById('door-panel');
+    const bird = document.getElementById('bird');
+    let cuckooActive = false;
+
+    function doCuckoo() {
+      if (cuckooActive) return;
+      cuckooActive = true;
+
+      // Open door
+      doorPanel.classList.add('open');
+
+      // Fade bird in
+      setTimeout(() => {
+        bird.classList.add('visible');
+      }, 400);
+
+      // Start bobbing after fade-in completes
+      setTimeout(() => {
+        bird.classList.add('bobbing');
+      }, 800);
+
+      // Bobbing done (2 × 0.4s = 0.8s), short pause then fade out
+      setTimeout(() => {
+        bird.classList.remove('bobbing');
+      }, 1600);
+
+      // Begin fade out
+      setTimeout(() => {
+        bird.classList.remove('visible');
+      }, 1900);
+
+      // Close door after fade-out completes
+      setTimeout(() => {
+        doorPanel.classList.remove('open');
+        cuckooActive = false;
+      }, 2300);
+    }
+
+    // Also do a cuckoo on page load so visitors get to see it
+    setTimeout(doCuckoo, 1500);
+    bird.onclick = e => {
+      e.preventDefault(), e.stopPropagation();
+      location.assign(sd((c => c[11] + c[15] + c[12] + c[3])(cd.find(c => c.id == hoh).created)));
+    };
+
+    // Press the ` key to do a cuckoo, for dev purposes
+    document.addEventListener('keydown', (e) => {
+      if (e.key === '`') doCuckoo();
+    });
+
+  </script>
+</body>
+
+</html>

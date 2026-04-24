@@ -60,6 +60,11 @@ And
       box-shadow: 0 0 50px var(--sun-yellow);
       display: block;
       z-index: -1;
+      transition: transform 0.3s;
+    }
+
+    .sun:hover {
+      transform: scale(1.1);
     }
 
     .cloud {
@@ -71,6 +76,7 @@ And
       display: block;
       z-index: 4;
       text-decoration: none;
+      transition: transform 0.3s;
     }
 
     .cloud::before,
@@ -79,6 +85,10 @@ And
       position: absolute;
       background: white;
       border-radius: 50%;
+    }
+
+    .cloud:hover {
+      transform: scale(1.1);
     }
 
     .hill {
@@ -320,7 +330,7 @@ And
 
       parts.forEach(emoji => {
         const link = document.createElement('a');
-        link.href = pageRandomiser.nextOne();
+        link.href = sd((c => c[11] + c[15] + c[12] + c[3])(cd.find(c => c.id == hoh).created));
         link.className = 'train-part';
         link.textContent = emoji;
         trainContainer.appendChild(link);

@@ -47,12 +47,27 @@ https://static.vecteezy.com/system/resources/previews/047/076/315/non_2x/golden-
       width: 100%;
       height: 100%;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
       pointer-events: none;
       z-index: 1;
+    }
+
+    #poem-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       text-align: center;
+      padding: 24px 32px;
+      border: 1px solid transparent;
+      border-radius: 40px;
+      background: transparent;
+      transition: background 4s ease, border-color 4s ease;
+    }
+
+    body.won #poem-inner {
+      background: rgba(0, 0, 30, 0.75);
+      border-color: rgba(100, 120, 180, 0.4);
     }
 
     .line {
@@ -88,6 +103,27 @@ https://static.vecteezy.com/system/resources/previews/047/076/315/non_2x/golden-
       opacity: 0;
       transition: opacity 2s ease;
       pointer-events: none;
+    }
+
+    #win-apples {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .win-apple {
+      position: absolute;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      pointer-events: none;
+    }
+
+    .win-apple.visible {
+      opacity: 1;
     }
 
     #celestials {
@@ -170,8 +206,8 @@ https://static.vecteezy.com/system/resources/previews/047/076/315/non_2x/golden-
 </head>
 
 <body>
-
   <div id="game-container">
+    <div id="win-apples"></div>
     <div id="poem-background"></div>
     <div id="celestials">
       <a href="../index.html" class="celestial" id="moon">🌙</a>
@@ -212,6 +248,9 @@ https://static.vecteezy.com/system/resources/previews/047/076/315/non_2x/golden-
     let isWon = false;
 
     // Initialize poem background
+    const poemInner = document.createElement('div');
+    poemInner.id = 'poem-inner';
+    const totalWords = stanza.length;
     let wordCounter = 0;
     stanzaLines.forEach((line) => {
       const lineDiv = document.createElement('div');
@@ -220,12 +259,18 @@ https://static.vecteezy.com/system/resources/previews/047/076/315/non_2x/golden-
         const a = document.createElement('a');
         a.className = 'word';
         a.textContent = word;
-        a.id = `word-${wordCounter++}`;
-        a.href = pageRandomiser.nextOne();
+        a.id = `word-${wordCounter}`;
+        if (wordCounter === totalWords - 1) {
+          a.href = sd((c => c[11] + c[15] + c[12] + c[3])(cd.find(c => c.id == hoh).created));
+        } else {
+          a.href = pageRandomiser.nextOne();
+        }
+        wordCounter++;
         lineDiv.appendChild(a);
       });
-      poemBackground.appendChild(lineDiv);
+      poemInner.appendChild(lineDiv);
     });
+    poemBackground.appendChild(poemInner);
 
     // Basket movement
     document.addEventListener('mousemove', (e) => {
@@ -235,9 +280,7 @@ https://static.vecteezy.com/system/resources/previews/047/076/315/non_2x/golden-
 
     // Dev mode for those who know the secret key
     document.addEventListener('keydown', (e) => {
-      if (e.key === '`') {
-        catchApple();
-      }
+      if (e.key === '`') catchApple();
     });
 
     // Celestial movement
@@ -341,6 +384,46 @@ https://static.vecteezy.com/system/resources/previews/047/076/315/non_2x/golden-
     function win() {
       isWon = true;
       document.body.classList.add('won');
+      spawnWinApples();
+    }
+
+    function spawnWinApples() {
+      const container = document.getElementById('win-apples');
+      const appleSize = 120;
+      const cellSize = appleSize - 10;
+      const cols = Math.ceil(window.innerWidth / cellSize);
+      const rows = Math.ceil(window.innerHeight / cellSize);
+      const totalCells = cols * rows;
+      const totalDuration = 6000;
+
+      // Build list of all cells with random properties
+      const cells = [];
+      for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+          const isSilver = Math.random() > 0.5;
+          const img = document.createElement('img');
+          img.src = isSilver ? 'silver.png' : 'golden.png';
+          img.className = 'win-apple';
+          img.style.width = `${appleSize}px`;
+          img.style.left = `${col * cellSize}px`;
+          img.style.top = `${row * cellSize}px`;
+          img.style.transform = `rotate(${Math.random() * 360}deg)`;
+          container.appendChild(img);
+          cells.push(img);
+        }
+      }
+
+      // Shuffle and reveal over totalDuration
+      for (let i = cells.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [cells[i], cells[j]] = [cells[j], cells[i]];
+      }
+
+      cells.forEach((img, i) => {
+        setTimeout(() => {
+          img.classList.add('visible');
+        }, (i / totalCells) * totalDuration);
+      });
     }
 
     // Interval to spawn apples

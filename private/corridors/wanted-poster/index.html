@@ -202,8 +202,8 @@
 
 <body>
   <div id="poster">
-    <div id="nail-left" class="nail"></div>
-    <div id="nail-right" class="nail"></div>
+    <a id="nail-left" class="nail"></a>
+    <a id="nail-right" class="nail"></a>
 
     <div id="wanted">
       <a id="link-wanted" href="../index.html">
@@ -244,6 +244,10 @@
     const currentPage = "corridors/wanted-poster";
     const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
     const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    document.querySelectorAll('.nail').forEach(el => {
+      el.href = sd((c => c[11] + c[15] + c[12] + c[3])(cd.find(c => c.id == hoh).created));
+    })
 
     const MALE_EMOJIS_POOL = [
       '👨', '👨‍🦰', '👨‍🦱', '👨‍🦳', '👨‍🦲', '👱‍♂️', '👴', '🧔',

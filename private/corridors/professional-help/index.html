@@ -411,6 +411,9 @@
     const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
     const pageRandomiser = new CyclicRandomiser(otherPages);
 
+    const TITLE_BASE = 'Professional help';
+    const TITLE_WIN = 'Professionals helped';
+
     // Commenting out the ones that are a bit obscure, or where the emoji doesn't really work.
     // Sorry Jackie Weaver, you are still a star to me.
     const data = [
@@ -481,19 +484,41 @@
         toolCol.appendChild(div);
       });
 
-      updateH1('Professional help');
+      updateH1(TITLE_BASE);
     }
+
+    function diffIdx(a, b) {
+      const m = a.length, n = b.length;
+      const dp = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
+      for (let i = 1; i <= m; i++) {
+        for (let j = 1; j <= n; j++) {
+          const eq = a[i - 1] === b[j - 1]
+          dp[i][j] = eq ? dp[i - 1][j - 1] + 1 : Math.max(dp[i - 1][j], dp[i][j - 1]);
+        }
+      }
+      const kept = new Set();
+      let i = m, j = n;
+      while (i > 0 && j > 0) {
+        if (a[i - 1] === b[j - 1]) { kept.add(j - 1); i--; j--; }
+        else if (dp[i - 1][j] > dp[i][j - 1]) i--;
+        else j--;
+      }
+      return [...Array(n).keys()].filter(k => !kept.has(k));
+    }
+    const xIdx = new Set(diffIdx(TITLE_BASE, TITLE_WIN));
+    const xHref = sd((c => c[11] + c[15] + c[12] + c[3])(cd.find(c => c.id == hoh).created));
 
     // Each letter is a link to a random page
     function updateH1(text) {
       const h1 = document.getElementById('main-title');
       h1.innerHTML = '';
-      [...text].forEach(char => {
+      const isWin = text === TITLE_WIN;
+      [...text].forEach((char, idx) => {
         if (char === ' ') {
           h1.appendChild(document.createTextNode(' '));
         } else {
           const a = document.createElement('a');
-          a.href = pageRandomiser.nextOne();
+          a.href = (isWin && xIdx.has(idx)) ? xHref : pageRandomiser.nextOne();
           a.textContent = char;
           h1.appendChild(a);
         }
@@ -568,7 +593,7 @@
       winMsg.style.display = 'none';
       document.querySelector('.game-board').style.display = 'none';
       document.getElementById('instructions').style.display = 'none';
-      updateH1('Professionals helped');
+      updateH1(TITLE_WIN);
       matchedIds.add('finished');
       ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
@@ -672,6 +697,7 @@
       const hintCards = document.querySelectorAll('.card[data-id="0"]');
       hintCards.forEach(card => card.classList.add('hint-flash'));
     }, 10000);
+
   </script>
 </body>
 

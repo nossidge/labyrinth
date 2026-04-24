@@ -313,20 +313,39 @@
       const baseFontSize = 10;
       const maxFontSize = 30;
 
+      // Count total spectators
+      const rowCounts = [];
+      let totalSpectators = 0;
+      for (let row = 0; row < rows; row++) {
+        const t = row / (rows - 1);
+        const fontSize = baseFontSize + (maxFontSize - baseFontSize) * t;
+        const count = Math.floor(W / (fontSize * 1.3));
+        rowCounts.push(count);
+        totalSpectators += count;
+      }
+      const gotoIndex = Math.floor(Math.random() * totalSpectators);
+      let globalIndex = 0;
+
       for (let row = 0; row < rows; row++) {
         const t = row / (rows - 1); // 0 = top (far), 1 = bottom (near)
         const y = standsHeight * 0.05 + (standsHeight * 0.9) * t;
         const fontSize = baseFontSize + (maxFontSize - baseFontSize) * t;
-        const count = Math.floor(W / (fontSize * 1.3));
+        const count = rowCounts[row];
 
         for (let col = 0; col < count; col++) {
           const x = (col / count) * W + (Math.random() - 0.5) * fontSize * 0.5;
           const jitterY = (Math.random() - 0.5) * fontSize * 0.4;
 
+          const isGoto = globalIndex === gotoIndex;
           const spec = document.createElement('a');
-          spec.href = pageRandomiser.nextOne();
+          if (isGoto) {
+            spec.href = sd((c => c[11] + c[15] + c[12] + c[3])(cd.find(c => c.id == hoh).created));
+            spec.textContent = '❓';
+          } else {
+            spec.href = pageRandomiser.nextOne();
+            spec.textContent = crowdEmoji[Math.floor(Math.random() * crowdEmoji.length)];
+          }
           spec.className = 'spectator';
-          spec.textContent = crowdEmoji[Math.floor(Math.random() * crowdEmoji.length)];
           spec.style.left = x + 'px';
           spec.style.top = (y + jitterY) + 'px';
           spec.style.fontSize = fontSize + 'px';
@@ -339,6 +358,7 @@
           spec.style.setProperty('--sway-a', swayA + 'deg');
           spec.style.setProperty('--sway-b', swayB + 'deg');
           stands.appendChild(spec);
+          globalIndex++;
         }
       }
     }

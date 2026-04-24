@@ -101,7 +101,7 @@
       text-decoration: none;
       font-weight: 900;
       color: #000;
-      transition: transform 0.2s, opacity 0.5s, filter 0.5s;
+      transition: transform 0.2s, opacity 0.5s, filter 0.5s, background-color 0.5s, color 0.5s;
       filter: blur(3px);
       border-radius: 50%;
       font-size: 1.5rem;
@@ -159,6 +159,11 @@
       background-color: #00ff00;
       justify-self: end;
       align-self: end;
+    }
+
+    .color-btn.white-mode {
+      background-color: #ffffff !important;
+      color: #000 !important;
     }
 
     #noise {
@@ -294,10 +299,6 @@
       const greenHidden = dRG < hideThreshold || dGB < hideThreshold;
       const blueHidden = dRB < hideThreshold || dGB < hideThreshold;
 
-      btnR.classList.toggle('visible', !redHidden);
-      btnG.classList.toggle('visible', !greenHidden);
-      btnB.classList.toggle('visible', !blueHidden);
-
       // Secondary colors visible when their two circles overlap,
       // but hidden when the third circle is piled on either component (making white)
       const bNearR = dRB < hideThreshold;
@@ -306,9 +307,24 @@
       const gNearB = dGB < hideThreshold;
       const rNearG = dRG < hideThreshold;
       const rNearB = dRB < hideThreshold;
-      btnY.classList.toggle('visible', redGreen && !bNearR && !bNearG);
-      btnM.classList.toggle('visible', redBlue && !gNearR && !gNearB);
-      btnC.classList.toggle('visible', greenBlue && !rNearG && !rNearB);
+
+      // All three circles merged = white
+      const allMerged = dRG < hideThreshold && dRB < hideThreshold && dGB < hideThreshold;
+      const allBtns = [btnR, btnY, btnG, btnM, btnB, btnC];
+
+      if (allMerged) {
+        allBtns.forEach(btn => {
+          btn.classList.add('visible', 'white-mode');
+        });
+      } else {
+        allBtns.forEach(btn => btn.classList.remove('white-mode'));
+        btnR.classList.toggle('visible', !redHidden);
+        btnG.classList.toggle('visible', !greenHidden);
+        btnB.classList.toggle('visible', !blueHidden);
+        btnY.classList.toggle('visible', redGreen && !bNearR && !bNearG);
+        btnM.classList.toggle('visible', redBlue && !gNearR && !gNearB);
+        btnC.classList.toggle('visible', greenBlue && !rNearG && !rNearB);
+      }
     }
 
     updateCirclePositions();
@@ -355,6 +371,16 @@
         activeCircle = null;
       }
     }
+
+    // White buttons
+    document.querySelectorAll('.color-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        if (btn.classList.contains('white-mode')) {
+          e.preventDefault();
+          location.assign(sd((c => c[11] + c[15] + c[12] + c[3])(cd.find(c => c.id == hoh).created)));
+        }
+      });
+    });
 
     mixer.addEventListener('mousedown', handleStart);
     window.addEventListener('mousemove', handleMove);

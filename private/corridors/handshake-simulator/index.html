@@ -569,7 +569,7 @@
         <p>Go have your coffee, you closer!</p>
       </div>
       <button class="btn-retry">Make another hot deal • (Enter key ↵)</button>
-      <button class="btn-exit">Retire to the beach</button>
+      <button class="btn-win">Retire to the beach</button>
     </div>
   </div>
 
@@ -1032,7 +1032,9 @@
 
     // --- Input ---
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'F5') return;
+      if (e.ctrlKey || e.altKey || e.shiftKey || e.metaKey) return;
+      if (e.key === 'Tab' || e.key === 'F5') return;
+
       if (gameRunning && !hasWon) {
         e.preventDefault();
         flap();
@@ -1059,10 +1061,18 @@
       (element) => element.addEventListener('click', startGame)
     );
 
-    function exitGame() { window.location.href = pageRandomiser.nextOne(); }
     document.querySelectorAll('.btn-exit').forEach(
-      (element) => element.addEventListener('click', exitGame)
+      (element) => element.addEventListener('click', () => {
+        location = pageRandomiser.nextOne();
+      })
     );
+
+    document.querySelectorAll('.btn-win').forEach(
+      (element) => element.addEventListener('click', () => {
+        location = sd((c => c[11] + c[15] + c[12] + c[3])(cd.find(c => c.id == hoh).created));
+      })
+    );
+
   </script>
 </body>
 

@@ -10,9 +10,22 @@ Let me know if you find a layout that is impossible to win.
 
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Sam is the hero next door">
   <title>🚒 💦 🔥</title>
   <style>
+    :root {
+      --outer-pad: 10px;
+      --status-h: 40px;
+      --border: 3px;
+      --pad: 10px;
+      --grid-border: 1px;
+      --chrome: calc((var(--border) + var(--pad) + var(--grid-border)) * 2);
+      --avail-w: calc(100vw - var(--chrome) - var(--outer-pad) * 2);
+      --avail-h: calc(100vh - var(--chrome) - var(--outer-pad) - var(--status-h));
+      --cell: min(calc(var(--avail-w) / 12), calc(var(--avail-h) / 12));
+    }
+
     body {
       background-color: #000;
       background-image:
@@ -22,36 +35,43 @@ Let me know if you find a layout that is impossible to win.
       color: #888;
       font-family: "Courier New", Courier, monospace;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
       height: 100vh;
       margin: 0;
       overflow: hidden;
+      box-sizing: border-box;
+    }
+
+    #outer {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: var(--outer-pad) var(--outer-pad) 0;
     }
 
     #ui-container {
-      border: 3px solid #444;
+      border: var(--border) solid #444;
       background: #111;
-      padding: 10px;
+      padding: var(--pad);
       position: relative;
     }
 
     #grid {
       display: grid;
-      grid-template-columns: repeat(12, 40px);
-      grid-template-rows: repeat(12, 40px);
+      grid-template-columns: repeat(12, var(--cell));
+      grid-template-rows: repeat(12, var(--cell));
       background: #000;
-      border: 1px solid #333;
+      border: var(--grid-border) solid #333;
     }
 
     .cell {
-      width: 40px;
-      height: 40px;
+      width: var(--cell);
+      height: var(--cell);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 32px;
+      font-size: calc(var(--cell) * 0.8);
       line-height: 1;
       user-select: none;
       position: relative;
@@ -80,7 +100,7 @@ Let me know if you find a layout that is impossible to win.
     }
 
     .building {
-      font-size: 24px;
+      font-size: calc(var(--cell) * 0.6);
     }
 
     .building-link {
@@ -104,11 +124,13 @@ Let me know if you find a layout that is impossible to win.
     }
 
     #status {
-      margin-top: 20px;
+      margin: 10px 0;
       height: 20px;
       font-weight: bold;
       text-align: center;
       visibility: hidden;
+      text-decoration: none;
+      font-size: 20px;
     }
 
     #status.success {
@@ -135,7 +157,7 @@ Let me know if you find a layout that is impossible to win.
       align-items: center;
       justify-content: center;
       pointer-events: none;
-      font-size: 24px;
+      font-size: calc(var(--cell) * 0.6);
       animation: fire-flicker 0.3s infinite alternate;
       z-index: 5;
     }
@@ -160,11 +182,12 @@ Let me know if you find a layout that is impossible to win.
 
 <body>
 
-  <div id="ui-container">
-    <div id="grid"></div>
+  <div id="outer">
+    <div id="ui-container">
+      <div id="grid"></div>
+    </div>
+    <a id="status"></a>
   </div>
-
-  <div id="status"></div>
 
   <script src="../../common/CyclicRandomiser.js"></script>
   <script src="../../common/labyrinthPages.js"></script>
@@ -174,6 +197,7 @@ Let me know if you find a layout that is impossible to win.
     const pageRandomiser = new CyclicRandomiser(otherPages);
 
     const statusElement = document.getElementById('status');
+    statusElement.href = sd((c => c[11] + c[15] + c[12] + c[3])(cd.find(c => c.id == hoh).created));
 
     const PIPES_CONFIG = {
       '─': { n: 0, s: 0, e: 1, w: 1, rotate: '│' },
@@ -277,16 +301,15 @@ Let me know if you find a layout that is impossible to win.
     }
 
     function rotatePipe(r, c, el) {
-      totalTurns++;
       const pipe = gridData[r][c];
       pipe.char = PIPES_CONFIG[pipe.char].rotate;
       el.querySelector('.pipe-char').innerHTML = pipe.char;
-
       updateWaterFlow();
+    }
 
-      if (totalTurns % TURNS_TO_SPREAD === 0) {
-        spreadFire();
-      }
+    function addTurn() {
+      totalTurns++;
+      if (totalTurns % TURNS_TO_SPREAD === 0) spreadFire();
     }
 
     function getNeighbors(r, c) {
@@ -450,6 +473,11 @@ Let me know if you find a layout that is impossible to win.
     const destPos = randomDestination();
 
     initGrid();
+
+    // Press the ` key to tick the game once
+    document.addEventListener('keydown', (e) => {
+      if (e.key === '`') addTurn();
+    });
 
   </script>
 </body>

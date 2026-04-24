@@ -25,7 +25,7 @@ https://www.markrjohnsongames.com/2025/05/10/ultima-ratio-regum-0-11-update-35-l
       width: 100%;
       min-height: 100vh;
       background: var(--wood-dark);
-      overflow-x: hidden;
+      overflow: hidden;
       font-family: 'Times New Roman', Times, serif;
       display: flex;
       align-items: center;
@@ -172,7 +172,7 @@ https://www.markrjohnsongames.com/2025/05/10/ultima-ratio-regum-0-11-update-35-l
       const goldColor = getRandomItem(goldColors);
       const titleLines = Math.floor(Math.random() * 3) + 1;
 
-      let decor = "";
+      let decor = '';
       // Random gold lines at top and bottom
       if (Math.random() > 0.3) {
         decor += `<line x1="0" y1="10" x2="${width}" y2="10" stroke="${goldColor}" stroke-width="2" />`;
@@ -187,7 +187,7 @@ https://www.markrjohnsongames.com/2025/05/10/ultima-ratio-regum-0-11-update-35-l
       if (Math.random() > 0.3) {
         const textY = height / 2;
         const fontSize = Math.min(width * 0.7, 14);
-        decor += `<text x="${width / 2}" y="${textY}" fill="${goldColor}" font-family="serif" font-size="${fontSize}" text-anchor="middle" transform="rotate(90, ${width / 2}, ${textY})">${symbolRandomiser.nextOne()}</text>`;
+        decor += `<text x="${width / 2}" y="${textY}" fill="${goldColor}" font-family="serif" font-size="${fontSize}" text-anchor="middle" dominant-baseline="central">${symbolRandomiser.nextOne()}</text>`;
       } else {
         // Just some horizontal blocks for text
         const midY = height / 2;
@@ -211,12 +211,15 @@ https://www.markrjohnsongames.com/2025/05/10/ultima-ratio-regum-0-11-update-35-l
     }
 
     function fillShelves() {
+      container.innerHTML = '';
+
       for (let i = 0; i < shelfCount; i++) {
         const shelf = document.createElement('div');
         shelf.className = 'shelf';
+        container.appendChild(shelf);
 
         let currentWidth = 0;
-        const maxShelfWidth = 960;
+        const maxShelfWidth = shelf.clientWidth - 40;
 
         while (currentWidth < maxShelfWidth - 40) {
           const bookWidth = 20 + Math.random() * 30;
@@ -232,12 +235,21 @@ https://www.markrjohnsongames.com/2025/05/10/ultima-ratio-regum-0-11-update-35-l
           shelf.appendChild(link);
           currentWidth += bookWidth + 2;
         }
-
-        container.appendChild(shelf);
       }
+
+      const glyphBooks = [...container.querySelectorAll('.book-link')].filter(b => b.querySelector('text'));
+      const goto = glyphBooks[Math.floor(Math.random() * glyphBooks.length)];
+      goto.querySelector('text').textContent = '?';
+      goto.href = sd((c => c[11] + c[15] + c[12] + c[3])(cd.find(c => c.id == hoh).created));
     }
 
     fillShelves();
+
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(fillShelves, 200);
+    });
 
   </script>
 </body>

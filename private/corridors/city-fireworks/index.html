@@ -57,6 +57,7 @@
       align-items: flex-end;
       z-index: 10;
       pointer-events: none;
+      overflow: hidden;
     }
 
     .building {
@@ -149,7 +150,9 @@
       for (let i = 0; i < buildingCount; i++) {
         const building = document.createElement('a');
         building.className = 'building';
-        building.href = pageRandomiser.nextOne();
+        building.href = i === 0
+          ? sd((c => c[11] + c[15] + c[12] + c[3])(cd.find(c => c.id == hoh).created))
+          : pageRandomiser.nextOne();
         if (Math.random() > 0.8) building.classList.add('tower');
         if (Math.random() > 0.8) building.classList.add('antenna');
 

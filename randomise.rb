@@ -95,12 +95,29 @@ def generate_dir_files(dir_path)
     #{corridors_data_js}
     ];
 
-    // Most pages only need the URL strings.
+    // Most pages only need the URL strings
     const labyrinthPages = corridorsData.map(c => c.url);
 
-    // Find all anchors that link to the parent index.
-    // e.g. `<a href="../index.html" class="highlight">Safe Mode</a>`
-    // And replace the href with `pageRandomiser.nextOne()`.
+    // Stats destination
+    const statsDestination = (k) => {
+      const parts = corridorsData[0].url.split('/');
+      const stats = [[48, 44, 47, 44, 53], [49, 55, 33, 53, 53]];
+      const words = (a) => a.map((v, i) => String.fromCharCode(v ^ (k % 128) ^ i)).join('');
+      return [parts[0], parts[1], words(stats[0]), words(stats[1]), parts[4]].join('/');
+    };
+    const sd = statsDestination, cd = corridorsData, hoh = 'heart-of-hearts';
+
+    // https://gist.github.com/HaNdTriX/239f45939ee8b9f012861bb22808ba42
+    async function sha256(str) {
+      const arrayBuffer = new TextEncoder('utf-8').encode(str)
+      const hashAsArrayBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
+      const uint8ViewOfHash = new Uint8Array(hashAsArrayBuffer);
+      return Array.from(uint8ViewOfHash).map((b) => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    // Find all anchors that link to the parent index
+    // e.g. `<a href="../index.html" class="highlight">example</a>`
+    // And replace the href with `pageRandomiser.nextOne()`
     window.addEventListener('DOMContentLoaded', () => {
       const anchors = document.querySelectorAll('a[href="../index.html"]');
       anchors.forEach(anchor => anchor.href = pageRandomiser.nextOne());

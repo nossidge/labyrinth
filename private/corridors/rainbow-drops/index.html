@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Rainbowdrops Keep Fallin' on My Head">
+  <title>falling yesterday</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      background: #000;
+      position: relative;
+    }
+
+    canvas {
+      display: block;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    #link-grid {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: grid;
+      z-index: 10;
+    }
+
+    #link-grid a {
+      display: block;
+      text-decoration: none;
+      transition: background 0.15s;
+    }
+
+    #link-grid a:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 100;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 255, 0, 0.03));
+      background-size: 100% 2px, 3px 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="rain"></canvas>
+  <div id="link-grid"></div>
+  <div id="crt-scanlines"></div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/rainbow-drops";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    function rand(min, max) { return Math.random() * (max - min) + min; }
+    function randInt(min, max) { return Math.floor(rand(min, max + 1)); }
+
+    const canvas = document.getElementById('rain');
+    const ctx = canvas.getContext('2d');
+
+    let W, H, columns, drops;
+    const COL_WIDTH = 24;
+    const LINE_WIDTH = 2;
+    const TRAIL_ALPHA = 0.04;
+    const DROP_MIN_SPEED = 2;
+    const DROP_MAX_SPEED = 7;
+
+    function initCanvas() {
+      W = canvas.width = window.innerWidth;
+      H = canvas.height = window.innerHeight;
+      columns = Math.ceil(W / COL_WIDTH);
+    }
+
+    function createDrops() {
+      drops = [];
+      for (let i = 0; i < columns; i++) {
+        const count = randInt(2, 4);
+        for (let j = 0; j < count; j++) {
+          drops.push(makeDrop(i, true));
+        }
+      }
+    }
+
+    function makeDrop(col, scatter) {
+      const hue = (col / columns) * 360;
+      const speed = rand(DROP_MIN_SPEED, DROP_MAX_SPEED);
+      const length = rand(20, 80);
+      return {
+        x: col * COL_WIDTH + COL_WIDTH / 2 + rand(-3, 3),
+        y: scatter ? rand(-H * 2, 0) : rand(-length - H * 0.5, -length),
+        speed: speed,
+        length: length,
+        hue: hue + rand(-10, 10),
+        saturation: rand(70, 100),
+        lightness: rand(45, 65),
+        col: col,
+        width: rand(1, 1 + LINE_WIDTH),
+      };
+    }
+
+    function drawDrop(drop) {
+      const grad = ctx.createLinearGradient(drop.x, drop.y - drop.length, drop.x, drop.y);
+      grad.addColorStop(0, `hsla(${drop.hue}, ${drop.saturation}%, ${drop.lightness}%, 0)`);
+      grad.addColorStop(0.4, `hsla(${drop.hue}, ${drop.saturation}%, ${drop.lightness}%, 0.6)`);
+      grad.addColorStop(1, `hsla(${drop.hue}, ${drop.saturation}%, ${drop.lightness}%, 1)`);
+
+      ctx.beginPath();
+      ctx.moveTo(drop.x, drop.y - drop.length);
+      ctx.lineTo(drop.x, drop.y);
+      ctx.strokeStyle = grad;
+      ctx.lineWidth = drop.width;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+    }
+
+    function update() {
+      ctx.fillStyle = `rgba(0, 0, 0, ${TRAIL_ALPHA})`;
+      ctx.fillRect(0, 0, W, H);
+
+      for (let i = 0; i < drops.length; i++) {
+        const drop = drops[i];
+        drop.y += drop.speed;
+        drawDrop(drop);
+
+        if (drop.y - drop.length > H) {
+          drops[i] = makeDrop(drop.col, false);
+        }
+      }
+
+      requestAnimationFrame(update);
+    }
+
+    function buildGrid() {
+      const grid = document.getElementById('link-grid');
+      grid.innerHTML = '';
+      const cols = Math.ceil(W / COL_WIDTH);
+      grid.style.gridTemplateColumns = `repeat(${cols}, ${COL_WIDTH}px)`;
+      grid.style.gridTemplateRows = '100%';
+      for (let i = 0; i < cols; i++) {
+        const a = document.createElement('a');
+        a.href = pageRandomiser.nextOne();
+        grid.appendChild(a);
+      }
+    }
+
+    function init() {
+      initCanvas();
+      createDrops();
+      buildGrid();
+    }
+
+    window.addEventListener('resize', init);
+
+    init();
+    update();
+
+  </script>
+</body>
+
+</html>

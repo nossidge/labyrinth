@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+I've been wanting to make a kaleidoscope for a few months now.
+`rotational-imagery` was my first attempt.
+But I've finally cracked it with this one!
+-->
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="here we go again">
+  <title>colours shining in your eye</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+    }
+
+    canvas {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    #click-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 50;
+      text-decoration: none;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="kaleidoscope"></canvas>
+  <a id="click-overlay" href="../index.html"></a>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/kaleidoscope";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    function rand(min, max) { return Math.random() * (max - min) + min; }
+    function randInt(min, max) { return Math.floor(rand(min, max + 1)); }
+
+    const canvas = document.getElementById('kaleidoscope');
+    const ctx = canvas.getContext('2d');
+
+    const SEGMENTS = 12;
+    const SLICE_ANGLE = (Math.PI * 2) / SEGMENTS;
+
+    const SHAPE_COUNT = 18;
+    const shapes = [];
+
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    function createShape() {
+      const maxR = Math.min(canvas.width, canvas.height) * 0.42;
+      return {
+        type: randInt(0, 2),
+        r: rand(30, maxR),
+        angle: rand(0, SLICE_ANGLE),
+        dr: rand(-0.15, 0.15),
+        da: rand(-0.001, 0.001),
+        size: rand(3, 21),
+        hueOffset: rand(0, 360),
+        saturation: rand(70, 100),
+        lightness: rand(45, 65),
+        alpha: rand(0.4, 0.9),
+        arcStart: rand(0, Math.PI),
+        arcSpan: rand(0.5, 0.5 + Math.PI),
+        lineLen: rand(10, 40),
+        lineAngle: rand(0, Math.PI * 2),
+      };
+    }
+
+    function drawSlice(time) {
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+      const maxR = Math.min(cx, cy) * 0.42;
+
+      ctx.save();
+      ctx.translate(cx, cy);
+
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.arc(0, 0, maxR + 40, 0, SLICE_ANGLE);
+      ctx.closePath();
+      ctx.clip();
+
+      for (let i = 0; i < shapes.length; i++) {
+        const s = shapes[i];
+
+        s.r += s.dr;
+        s.angle += s.da;
+
+        if (s.r < 20 || s.r > maxR) {
+          s.dr *= -1;
+          s.r = Math.max(20, Math.min(maxR, s.r));
+        }
+        if (s.angle < 0 || s.angle > SLICE_ANGLE) {
+          s.da *= -1;
+          s.angle = Math.max(0, Math.min(SLICE_ANGLE, s.angle));
+        }
+
+        const x = Math.cos(s.angle) * s.r;
+        const y = Math.sin(s.angle) * s.r;
+        const hue = (s.hueOffset + time * 0.02) % 360;
+
+        ctx.fillStyle = `hsla(${hue}, ${s.saturation}%, ${s.lightness}%, ${s.alpha})`;
+        ctx.strokeStyle = `hsla(${(hue + 60) % 360}, ${s.saturation}%, ${s.lightness + 10}%, ${s.alpha * 0.8})`;
+        ctx.lineWidth = 1.5;
+
+        if (s.type === 0) {
+          ctx.beginPath();
+          ctx.arc(x, y, s.size, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (s.type === 1) {
+          ctx.beginPath();
+          ctx.arc(x, y, s.size, s.arcStart + time * 0.001, s.arcStart + s.arcSpan + time * 0.001);
+          ctx.stroke();
+        } else {
+          const lx = Math.cos(s.lineAngle + time * 0.0005) * s.lineLen;
+          const ly = Math.sin(s.lineAngle + time * 0.0005) * s.lineLen;
+          ctx.beginPath();
+          ctx.moveTo(x - lx, y - ly);
+          ctx.lineTo(x + lx, y + ly);
+          ctx.stroke();
+        }
+      }
+
+      ctx.restore();
+    }
+
+    function init() {
+      shapes.length = 0;
+      for (let i = 0; i < SHAPE_COUNT; i++) {
+        shapes.push(createShape());
+      }
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function render(time) {
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      for (let seg = 0; seg < SEGMENTS; seg++) {
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(seg * SLICE_ANGLE);
+        ctx.translate(-cx, -cy);
+
+        if (seg % 2 === 1) {
+          ctx.translate(cx, cy);
+          ctx.scale(-1, 1);
+          ctx.rotate(SLICE_ANGLE);
+          ctx.translate(-cx, -cy);
+        }
+
+        drawSlice(time);
+        ctx.restore();
+      }
+
+      requestAnimationFrame(render);
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey || e.altKey || e.shiftKey || e.metaKey) return;
+      if (e.key === 'Tab' || e.key === 'F5') return;
+
+      init();
+    });
+
+    init();
+    requestAnimationFrame(render);
+
+  </script>
+</body>
+
+</html>

@@ -5,7 +5,7 @@ require 'time'
 # Configuration
 SOURCE_DIR = 'private'
 TARGET_DIR = 'public'
-WIP_DIR = 'wip'
+TMP_PAGES_DIR = 'tmp/pages'
 DEV_MODE = ARGV.include?('--dev')
 LINK_SUFFIX = DEV_MODE ? 'index.html' : ''
 
@@ -153,11 +153,46 @@ def generate_dir_files(dir_path)
 end
 
 # 1. Housekeeping
-puts "Housekeeping WIP directory..."
-generate_dir_files(WIP_DIR)
-
 puts "Housekeeping PRIVATE directory..."
 corridors = generate_dir_files(SOURCE_DIR)
+
+# 1a. In DEV_MODE, append links to tmp/pages/*/corridors/* below the existing lists
+def build_tmp_pages_sections
+  return '' unless Dir.exist?(TMP_PAGES_DIR)
+
+  sections = []
+  Dir.glob(File.join(TMP_PAGES_DIR, '*/')).sort.each do |category_dir|
+    category_name = File.basename(category_dir)
+    corridors_dir = File.join(category_dir, 'corridors')
+    next unless Dir.exist?(corridors_dir)
+
+    corridor_dirs = Dir.glob(File.join(corridors_dir, '*/')).sort_by { |d| File.basename(d) }
+    next if corridor_dirs.empty?
+
+    header = category_name.split(/[-_]/).map(&:capitalize).join(' ')
+    links = corridor_dirs.map do |d|
+      title = get_formatted_title(d)
+      # Path is relative to private/index.html
+      rel_path = "../#{d}index.html"
+      "      <li><a href=\"#{rel_path}\">#{title}</a></li>"
+    end.join("\n")
+
+    sections << "  <div>\n    <h1>#{header}</h1>\n    <ol>\n#{links}\n    </ol>\n  </div>"
+  end
+
+  sections.join("\n")
+end
+
+if DEV_MODE
+  tmp_sections = build_tmp_pages_sections
+  unless tmp_sections.empty?
+    private_index_path = File.join(SOURCE_DIR, 'index.html')
+    private_index_content = File.read(private_index_path)
+    private_index_content.sub!('</body>', "#{tmp_sections}\n</body>")
+    File.write(private_index_path, private_index_content)
+    puts "Added tmp/pages sections to #{private_index_path}"
+  end
+end
 
 # 2. Create public directory (clean copy of private, minus todo.html and WIPs)
 puts "Generating #{TARGET_DIR}..."

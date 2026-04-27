@@ -1,2 +1,7 @@
-public/*
+# Temporary files
 tmp/*
+
+# Compiled/output files
+private/common/labyrinthPages.js
+private/index.html
+public/*

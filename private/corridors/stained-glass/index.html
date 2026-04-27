@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="for now we see through a glass, darkly">
+  <title>it's been awhile</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: radial-gradient(ellipse at center, #2a1810 0%, #0a0508 75%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #container {
+      width: min(95vw, 95vh);
+      aspect-ratio: 1;
+      filter: drop-shadow(0 0 40px rgba(255, 200, 100, 0.18));
+    }
+
+    svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .pane {
+      stroke: #100805;
+      stroke-width: 4;
+      stroke-linejoin: round;
+      cursor: pointer;
+      transition: filter 0.25s ease;
+      transform-origin: center;
+      transform-box: fill-box;
+    }
+
+    .pane:hover {
+      filter: brightness(1.7) saturate(1.3);
+    }
+
+    .frame {
+      fill: none;
+      stroke: #1a0a05;
+      stroke-width: 8;
+      pointer-events: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="container">
+    <svg id="window" viewBox="-400 -400 800 800"></svg>
+  </div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/stained-glass";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const ns = 'http://www.w3.org/2000/svg';
+    const svg = document.getElementById('window');
+
+    const palette = [
+      '#c41e3a', '#1e3a8a', '#0d6e3a', '#d4a017',
+      '#7c2d8e', '#0e7490', '#b91c1c', '#15803d',
+      '#854d0e', '#9333ea', '#0369a1', '#a16207',
+    ];
+
+    function ringSegments(rInner, rOuter, count, startAngle) {
+      const segs = [];
+      const da = (Math.PI * 2) / count;
+      for (let i = 0; i < count; i++) {
+        const a1 = startAngle + i * da;
+        const a2 = a1 + da;
+        const x1i = Math.cos(a1) * rInner, y1i = Math.sin(a1) * rInner;
+        const x2i = Math.cos(a2) * rInner, y2i = Math.sin(a2) * rInner;
+        const x1o = Math.cos(a1) * rOuter, y1o = Math.sin(a1) * rOuter;
+        const x2o = Math.cos(a2) * rOuter, y2o = Math.sin(a2) * rOuter;
+        const d = `M ${x1i} ${y1i} L ${x1o} ${y1o} A ${rOuter} ${rOuter} 0 0 1 ${x2o} ${y2o} L ${x2i} ${y2i} A ${rInner} ${rInner} 0 0 0 ${x1i} ${y1i} Z`;
+        segs.push(d);
+      }
+      return segs;
+    }
+
+    function addPane(d) {
+      const a = document.createElementNS(ns, 'a');
+      a.setAttribute('href', pageRandomiser.nextOne());
+      const path = document.createElementNS(ns, 'path');
+      path.setAttribute('d', d);
+      path.setAttribute('class', 'pane');
+      const color = palette[Math.floor(Math.random() * palette.length)];
+      path.setAttribute('fill', color);
+      path.style.color = color;
+      a.appendChild(path);
+      svg.appendChild(a);
+    }
+
+    function init() {
+      // Central pane
+      const centerLink = document.createElementNS(ns, 'a');
+      centerLink.setAttribute('href', pageRandomiser.nextOne());
+      const c = document.createElementNS(ns, 'circle');
+      c.setAttribute('cx', 0);
+      c.setAttribute('cy', 0);
+      c.setAttribute('r', 50);
+      c.setAttribute('class', 'pane');
+      c.setAttribute('fill', '#fef3c7');
+      c.style.color = '#fef3c7';
+      centerLink.appendChild(c);
+      svg.appendChild(centerLink);
+
+      // Make the innermost panes slightly shorter than the outside ones
+      // This tricks the stupid human eye into thinking they're similar
+      const steps = [50, 120, 195, 275, 360];
+      ringSegments(steps[0], steps[1], 8, -Math.PI / 2).forEach(addPane);
+      ringSegments(steps[1], steps[2], 16, -Math.PI / 2 + Math.PI / 16).forEach(addPane);
+      ringSegments(steps[2], steps[3], 24, -Math.PI / 2).forEach(addPane);
+      ringSegments(steps[3], steps[4], 32, -Math.PI / 2 + Math.PI / 32).forEach(addPane);
+
+      // Outer metal frame
+      steps.forEach(r => {
+        const ring = document.createElementNS(ns, 'circle');
+        ring.setAttribute('cx', 0);
+        ring.setAttribute('cy', 0);
+        ring.setAttribute('r', r);
+        ring.setAttribute('class', 'frame');
+        svg.appendChild(ring);
+      });
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey || e.altKey || e.shiftKey || e.metaKey) return;
+      if (e.key === 'Tab' || e.key === 'F5') return;
+
+      init();
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    init();
+
+  </script>
+</body>
+
+</html>

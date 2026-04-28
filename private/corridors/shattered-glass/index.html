@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="The mirror crack'd from side to side">
+  <title>The curse is come upon me</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(120, 156, 190, 0.12), transparent 24%),
+        radial-gradient(circle at 50% 50%, #121921 0%, #040608 70%);
+      font-family: Georgia, serif;
+      color: #dfe6ef;
+    }
+
+    #mirror {
+      width: 100vw;
+      height: 100vh;
+      display: block;
+    }
+
+    .piece {
+      stroke: rgba(224, 236, 255, 0.88);
+      stroke-width: 2;
+      transition: transform 0.16s ease, filter 0.16s ease;
+      transform-box: fill-box;
+      transform-origin: center;
+    }
+
+    a:hover .piece,
+    .piece.flash {
+      transform: scale(1.05);
+      filter: brightness(1.3);
+    }
+  </style>
+</head>
+
+<body>
+  <svg id="mirror" aria-label="A broken mirror mandala of clickable shards"></svg>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/shattered-glass";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    function rand(min, max) { return Math.random() * (max - min) + min; }
+    function randInt(min, max) { return Math.floor(rand(min, max + 1)); }
+    function randIndex(array) { return randInt(0, array.length - 1); }
+    function sample(array) { return array[randIndex(array)]; }
+
+    const ns = 'http://www.w3.org/2000/svg';
+    const svg = document.getElementById('mirror');
+    const palette = ['#8ca6bf', '#b7cbe2', '#90b6d0', '#6e879f', '#c6d7e7', '#7298b5', '#95a0b0'];
+
+    function polar(radius, angle) {
+      return {
+        x: 500 + Math.cos(angle) * radius,
+        y: 500 + Math.sin(angle) * radius,
+      };
+    }
+
+    function createShard(points) {
+      const a = document.createElementNS(ns, 'a');
+      a.setAttribute('href', pageRandomiser.nextOne());
+
+      const polygon = document.createElementNS(ns, 'polygon');
+      polygon.setAttribute('class', 'piece');
+      polygon.setAttribute('points', points.map(point => `${point.x},${point.y}`).join(' '));
+      polygon.setAttribute('fill', sample(palette));
+      polygon.setAttribute('opacity', rand(0.74, 0.94).toFixed(2));
+      a.appendChild(polygon);
+      svg.appendChild(a);
+      return polygon;
+    }
+
+    function init() {
+      svg.innerHTML = '';
+      svg.setAttribute('viewBox', '0 0 1000 1000');
+
+      const steps = [120, 220, 330, 450];
+      const counts = [10, 18, 26];
+
+      for (let ring = 0; ring < counts.length; ring++) {
+        const inner = steps[ring];
+        const outer = steps[ring + 1];
+        const count = counts[ring];
+        const step = (Math.PI * 2) / count;
+
+        for (let i = 0; i < count; i++) {
+          const a1 = (i * step) + rand(-0.05, 0.05);
+          const a2 = ((i + 1) * step) + rand(-0.05, 0.05);
+          const p1 = polar(inner + rand(-18, 18), a1);
+          const p2 = polar(outer + rand(-20, 20), a1 + rand(-0.04, 0.04));
+          const p3 = polar(outer + rand(-20, 20), a2 + rand(-0.04, 0.04));
+          const p4 = polar(inner + rand(-18, 18), a2);
+          createShard([p1, p2, p3, p4]);
+        }
+      }
+
+      const core = document.createElementNS(ns, 'circle');
+      core.setAttribute('cx', '500');
+      core.setAttribute('cy', '500');
+      core.setAttribute('r', '96');
+      core.setAttribute('fill', '#05080c');
+      core.setAttribute('stroke', '#dfe9f7');
+      core.setAttribute('stroke-width', '2');
+      svg.appendChild(core);
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey || e.altKey || e.shiftKey || e.metaKey) return;
+      if (e.key === 'Tab' || e.key === 'F5') return;
+
+      init();
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    init();
+
+  </script>
+</body>
+
+</html>

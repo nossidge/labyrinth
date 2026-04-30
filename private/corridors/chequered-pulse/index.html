@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Before you wreque yourself">
+  <title>cheque it out now</title>
+  <style>
+    :root {
+      --pulse-duration: 1.8s;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #111;
+    }
+
+    #grid {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: grid;
+    }
+
+    #grid a {
+      display: block;
+      text-decoration: none;
+      transform: scale(0.6);
+      transform-origin: center center;
+      animation-duration: var(--pulse-duration);
+      animation-timing-function: ease-in-out;
+      animation-iteration-count: infinite;
+      transition: filter 0.2s;
+    }
+
+    #grid a.cell--light {
+      background: #fff;
+      animation-name: pulse-light;
+    }
+
+    #grid a.cell--dark {
+      background: #444;
+      animation-name: pulse-dark;
+    }
+
+    #grid a:hover {
+      filter: drop-shadow(0 0 6px #fff) brightness(1.5);
+      z-index: 10;
+    }
+
+    @keyframes pulse-light {
+
+      0%,
+      100% {
+        transform: scale(0.6);
+      }
+
+      50% {
+        transform: scale(1);
+      }
+    }
+
+    @keyframes pulse-dark {
+
+      0%,
+      100% {
+        transform: scale(1);
+      }
+
+      50% {
+        transform: scale(0.6);
+      }
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 100;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+      background-size: 100% 2px, 3px 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+  <div id="grid"></div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/chequered-pulse";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const grid = document.getElementById('grid');
+    const pulseOffset = 1.72;
+    const cellSize = 48;
+    let cols, rows;
+
+    function buildGrid() {
+      cols = Math.ceil(window.innerWidth / cellSize);
+      rows = Math.ceil(window.innerHeight / cellSize);
+      grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+      grid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+
+      const cx = (cols - 1) / 2;
+      const cy = (rows - 1) / 2;
+      const maxDist = Math.sqrt(cx * cx + cy * cy);
+      const fragment = document.createDocumentFragment();
+
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const a = document.createElement('a');
+          a.href = pageRandomiser.nextOne();
+          const isWhite = (r + c) % 2 === 0;
+          const dist = Math.sqrt((c - cx) * (c - cx) + (r - cy) * (r - cy));
+          const normalisedDist = maxDist === 0 ? 0 : dist / maxDist;
+          a.className = isWhite ? 'cell--light' : 'cell--dark';
+          a.style.animationDelay = `${((normalisedDist - 1) * pulseOffset).toFixed(3)}s`;
+          fragment.appendChild(a);
+        }
+      }
+
+      grid.replaceChildren(fragment);
+    }
+
+    buildGrid();
+    window.addEventListener('resize', buildGrid);
+
+  </script>
+</body>
+
+</html>

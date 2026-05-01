@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+This shows the real-time weather for the UK and Ireland, in emoji format.
+The data is taken from: https://open-meteo.com/
+
+Source for the map image:
+https://commons.wikimedia.org/wiki/File:Uk_outline_map.png
+
+This is not quite as good looking as I hoped it would be.
+But I do actually quite like how low tech it is.
+It does work well for this project.
+-->
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Emoji weather map of The British Isles">
+  <title>Emoji weather map</title>
+  <style>
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      background: #9ec7f3;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /*
+      Always fit the map inside the viewport so we never need scrollbars.
+      The aspect ratio is 600 / 800 = 0.75, so the map is constrained by
+      whichever of the two viewport dimensions runs out first.
+    */
+    .map {
+      position: relative;
+      aspect-ratio: 600 / 800;
+      container-type: size;
+      width: min(100vw, calc(100vh * 600 / 800));
+      height: min(100vh, calc(100vw * 800 / 600));
+    }
+
+    .map img {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .emoji {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      /* Scale with the map container so emojis stay sensibly sized */
+      font-size: 3.2cqh;
+      line-height: 1;
+      user-select: none;
+      text-decoration: none;
+      color: inherit;
+      transition: filter 0.15s ease;
+    }
+
+    .emoji:hover {
+      filter: drop-shadow(0 0 0.5cqh #ffffff);
+    }
+
+    /* Hide whichever marker layer is not active */
+    .map.view-settlements .emoji.grid {
+      display: none;
+    }
+
+    .map.view-grid .emoji.city {
+      display: none;
+    }
+
+    #weather-popover {
+      position: fixed;
+      pointer-events: none;
+      z-index: 100;
+      background: #ffffd0;
+      color: #808080;
+      border: 2px solid #808080;
+      padding: 4px 8px;
+      font: 12px/1.4 sans-serif;
+      white-space: pre;
+      display: none;
+    }
+
+    #toggle-view {
+      position: absolute;
+      top: 1.2cqh;
+      left: 1.2cqh;
+      z-index: 10;
+      padding: 0.7cqh;
+      background: #ffffd0;
+      color: #808080;
+      border: 0.25cqh solid #808080;
+      border-radius: 0.8cqh;
+      line-height: 0;
+      font: inherit;
+    }
+
+    #toggle-view svg {
+      display: block;
+      width: 3.2cqh;
+      height: 3.2cqh;
+      fill: currentColor;
+    }
+
+    #toggle-view:hover {
+      background: #808080;
+      color: #ffffd0;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="map view-settlements" id="map">
+    <img src="map.png" alt="Map of The British Isles">
+    <button id="toggle-view" title="Toggle between settlements/grid view">
+      <svg viewBox="0 0 256 256">
+        <path
+          d="M236,167.3c-5.5,0-10-4.5-10-10l0.3-58.8c0-11.1-8.7-19.7-19.7-19.7H59.2l34.5,31.3l-14.1,14.2L19.8,69l52.1-56.1l13.9,13.9L56,59.2h150.7c22,0,39.3,15.9,39.3,38v60.1C246,162.8,241.5,167.3,236,167.3z M29.7,108.3V128v39.3c0,10.9,8.8,19.7,19.7,19.7h153.2l-32.4-32.4l13.9-13.9l49.2,49.2l-49.2,53.2l-13.9-13.9l22.9-22.5H49.3C27.6,206.7,10,189,10,167.3V128v-9.8v-9.8c0-5.4,4.4-9.8,9.8-9.8C25.3,98.5,29.7,102.9,29.7,108.3z" />
+      </svg>
+    </button>
+  </div>
+  <div id="weather-popover"></div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/weather-map";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const mapEl = document.getElementById('map');
+    const popoverEl = document.getElementById('weather-popover');
+    const toggleBtn = document.getElementById('toggle-view');
+
+    // Calibration & projection calculations.
+    // The map PNG image is 600 x 800 pixels, with equirectangular projection.
+    // So we'll have to use a calculation to map the emojis to the exact location.
+    // These are the distance in pixels from the edge of the image to the mainland:
+    // - Northernmost point of mainland Scotland | Dunnet Head    | 58.6716°N | y = 160
+    // - Southernmost point of mainland England  | Lizard Point   | 49.9594°N | y = 800 - 66 = 734
+    // - Westernmost point of mainland Ireland   | Dunmore Head   | -10.476°W | x = 24
+    // - Easternmost point of mainland England   | Lowestoft Ness |  1.7625°E | x = 600 - 12 = 588
+    const IMG_W = 600, IMG_H = 800;
+    const LAT_N = 58.6716, Y_N = 160;
+    const LAT_S = 49.9594, Y_S = 734;
+    const LON_W = -10.476, X_W = 24;
+    const LON_E = 1.7625, X_E = 588;
+
+    const PX_PER_DEG_LAT = (Y_S - Y_N) / (LAT_N - LAT_S); // ≈ 65.88 px/°
+    const PX_PER_DEG_LON = (X_E - X_W) / (LON_E - LON_W); // ≈ 46.08 px/°
+
+    // Project lat/lon to % on the map image
+    function project(lat, lon) {
+      const x = X_W + (lon - LON_W) * PX_PER_DEG_LON;
+      const y = Y_N + (LAT_N - lat) * PX_PER_DEG_LAT;
+      return {
+        leftPercent: (x / IMG_W) * 100,
+        topPercent: (y / IMG_H) * 100,
+      };
+    }
+
+    // Inverse: pixel (x,y) on the 600×800 image => real-world lat/lon
+    function unproject(x, y) {
+      const lon = LON_W + (x - X_W) / PX_PER_DEG_LON;
+      const lat = LAT_N - (y - Y_N) / PX_PER_DEG_LAT;
+      return { lat, lon };
+    }
+
+    // Settlement locations
+    const UK_CITIES = [
+      { name: 'Aberdeen', lat: 57.149651, lon: -2.099075 },
+      { name: 'Armagh', lat: 54.346228, lon: -6.648792 },
+      { name: 'Bangor', lat: 54.650452, lon: -5.673144 },
+      { name: 'Bath', lat: 51.380001, lon: -2.360000 },
+      { name: 'Belfast', lat: 54.607868, lon: -5.926437 },
+      { name: 'Birmingham', lat: 52.489471, lon: -1.898575 },
+      { name: 'Bradford', lat: 53.799999, lon: -1.750000 },
+      { name: 'Brighton & Hove', lat: 50.827778, lon: -0.152778 },
+      { name: 'Bristol', lat: 51.454514, lon: -2.587910 },
+      { name: 'Cambridge', lat: 52.205276, lon: 0.119167 },
+      { name: 'Canterbury', lat: 51.279999, lon: 1.080000 },
+      { name: 'Cardiff', lat: 51.481583, lon: -3.179090 },
+      { name: 'Carlisle', lat: 54.890999, lon: -2.944000 },
+      { name: 'Chelmsford', lat: 51.736099, lon: 0.479800 },
+      { name: 'Chester', lat: 53.189999, lon: -2.890000 },
+      { name: 'Chesterfield', lat: 53.235046, lon: -1.421629 },
+      { name: 'Chichester', lat: 50.836498, lon: -0.779200 },
+      { name: 'Coventry', lat: 52.408054, lon: -1.510556 },
+      { name: 'Derby', lat: 52.916668, lon: -1.466667 },
+      { name: 'Derry Londonderry', lat: 55.006763, lon: -7.318268 },
+      { name: 'Dundee', lat: 56.462002, lon: -2.970700 },
+      { name: 'Durham', lat: 54.776100, lon: -1.573300 },
+      { name: 'Eastbourne', lat: 50.768036, lon: 0.290472 },
+      { name: 'Edinburgh', lat: 55.953251, lon: -3.188267 },
+      { name: 'Elgin', lat: 57.653484, lon: -3.335724 },
+      { name: 'Ely', lat: 52.398056, lon: 0.262222 },
+      { name: 'Exeter', lat: 50.716667, lon: -3.533333 },
+      { name: 'Glasgow', lat: 55.860916, lon: -4.251433 },
+      { name: 'Gloucester', lat: 51.864445, lon: -2.244444 },
+      { name: 'Gravesend', lat: 51.441883, lon: 0.370759 },
+      { name: 'Harlow', lat: 51.772938, lon: 0.102310 },
+      { name: 'Hastings', lat: 50.854259, lon: 0.573453 },
+      { name: 'Hereford', lat: 52.056499, lon: -2.716000 },
+      { name: 'Hull', lat: 53.767750, lon: -0.335827 },
+      { name: 'Inverness', lat: 57.477772, lon: -4.224721 },
+      { name: 'Lancaster', lat: 54.047001, lon: -2.801000 },
+      { name: 'Leeds', lat: 53.801277, lon: -1.548567 },
+      { name: 'Leicester', lat: 52.633331, lon: -1.133333 },
+      { name: 'Lichfield', lat: 52.683498, lon: -1.826530 },
+      { name: 'Lincoln', lat: 53.234444, lon: -0.538611 },
+      { name: 'Lisburn', lat: 54.509720, lon: -6.037400 },
+      { name: 'Liverpool', lat: 53.400002, lon: -2.983333 },
+      { name: 'London', lat: 51.509865, lon: -0.118092 },
+      { name: 'Manchester', lat: 53.483959, lon: -2.244644 },
+      { name: 'Milton Keynes', lat: 52.041016, lon: -0.762096 },
+      { name: 'Newcastle Upon Tyne', lat: 54.966667, lon: -1.600000 },
+      { name: 'Newry', lat: 54.175999, lon: -6.349000 },
+      { name: 'Nottingham', lat: 52.950001, lon: -1.150000 },
+      { name: 'Oxford', lat: 51.752022, lon: -1.257677 },
+      { name: 'Perth', lat: 56.396999, lon: -3.437000 },
+      { name: 'Peterborough', lat: 52.573921, lon: -0.250830 },
+      { name: 'Plymouth', lat: 50.376289, lon: -4.143841 },
+      { name: 'Portsmouth', lat: 50.805832, lon: -1.087222 },
+      { name: 'Preston', lat: 53.765762, lon: -2.692337 },
+      { name: 'Ripon', lat: 54.138000, lon: -1.524000 },
+      { name: 'Rugby', lat: 52.370876, lon: -1.265032 },
+      { name: 'Salford', lat: 53.483002, lon: -2.293100 },
+      { name: 'Salisbury', lat: 51.068787, lon: -1.794472 },
+      { name: 'Sheffield', lat: 53.383331, lon: -1.466667 },
+      { name: 'Solihull', lat: 52.412811, lon: -1.778197 },
+      { name: 'Southampton', lat: 50.909698, lon: -1.404351 },
+      { name: 'St. Davids', lat: 51.882000, lon: -5.269000 },
+      { name: 'St.Albans', lat: 51.755001, lon: -0.336000 },
+      { name: 'Stoke-on-Trent', lat: 53.002666, lon: -2.179404 },
+      { name: 'Sunderland', lat: 54.906101, lon: -1.381130 },
+      { name: 'Sutton Coldfield', lat: 52.570385, lon: -1.824042 },
+      { name: 'Swansea', lat: 51.621441, lon: -3.943646 },
+      { name: 'Swindon', lat: 51.568535, lon: -1.772232 },
+      { name: 'Truro', lat: 50.259998, lon: -5.051000 },
+      { name: 'Wakefield', lat: 53.680000, lon: -1.490000 },
+      { name: 'Wells', lat: 51.209000, lon: -2.647000 },
+      { name: 'Winchester', lat: 51.063202, lon: -1.308000 },
+      { name: 'Wolverhampton', lat: 52.591370, lon: -2.110748 },
+      { name: 'Worcester', lat: 52.192001, lon: -2.220000 },
+      { name: 'York', lat: 53.958332, lon: -1.080278 },
+    ];
+    const IRELAND_CITIES = [
+      { name: 'Cork', lat: 51.893102, lon: -8.477155 },
+      { name: 'Dublin', lat: 53.341824, lon: -6.262161 },
+      { name: 'Galway', lat: 53.272603, lon: -9.051757 },
+      { name: 'Limerick', lat: 52.634185, lon: -8.631298 },
+      { name: 'Waterford', lat: 52.252170, lon: -7.113195 },
+      { name: 'Kilkenny', lat: 52.650018, lon: -7.248589 },
+    ];
+    const OTHER_LOCATIONS = [
+      { name: 'Aberystwyth', lat: 52.413386, lon: -4.084237 },
+      { name: 'Conwy', lat: 53.280352, lon: -3.831664 },
+      { name: 'Douglas', lat: 54.133900, lon: -4.334466 },
+      { name: 'Enniskillen', lat: 54.340811, lon: -7.632028 },
+      { name: 'Kirkwall', lat: 58.980612, lon: -2.959962 },
+      { name: 'Norwich', lat: 52.600346, lon: 1.289565 },
+      { name: 'Omagh', lat: 54.593441, lon: -7.311027 },
+      { name: 'Portlaoise', lat: 53.027363, lon: -7.297278 },
+      { name: 'Shetland', lat: 60.340128, lon: -1.233608 },
+      { name: 'Sligo', lat: 54.266719, lon: -8.477155 },
+    ];
+    const LOCATIONS = [...UK_CITIES, ...IRELAND_CITIES, ...OTHER_LOCATIONS];
+
+    // WMO weather code => emoji + label
+    function decodeWeather(code, isDay) {
+      const sun = isDay ? '☀️' : '🌙';
+      const partly = isDay ? '⛅' : '☁️';
+      const hash = {
+        0: [sun, 'Clear sky'],
+        1: [partly, 'Mainly clear'],
+        2: [partly, 'Partly cloudy'],
+        3: ['☁️', 'Overcast'],
+        45: ['🌫️', 'Fog'],
+        48: ['🌫️', 'Freezing fog'],
+        51: ['🌦️', 'Light drizzle'],
+        53: ['🌦️', 'Drizzle'],
+        55: ['🌦️', 'Heavy drizzle'],
+        56: ['🌧️', 'Freezing drizzle'],
+        57: ['🌧️', 'Heavy freezing drizzle'],
+        61: ['🌧️', 'Light rain'],
+        63: ['🌧️', 'Rain'],
+        65: ['🌧️', 'Heavy rain'],
+        66: ['🌧️', 'Freezing rain'],
+        67: ['🌧️', 'Heavy freezing rain'],
+        71: ['🌨️', 'Light snow'],
+        73: ['🌨️', 'Snow'],
+        75: ['🌨️', 'Heavy snow'],
+        77: ['❄️', 'Snow grains'],
+        80: ['🌦️', 'Light showers'],
+        81: ['🌦️', 'Showers'],
+        82: ['⛈️', 'Violent showers'],
+        85: ['🌨️', 'Light snow showers'],
+        86: ['🌨️', 'Heavy snow showers'],
+        95: ['⛈️', 'Thunderstorm'],
+        96: ['⛈️', 'Thunderstorm + hail'],
+        99: ['⛈️', 'Severe thunderstorm + hail'],
+      };
+      return hash[code] || ['❓', 'Unknown (code ' + code + ')'];
+    }
+
+    // This is just for wind directions
+    function compass(deg) {
+      const dirs = [
+        'N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE',
+        'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW',
+      ];
+      return dirs[Math.round(deg / 22.5) % 16];
+    }
+
+    // Build an equidistant grid of sample points.
+    // Pick a target on-image pixel spacing, then walk a uniform pixel grid
+    // and inverse-project each cell-centre back to lat/lon.
+    // Because the cells are equally spaced in the image's projected coordinates,
+    // the rendered emojis end up visually equidistant on the map.
+    const GRID_COLS = 16;
+    const GRID_ROWS = 23;
+    const GRID_POINTS = (() => {
+      const cellW = IMG_W / GRID_COLS;
+      const cellH = IMG_H / GRID_ROWS;
+      const points = [];
+      for (let r = 0; r < GRID_ROWS; r++) {
+        for (let c = 0; c < GRID_COLS; c++) {
+          const x = (c + 0.5) * cellW;
+          const y = (r + 0.5) * cellH;
+          const { lat, lon } = unproject(x, y);
+          points.push({
+            name: 'Grid ' + (r + 1) + ',' + (c + 1),
+            lat, lon,
+            leftPercent: (x / IMG_W) * 100,
+            topPercent: (y / IMG_H) * 100,
+          });
+        }
+      }
+      return points;
+    })();
+
+    // Custom popover, replaces the browser default `title` tooltip
+    function showPopover(marker, evt) {
+      // In settlements view, show the city name
+      const isCity = marker.classList.contains('city');
+      const lines = [];
+      if (isCity && marker.dataset.placeName) lines.push(marker.dataset.placeName);
+      const body = marker.dataset.weather || 'Loading...';
+      if (body) lines.push(body);
+      if (!lines.length) return;
+      popoverEl.textContent = lines.join('\n');
+      popoverEl.style.display = 'block';
+      movePopover(evt);
+    }
+
+    function movePopover(evt) {
+      const pad = 14;
+      const w = popoverEl.offsetWidth;
+      const h = popoverEl.offsetHeight;
+      let left = evt.clientX + pad;
+      let top = evt.clientY + pad;
+      if (left + w > window.innerWidth) left = evt.clientX - w - pad;
+      if (top + h > window.innerHeight) top = evt.clientY - h - pad;
+      popoverEl.style.left = left + 'px';
+      popoverEl.style.top = top + 'px';
+    }
+
+    function hidePopover() {
+      popoverEl.style.display = 'none';
+    }
+
+    // Render markers on the map.
+    // Use a placeholder ❔ until the API returns the actual weather.
+    function makeMarker(extraClass, leftPercent, topPercent, placeName) {
+      const a = document.createElement('a');
+      a.className = 'emoji ' + extraClass;
+      a.href = pageRandomiser.nextOne();
+      a.style.left = leftPercent + '%';
+      a.style.top = topPercent + '%';
+      a.textContent = '❔';
+      a.dataset.placeName = placeName;
+      a.dataset.weather = '';
+      a.addEventListener('mouseenter', e => showPopover(a, e));
+      a.addEventListener('mousemove', movePopover);
+      a.addEventListener('mouseleave', hidePopover);
+      a.addEventListener('click', hidePopover);
+      mapEl.appendChild(a);
+      return a;
+    }
+
+    const cityMarkers = LOCATIONS.map(city => {
+      const { leftPercent, topPercent } = project(city.lat, city.lon);
+      return makeMarker('city', leftPercent, topPercent, city.name);
+    });
+
+    const gridMarkers = GRID_POINTS.map(p =>
+      makeMarker('grid', p.leftPercent, p.topPercent, p.name)
+    );
+
+    // Toggle between settlements view and grid view
+    toggleBtn.addEventListener('click', () => {
+      mapEl.classList.toggle('view-settlements');
+      mapEl.classList.toggle('view-grid');
+      hidePopover();
+    });
+
+    // Fetch current weather, making one batched call for both views.
+    // Results are cached in localStorage for an hour. The cache key includes
+    // the request URL so any change to the location list invalidates it.
+    // Even at ~460 points the JSON is well under 100 KB, comfortably within
+    // the typical ~5 MB localStorage budget per origin.
+    const CACHE_KEY = 'weather-map:cache';
+    const CACHE_TTL_MS = 60 * 60 * 1000;
+
+    function readCache(url) {
+      try {
+        const raw = localStorage.getItem(CACHE_KEY);
+        if (!raw) return null;
+        const cached = JSON.parse(raw);
+        if (cached.url !== url) return null;
+        if (Date.now() - cached.timestamp > CACHE_TTL_MS) return null;
+        return cached.data;
+      } catch {
+        return null;
+      }
+    }
+
+    function writeCache(url, data) {
+      try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify({
+          url, timestamp: Date.now(), data,
+        }));
+      } catch (err) {
+        // Quota exceeded or storage disabled, non-fatal
+        console.warn('Could not cache weather data:', err);
+      }
+    }
+
+    (async function loadWeather() {
+      const ALL = [...LOCATIONS, ...GRID_POINTS];
+      const allMarkers = [...cityMarkers, ...gridMarkers];
+      const lats = ALL.map(p => p.lat.toFixed(3)).join(',');
+      const lons = ALL.map(p => p.lon.toFixed(3)).join(',');
+      const url =
+        'https://api.open-meteo.com/v1/forecast' +
+        '?latitude=' + lats +
+        '&longitude=' + lons +
+        '&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,wind_direction_10m,is_day' +
+        '&wind_speed_unit=mph&timezone=auto';
+
+      function applyResults(results) {
+        results.forEach((entry, i) => {
+          const cur = entry.current;
+          if (!cur) return;
+          const marker = allMarkers[i];
+          if (!marker) return;
+          const [emoji, label] = decodeWeather(cur.weather_code, cur.is_day === 1);
+          marker.textContent = emoji;
+          marker.dataset.weather =
+            label + '\n' +
+            'Temp: ' + Math.round(cur.temperature_2m) + '°C\n' +
+            'Humidity: ' + cur.relative_humidity_2m + '%\n' +
+            'Wind: ' + Math.round(cur.wind_speed_10m) + ' mph ' +
+            compass(cur.wind_direction_10m);
+        });
+      }
+
+      const cached = readCache(url);
+      if (cached) {
+        applyResults(cached);
+        return;
+      }
+
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        const results = Array.isArray(data) ? data : [data];
+        applyResults(results);
+        writeCache(url, results);
+
+      } catch (err) {
+        console.error(err);
+        allMarkers.forEach(m => {
+          m.dataset.weather = 'Weather unavailable';
+        });
+      }
+    })();
+
+  </script>
+</body>
+
+</html>

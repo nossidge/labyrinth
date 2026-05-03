@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Celluloid Grossman">
+  <title>24 frames per second</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #0a0a0a;
+      font-family: monospace;
+    }
+
+    #strip-container {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 340px;
+      top: 0px;
+    }
+
+    #strip {
+      position: relative;
+      width: 100%;
+    }
+
+    .frame-unit {
+      position: relative;
+      width: 340px;
+      height: 340px;
+      margin-bottom: 0;
+    }
+
+    .sprocket-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 28px;
+      padding: 0 8px;
+      background: #1a1a1a;
+    }
+
+    .sprocket {
+      width: 18px;
+      height: 12px;
+      background: #0a0a0a;
+      border-radius: 3px;
+    }
+
+    .frame-border {
+      background: #1a1a1a;
+      display: flex;
+      align-items: center;
+      height: 280px;
+      padding: 0;
+    }
+
+    .side-strip {
+      width: 30px;
+      min-width: 30px;
+      height: 100%;
+      background: #1a1a1a;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      align-items: center;
+      padding: 10px 0;
+    }
+
+    .side-sprocket {
+      width: 14px;
+      height: 10px;
+      background: #0a0a0a;
+      border-radius: 2px;
+    }
+
+    .frame-link {
+      display: block;
+      width: 280px;
+      height: 280px;
+      position: relative;
+      overflow: hidden;
+      background: #ddd;
+      text-decoration: none;
+    }
+
+    .frame-link:hover {
+      outline: 2px solid #ffff00;
+    }
+
+    .shape {
+      position: absolute;
+    }
+
+    #projector-flicker {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 100;
+      background: transparent;
+      animation: flicker 0.21s infinite;
+    }
+
+    @keyframes flicker {
+      0% {
+        background: rgba(255, 255, 255, 0.00);
+      }
+
+      20% {
+        background: rgba(255, 255, 255, 0.02);
+      }
+
+      40% {
+        background: rgba(0, 0, 0, 0.03);
+      }
+
+      60% {
+        background: rgba(255, 255, 255, 0.01);
+      }
+
+      80% {
+        background: rgba(0, 0, 0, 0.02);
+      }
+
+      100% {
+        background: rgba(255, 255, 255, 0.00);
+      }
+    }
+
+    #film-grain {
+      position: fixed;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      pointer-events: none;
+      z-index: 99;
+      opacity: 0.05;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      animation: grain 0.5s steps(4) infinite;
+    }
+
+    @keyframes grain {
+      0% {
+        transform: translate(0, 0);
+      }
+
+      25% {
+        transform: translate(-5%, -5%);
+      }
+
+      50% {
+        transform: translate(5%, 5%);
+      }
+
+      75% {
+        transform: translate(-5%, 5%);
+      }
+
+      100% {
+        transform: translate(5%, -5%);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="projector-flicker"></div>
+  <div id="film-grain"></div>
+
+  <div id="strip-container">
+    <div id="strip"></div>
+  </div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/film-strip";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    // Useful randomisation helpers
+    function rand(min, max) { return Math.random() * (max - min) + min; }
+    function randInt(min, max) { return Math.floor(rand(min, max + 1)); }
+    function randIndex(array) { return randInt(0, array.length - 1); }
+    function sample(array) { return array[randIndex(array)]; }
+
+    const strip = document.getElementById('strip');
+    const container = document.getElementById('strip-container');
+
+    const FRAME_HEIGHT = 340;
+    const SCROLL_SPEED = 1.2;
+    const VISIBLE_FRAMES = 5;
+    const BUFFER_FRAMES = 2;
+
+    const PALETTES_POOL = [
+      ['#e63946', '#457b9d', '#f1c453', '#2a9d8f', '#264653'],
+      ['#ff6b6b', '#4ecdc4', '#ffe66d', '#95e1d3', '#574b90'],
+      ['#f72585', '#7209b7', '#3a0ca3', '#4361ee', '#4cc9f0'],
+      ['#606c38', '#283618', '#dda15e', '#bc6c25', '#fefae0'],
+      ['#0d1b2a', '#1b263b', '#415a77', '#778da9', '#e0e1dd'],
+      ['#d62828', '#f77f00', '#fcbf49', '#eae2b7', '#003049'],
+    ];
+    const palettesRandomiser = new CyclicRandomiser(PALETTES_POOL);
+
+    function generateShapes(frameBody) {
+      const palette = palettesRandomiser.nextOne();
+      const numShapes = randInt(4, 9);
+
+      for (let i = 0; i < numShapes; i++) {
+        const shape = document.createElement('div');
+        shape.className = 'shape';
+        const color = sample(palette);
+        const size = randInt(20, 100);
+        const x = randInt(-10, 260);
+        const y = randInt(-10, 260);
+        const type = randInt(0, 2);
+
+        shape.style.left = x + 'px';
+        shape.style.top = y + 'px';
+        shape.style.width = size + 'px';
+        shape.style.height = size + 'px';
+        shape.style.background = color;
+        shape.style.opacity = rand(0.5, 1.0);
+
+        if (type === 0) {
+          shape.style.borderRadius = '50%';
+        } else if (type === 1) {
+          shape.style.transform = 'rotate(' + randInt(0, 45) + 'deg)';
+        } else {
+          shape.style.width = '0';
+          shape.style.height = '0';
+          shape.style.background = 'transparent';
+          const half = Math.floor(size / 2);
+          shape.style.borderLeft = half + 'px solid transparent';
+          shape.style.borderRight = half + 'px solid transparent';
+          shape.style.borderBottom = size + 'px solid ' + color;
+          shape.style.transform = 'rotate(' + randInt(0, 360) + 'deg)';
+        }
+
+        frameBody.appendChild(shape);
+      }
+    }
+
+    function createFrame() {
+      const unit = document.createElement('div');
+      unit.className = 'frame-unit';
+
+      // Top sprocket row
+      const topRow = document.createElement('div');
+      topRow.className = 'sprocket-row';
+      for (let i = 0; i < 2; i++) {
+        const s = document.createElement('div');
+        s.className = 'sprocket';
+        topRow.appendChild(s);
+      }
+      unit.appendChild(topRow);
+
+      // Frame body with side strips
+      const border = document.createElement('div');
+      border.className = 'frame-border';
+
+      const leftStrip = document.createElement('div');
+      leftStrip.className = 'side-strip';
+      for (let i = 0; i < 4; i++) {
+        const s = document.createElement('div');
+        s.className = 'side-sprocket';
+        leftStrip.appendChild(s);
+      }
+      border.appendChild(leftStrip);
+
+      const link = document.createElement('a');
+      link.className = 'frame-link';
+      link.href = pageRandomiser.nextOne();
+
+      // New frames are off-screen (in the bottom buffer) until promoted by updateTabbability().
+      // This stops the browser from auto-scrolling the document when the user tabs onto an
+      // off-screen link.
+      link.tabIndex = -1;
+      generateShapes(link);
+      border.appendChild(link);
+
+      const rightStrip = document.createElement('div');
+      rightStrip.className = 'side-strip';
+      for (let i = 0; i < 4; i++) {
+        const s = document.createElement('div');
+        s.className = 'side-sprocket';
+        rightStrip.appendChild(s);
+      }
+      border.appendChild(rightStrip);
+
+      unit.appendChild(border);
+
+      // Bottom sprocket row
+      const bottomRow = document.createElement('div');
+      bottomRow.className = 'sprocket-row';
+      for (let i = 0; i < 2; i++) {
+        const s = document.createElement('div');
+        s.className = 'sprocket';
+        bottomRow.appendChild(s);
+      }
+      unit.appendChild(bottomRow);
+
+      return unit;
+    }
+
+    // Mark only the on-screen frames as tabbable.
+    // The bottom buffer frames are not focusable, so the browser won't scroll the
+    // document to bring an off-screen link into view when the user tabs through.
+    // This fixes an earlier problem where you could keep tabbing and eventually
+    // you'd run into empty space, with frames popping into existence visually.
+    function updateTabbability() {
+      const frames = strip.children;
+      for (let i = 0; i < frames.length; i++) {
+        const link = frames[i].querySelector('.frame-link');
+        if (!link) continue;
+        if (i < VISIBLE_FRAMES) {
+          link.tabIndex = 0;
+        } else {
+          link.tabIndex = -1;
+        }
+      }
+    }
+
+    // Initial frames
+    const totalFrames = VISIBLE_FRAMES + BUFFER_FRAMES;
+    for (let i = 0; i < totalFrames; i++) {
+      strip.appendChild(createFrame());
+    }
+    updateTabbability();
+
+    // Scrolling
+    let scrollY = 0;
+    function animate() {
+      scrollY += SCROLL_SPEED;
+
+      // When a full frame has scrolled off the top, recycle it
+      if (scrollY >= FRAME_HEIGHT) {
+        scrollY -= FRAME_HEIGHT;
+        const first = strip.firstElementChild;
+        strip.removeChild(first);
+        strip.appendChild(createFrame());
+        updateTabbability();
+      }
+
+      strip.style.transform = 'translateY(' + (-scrollY) + 'px)';
+      requestAnimationFrame(animate);
+    }
+
+    requestAnimationFrame(animate);
+
+  </script>
+</body>
+
+</html>

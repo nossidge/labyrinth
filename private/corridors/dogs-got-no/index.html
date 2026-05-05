@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+"My dog's got no nose."
+"How does he smell?"
+"Terrible!"
+
+The original joke doesn't really work with the "ly" suffix,
+but we need it for the subsequent silly ones.
+
+This is based on an existing page I made a decade ago:
+https://tilde.town/~nossidge/dogsgotno/
+
+Source for the word definitions is Wordnik:
+https://www.wordnik.com/words/tongue
+
+Source for the background image is here:
+http://m.pcze.com/katong_bizhi/katonggou_79335/
+I'm not sure who the original artist is :-(
+-->
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="terrible">
+  <title>My dog's got no...</title>
+
+  <style>
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    body {
+      background: #f9f1d8;
+      background-image:
+        radial-gradient(circle at 20% 30%, #ffd6e0 0%, transparent 35%),
+        radial-gradient(circle at 80% 70%, #c9d3f0 0%, transparent 40%),
+        radial-gradient(circle at 50% 90%, #ffe9b0 0%, transparent 50%);
+      font-family: 'ComicSansMS', 'Comic Sans MS', 'Chalkboard SE', cursive, sans-serif;
+      color: #4a3328;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      box-sizing: border-box;
+      padding: 20px;
+    }
+
+    #joke-box {
+      width: 760px;
+      max-width: 96vw;
+      height: 520px;
+      background-image: url('bg.jpg');
+      background-size: cover;
+      background-position: center;
+      border: 6px solid #6d645e;
+      border-radius: 40px;
+      box-shadow:
+        6px 6px 0 #6d645e,
+        inset 0 0 0 4px #fff7e3;
+      padding: 30px 36px 26px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+    }
+
+    #title-tag {
+      position: absolute;
+      top: -22px;
+      left: 50%;
+      transform: translateX(-50%) rotate(-2deg);
+      background: #ffd6e0;
+      border: 3px solid #6d645e;
+      border-radius: 18px;
+      padding: 4px 18px;
+      font-size: 18px;
+      color: #6d645e;
+      box-shadow: 3px 3px 0 #6d645e;
+      white-space: nowrap;
+    }
+
+    #joke-text {
+      flex: 1;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px 6px;
+      box-sizing: border-box;
+    }
+
+    #joke-text a {
+      display: block;
+      background: rgba(255, 247, 227, 0.88);
+      border: 3px dashed #6d645e;
+      border-radius: 22px;
+      padding: 18px 24px;
+      font-size: 22px;
+      line-height: 1.55;
+      text-align: center;
+      color: #4a3328;
+      text-decoration: none;
+      transition: text-shadow 0.15s ease, transform 0.15s ease;
+    }
+
+    #joke-text a:hover {
+      text-shadow:
+        2px 2px 0 #ffb3c1,
+        4px 4px 0 #b8b2d5,
+        6px 6px 0 #6d645e;
+      transform: rotate(-0.5deg) scale(1.02);
+    }
+
+    .joke-line+.joke-line {
+      margin-top: 12px;
+    }
+
+    #nav {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 28px;
+      width: 100%;
+      padding-top: 8px;
+    }
+
+    .nav-btn {
+      background: #ffd6e0;
+      border: 4px solid #6d645e;
+      border-radius: 50%;
+      width: 62px;
+      height: 62px;
+      font-size: 28px;
+      font-family: inherit;
+      color: #6d645e;
+      cursor: pointer;
+      line-height: 1;
+      box-shadow: 3px 3px 0 #6d645e;
+      transition: transform 0.1s ease, background 0.1s ease, box-shadow 0.1s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+    }
+
+    .nav-btn:hover:not(:disabled) {
+      background: #ffb3c1;
+      transform: translate(-1px, -1px);
+      box-shadow: 4px 4px 0 #6d645e;
+    }
+
+    .nav-btn:active:not(:disabled) {
+      transform: translate(2px, 2px);
+      box-shadow: 1px 1px 0 #6d645e;
+    }
+
+    .nav-btn:disabled {
+      background: #e0dccf;
+      color: #b3aea0;
+      opacity: 0.55;
+      cursor: not-allowed;
+      box-shadow: 3px 3px 0 #b3aea0;
+    }
+
+    .nav-btn span {
+      display: block;
+      margin-top: -4px;
+    }
+
+    #prev-btn span {
+      margin-left: -4px;
+    }
+
+    #next-btn span {
+      margin-right: -4px;
+    }
+
+    #counter {
+      font-size: 18px;
+      color: #6d645e;
+      min-width: 64px;
+      text-align: center;
+      background: #fff7e3;
+      border: 3px solid #6d645e;
+      border-radius: 14px;
+      padding: 4px 12px;
+      box-shadow: 2px 2px 0 #6d645e;
+    }
+
+    @media (max-width: 600px) {
+      #joke-box {
+        height: 600px;
+        padding: 26px 18px 20px;
+        border-radius: 32px;
+        background-position: right center;
+      }
+
+      #joke-text a {
+        font-size: 17px;
+        padding: 14px 16px;
+      }
+
+      #title-tag {
+        font-size: 14px;
+        padding: 3px 12px;
+      }
+
+      .nav-btn {
+        width: 52px;
+        height: 52px;
+        font-size: 24px;
+      }
+
+      #counter {
+        font-size: 15px;
+        min-width: 54px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="joke-box">
+    <div id="title-tag">~ woof woof ~</div>
+    <div id="joke-text"></div>
+    <div id="nav">
+      <button id="prev-btn" class="nav-btn" aria-label="Previous joke" disabled>
+        <span>&#9664;</span>
+      </button>
+      <span id="counter">
+        1 / 16
+      </span>
+      <button id="next-btn" class="nav-btn" aria-label="Next joke">
+        <span>&#9654;</span>
+      </button>
+    </div>
+  </div>
+
+  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script>
+    const currentPage = "corridors/dogs-got-no";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    const jokes = [
+      [
+        `"My dog's got no nose!"`,
+        `"How does he smell?"`,
+        `"Terribly!"`
+      ], [
+        `"My dog's got no ears!"`,
+        `"How does he hear?"`,
+        `"Atrociously!"`
+      ], [
+        `"My dog's got no eyes!"`,
+        `"How does he see?"`,
+        `"Dismally!"`
+      ], [
+        `"My dog's got no lungs!"`,
+        `"How does he remove carbon dioxide from the blood and provide it with oxygen?"`,
+        `"Woefully!"`
+      ], [
+        `"My dog's got no kidneys!"`,
+        `"How does he maintain proper water and electrolyte balance, regulate acid-base concentration, and filter the blood of metabolic wastes, which are then excreted as urine?"`,
+        `"Unpleasantly!"`
+      ], [
+        `"My dog's got no stomach!"`,
+        `"How does he tolerate (something), emotionally, physically, or mentally?"`,
+        `"Imprecisely!"`
+      ], [
+        `"My dog's got no tail!"`,
+        `"How does he follow and keep under surveillance?"`,
+        `"Carelessly!"`
+      ], [
+        `"My dog's got no foot!"`,
+        `"How does he go by foot over, on, or through; tread?"`,
+        `"Unacceptably!"`
+      ], [
+        `"My dog's got no leg!"`,
+        `"How does he put a series of three or more options strikes into the stock market?"`,
+        `"Contemptibly!"`
+      ], [
+        `"My dog's got no paw!"`,
+        `"How does he handle someone or something clumsily, rudely, or with too much familiarity?"`,
+        `"Indecently!"`
+      ], [
+        `"My dog's got no fur!"`,
+        `"How does he cover, line, or trim with fur?"`,
+        `"Hideously!"`
+      ], [
+        `"My dog's got no skin!"`,
+        `"How does he bruise, cut, or injure the skin or surface of?"`,
+        `"Disgustingly!"`
+      ], [
+        `"My dog's got no tooth!"`,
+        `"How does he provide or furnish with teeth?"`,
+        `"Discourteously!"`
+      ], [
+        `"My dog's got no tongue!"`,
+        `"How does he separate or articulate (notes played on a brass or wind instrument) by shutting off the stream of air with the tongue?"`,
+        `"Crudely!"`
+      ], [
+        `"My dog's got no soul!"`,
+        `"How does he ((embody)) the spiritual nature of humans, regarded as immortal, separable from the body at death, and susceptible to happiness or misery in a future state?"`,
+        `"Dubiously!"`
+      ], [
+        `"My dog's got no head!"`,
+        `"How does he read data from and write data to the disk or tape?"`,
+        `"He can't."`
+      ]
+    ];
+
+    const jokeTextEl = document.getElementById('joke-text');
+    const counterEl = document.getElementById('counter');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+
+    let index = 0;
+
+    function render() {
+      const link = document.createElement('a');
+      link.href = pageRandomiser.nextOne();
+      jokes[index].forEach(line => {
+        const lineEl = document.createElement('div');
+        lineEl.className = 'joke-line';
+        lineEl.textContent = line;
+        link.appendChild(lineEl);
+      });
+      jokeTextEl.innerHTML = '';
+      jokeTextEl.appendChild(link);
+
+      counterEl.textContent = `${index + 1} / ${jokes.length}`;
+      prevBtn.disabled = index === 0;
+      nextBtn.disabled = index === jokes.length - 1;
+    }
+
+    function goToNext() {
+      if (index < jokes.length - 1) {
+        index++;
+        render();
+      }
+    }
+
+    function goToPrev() {
+      if (index > 0) {
+        index--;
+        render();
+      }
+    }
+
+    prevBtn.addEventListener('click', goToPrev);
+    nextBtn.addEventListener('click', goToNext);
+
+    // Arrow keys, WASD keys, HJKL keys
+    const LEFT_OR_DOWN = new Set(['ArrowLeft', 'ArrowDown', 'h', 'j', 'a', 's']);
+    const RIGHT_OR_UP = new Set(['ArrowRight', 'ArrowUp', 'k', 'l', 'd', 'w']);
+    function keyLeftOrDown(key) { return LEFT_OR_DOWN.has(key); }
+    function keyRightOrUp(key) { return RIGHT_OR_UP.has(key); }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey || e.altKey || e.shiftKey || e.metaKey) return;
+
+      if (keyLeftOrDown(e.key)) {
+        e.preventDefault();
+        goToPrev();
+      } else if (keyRightOrUp(e.key)) {
+        e.preventDefault();
+        goToNext();
+      }
+    });
+
+    render();
+
+  </script>
+</body>
+
+</html>

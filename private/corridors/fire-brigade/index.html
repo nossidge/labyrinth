@@ -301,6 +301,7 @@ Let me know if you find a layout that is impossible to win.
     }
 
     function rotatePipe(r, c, el) {
+      addTurn();
       const pipe = gridData[r][c];
       pipe.char = PIPES_CONFIG[pipe.char].rotate;
       el.querySelector('.pipe-char').innerHTML = pipe.char;

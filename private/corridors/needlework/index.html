@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Sew and sew">
+  <title>Homespun</title>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #efe5d0;
+      color: #4f3c2f;
+      font-family: "Courier New", Courier, monospace;
+      overflow: hidden;
+    }
+
+    .frame {
+      position: relative;
+      z-index: 1;
+      padding: 16px;
+      border: 3px double #9f8d74;
+      background: #f8f1e4;
+    }
+
+    .nav-panel {
+      position: fixed;
+      top: 0;
+      height: 100%;
+      width: 96px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 2;
+    }
+
+    #nav-left {
+      left: 0;
+      background: linear-gradient(to right, rgba(159, 141, 116, 0.2), transparent);
+    }
+
+    #nav-left:hover {
+      background: linear-gradient(to right, rgba(159, 141, 116, 0.32), transparent);
+    }
+
+    #nav-right {
+      right: 0;
+      background: linear-gradient(to left, rgba(159, 141, 116, 0.2), transparent);
+    }
+
+    #nav-right:hover {
+      background: linear-gradient(to left, rgba(159, 141, 116, 0.32), transparent);
+    }
+
+    .nav-button {
+      min-width: 48px;
+      padding: 8px 10px;
+      border: 2px outset #c6b392;
+      background: #f8f1e4;
+      color: #6f5845;
+      font: inherit;
+      font-size: 26px;
+      line-height: 1;
+      pointer-events: none;
+    }
+
+    .nav-panel:hover .nav-button {
+      color: #4f3c2f;
+      border-color: #9f8d74;
+      background: #fbf6ed;
+    }
+
+    table {
+      border-collapse: collapse;
+    }
+
+    td {
+      width: 24px;
+      height: 24px;
+      text-align: center;
+      vertical-align: middle;
+      font-size: 24px;
+      line-height: 1;
+      border: 1px dotted #ccbda4;
+    }
+
+    .cross {
+      color: #8e2f40;
+    }
+
+    .loop {
+      color: #49704b;
+    }
+
+    td.live a {
+      color: #1d33b1;
+      text-decoration: none;
+    }
+
+    td.live a:hover {
+      color: #0b1d7c;
+      text-decoration: underline;
+    }
+
+    @media (max-width: 700px) {
+      body {
+        padding-bottom: 78px;
+      }
+
+      .frame {
+        padding: 10px;
+      }
+
+      .nav-panel {
+        top: auto;
+        bottom: 0;
+        height: 78px;
+        width: 50%;
+        align-items: flex-start;
+        padding-top: 12px;
+      }
+
+      #nav-left {
+        background: linear-gradient(to top, rgba(159, 141, 116, 0.2), transparent);
+      }
+
+      #nav-left:hover {
+        background: linear-gradient(to top, rgba(159, 141, 116, 0.32), transparent);
+      }
+
+      #nav-right {
+        background: linear-gradient(to top, rgba(159, 141, 116, 0.2), transparent);
+      }
+
+      #nav-right:hover {
+        background: linear-gradient(to top, rgba(159, 141, 116, 0.32), transparent);
+      }
+
+      .nav-button {
+        font-size: 22px;
+      }
+
+      td {
+        width: 18px;
+        height: 18px;
+        font-size: 18px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="nav-left" class="nav-panel">
+    <button class="nav-button" aria-hidden="true">&larr;</button>
+  </div>
+
+  <main class="frame">
+    <table id="art"></table>
+  </main>
+
+  <div id="nav-right" class="nav-panel">
+    <button class="nav-button" aria-hidden="true">&rarr;</button>
+  </div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/needlework";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    // Useful randomisation helpers
+    function rand(min, max) { return Math.random() * (max - min) + min; }
+    function randInt(min, max) { return Math.floor(rand(min, max + 1)); }
+    function randIndex(array) { return randInt(0, array.length - 1); }
+    function sample(array) { return array[randIndex(array)]; }
+    function chance(probability) { return rand(0, 1) < probability; }
+
+    const gridSizes = [9, 11, 13, 15, 17];
+
+    const symbols = {
+      'x': { char: 'x', className: 'cross' },
+      'o': { char: 'o', className: 'loop' },
+      'O': { char: 'o', className: 'loop', link: true }
+    };
+
+    const art = document.getElementById('art');
+
+    let history = [];
+    let historyIndex = -1;
+
+    function mirroredPositions(row, col, rowsCount, colsCount) {
+      const seen = new Set();
+      const positions = [
+        [row, col],
+        [rowsCount - 1 - row, col],
+        [row, colsCount - 1 - col],
+        [rowsCount - 1 - row, colsCount - 1 - col]
+      ];
+
+      return positions.filter(([y, x]) => {
+        const key = `${y}:${x}`;
+        if (seen.has(key)) {
+          return false;
+        }
+        seen.add(key);
+        return true;
+      });
+    }
+
+    function randomInnerCoordinate(limit) {
+      return limit <= 2 ? 1 : randInt(1, limit - 1);
+    }
+
+    function createEmptyMask(rowsCount, colsCount) {
+      return Array.from({ length: rowsCount }, () => Array(colsCount).fill(false));
+    }
+
+    function buildLiveMaskAttempt(rowsCount, colsCount) {
+      const liveMask = createEmptyMask(rowsCount, colsCount);
+      const halfRows = Math.floor(rowsCount / 2);
+      const halfCols = Math.floor(colsCount / 2);
+      const motifs = [];
+      const motifCount = randInt(2, 4);
+
+      for (let index = 0; index < motifCount; index++) {
+        const row = randomInnerCoordinate(halfRows);
+        const col = randomInnerCoordinate(halfCols);
+        const maxRadius = Math.max(1, Math.min(2, row, col, halfRows - row, halfCols - col));
+
+        motifs.push({ row, col, radius: randInt(1, maxRadius) });
+      }
+
+      if (chance(0.7)) {
+        const maxCenterRadius = Math.min(2, Math.max(1, Math.min(halfRows, halfCols)));
+
+        motifs.push({
+          row: halfRows,
+          col: halfCols,
+          radius: randInt(1, maxCenterRadius)
+        });
+      }
+
+      for (let row = 1; row <= halfRows; row++) {
+        for (let col = 1; col <= halfCols; col++) {
+          let score = 0;
+
+          motifs.forEach(motif => {
+            const distance = Math.abs(row - motif.row) + Math.abs(col - motif.col);
+
+            if (distance <= motif.radius) {
+              score += (motif.radius - distance) + 1;
+            }
+          });
+
+          if (score >= 2 || (score === 1 && chance(0.3))) {
+            mirroredPositions(row, col, rowsCount, colsCount).forEach(([y, x]) => {
+              liveMask[y][x] = true;
+            });
+          }
+        }
+      }
+
+      for (let row = 1; row <= halfRows; row++) {
+        for (let col = 1; col <= halfCols; col++) {
+          if (!liveMask[row][col] || (row === halfRows && col === halfCols)) {
+            continue;
+          }
+
+          if (chance(0.14)) {
+            mirroredPositions(row, col, rowsCount, colsCount).forEach(([y, x]) => {
+              liveMask[y][x] = false;
+            });
+          }
+        }
+      }
+
+      return liveMask;
+    }
+
+    function buildLiveMask(rowsCount, colsCount) {
+      let liveMask = createEmptyMask(rowsCount, colsCount);
+
+      for (let attempt = 0; attempt < 30; attempt++) {
+        const candidate = buildLiveMaskAttempt(rowsCount, colsCount);
+        const liveCount = candidate.flat().filter(Boolean).length;
+        const density = liveCount / (rowsCount * colsCount);
+
+        if (density >= 0.08 && density <= 0.22) {
+          return candidate;
+        }
+
+        liveMask = candidate;
+      }
+
+      return liveMask;
+    }
+
+    function createPatternRows(rowsCount, colsCount) {
+      const liveMask = buildLiveMask(rowsCount, colsCount);
+      const rows = [];
+
+      for (let row = 0; row < rowsCount; row++) {
+        let patternRow = '';
+
+        for (let col = 0; col < colsCount; col++) {
+          if (liveMask[row][col]) {
+            patternRow += 'O';
+            continue;
+          }
+
+          let closeNeighbours = 0;
+          let orthogonalNeighbours = 0;
+          let neighboursWithinTwo = 0;
+
+          for (let dy = -2; dy <= 2; dy++) {
+            for (let dx = -2; dx <= 2; dx++) {
+              if (dx === 0 && dy === 0) {
+                continue;
+              }
+
+              const neighbourRow = row + dy;
+              const neighbourCol = col + dx;
+
+              if (
+                neighbourRow < 0 ||
+                neighbourRow >= rowsCount ||
+                neighbourCol < 0 ||
+                neighbourCol >= colsCount ||
+                !liveMask[neighbourRow][neighbourCol]
+              ) {
+                continue;
+              }
+
+              if (Math.abs(dx) <= 1 && Math.abs(dy) <= 1) {
+                closeNeighbours++;
+
+                if (dx === 0 || dy === 0) {
+                  orthogonalNeighbours++;
+                }
+              }
+
+              if (Math.abs(dx) + Math.abs(dy) <= 2) {
+                neighboursWithinTwo++;
+              }
+            }
+          }
+
+          if (orthogonalNeighbours >= 2 || closeNeighbours >= 3 || neighboursWithinTwo >= 5) {
+            patternRow += 'x';
+          } else {
+            patternRow += (row + col) % 2 === 0 ? 'x' : 'o';
+          }
+        }
+
+        rows.push(patternRow);
+      }
+
+      return rows;
+    }
+
+    function createEntry() {
+      const rows = createPatternRows(sample(gridSizes), sample(gridSizes));
+      const links = [];
+
+      rows.forEach(row => {
+        Array.from(row).forEach(symbol => {
+          if (symbol === 'O') {
+            links.push(pageRandomiser.nextOne());
+          }
+        });
+      });
+
+      return { rows, links };
+    }
+
+    function drawFromHistory(entry) {
+      art.replaceChildren();
+      let linkIndex = 0;
+
+      entry.rows.forEach(row => {
+        const tr = document.createElement('tr');
+
+        Array.from(row).forEach(symbol => {
+          const td = document.createElement('td');
+          const config = symbols[symbol] || { char: '\u00a0', className: 'loop' };
+
+          td.className = config.className;
+
+          if (config.link) {
+            td.classList.add('live');
+            const link = document.createElement('a');
+            link.href = entry.links[linkIndex];
+            link.textContent = config.char;
+            td.appendChild(link);
+            linkIndex++;
+          } else {
+            td.textContent = config.char;
+          }
+
+          tr.appendChild(td);
+        });
+
+        art.appendChild(tr);
+      });
+    }
+
+    function goToNext() {
+      if (historyIndex < history.length - 1) {
+        historyIndex++;
+      } else {
+        history.push(createEntry());
+        historyIndex = history.length - 1;
+      }
+
+      drawFromHistory(history[historyIndex]);
+    }
+
+    function goToPrev() {
+      if (historyIndex > 0) {
+        historyIndex--;
+      } else {
+        history.unshift(createEntry());
+        historyIndex = 0;
+      }
+
+      drawFromHistory(history[historyIndex]);
+    }
+
+    function init() {
+      const first = createEntry();
+      history.push(first);
+      historyIndex = 0;
+      drawFromHistory(first);
+    }
+
+    document.getElementById('nav-left').addEventListener('click', goToPrev);
+    document.getElementById('nav-right').addEventListener('click', goToNext);
+
+    document.body.addEventListener('click', event => {
+      if (event.target.closest('a, .nav-panel, table')) {
+        return;
+      }
+
+      goToNext();
+    });
+
+    const LEFT_OR_DOWN = new Set(['ArrowLeft', 'ArrowDown', 'h', 'j', 'a', 's']);
+    const RIGHT_OR_UP = new Set(['ArrowRight', 'ArrowUp', 'k', 'l', 'd', 'w']);
+    function keyLeftOrDown(key) { return LEFT_OR_DOWN.has(key); }
+    function keyRightOrUp(key) { return RIGHT_OR_UP.has(key); }
+
+    document.addEventListener('keydown', e => {
+      if (keyLeftOrDown(e.key)) {
+        e.preventDefault();
+        goToPrev();
+      } else if (keyRightOrUp(e.key)) {
+        e.preventDefault();
+        goToNext();
+      }
+    });
+
+    init();
+
+  </script>
+</body>
+
+</html>

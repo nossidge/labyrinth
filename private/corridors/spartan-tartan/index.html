@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Tartaneous administration">
+  <title>spartan tartan</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+    }
+
+    canvas {
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1;
+    }
+
+    #links {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+    }
+
+    #links a {
+      position: absolute;
+      display: block;
+      text-decoration: none;
+      border: 3px solid transparent;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    #links a:hover {
+      border-color: rgba(255, 255, 255, 0.4);
+      box-shadow: inset 0 0 12px rgba(255, 255, 255, 0.1);
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 100;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.04), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.04));
+      background-size: 100% 2px, 3px 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="canvas"></canvas>
+  <div id="links"></div>
+  <div id="crt-scanlines"></div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/spartan-tartan";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    function rand(min, max) { return Math.random() * (max - min) + min; }
+
+    const linksContainer = document.getElementById('links');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    let W, H;
+
+    const hCount = 15;
+    const vCount = 15;
+    let hThreads = [];
+    let vThreads = [];
+
+    function generateThreads() {
+      hThreads = [];
+      vThreads = [];
+
+      for (let i = 0; i < hCount; i++) {
+        hThreads.push({
+          y: (H / hCount) * i + rand(0, H / hCount),
+          speed: rand(0.3, 1.0),
+          offset: rand(0, W),
+          hue: (360 / hCount) * i + rand(0, 10),
+          width: rand(2, 6),
+          alpha: rand(0.4, 0.6),
+        });
+      }
+
+      for (let i = 0; i < vCount; i++) {
+        vThreads.push({
+          x: (W / vCount) * i + rand(0, W / vCount),
+          speed: rand(0.2, 0.8),
+          offset: rand(0, H),
+          hue: (360 / vCount) * i + rand(0, 10) + 180,
+          width: rand(2, 6),
+          alpha: rand(0.4, 0.6),
+        });
+      }
+    }
+
+    function buildBands(threads, key, total) {
+      const sorted = [...threads].sort((a, b) => a[key] - b[key]);
+      const bands = [];
+      let prev = 0;
+      for (const t of sorted) {
+        const lineStart = t[key] - t.width / 2;
+        const lineEnd = t[key] + t.width / 2;
+        if (lineStart > prev) bands.push([prev, lineStart]);
+        prev = Math.max(prev, lineEnd);
+      }
+      if (prev < total) bands.push([prev, total]);
+      return bands;
+    }
+
+    function buildLinks() {
+      linksContainer.innerHTML = '';
+      const yBands = buildBands(hThreads, 'y', H);
+      const xBands = buildBands(vThreads, 'x', W);
+
+      for (const [y1, y2] of yBands) {
+        for (const [x1, x2] of xBands) {
+          const a = document.createElement('a');
+          a.href = pageRandomiser.nextOne();
+          a.style.left = x1 + 'px';
+          a.style.top = y1 + 'px';
+          a.style.width = (x2 - x1) + 'px';
+          a.style.height = (y2 - y1) + 'px';
+          linksContainer.appendChild(a);
+        }
+      }
+    }
+
+    function resize() {
+      W = canvas.width = window.innerWidth;
+      H = canvas.height = window.innerHeight;
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+
+      // Use additive blending for bright crossings
+      ctx.globalCompositeOperation = 'lighter';
+
+      // Draw horizontal threads (scroll left)
+      for (const t of hThreads) {
+        t.offset -= t.speed;
+        if (t.offset < -W) t.offset += W * 2;
+
+        ctx.strokeStyle = `hsla(${t.hue}, 80%, 55%, ${t.alpha})`;
+        ctx.lineWidth = t.width;
+        ctx.beginPath();
+
+        // Draw the line wrapping around
+        const startX = t.offset % W;
+        if (startX > 0) {
+          ctx.moveTo(startX - W, t.y);
+          ctx.lineTo(startX, t.y);
+          ctx.moveTo(startX, t.y);
+          ctx.lineTo(W, t.y);
+        } else {
+          ctx.moveTo(0, t.y);
+          ctx.lineTo(W, t.y);
+        }
+        // Extend to cover full width always
+        ctx.moveTo(-W, t.y);
+        ctx.lineTo(W * 2, t.y);
+        ctx.stroke();
+      }
+
+      // Draw vertical threads (scroll down)
+      for (const t of vThreads) {
+        t.offset += t.speed;
+        if (t.offset > H * 2) t.offset -= H * 2;
+
+        ctx.strokeStyle = `hsla(${t.hue}, 80%, 55%, ${t.alpha})`;
+        ctx.lineWidth = t.width;
+        ctx.beginPath();
+        ctx.moveTo(t.x, -H);
+        ctx.lineTo(t.x, H * 2);
+        ctx.stroke();
+      }
+
+      // Draw bright intersection spots
+      ctx.globalCompositeOperation = 'lighter';
+      for (const h of hThreads) {
+        for (const v of vThreads) {
+          const avgAlpha = (h.alpha + v.alpha) * 0.3;
+          const size = Math.max(h.width, v.width) * 1.2;
+          const grad = ctx.createRadialGradient(v.x, h.y, 0, v.x, h.y, size * 2);
+          grad.addColorStop(0, `hsla(${(h.hue + v.hue) / 2}, 90%, 70%, ${avgAlpha})`);
+          grad.addColorStop(1, 'transparent');
+          ctx.fillStyle = grad;
+          ctx.fillRect(v.x - size * 2, h.y - size * 2, size * 4, size * 4);
+        }
+      }
+
+      ctx.globalCompositeOperation = 'source-over';
+    }
+
+    function init() {
+      resize();
+      generateThreads();
+      buildLinks();
+      draw();
+    }
+
+    window.addEventListener('resize', init);
+
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey || e.altKey || e.shiftKey || e.metaKey) return;
+      if (e.key === 'Tab' || e.key === 'F5') return;
+
+      init();
+    });
+
+    init();
+
+  </script>
+</body>
+
+</html>

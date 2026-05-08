@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Arc at her!">
+  <title>◜ orbit ◞</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+    }
+
+    #canvas {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: min(100vw, 100vh);
+      height: min(100vw, 100vh);
+      z-index: 0;
+    }
+
+    .arc {
+      fill: none;
+      stroke-linecap: round;
+      vector-effect: non-scaling-stroke;
+      transition: stroke-width 0.2s ease, filter 0.2s ease;
+    }
+
+    .ring a:hover .arc {
+      stroke-width: var(--hover-width);
+      filter: drop-shadow(0 0 6px currentColor) drop-shadow(0 0 12px currentColor);
+    }
+
+    .rotator {
+      transform-origin: 0 0;
+      animation-name: spin;
+      animation-timing-function: linear;
+      animation-iteration-count: infinite;
+    }
+
+    @keyframes spin {
+      from {
+        transform: rotate(0deg);
+      }
+
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 100;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 255, 0, 0.03));
+      background-size: 100% 2px, 3px 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <svg id="canvas" viewBox="-500 -500 1000 1000" preserveAspectRatio="xMidYMid meet"></svg>
+  <div id="crt-scanlines"></div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/orbiting-arcs";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    function rand(min, max) { return Math.random() * (max - min) + min; }
+
+    const SVG_NS = 'http://www.w3.org/2000/svg';
+    const ARC_COUNT = 15;
+    const MAX_R = 450;
+    const BAND_WIDTH = MAX_R / ARC_COUNT;
+
+    const svg = document.getElementById('canvas');
+
+    function buildArcPath(r, startAngle, sweep) {
+      const x1 = r * Math.cos(startAngle);
+      const y1 = r * Math.sin(startAngle);
+      const x2 = r * Math.cos(startAngle + sweep);
+      const y2 = r * Math.sin(startAngle + sweep);
+      const largeArc = sweep > Math.PI ? 1 : 0;
+      return `M ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2}`;
+    }
+
+    function buildArcs() {
+      while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+      for (let i = 0; i < ARC_COUNT; i++) {
+        const radius = (i + 0.5) * BAND_WIDTH;
+        const hue = (i * 360 / ARC_COUNT + rand(0, 20)) % 360;
+        const sat = rand(70, 100);
+        const lit = rand(45, 60);
+        const sweep = rand(0.4, 1.6) * Math.PI;
+        const speed = rand(0.2, 0.8);
+        const direction = i % 2 === 0 ? 'normal' : 'reverse';
+        const lineWidth = rand(4, 8);
+        const startAngle = rand(0, Math.PI * 2);
+        const color = `hsl(${hue}, ${sat}%, ${lit}%)`;
+        const duration = (2 * Math.PI) / speed;
+
+        const ringG = document.createElementNS(SVG_NS, 'g');
+        ringG.setAttribute('class', 'ring');
+
+        const a = document.createElementNS(SVG_NS, 'a');
+        a.setAttribute('href', pageRandomiser.nextOne());
+
+        const hit = document.createElementNS(SVG_NS, 'circle');
+        hit.setAttribute('cx', '0');
+        hit.setAttribute('cy', '0');
+        hit.setAttribute('r', radius);
+        hit.setAttribute('fill', 'none');
+        hit.setAttribute('stroke', 'transparent');
+        hit.setAttribute('stroke-width', BAND_WIDTH);
+        hit.setAttribute('pointer-events', 'stroke');
+
+        const rotator = document.createElementNS(SVG_NS, 'g');
+        rotator.setAttribute('class', 'rotator');
+        rotator.style.animationDuration = duration + 's';
+        rotator.style.animationDirection = direction;
+
+        const path = document.createElementNS(SVG_NS, 'path');
+        path.setAttribute('class', 'arc');
+        path.setAttribute('d', buildArcPath(radius, startAngle, sweep));
+        path.setAttribute('stroke', color);
+        path.setAttribute('stroke-width', lineWidth);
+        path.style.color = color;
+        path.style.setProperty('--hover-width', (lineWidth * 2.4).toFixed(2));
+
+        rotator.appendChild(path);
+        a.appendChild(hit);
+        a.appendChild(rotator);
+        ringG.appendChild(a);
+        svg.appendChild(ringG);
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey || e.altKey || e.shiftKey || e.metaKey) return;
+      if (e.key === 'Tab' || e.key === 'F5') return;
+
+      buildArcs();
+    });
+
+    buildArcs();
+
+  </script>
+</body>
+
+</html>

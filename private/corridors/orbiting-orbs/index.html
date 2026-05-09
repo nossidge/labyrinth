@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Orb at her!">
+  <title>• orbit •</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+      touch-action: none;
+      overscroll-behavior: none;
+    }
+
+    #stage {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+    }
+
+    #rings {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: scale(var(--scale, 1));
+      z-index: 1;
+    }
+
+    .ring-wrapper {
+      position: absolute;
+      top: 0;
+      left: 0;
+      transform-origin: 0 0;
+      display: block;
+      text-decoration: none;
+    }
+
+    .ring-hit {
+      position: absolute;
+      top: 0;
+      left: 0;
+      transform: translate(-50%, -50%);
+      overflow: visible;
+      pointer-events: none;
+    }
+
+    .ring-hit circle {
+      fill: none;
+      stroke: transparent;
+      pointer-events: stroke;
+    }
+
+    .dot {
+      position: absolute;
+      display: block;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      pointer-events: none;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .ring-wrapper:hover .dot {
+      transform: scale(1.8);
+      box-shadow: 0 0 18px var(--c), 0 0 36px var(--c);
+      z-index: 20;
+    }
+
+    @keyframes spin {
+      from {
+        transform: rotate(0deg);
+      }
+
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 100;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 255, 0, 0.03));
+      background-size: 100% 2px, 3px 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="stage">
+    <div id="rings"></div>
+  </div>
+  <div id="crt-scanlines"></div>
+
+  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinthPages.js"></script>
+  <script>
+    const currentPage = "corridors/orbiting-orbs";
+    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
+    const pageRandomiser = new CyclicRandomiser(otherPages);
+
+    function rand(min, max) { return Math.random() * (max - min) + min; }
+
+    const SVG_NS = 'http://www.w3.org/2000/svg';
+    const container = document.getElementById('rings');
+
+    const ringConfigs = [
+      { radius: 40, dots: 8, hue: 0, duration: 25, direction: 'normal' },
+      { radius: 75, dots: 12, hue: 36, duration: 20, direction: 'reverse' },
+      { radius: 110, dots: 16, hue: 72, duration: 17, direction: 'normal' },
+      { radius: 145, dots: 20, hue: 108, duration: 14, direction: 'reverse' },
+      { radius: 180, dots: 22, hue: 160, duration: 12, direction: 'normal' },
+      { radius: 215, dots: 26, hue: 200, duration: 10, direction: 'reverse' },
+      { radius: 250, dots: 28, hue: 240, duration: 8, direction: 'normal' },
+      { radius: 285, dots: 32, hue: 280, duration: 11, direction: 'reverse' },
+      { radius: 320, dots: 36, hue: 320, duration: 15, direction: 'normal' },
+    ];
+
+    const BAND_WIDTH = 35;
+
+    ringConfigs.forEach((cfg) => {
+      const wrapper = document.createElement('a');
+      wrapper.className = 'ring-wrapper';
+      wrapper.href = pageRandomiser.nextOne();
+      wrapper.style.animation = `spin ${cfg.duration}s linear infinite ${cfg.direction}`;
+
+      // Transparent SVG donut that catches pointer events for the entire ring band
+      const svgSize = (cfg.radius + BAND_WIDTH) * 2 + 10;
+      const half = svgSize / 2;
+      const hit = document.createElementNS(SVG_NS, 'svg');
+      hit.setAttribute('class', 'ring-hit');
+      hit.setAttribute('width', svgSize);
+      hit.setAttribute('height', svgSize);
+      hit.setAttribute('viewBox', `${-half} ${-half} ${svgSize} ${svgSize}`);
+
+      const hitCircle = document.createElementNS(SVG_NS, 'circle');
+      hitCircle.setAttribute('cx', '0');
+      hitCircle.setAttribute('cy', '0');
+      hitCircle.setAttribute('r', cfg.radius);
+      hitCircle.setAttribute('stroke-width', BAND_WIDTH);
+      hit.appendChild(hitCircle);
+      wrapper.appendChild(hit);
+
+      for (let i = 0; i < cfg.dots; i++) {
+        const angle = (2 * Math.PI / cfg.dots) * i;
+        const x = Math.cos(angle) * cfg.radius;
+        const y = Math.sin(angle) * cfg.radius;
+
+        const dot = document.createElement('span');
+        dot.className = 'dot';
+
+        const sat = rand(80, 100);
+        const lit = rand(50, 65);
+        const color = `hsl(${cfg.hue}, ${sat}%, ${lit}%)`;
+        dot.style.setProperty('--c', color);
+        dot.style.backgroundColor = color;
+        dot.style.boxShadow = `0 0 6px ${color}`;
+        dot.style.left = (x - 8) + 'px';
+        dot.style.top = (y - 8) + 'px';
+
+        wrapper.appendChild(dot);
+      }
+
+      container.appendChild(wrapper);
+    });
+
+    const TARGET_DIAMETER = 720;
+    function updateScale() {
+      const size = Math.min(window.innerWidth, window.innerHeight);
+      container.style.setProperty('--scale', size / TARGET_DIAMETER);
+    }
+
+    updateScale();
+    window.addEventListener('resize', updateScale);
+
+  </script>
+</body>
+
+</html>

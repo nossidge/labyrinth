@@ -2,10 +2,10 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Shell shock">
-  <title>They think it's all ova</title>
+  <meta name="description" content="They think it's all ova">
+  <title>Shell shock</title>
   <style>
     * {
       margin: 0;
@@ -67,17 +67,14 @@
   <div id="crt-scanlines"></div>
   <div id="egg-field"></div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/easter-eggs";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('easter-eggs');
 
     const field = document.getElementById('egg-field');
 
     // Bright Easter palette pools
-    const SHELL_COLORS = [
+    const SHELL_COLOURS = [
       '#ff6b9d', '#ff85a1', '#ff1493', '#ff69b4',
       '#a855f7', '#c084fc', '#9333ea', '#7c3aed',
       '#38bdf8', '#22d3ee', '#06b6d4', '#67e8f9',
@@ -86,13 +83,13 @@
       '#fb923c', '#f97316', '#fdba74', '#fed7aa',
       '#f472b6', '#ec4899', '#e879f9', '#d946ef',
     ];
-    const ACCENT_COLORS = [
+    const ACCENT_COLOURS = [
       '#ffffff', '#fff9c4', '#fce4ec', '#e1f5fe',
       '#f3e5f5', '#e8f5e9', '#fff3e0', '#fff8e1',
     ];
 
-    const shellRandomiser = new CyclicRandomiser(SHELL_COLORS);
-    const accentRandomiser = new CyclicRandomiser(ACCENT_COLORS);
+    const shellRandomiser = new LAB.CyclicRandomiser(SHELL_COLOURS);
+    const accentRandomiser = new LAB.CyclicRandomiser(ACCENT_COLOURS);
 
     // 20 egg decoration types
     // Each returns SVG markup for the egg interior decorations
@@ -394,7 +391,7 @@
       makeSpiral, makeWhiteRose, makeGrid, makeHearts,
       makeStars, makeCrissCross, makeScallops, makeDottedRing,
     ];
-    const decorRandomiser = new CyclicRandomiser(
+    const decorRandomiser = new LAB.CyclicRandomiser(
       Array.from({ length: decorators.length }, (_, i) => i)
     );
 
@@ -407,7 +404,7 @@
       const decoration = decorators[decorIdx](w, h, accent);
 
       // Egg shape via ellipse with a slightly pointy top
-      const clipId = 'ec-' + Math.random().toString(36).slice(2);
+      const clipId = 'ec-' + LAB.randInt(0, 36 ** 8 - 1).toString(36);
       return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
         <defs>
           <clipPath id="${clipId}">
@@ -441,7 +438,7 @@
       // NW - small
       const nw = document.createElement('a');
       nw.classList.add('egg-nw');
-      nw.href = pageRandomiser.nextOne();
+      nw.href = LAB.pageRandomiser.nextOne();
       nw.innerHTML = createEggSVG(SMALL_SIZE);
       nw.style.left = '0px';
       nw.style.top = '65px';
@@ -450,7 +447,7 @@
       // NE - large
       const ne = document.createElement('a');
       nw.classList.add('egg-ne');
-      ne.href = pageRandomiser.nextOne();
+      ne.href = LAB.pageRandomiser.nextOne();
       ne.innerHTML = createEggSVG(LARGE_SIZE);
       ne.style.left = (SMALL_SIZE + 10) + 'px';
       ne.style.top = '0px';
@@ -459,7 +456,7 @@
       // SW - large
       const sw = document.createElement('a');
       nw.classList.add('egg-sw');
-      sw.href = pageRandomiser.nextOne();
+      sw.href = LAB.pageRandomiser.nextOne();
       sw.innerHTML = createEggSVG(LARGE_SIZE);
       sw.style.left = '0px';
       sw.style.top = (LARGE_SIZE * 1.3 + 10) + 'px';
@@ -468,7 +465,7 @@
       // SE - small
       const se = document.createElement('a');
       nw.classList.add('egg-se');
-      se.href = pageRandomiser.nextOne();
+      se.href = LAB.pageRandomiser.nextOne();
       se.innerHTML = createEggSVG(SMALL_SIZE);
       se.style.left = (LARGE_SIZE + 10) + 'px';
       se.style.top = (LARGE_SIZE * 1.3 + 10) + 'px';

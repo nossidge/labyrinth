@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="for now we see through a glass, darkly">
   <title>it's been awhile</title>
@@ -64,12 +64,9 @@
     <svg id="window" viewBox="-400 -400 800 800"></svg>
   </div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/stained-glass";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('stained-glass');
 
     const ns = 'http://www.w3.org/2000/svg';
     const svg = document.getElementById('window');
@@ -98,13 +95,13 @@
 
     function addPane(d) {
       const a = document.createElementNS(ns, 'a');
-      a.setAttribute('href', pageRandomiser.nextOne());
+      a.setAttribute('href', LAB.pageRandomiser.nextOne());
       const path = document.createElementNS(ns, 'path');
       path.setAttribute('d', d);
       path.setAttribute('class', 'pane');
-      const color = palette[Math.floor(Math.random() * palette.length)];
-      path.setAttribute('fill', color);
-      path.style.color = color;
+      const colour = LAB.sample(palette);
+      path.setAttribute('fill', colour);
+      path.style.color = colour;
       a.appendChild(path);
       svg.appendChild(a);
     }
@@ -112,7 +109,7 @@
     function init() {
       // Central pane
       const centerLink = document.createElementNS(ns, 'a');
-      centerLink.setAttribute('href', pageRandomiser.nextOne());
+      centerLink.setAttribute('href', LAB.pageRandomiser.nextOne());
       const c = document.createElementNS(ns, 'circle');
       c.setAttribute('cx', 0);
       c.setAttribute('cy', 0);

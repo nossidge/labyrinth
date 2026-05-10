@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Tyger Tyger, burning bright">
   <title>The Forests of the Night</title>
@@ -18,8 +18,7 @@
       font-family: serif;
     }
 
-    /* Rainforest atmosphere */
-    #atmosphere {
+    #rainforest-atmosphere {
       position: fixed;
       top: 0;
       left: 0;
@@ -83,7 +82,6 @@
       animation: tiger-run 0.6s infinite ease-in-out;
     }
 
-    /* Bobbing run animation */
     @keyframes tiger-run {
 
       0%,
@@ -122,7 +120,7 @@
       }
     }
 
-    /* Small glowing "eyes" in the dark */
+    /* Small glowing eyes in the dark */
     .eyes {
       position: absolute;
       width: 10px;
@@ -190,7 +188,7 @@
 
 <body>
   <div id="flicker"></div>
-  <div id="atmosphere"></div>
+  <div id="rainforest-atmosphere"></div>
 
   <div class="layer bg-layer" id="bg-layer"></div>
   <div class="layer mid-layer" id="mid-layer"></div>
@@ -203,14 +201,9 @@
 
   <div class="layer" id="interactive-layer"></div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/tyger";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
-
-    document.getElementById('the-tiger').href = pageRandomiser.nextOne();
+    const LAB = new Labyrinth('tyger');
 
     const treeEmojis = ['🌲', '🌳', '🌴', '🌿', '🌱', '🎋', '🍃', '🎍'];
 
@@ -225,15 +218,15 @@
       const container = document.getElementById(containerId);
       const tree = document.createElement('div');
       tree.className = 'tree';
-      tree.innerText = treeEmojis[Math.floor(Math.random() * treeEmojis.length)];
+      tree.innerText = LAB.sample(treeEmojis);
 
-      const size = sizeRange[0] + Math.random() * (sizeRange[1] - sizeRange[0]);
+      const size = LAB.rand(sizeRange[0], sizeRange[1]);
       tree.style.fontSize = size + 'rem';
 
       // Random vertical position
       const min = 10;
       const max = 40;
-      const randomValue = Math.random() * (max - min) + min;
+      const randomValue = LAB.rand(min, max);
       tree.style.top = randomValue + 'vh';
 
       if (blurValue) {
@@ -277,13 +270,13 @@
     const backgroundCount = foregroundCount * 6;
 
     for (let i = 0; i < backgroundCount; i++) {
-      spawnTree('bg-layer', 30 + Math.random() * 10, [4, 8], 2, Math.random() * 100);
+      spawnTree('bg-layer', LAB.rand(30, 40), [4, 8], 2, LAB.rand(0, 100));
     }
     for (let i = 0; i < midgroundCount; i++) {
-      spawnTree('mid-layer', 15 + Math.random() * 5, [10, 15], 1, Math.random() * 100);
+      spawnTree('mid-layer', LAB.rand(15, 20), [10, 15], 1, LAB.rand(0, 100));
     }
     for (let i = 0; i < foregroundCount; i++) {
-      spawnTree('fg-layer', 6 + Math.random() * 2, [20, 30], 0, Math.random() * 100);
+      spawnTree('fg-layer', LAB.rand(6, 8), [20, 30], 0, LAB.rand(0, 100));
     }
 
     // Continuous spawning to maintain density
@@ -309,15 +302,15 @@
       if (eyesVisible) eye.classList.add('revealed');
       if (devMode) eye.classList.add('dev-mode');
 
-      eye.href = pageRandomiser.nextOne();
+      eye.href = LAB.pageRandomiser.nextOne();
       eye.title = '???';
 
       const min = 10;
       const max = 90;
-      const startY = Math.random() * (max - min) + min;
+      const startY = LAB.rand(min, max);
       eye.style.top = startY + 'vh';
 
-      const duration = (30 + Math.random() * 10) * 1000 * getWidthRatio();
+      const duration = LAB.rand(30, 40) * 1000 * getWidthRatio();
       const startTime = performance.now();
 
       function update(currentTime) {
@@ -386,6 +379,7 @@
         showEyes();
       }
     });
+
   </script>
 </body>
 

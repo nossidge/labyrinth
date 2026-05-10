@@ -8,7 +8,7 @@ https://pineco.de/wp-content/uploads/2019/09/modify-the-css-box-model-with-box-s
 -->
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Box full of spiders">
   <title>Arachnogenesis</title>
@@ -101,40 +101,37 @@ https://pineco.de/wp-content/uploads/2019/09/modify-the-css-box-model-with-box-s
     <img id="box-front" src="cardboard-box-front.png" alt="" class="box-layer">
   </div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/spider-box";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('spider-box');
 
     const container = document.getElementById('container');
     const boxFront = document.getElementById('box-front');
     const spidersContainer = document.getElementById('spiders-container');
 
-    // Randomize background color: one channel at 00, one at 14 hex, one between 00 and 14
-    function randomizeBackground() {
-      const idx = [0, 1, 2].sort(() => Math.random() - 0.5);
+    // Randomise background colour: one channel at 00, one at 14 hex, one between 00 and 14 (hex)
+    function randomiseBackground() {
+      const idx = new LAB.CyclicRandomiser([0, 1, 2]).next(3);
       const channels = [];
-      channels[idx[0]] = 0; // One is 00
-      channels[idx[1]] = 20; // One is 14 hex (20 dec)
-      channels[idx[2]] = Math.floor(Math.random() * 21); // One is between 00 and 14 hex
+      channels[idx[0]] = 0;
+      channels[idx[1]] = 20;
+      channels[idx[2]] = LAB.randInt(0, 20);
 
       const hex = channels.map(c => c.toString(16).padStart(2, '0')).join('');
       document.body.style.backgroundColor = '#' + hex;
     }
-    randomizeBackground();
+    randomiseBackground();
 
     // Add cobweb links to the corners and sides
     for (let i = 0; i < 30; i++) {
       const link = document.createElement('a');
-      link.href = pageRandomiser.nextOne();
+      link.href = LAB.pageRandomiser.nextOne();
       link.className = 'cobweb-link';
       link.textContent = '🕸️';
-      link.style.left = (Math.random() * 95) + 'vw';
-      link.style.top = (Math.random() * 95) + 'vh';
-      link.style.fontSize = (1 + Math.random() * 3) + 'rem';
-      link.style.transform = `rotate(${Math.random() * 360}deg)`;
+      link.style.left = LAB.rand(0, 95) + 'vw';
+      link.style.top = LAB.rand(0, 95) + 'vh';
+      link.style.fontSize = LAB.rand(1, 4) + 'rem';
+      link.style.transform = `rotate(${LAB.rand(0, 360)}deg)`;
       document.body.appendChild(link);
     }
 
@@ -163,13 +160,13 @@ https://pineco.de/wp-content/uploads/2019/09/modify-the-css-box-model-with-box-s
       spidersContainer.appendChild(spiderWrap);
 
       // Scurry target: a random edge
-      const angle = Math.random() * Math.PI * 2;
+      const angle = LAB.rand(0, Math.PI * 2);
       const distance = Math.max(window.innerWidth, window.innerHeight) * 1.5;
       const targetX = startX + Math.cos(angle) * distance;
       const targetY = startY + Math.sin(angle) * distance;
 
       const climbDuration = 500;
-      const scurryDuration = 8000 + Math.random() * 3000;
+      const scurryDuration = LAB.rand(8000, 11000);
       const startTime = performance.now();
 
       function animate(time) {

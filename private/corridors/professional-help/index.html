@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Cursed by the Fairy of Nominative Determinism">
   <title>Professional help</title>
@@ -404,12 +404,9 @@
 
   <canvas id="canvas-overlay"></canvas>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/professional-help";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('professional-help');
 
     const TITLE_BASE = 'Professional help';
     const TITLE_WIN = 'Professionals helped';
@@ -449,13 +446,9 @@
     const matchedArea = document.getElementById('matched-area');
     const winMsg = document.getElementById('win-msg');
 
-    function shuffle(array) {
-      return array.sort(() => Math.random() - 0.5);
-    }
-
     function init() {
-      const shuffledCelebs = shuffle([...data]);
-      const shuffledTools = shuffle([...data]);
+      const shuffledCelebs = LAB.shuffle(data);
+      const shuffledTools = LAB.shuffle(data);
 
       shuffledCelebs.forEach((item, index) => {
         const div = document.createElement('div');
@@ -506,7 +499,7 @@
       return [...Array(n).keys()].filter(k => !kept.has(k));
     }
     const xIdx = new Set(diffIdx(TITLE_BASE, TITLE_WIN));
-    const xHref = sd((c => c[11] + c[15] + c[12] + c[3])(cd.find(c => c.id == hoh).created));
+    const xHref = LAB.goto();
 
     // Each letter is a link to a random page
     function updateH1(text) {
@@ -518,7 +511,7 @@
           h1.appendChild(document.createTextNode(' '));
         } else {
           const a = document.createElement('a');
-          a.href = (isWin && xIdx.has(idx)) ? xHref : pageRandomiser.nextOne();
+          a.href = (isWin && xIdx.has(idx)) ? xHref : LAB.pageRandomiser.nextOne();
           a.textContent = char;
           h1.appendChild(a);
         }
@@ -574,7 +567,7 @@
       // Add to matched area
       const pairLink = document.createElement('a');
       pairLink.className = 'match-pair';
-      pairLink.href = pageRandomiser.nextOne();
+      pairLink.href = LAB.pageRandomiser.nextOne();
       pairLink.innerHTML = `
         <div class="match-tool">${item.tool}</div>
         <img src="${item.img}" class="match-img" alt="${item.name}">
@@ -622,8 +615,8 @@
         this.y = y;
         this.color = color;
         this.velocity = {
-          x: (Math.random() - 0.5) * 8,
-          y: (Math.random() - 0.5) * 8
+          x: LAB.rand(-4, 4),
+          y: LAB.rand(-4, 4)
         };
         this.alpha = 1;
         this.friction = 0.95;
@@ -656,11 +649,11 @@
         ctx.fillStyle = 'rgba(0,0,0,0.1)';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        if (Math.random() < 0.1) {
-          const x = Math.random() * canvas.width;
-          const y = Math.random() * canvas.height;
+        if (LAB.chance(0.1)) {
+          const x = LAB.rand(0, canvas.width);
+          const y = LAB.rand(0, canvas.height);
           const colors = ['#ff0055', '#00ffcc', '#ffcc00', '#ffffff'];
-          const color = colors[Math.floor(Math.random() * colors.length)];
+          const color = LAB.sample(colors);
           for (let i = 0; i < 50; i++) {
             particles.push(new Particle(x, y, color));
           }

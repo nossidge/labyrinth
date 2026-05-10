@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Celluloid Grossman">
   <title>24 frames per second</title>
@@ -91,7 +91,7 @@
       height: 280px;
       position: relative;
       overflow: hidden;
-      background: #ddd;
+      background: #dddddd;
       text-decoration: none;
     }
 
@@ -186,18 +186,9 @@
     <div id="strip"></div>
   </div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/film-strip";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
-
-    // Useful randomisation helpers
-    function rand(min, max) { return Math.random() * (max - min) + min; }
-    function randInt(min, max) { return Math.floor(rand(min, max + 1)); }
-    function randIndex(array) { return randInt(0, array.length - 1); }
-    function sample(array) { return array[randIndex(array)]; }
+    const LAB = new Labyrinth('film-strip');
 
     const strip = document.getElementById('strip');
     const container = document.getElementById('strip-container');
@@ -215,32 +206,32 @@
       ['#0d1b2a', '#1b263b', '#415a77', '#778da9', '#e0e1dd'],
       ['#d62828', '#f77f00', '#fcbf49', '#eae2b7', '#003049'],
     ];
-    const palettesRandomiser = new CyclicRandomiser(PALETTES_POOL);
+    const palettesRandomiser = new LAB.CyclicRandomiser(PALETTES_POOL);
 
     function generateShapes(frameBody) {
       const palette = palettesRandomiser.nextOne();
-      const numShapes = randInt(4, 9);
+      const numShapes = LAB.randInt(4, 9);
 
       for (let i = 0; i < numShapes; i++) {
         const shape = document.createElement('div');
         shape.className = 'shape';
-        const color = sample(palette);
-        const size = randInt(20, 100);
-        const x = randInt(-10, 260);
-        const y = randInt(-10, 260);
-        const type = randInt(0, 2);
+        const colour = LAB.sample(palette);
+        const size = LAB.randInt(20, 100);
+        const x = LAB.randInt(-10, 260);
+        const y = LAB.randInt(-10, 260);
+        const type = LAB.randInt(0, 2);
 
         shape.style.left = x + 'px';
         shape.style.top = y + 'px';
         shape.style.width = size + 'px';
         shape.style.height = size + 'px';
-        shape.style.background = color;
-        shape.style.opacity = rand(0.5, 1.0);
+        shape.style.background = colour;
+        shape.style.opacity = LAB.rand(0.5, 1.0);
 
         if (type === 0) {
           shape.style.borderRadius = '50%';
         } else if (type === 1) {
-          shape.style.transform = 'rotate(' + randInt(0, 45) + 'deg)';
+          shape.style.transform = 'rotate(' + LAB.randInt(0, 45) + 'deg)';
         } else {
           shape.style.width = '0';
           shape.style.height = '0';
@@ -248,8 +239,8 @@
           const half = Math.floor(size / 2);
           shape.style.borderLeft = half + 'px solid transparent';
           shape.style.borderRight = half + 'px solid transparent';
-          shape.style.borderBottom = size + 'px solid ' + color;
-          shape.style.transform = 'rotate(' + randInt(0, 360) + 'deg)';
+          shape.style.borderBottom = size + 'px solid ' + colour;
+          shape.style.transform = 'rotate(' + LAB.randInt(0, 360) + 'deg)';
         }
 
         frameBody.appendChild(shape);
@@ -285,7 +276,7 @@
 
       const link = document.createElement('a');
       link.className = 'frame-link';
-      link.href = pageRandomiser.nextOne();
+      link.href = LAB.pageRandomiser.nextOne();
 
       // New frames are off-screen (in the bottom buffer) until promoted by updateTabbability().
       // This stops the browser from auto-scrolling the document when the user tabs onto an
@@ -322,7 +313,7 @@
     // The bottom buffer frames are not focusable, so the browser won't scroll the
     // document to bring an off-screen link into view when the user tabs through.
     // This fixes an earlier problem where you could keep tabbing and eventually
-    // you'd run into empty space, with frames popping into existence visually.
+    // you'd run into empty space, with frames visually popping into existence.
     function updateTabbability() {
       const frames = strip.children;
       for (let i = 0; i < frames.length; i++) {

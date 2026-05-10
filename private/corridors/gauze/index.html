@@ -11,7 +11,7 @@ https://twitter.com/MrPrudence/status/2026411527738212754
 -->
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="There's strings attached to every single lover">
   <title>The threads that bind us</title>
@@ -119,12 +119,9 @@ https://twitter.com/MrPrudence/status/2026411527738212754
     <button id="next-btn" class="nav-button">&rarr;</button>
   </div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/gauze";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('gauze');
 
     const PALETTES_POOL = [
       { line: 'rgb(200, 200, 220)', square: 'rgb(200, 200, 220)' },
@@ -134,7 +131,7 @@ https://twitter.com/MrPrudence/status/2026411527738212754
       { line: 'rgb(255, 200, 50)', square: 'rgb(255, 200, 50)' },
       { line: 'rgb(220, 100, 255)', square: 'rgb(220, 100, 255)' },
     ];
-    const palettesRandomiser = new CyclicRandomiser(PALETTES_POOL);
+    const palettesRandomiser = new LAB.CyclicRandomiser(PALETTES_POOL);
 
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
@@ -162,11 +159,11 @@ https://twitter.com/MrPrudence/status/2026411527738212754
     }
 
     function generateOffsets() {
-      const numPoints = 4 + Math.floor(Math.random() * 7); // 4-10 points
+      const numPoints = LAB.randInt(4, 10);
       const offsets = [];
       for (let i = 0; i < numPoints; i++) {
         // Store as 0..0.5 fraction of squareSize
-        offsets.push(Math.random() * 0.5);
+        offsets.push(LAB.rand(0, 0.5));
       }
       offsets.sort((a, b) => a - b);
       return offsets;
@@ -238,7 +235,7 @@ https://twitter.com/MrPrudence/status/2026411527738212754
       return {
         offsets: generateOffsets(),
         palette: palettesRandomiser.nextOne(),
-        href: pageRandomiser.nextOne(),
+        href: LAB.pageRandomiser.nextOne(),
       };
     }
 

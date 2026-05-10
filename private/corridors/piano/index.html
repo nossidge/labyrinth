@@ -7,7 +7,7 @@ Do Re Mi So Fa Do Re Do
 -->
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="In tune with the tuneless">
   <title>Ebony and ivory</title>
@@ -16,8 +16,8 @@ Do Re Mi So Fa Do Re Do
       --piano-body: #2c1a12;
       --white-key: #fdfdfd;
       --white-key-shadow: #e0e0e0;
-      --black-key: #111;
-      --black-key-shadow: #222;
+      --black-key: #111111;
+      --black-key-shadow: #222222;
       --gold-accent: #d4af37;
       --bg-color: #0d0d0d;
     }
@@ -30,7 +30,7 @@ Do Re Mi So Fa Do Re Do
 
     body {
       background-color: var(--bg-color);
-      background-image: radial-gradient(circle at top, #1a1a1a 0%, #000 100%);
+      background-image: radial-gradient(circle at top, #1a1a1a 0%, #000000 100%);
       height: 100vh;
       width: 100vw;
       overflow: hidden;
@@ -108,14 +108,14 @@ Do Re Mi So Fa Do Re Do
       display: flex;
       position: relative;
       height: 300px;
-      background: #000;
-      border: 5px solid #111;
+      background: #000000;
+      border: 5px solid #111111;
     }
 
     .white-key {
       flex: 1;
-      background: linear-gradient(to bottom, #eee 0%, var(--white-key) 5%, var(--white-key) 95%, #999 100%);
-      border: 1px solid #ccc;
+      background: linear-gradient(to bottom, #eeeeee 0%, var(--white-key) 5%, var(--white-key) 95%, #999999 100%);
+      border: 1px solid #cccccc;
       border-radius: 0 0 5px 5px;
       position: relative;
       cursor: pointer;
@@ -127,13 +127,13 @@ Do Re Mi So Fa Do Re Do
     .white-key:active,
     .white-key.pressed {
       transform: rotateX(-5deg) scaleY(0.98);
-      background: linear-gradient(to bottom, #ddd 0%, #eee 90%, #777 100%);
+      background: linear-gradient(to bottom, #dddddd 0%, #eeeeee 90%, #777777 100%);
     }
 
     .black-key {
       width: 4%;
       height: 60%;
-      background: linear-gradient(to bottom, #444 0%, var(--black-key) 10%, var(--black-key) 90%, #000 100%);
+      background: linear-gradient(to bottom, #444444 0%, var(--black-key) 10%, var(--black-key) 90%, #000000 100%);
       position: absolute;
       z-index: 2;
       border-radius: 0 0 3px 3px;
@@ -146,7 +146,7 @@ Do Re Mi So Fa Do Re Do
     .black-key:active,
     .black-key.pressed {
       transform: rotateX(-10deg) scaleY(0.95);
-      background: linear-gradient(to bottom, #222 0%, #000 100%);
+      background: linear-gradient(to bottom, #222222 0%, #000000 100%);
     }
 
     .white-key,
@@ -240,12 +240,9 @@ Do Re Mi So Fa Do Re Do
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
-  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/piano";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('piano');
 
     const stage = document.getElementById('stage');
     const keyboard = document.getElementById('keyboard');
@@ -258,7 +255,7 @@ Do Re Mi So Fa Do Re Do
     const recentPitchClasses = [];
     let portraitLayout = false;
 
-    // Initialize Tone.js synth
+    // Initialise Tone.js synth
     // Give it a simple lo-fi square wave sound
     let synth;
     function initSynth() {
@@ -376,14 +373,15 @@ Do Re Mi So Fa Do Re Do
         const interval = (recentPitchClasses[i + 1] - recentPitchClasses[i] + 12) % 12;
         if (interval !== sequencePattern[i]) return;
       }
-      location.assign(sd((c => c[11] + c[15] + c[12] + c[3])(cd.find(c => c.id == hoh).created)));
+
+      setTimeout(() => location.assign(LAB.goto()), 800);
     }
 
     function spawnNoteBubble(noteText, keyEl) {
       const bubble = document.createElement('a');
       bubble.className = 'note-bubble';
       bubble.innerText = noteText;
-      bubble.href = pageRandomiser.nextOne();
+      bubble.href = LAB.pageRandomiser.nextOne();
 
       const rect = keyEl.getBoundingClientRect();
       const startX = rect.left + rect.width / 2;
@@ -393,10 +391,10 @@ Do Re Mi So Fa Do Re Do
       bubble.style.top = `${startY}px`;
 
       // Random landing position in the stage
-      const tx = (Math.random() - 0.5) * 400;
-      const ty = -200 - Math.random() * 300;
-      const fx = tx + (Math.random() - 0.5) * 100;
-      const fy = ty + (Math.random() - 0.5) * 50;
+      const tx = LAB.rand(-200, 200);
+      const ty = LAB.rand(-500, -200);
+      const fx = tx + LAB.rand(-50, 50);
+      const fy = ty + LAB.rand(-25, 25);
 
       bubble.style.setProperty('--tx', `${tx}px`);
       bubble.style.setProperty('--ty', `${ty}px`);
@@ -409,7 +407,7 @@ Do Re Mi So Fa Do Re Do
 
       // Floaty effect after landing
       bubble.addEventListener('animationend', () => {
-        bubble.style.animation = `drift ${5 + Math.random() * 5}s ease-in-out infinite alternate`;
+        bubble.style.animation = `drift ${LAB.rand(5, 10)}s ease-in-out infinite alternate`;
       });
     }
 

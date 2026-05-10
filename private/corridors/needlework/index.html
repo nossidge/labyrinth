@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Sew and sew">
   <title>Homespun</title>
@@ -168,19 +168,9 @@
     <button class="nav-button" aria-hidden="true">&rarr;</button>
   </div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/needlework";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
-
-    // Useful randomisation helpers
-    function rand(min, max) { return Math.random() * (max - min) + min; }
-    function randInt(min, max) { return Math.floor(rand(min, max + 1)); }
-    function randIndex(array) { return randInt(0, array.length - 1); }
-    function sample(array) { return array[randIndex(array)]; }
-    function chance(probability) { return rand(0, 1) < probability; }
+    const LAB = new Labyrinth('needlework');
 
     const gridSizes = [9, 11, 13, 15, 17];
 
@@ -215,7 +205,7 @@
     }
 
     function randomInnerCoordinate(limit) {
-      return limit <= 2 ? 1 : randInt(1, limit - 1);
+      return limit <= 2 ? 1 : LAB.randInt(1, limit - 1);
     }
 
     function createEmptyMask(rowsCount, colsCount) {
@@ -227,23 +217,23 @@
       const halfRows = Math.floor(rowsCount / 2);
       const halfCols = Math.floor(colsCount / 2);
       const motifs = [];
-      const motifCount = randInt(2, 4);
+      const motifCount = LAB.randInt(2, 4);
 
       for (let index = 0; index < motifCount; index++) {
         const row = randomInnerCoordinate(halfRows);
         const col = randomInnerCoordinate(halfCols);
         const maxRadius = Math.max(1, Math.min(2, row, col, halfRows - row, halfCols - col));
 
-        motifs.push({ row, col, radius: randInt(1, maxRadius) });
+        motifs.push({ row, col, radius: LAB.randInt(1, maxRadius) });
       }
 
-      if (chance(0.7)) {
+      if (LAB.chance(0.7)) {
         const maxCenterRadius = Math.min(2, Math.max(1, Math.min(halfRows, halfCols)));
 
         motifs.push({
           row: halfRows,
           col: halfCols,
-          radius: randInt(1, maxCenterRadius)
+          radius: LAB.randInt(1, maxCenterRadius)
         });
       }
 
@@ -259,7 +249,7 @@
             }
           });
 
-          if (score >= 2 || (score === 1 && chance(0.3))) {
+          if (score >= 2 || (score === 1 && LAB.chance(0.3))) {
             mirroredPositions(row, col, rowsCount, colsCount).forEach(([y, x]) => {
               liveMask[y][x] = true;
             });
@@ -273,7 +263,7 @@
             continue;
           }
 
-          if (chance(0.14)) {
+          if (LAB.chance(0.14)) {
             mirroredPositions(row, col, rowsCount, colsCount).forEach(([y, x]) => {
               liveMask[y][x] = false;
             });
@@ -366,13 +356,13 @@
     }
 
     function createEntry() {
-      const rows = createPatternRows(sample(gridSizes), sample(gridSizes));
+      const rows = createPatternRows(LAB.sample(gridSizes), LAB.sample(gridSizes));
       const links = [];
 
       rows.forEach(row => {
         Array.from(row).forEach(symbol => {
           if (symbol === 'O') {
-            links.push(pageRandomiser.nextOne());
+            links.push(LAB.pageRandomiser.nextOne());
           }
         });
       });
@@ -444,9 +434,7 @@
     document.getElementById('nav-right').addEventListener('click', goToNext);
 
     document.body.addEventListener('click', event => {
-      if (event.target.closest('a, .nav-panel, table')) {
-        return;
-      }
+      if (event.target.closest('a, .nav-panel, table')) return;
 
       goToNext();
     });

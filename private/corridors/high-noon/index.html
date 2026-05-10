@@ -2,9 +2,9 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="This town ain't big enough for the both of us.">
+  <meta name="description" content="This town ain't big enough for the both of us">
   <title>High Noon</title>
   <style>
     body {
@@ -95,7 +95,7 @@
       font-size: 1.5rem;
       font-weight: bold;
       color: #3b2f2f;
-      text-shadow: 2px 2px 0 #fff;
+      text-shadow: 2px 2px 0 #ffffff;
       z-index: 30;
     }
 
@@ -170,7 +170,7 @@
       transform: translate(-50%, -50%);
       font-size: 2.5rem;
       font-weight: bold;
-      background: #fff;
+      background: #ffffff;
       padding: 15px 30px;
       border: 4px solid #3b2f2f;
       box-shadow: 6px 6px 0 #3b2f2f;
@@ -191,7 +191,6 @@
 </head>
 
 <body>
-
   <div class="town-wrapper" id="town-wrapper"></div>
 
   <div class="name-display" id="name-left"></div>
@@ -205,12 +204,9 @@
     <div class="cowboy-inner" id="inner-right"></div>
   </a>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/high-noon";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('high-noon');
 
     const MALE_FIRST_NAMES_POOL = [
       "Abel", "Bart", "Beau", "Bill", "Billy", "Caleb", "Clint", "Clyde", "Cole", "Doc", "Earl",
@@ -239,13 +235,13 @@
       "Whirlwind",
     ];
 
-    const maleFirstNamesRandomiser = new CyclicRandomiser(MALE_FIRST_NAMES_POOL);
-    const femaleFirstNamesRandomiser = new CyclicRandomiser(FEMALE_FIRST_NAMES_POOL);
-    const surnamesRandomiser = new CyclicRandomiser(SURNAMES_POOL);
-    const nicknamesRandomiser = new CyclicRandomiser(NICKNAMES_POOL);
+    const maleFirstNamesRandomiser = new LAB.CyclicRandomiser(MALE_FIRST_NAMES_POOL);
+    const femaleFirstNamesRandomiser = new LAB.CyclicRandomiser(FEMALE_FIRST_NAMES_POOL);
+    const surnamesRandomiser = new LAB.CyclicRandomiser(SURNAMES_POOL);
+    const nicknamesRandomiser = new LAB.CyclicRandomiser(NICKNAMES_POOL);
 
     function generateCowboyName() {
-      const firstPool = Math.random() > 0.5 ? maleFirstNamesRandomiser : femaleFirstNamesRandomiser;
+      const firstPool = LAB.chance(0.5) ? maleFirstNamesRandomiser : femaleFirstNamesRandomiser;
       const first = firstPool.nextOne();
       const nickname = nicknamesRandomiser.nextOne();
       const last = surnamesRandomiser.nextOne();
@@ -297,7 +293,7 @@ __|____|__`
         leftB.style.left = (5 + i * 4) + '%';
         leftB.style.fontSize = (2 - i * 0.2) + 'rem';
         leftB.style.zIndex = 10 - i;
-        leftB.href = pageRandomiser.nextOne();
+        leftB.href = LAB.pageRandomiser.nextOne();
         wrapper.appendChild(leftB);
 
         const rightB = document.createElement('a');
@@ -307,7 +303,7 @@ __|____|__`
         rightB.style.right = (5 + i * 4) + '%';
         rightB.style.fontSize = (2 - i * 0.2) + 'rem';
         rightB.style.zIndex = 10 - i;
-        rightB.href = pageRandomiser.nextOne();
+        rightB.href = LAB.pageRandomiser.nextOne();
         wrapper.appendChild(rightB);
       }
     }
@@ -320,8 +316,6 @@ __|____|__`
     const innerRight = document.getElementById('inner-right');
 
     function renderCowboy(container, parts, flippedIndices = []) {
-      console.log(container);
-
       container.innerHTML = '';
       parts.forEach((p, i) => {
         const partDiv = document.createElement('pre');
@@ -335,9 +329,9 @@ __|____|__`
       });
     }
 
-    // Initial: Cowboys face each other.
-    // Left needs to face Right: Gun (Left-facing) needs flip, Boots (Right-facing) No flip.
-    // Right needs to face Left: Gun (Left-facing) No flip, Boots (Right-facing) needs flip.
+    // Initial: Cowboys face each other
+    // Left needs to face Right: Gun (Left-facing) needs flip, Boots (Right-facing) no flip
+    // Right needs to face Left: Gun (Left-facing) no flip, Boots (Right-facing) needs flip
     renderCowboy(innerLeft, partsNormal, [HEAD, ARMS, TORSO, LEGS]);
     renderCowboy(innerRight, partsNormal, [BOOTS]);
 
@@ -377,15 +371,15 @@ __|____|__`
 
     async function sequence(duelId) {
       if (duelId !== duelCounter) return;
-      leftCowboy.href = pageRandomiser.nextOne();
-      rightCowboy.href = pageRandomiser.nextOne();
+      leftCowboy.href = LAB.pageRandomiser.nextOne();
+      rightCowboy.href = LAB.pageRandomiser.nextOne();
 
       await sleep(3000);
       if (duelId !== duelCounter) return;
 
       // Walk away:
-      // Left needs to face Left: Gun No flip, Boots Flip
-      // Right needs to face Right: Gun Flip, Boots No flip
+      // Left needs to face Left: Gun no flip, Boots needs flip
+      // Right needs to face Right: Gun needs flip, Boots no flip
       renderCowboy(innerLeft, partsNormal, [BOOTS]);
       renderCowboy(innerRight, partsNormal, [HEAD, ARMS, TORSO, LEGS]);
 
@@ -416,7 +410,7 @@ __|____|__`
       await sleep(200);
       if (duelId !== duelCounter) return;
 
-      const winner = Math.random() > 0.5 ? 'left' : 'right';
+      const winner = LAB.chance(0.5) ? 'left' : 'right';
       if (winner === 'left') {
         rightCowboy.classList.add('dead');
       } else {

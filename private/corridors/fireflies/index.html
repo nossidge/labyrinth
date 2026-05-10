@@ -6,7 +6,7 @@ Oh! joy it was for her, and joy for me!
 -->
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="You would not believe your eyes">
   <title>Among all lovely things</title>
@@ -41,18 +41,6 @@ Oh! joy it was for her, and joy for me!
       align-items: center;
       justify-content: center;
       position: relative;
-    }
-
-    .grain {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48ZmlsdGVyIGlkPSJuIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iMC44NSIgbnVtT2N0YXZlcz0iMyIgc3RpdGNoVGlsZXM9InN0aXRjaCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbHRlcj0idXJsKCNuKSIvPjwvc3ZnPg==');
-      opacity: var(--grain-opacity);
-      z-index: 100;
-      pointer-events: none;
     }
 
     #scene {
@@ -353,6 +341,18 @@ Oh! joy it was for her, and joy for me!
     .plant.sway {
       animation: sway var(--sway-duration, 4s) ease-in-out infinite;
     }
+
+    .grain {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48ZmlsdGVyIGlkPSJuIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iMC44NSIgbnVtT2N0YXZlcz0iMyIgc3RpdGNoVGlsZXM9InN0aXRjaCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbHRlcj0idXJsKCNuKSIvPjwvc3ZnPg==');
+      opacity: var(--grain-opacity);
+      z-index: 100;
+      pointer-events: none;
+    }
   </style>
 </head>
 
@@ -365,12 +365,9 @@ Oh! joy it was for her, and joy for me!
     <div id="foreground"></div>
   </div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/fireflies";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('fireflies');
 
     const scene = document.getElementById('scene');
     const foreground = document.getElementById('foreground');
@@ -383,36 +380,36 @@ Oh! joy it was for her, and joy for me!
       constructor(index) {
         this.index = index;
         this.el = document.createElement('a');
-        this.el.href = pageRandomiser.nextOne();
+        this.el.href = LAB.pageRandomiser.nextOne();
         this.el.className = 'plant sway';
 
         // Random plant type
-        const plantType = PLANT_TYPES[Math.floor(Math.random() * PLANT_TYPES.length)];
+        const plantType = PLANT_TYPES[LAB.randIndex(PLANT_TYPES)];
         this.el.classList.add(plantType);
 
         // Position along the bottom
-        const xPercent = (index / NUM_PLANTS) * 100 + (Math.random() - 0.5) * 8;
+        const xPercent = (index / NUM_PLANTS) * 100 + (LAB.rand(-0.5, 0.5)) * 8;
         this.el.style.left = xPercent + '%';
 
         // Size variation
-        const sizeVariation = 0.7 + Math.random() * 0.6;
-        const height = (120 + Math.random() * 120) * sizeVariation;
-        const width = (3 + Math.random() * 8) * sizeVariation;
+        const sizeVariation = 0.7 + LAB.rand(0, 0.6);
+        const height = LAB.rand(120, 240) * sizeVariation;
+        const width = (3 + LAB.rand(0, 8)) * sizeVariation;
         this.el.style.setProperty('--plant-height', height + 'px');
         this.el.style.setProperty('--plant-width', width + 'px');
 
         // Sway animation
-        const swayDuration = 3 + Math.random() * 3;
-        const swayAngle = 1 + Math.random() * 3;
+        const swayDuration = 3 + LAB.rand(0, 3);
+        const swayAngle = 1 + LAB.rand(0, 3);
         this.el.style.setProperty('--sway-duration', swayDuration + 's');
         this.el.style.setProperty('--sway-angle', swayAngle + 'deg');
 
         // Stagger the animation start
-        const delay = Math.random() * (swayDuration * 2);
+        const delay = LAB.rand(0, swayDuration * 2);
         this.el.style.animationDelay = delay + 's';
 
         // Depth (z-index for layering)
-        const depth = Math.floor((xPercent / 100) * 30) + 10 + Math.floor(Math.random() * 5);
+        const depth = Math.floor((xPercent / 100) * 30) + 10 + LAB.randInt(0, 4);
         this.el.style.zIndex = depth;
 
         foreground.appendChild(this.el);
@@ -424,34 +421,34 @@ Oh! joy it was for her, and joy for me!
         this.index = index;
         this.el = document.createElement('a');
         this.el.className = 'firefly drifting';
-        this.el.href = pageRandomiser.nextOne();
+        this.el.href = LAB.pageRandomiser.nextOne();
 
         // Random initial position
-        this.baseX = Math.random() * window.innerWidth;
-        this.baseY = Math.random() * (window.innerHeight * 0.7);
+        this.baseX = LAB.rand(0, window.innerWidth);
+        this.baseY = LAB.rand(0, window.innerHeight * 0.7);
 
         // Glow animation timing
-        const glowDuration = 1.5 + Math.random() * 2;
+        const glowDuration = 1.5 + LAB.rand(0, 2);
         this.el.style.setProperty('--glow-duration', glowDuration + 's');
 
         // Drift animation
-        const driftDuration = 12 + Math.random() * 12;
-        const driftRange = 40 + Math.random() * 60;
+        const driftDuration = LAB.rand(12, 24);
+        const driftRange = LAB.rand(40, 100);
         this.el.style.setProperty('--drift-duration', driftDuration + 's');
-        this.el.style.setProperty('--drift-x1', (Math.random() - 0.5) * driftRange + 'px');
-        this.el.style.setProperty('--drift-y1', (Math.random() - 0.5) * driftRange * 0.6 + 'px');
-        this.el.style.setProperty('--drift-x2', (Math.random() - 0.5) * driftRange + 'px');
-        this.el.style.setProperty('--drift-y2', (Math.random() - 0.5) * driftRange * 0.6 + 'px');
-        this.el.style.setProperty('--drift-x3', (Math.random() - 0.5) * driftRange + 'px');
-        this.el.style.setProperty('--drift-y3', (Math.random() - 0.5) * driftRange * 0.6 + 'px');
+        this.el.style.setProperty('--drift-x1', (LAB.rand(-0.5, 0.5)) * driftRange + 'px');
+        this.el.style.setProperty('--drift-y1', (LAB.rand(-0.5, 0.5)) * driftRange * 0.6 + 'px');
+        this.el.style.setProperty('--drift-x2', (LAB.rand(-0.5, 0.5)) * driftRange + 'px');
+        this.el.style.setProperty('--drift-y2', (LAB.rand(-0.5, 0.5)) * driftRange * 0.6 + 'px');
+        this.el.style.setProperty('--drift-x3', (LAB.rand(-0.5, 0.5)) * driftRange + 'px');
+        this.el.style.setProperty('--drift-y3', (LAB.rand(-0.5, 0.5)) * driftRange * 0.6 + 'px');
 
         // Position
         this.el.style.left = this.baseX + 'px';
         this.el.style.top = this.baseY + 'px';
 
-        // Color variation (warm yellowish greens)
-        const hueVariation = Math.random() * 30 - 15; // -15 to 15
-        const saturationVariation = Math.random() * 20 - 10; // -10 to 10
+        // Colour variation (warm yellowish greens)
+        const hueVariation = LAB.rand(-15, 15); // -15 to 15
+        const saturationVariation = LAB.rand(-10, 10); // -10 to 10
         this.el.style.filter = `hue-rotate(${hueVariation}deg) saturate(${100 + saturationVariation}%)`;
 
         scene.appendChild(this.el);
@@ -467,6 +464,7 @@ Oh! joy it was for her, and joy for me!
     for (let i = 0; i < NUM_FIREFLIES; i++) {
       new Firefly(i);
     }
+
   </script>
 </body>
 

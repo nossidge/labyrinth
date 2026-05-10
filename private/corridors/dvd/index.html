@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="digital video digital">
   <title>digital video digital</title>
@@ -29,7 +29,7 @@
       height: auto;
     }
 
-    #scanlines {
+    #crt-scanlines {
       position: fixed;
       top: 0;
       left: 0;
@@ -48,17 +48,14 @@
 </head>
 
 <body>
-  <div id="scanlines"></div>
+  <div id="crt-scanlines"></div>
   <a id="dvd-link" href="#">
     <img id="dvd-logo" src="dvd-logo.png" alt="DVD">
   </a>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/dvd";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('dvd');
 
     const link = document.getElementById('dvd-link');
     const logo = document.getElementById('dvd-logo');
@@ -74,9 +71,9 @@
     // Black text in foreground, so we want light colors
     const colors = [
       '#ff9999', '#99ff99', '#9999ff', '#ffff99', '#99ffff', '#ff99ff',
-      '#f0e68c', '#e6e6fa', '#ffe4e1', '#f5f5dc', '#fafad2', '#d3d3d3'
+      '#f0e68c', '#e6e6fa', '#ffe4e1', '#f5f5dc', '#fafad2', '#d3d3d3',
     ];
-    const colorRandomiser = new CyclicRandomiser(colors);
+    const colorRandomiser = new LAB.CyclicRandomiser(colors);
 
     function resize() {
       logoWidth = link.offsetWidth;
@@ -88,16 +85,16 @@
     }
 
     function init() {
-      link.href = pageRandomiser.nextOne();
+      link.href = LAB.pageRandomiser.nextOne();
 
       // Random start position
-      x = Math.random() * (window.innerWidth - 250);
-      y = Math.random() * (window.innerHeight - 150);
+      x = LAB.rand(0, window.innerWidth - 250);
+      y = LAB.rand(0, window.innerHeight - 150);
 
       // 45 degree angle: absolute dx and dy are equal
       const speed = 3.2;
-      dx = (Math.random() > 0.5 ? 1 : -1) * speed;
-      dy = (Math.random() > 0.5 ? 1 : -1) * speed;
+      dx = (LAB.chance(0.5) ? 1 : -1) * speed;
+      dy = (LAB.chance(0.5) ? 1 : -1) * speed;
 
       logo.onload = () => {
         resize();
@@ -139,7 +136,7 @@
         if (hitY) dy = -dy;
 
         body.style.backgroundColor = colorRandomiser.nextOne();
-        link.href = pageRandomiser.nextOne();
+        link.href = LAB.pageRandomiser.nextOne();
       }
 
       link.style.left = x + 'px';

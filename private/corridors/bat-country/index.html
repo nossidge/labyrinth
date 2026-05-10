@@ -6,7 +6,7 @@ https://www.imdb.com/title/tt0120669/quotes/
 -->
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Too weird to live, and too rare to die">
   <title>BAT COUNTRY</title>
@@ -155,12 +155,9 @@ https://www.imdb.com/title/tt0120669/quotes/
     <div id="bats-overlay"></div>
   </div>
 
-  <script src="../../common/labyrinthPages.js"></script>
-  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/bat-country";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('bat-country');
 
     const canvas = document.getElementById('globe-canvas');
     const ctx = canvas.getContext('2d');
@@ -200,12 +197,13 @@ https://www.imdb.com/title/tt0120669/quotes/
 
     async function init() {
       try {
-        const response = await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json');
+        const url = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json';
+        const response = await fetch(url);
         const topoData = await response.json();
         worldData = topojson.feature(topoData, topoData.objects.countries);
 
         const countries = worldData.features.filter(d => d.properties.name);
-        countriesRandomiser = new CyclicRandomiser(countries);
+        countriesRandomiser = new LAB.CyclicRandomiser(countries);
 
         // Set initial random country immediately without animation
         const firstCountry = countriesRandomiser.nextOne();
@@ -340,15 +338,15 @@ https://www.imdb.com/title/tt0120669/quotes/
       }
 
       for (let i = 0; i < numBats; i++) {
-        // Randomize bats within the spread of the country
+        // Randomise bats within the spread of the country
         // Antarctica needs a wider spread to look like a full disk
         // France needs a tight spread to avoid its overseas territories
         let spreadMult = 0.7;
         if (isAntarctica) spreadMult = 1.0;
         if (isFrance) spreadMult = 0.1;
 
-        const lon = centroid[0] + (Math.random() - 0.5) * lonSpread * spreadMult;
-        const lat = centroid[1] + (Math.random() - 0.5) * latSpread * spreadMult;
+        const lon = centroid[0] + LAB.rand(-0.5, 0.5) * lonSpread * spreadMult;
+        const lat = centroid[1] + LAB.rand(-0.5, 0.5) * latSpread * spreadMult;
 
         const coords = projection([lon, lat]);
         // Only draw if the point is on the visible hemisphere
@@ -358,18 +356,18 @@ https://www.imdb.com/title/tt0120669/quotes/
         bat.className = 'bat';
         bat.innerHTML = '🦇';
 
-        // Randomize bat size slightly for depth/chaos
-        const scale = 1.5 + Math.random() * 1.5;
+        // Randomise bat size slightly for depth and differentiation
+        const scale = LAB.rand(1.5, 3);
         bat.style.fontSize = (24 * scale) + 'px';
 
         bat.style.left = coords[0] + 'px';
         bat.style.top = coords[1] + 'px';
 
-        bat.href = pageRandomiser.nextOne();
+        bat.href = LAB.pageRandomiser.nextOne();
         batsOverlay.appendChild(bat);
 
-        // Randomize bat rotation (upright but tilted slightly)
-        bat.style.setProperty('--rot', ((Math.random() - 0.5) * 60) + 'deg');
+        // Randomise bat rotation (upright but tilted slightly)
+        bat.style.setProperty('--rot', (LAB.rand(-30, 30)) + 'deg');
 
         if (instant) {
           bat.style.opacity = '1';
@@ -384,7 +382,7 @@ https://www.imdb.com/title/tt0120669/quotes/
             if (thisSession !== spawnSession) return;
             bat.style.opacity = '1';
             bat.style.setProperty('--scale', '1');
-          }, i * (500 / numBats) + Math.random() * 200);
+          }, i * (500 / numBats) + LAB.rand(0, 200));
         }
       }
     }
@@ -394,7 +392,9 @@ https://www.imdb.com/title/tt0120669/quotes/
       bats.forEach((bat, i) => {
         bat.style.pointerEvents = 'none';
         bat.style.opacity = '0';
-        bat.style.transform = 'scale(2) translate(' + (Math.random() - 0.5) * 500 + 'px, ' + (Math.random() - 0.5) * 500 + 'px)';
+        const x = LAB.rand(-250, 250);
+        const y = LAB.rand(-250, 250);
+        bat.style.transform = 'scale(2) translate(' + x + 'px, ' + y + 'px)';
         setTimeout(() => bat.remove(), 500);
       });
     }
@@ -475,6 +475,7 @@ https://www.imdb.com/title/tt0120669/quotes/
     });
 
     init();
+
   </script>
 </body>
 

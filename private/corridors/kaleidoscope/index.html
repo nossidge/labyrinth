@@ -8,7 +8,7 @@ But I've finally cracked it with this one!
 -->
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="here we go again">
   <title>colours shining in your eye</title>
@@ -24,7 +24,7 @@ But I've finally cracked it with this one!
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: #000;
+      background: #000000;
     }
 
     canvas {
@@ -49,15 +49,9 @@ But I've finally cracked it with this one!
   <canvas id="kaleidoscope"></canvas>
   <a id="click-overlay" href="../index.html"></a>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/kaleidoscope";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
-
-    function rand(min, max) { return Math.random() * (max - min) + min; }
-    function randInt(min, max) { return Math.floor(rand(min, max + 1)); }
+    const LAB = new Labyrinth('kaleidoscope');
 
     const canvas = document.getElementById('kaleidoscope');
     const ctx = canvas.getContext('2d');
@@ -78,20 +72,20 @@ But I've finally cracked it with this one!
     function createShape() {
       const maxR = Math.min(canvas.width, canvas.height) * 0.42;
       return {
-        type: randInt(0, 2),
-        r: rand(30, maxR),
-        angle: rand(0, SLICE_ANGLE),
-        dr: rand(-0.15, 0.15),
-        da: rand(-0.001, 0.001),
-        size: rand(3, 21),
-        hueOffset: rand(0, 360),
-        saturation: rand(70, 100),
-        lightness: rand(45, 65),
-        alpha: rand(0.4, 0.9),
-        arcStart: rand(0, Math.PI),
-        arcSpan: rand(0.5, 0.5 + Math.PI),
-        lineLen: rand(10, 40),
-        lineAngle: rand(0, Math.PI * 2),
+        type: LAB.randInt(0, 2),
+        r: LAB.rand(30, maxR),
+        angle: LAB.rand(0, SLICE_ANGLE),
+        dr: LAB.rand(-0.15, 0.15),
+        da: LAB.rand(-0.001, 0.001),
+        size: LAB.rand(3, 21),
+        hueOffset: LAB.rand(0, 360),
+        saturation: LAB.rand(70, 100),
+        lightness: LAB.rand(45, 65),
+        alpha: LAB.rand(0.4, 0.9),
+        arcStart: LAB.rand(0, Math.PI),
+        arcSpan: LAB.rand(0.5, 0.5 + Math.PI),
+        lineLen: LAB.rand(10, 40),
+        lineAngle: LAB.rand(0, Math.PI * 2),
       };
     }
 
@@ -158,7 +152,7 @@ But I've finally cracked it with this one!
       for (let i = 0; i < SHAPE_COUNT; i++) {
         shapes.push(createShape());
       }
-      ctx.fillStyle = '#000';
+      ctx.fillStyle = '#000000';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
 

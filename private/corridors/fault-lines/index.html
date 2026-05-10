@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="I blame San Andreas">
   <title>Kintsugi</title>
@@ -45,7 +45,7 @@
       text-decoration: none;
     }
 
-    #crt-overlay {
+    #crt-scanlines {
       position: fixed;
       top: 0;
       left: 0;
@@ -64,20 +64,11 @@
 <body>
   <canvas id="surface"></canvas>
   <svg id="shards-layer" xmlns="http://www.w3.org/2000/svg"></svg>
-  <div id="crt-overlay"></div>
+  <div id="crt-scanlines"></div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/fault-lines";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
-
-    // Useful randomisation helpers
-    function rand(min, max) { return Math.random() * (max - min) + min; }
-    function randInt(min, max) { return Math.floor(rand(min, max + 1)); }
-    function randIndex(array) { return randInt(0, array.length - 1); }
-    function sample(array) { return array[randIndex(array)]; }
+    const LAB = new Labyrinth('fault-lines');
 
     const canvas = document.getElementById('surface');
     const ctx = canvas.getContext('2d');
@@ -97,7 +88,7 @@
       [40, 200, 255],
       [255, 255, 100],
     ];
-    const glowRandomiser = new CyclicRandomiser(GLOW_COLOURS_POOL);
+    const glowRandomiser = new LAB.CyclicRandomiser(GLOW_COLOURS_POOL);
 
     // This is written once and frozen, not refreshed
     function createFrozenCanvas() {
@@ -114,7 +105,7 @@
       // Write some static noise
       const data = imageData.data;
       for (let i = 0; i < data.length; i += 16) {
-        const noise = rand(0, 44);
+        const noise = LAB.rand(0, 44);
         data[i] += noise;
         data[i + 1] += noise;
         data[i + 2] += noise;
@@ -130,8 +121,8 @@
       const crack = {
         points: [{ x, y }],
         angle: angle,
-        speed: rand(3, 7),
-        life: randInt(30, 89),
+        speed: LAB.rand(3, 7),
+        life: LAB.randInt(30, 89),
         age: 0,
         depth: depth,
         width: Math.max(1, 4 - depth),
@@ -147,35 +138,35 @@
       const glow = glowRandomiser.nextOne();
 
       // Spawn 3-6 initial cracks radiating from click point
-      const arms = randInt(3, 6);
-      const baseAngle = rand(0, Math.PI * 2);
-      const maxDepth = randInt(2, 3);
+      const arms = LAB.randInt(3, 6);
+      const baseAngle = LAB.rand(0, Math.PI * 2);
+      const maxDepth = LAB.randInt(2, 3);
 
       for (let i = 0; i < arms; i++) {
-        const angle = baseAngle + (i / arms) * Math.PI * 2 + rand(-0.25, 0.25);
+        const angle = baseAngle + (i / arms) * Math.PI * 2 + LAB.rand(-0.25, 0.25);
         createCrack(x, y, angle, 0, maxDepth, glow);
       }
 
       // Place a clickable shard at the impact point
-      placeShard(x, y, rand(20, 50), glow);
+      placeShard(x, y, LAB.rand(20, 50), glow);
     }
 
     function placeShard(x, y, radius, glow) {
       const ns = 'http://www.w3.org/2000/svg';
       const link = document.createElementNS(ns, 'a');
-      link.setAttributeNS('http://www.w3.org/1999/xlink', 'href', pageRandomiser.nextOne());
+      link.setAttributeNS('http://www.w3.org/1999/xlink', 'href', LAB.pageRandomiser.nextOne());
 
       // Generate an irregular polygon shard shape
-      const sides = randInt(5, 8);
+      const sides = LAB.randInt(5, 8);
       let pathD = '';
       const angles = [];
       for (let i = 0; i < sides; i++) {
-        angles.push((i / sides) * Math.PI * 2 + rand(-0.3, 0.3));
+        angles.push((i / sides) * Math.PI * 2 + LAB.rand(-0.3, 0.3));
       }
       angles.sort((a, b) => a - b);
 
       for (let i = 0; i < sides; i++) {
-        const r = radius * rand(0.6, 1.2);
+        const r = radius * LAB.rand(0.6, 1.2);
         const px = x + Math.cos(angles[i]) * r;
         const py = y + Math.sin(angles[i]) * r;
         pathD += (i === 0 ? 'M' : 'L') + `${px},${py}`;
@@ -227,7 +218,7 @@
       target.lineWidth = crack.width;
       target.stroke(path);
 
-      // Bright center
+      // Bright centre
       target.strokeStyle = `rgba(255,255,255,${0.3 + pulse * 0.2})`;
       target.lineWidth = Math.max(0.5, crack.width - 2);
       target.stroke(path);
@@ -256,12 +247,12 @@
           crack.done = true;
           needsBake = true;
           const last = crack.points[crack.points.length - 1];
-          placeShard(last.x, last.y, rand(15, 40), crack.glow);
+          placeShard(last.x, last.y, LAB.rand(15, 40), crack.glow);
           continue;
         }
 
         // Wobble the angle
-        crack.angle += rand(-0.2, 0.2);
+        crack.angle += LAB.rand(-0.2, 0.2);
 
         const last = crack.points[crack.points.length - 1];
         const nx = last.x + Math.cos(crack.angle) * crack.speed;
@@ -271,18 +262,18 @@
         if (nx < 0 || nx > W || ny < 0 || ny > H) {
           crack.done = true;
           needsBake = true;
-          placeShard(last.x, last.y, rand(15, 35), crack.glow);
+          placeShard(last.x, last.y, LAB.rand(15, 35), crack.glow);
           continue;
         }
 
         crack.points.push({ x: nx, y: ny });
 
         // Branch occasionally
-        if (!crack.branched && crack.age > 10 && rand(0, 1) < 0.04) {
+        if (!crack.branched && crack.age > 10 && LAB.rand(0, 1) < 0.04) {
           crack.branched = true;
-          const branchAngle = crack.angle + sample([1, -1]) * rand(0.5, 1.3);
+          const branchAngle = crack.angle + LAB.sample([1, -1]) * LAB.rand(0.5, 1.3);
           createCrack(nx, ny, branchAngle, crack.depth + 1, crack.maxDepth, crack.glow);
-          placeShard(nx, ny, rand(12, 30), crack.glow);
+          placeShard(nx, ny, LAB.rand(12, 30), crack.glow);
         }
       }
 
@@ -323,7 +314,6 @@
 
     // Click to fracture at a specific mouse position
     document.addEventListener('click', (e) => {
-      // Don't interfere when following hyperlinks
       if (e.target.closest('a')) return;
 
       spawnFracture(e.clientX, e.clientY);
@@ -334,11 +324,11 @@
       if (e.ctrlKey || e.altKey || e.shiftKey || e.metaKey) return;
       if (e.key === 'Tab' || e.key === 'F5') return;
 
-      spawnFracture(rand(0, W), rand(0, H));
+      spawnFracture(LAB.rand(0, W), LAB.rand(0, H));
     });
 
     // Seed an initial crack so the page isn't totally blank
-    spawnFracture(rand(W * 0.5, W * 0.6), rand(H * 0.25, H * 0.35));
+    spawnFracture(LAB.rand(W * 0.5, W * 0.6), LAB.rand(H * 0.25, H * 0.35));
 
     function loop() {
       updateCracks();

@@ -2,14 +2,14 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="I have ripples, Greg">
   <title>~ ripples ~</title>
   <style>
     :root {
       --tilde-color: #e0b0ff;
-      --bg-color: #000;
+      --bg-color: #000000;
     }
 
     * {
@@ -73,7 +73,7 @@
     }
 
     .tilde-cell:hover {
-      color: #fff;
+      color: #ffffff;
       z-index: 100;
     }
 
@@ -95,9 +95,10 @@
   <div class="grain"></div>
   <div id="grid-container"></div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
+    const LAB = new Labyrinth('tilde-ripples');
+
     const GRID_WIDTH = 40;
     const GRID_HEIGHT = 25;
 
@@ -113,12 +114,7 @@
     let strengths = new Float32Array(GRID_WIDTH * GRID_HEIGHT);
     const elements = [];
 
-    // Navigation setup
-    const currentPage = "corridors/tilde-ripples";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
-
-    // Initialize grid
+    // Initialise grid
     function initGrid() {
       gridContainer.innerHTML = '';
       elements.length = 0;
@@ -128,7 +124,7 @@
         for (let x = 0; x < GRID_WIDTH; x++) {
           const a = document.createElement('a');
           a.className = 'tilde-cell';
-          a.href = pageRandomiser.nextOne();
+          a.href = LAB.pageRandomiser.nextOne();
 
           const span = document.createElement('span');
           span.textContent = '~';

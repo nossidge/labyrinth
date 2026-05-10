@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Before you wreque yourself">
   <title>cheque it out now</title>
@@ -22,7 +22,7 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: #111;
+      background: #111111;
     }
 
     #grid {
@@ -46,17 +46,17 @@
     }
 
     #grid a.cell--light {
-      background: #fff;
+      background: #ffffff;
       animation-name: pulse-light;
     }
 
     #grid a.cell--dark {
-      background: #444;
+      background: #444444;
       animation-name: pulse-dark;
     }
 
     #grid a:hover {
-      filter: drop-shadow(0 0 6px #fff) brightness(1.5);
+      filter: drop-shadow(0 0 6px #ffffff) brightness(1.5);
       z-index: 10;
     }
 
@@ -104,12 +104,9 @@
   <div id="crt-scanlines"></div>
   <div id="grid"></div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/chequered-pulse";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('chequered-pulse');
 
     const grid = document.getElementById('grid');
     const pulseOffset = 1.72;
@@ -130,7 +127,7 @@
       for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
           const a = document.createElement('a');
-          a.href = pageRandomiser.nextOne();
+          a.href = LAB.pageRandomiser.nextOne();
           const isWhite = (r + c) % 2 === 0;
           const dist = Math.sqrt((c - cx) * (c - cx) + (r - cy) * (r - cy));
           const normalisedDist = maxDist === 0 ? 0 : dist / maxDist;

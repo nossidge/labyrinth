@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Blue screen of death">
   <title>bsod</title>
@@ -86,7 +86,7 @@
       font-weight: bold;
     }
 
-    #scanline {
+    #crt-scanlines {
       position: fixed;
       top: 0;
       left: 0;
@@ -214,7 +214,7 @@
 </head>
 
 <body>
-  <div id="scanline"></div>
+  <div id="crt-scanlines"></div>
   <div id="flicker"></div>
   <canvas id="glitch-canvas"></canvas>
 
@@ -282,12 +282,9 @@
     <!-- I'm not fully sure what to do with these, but I'll leave them here for now. -->
   </div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/bsod";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('bsod');
 
     const flicker = document.getElementById('flicker');
     const canvas = document.getElementById('glitch-canvas');
@@ -318,8 +315,8 @@
       frameCount++;
       if (frameCount % 10 === 0) {
         // 10% chance of no change
-        if (Math.random() > 0.1) {
-          progress += Math.random() * 0.5; // Stepped movement
+        if (LAB.chance(0.9)) {
+          progress += LAB.rand(0, 0.5); // Stepped movement
         }
 
         if (progress >= 100) {
@@ -336,7 +333,7 @@
     function triggerFlicker() {
       flicker.style.opacity = '0.3';
       setTimeout(() => flicker.style.opacity = '0', 50);
-      if (Math.random() > 0.7) {
+      if (LAB.chance(0.3)) {
         setTimeout(() => {
           flicker.style.opacity = '0.2';
           setTimeout(() => flicker.style.opacity = '0', 30);
@@ -347,13 +344,13 @@
     // Glitch effect on canvas
     function drawGlitch() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      if (Math.random() > 0.9) {
+      if (LAB.chance(0.1)) {
         for (let i = 0; i < 10; i++) {
-          const x = Math.random() * canvas.width;
-          const y = Math.random() * canvas.height;
-          const w = Math.random() * 100 + 50;
-          const h = Math.random() * 20 + 2;
-          ctx.fillStyle = Math.random() > 0.5 ? '#00ffff' : '#ff00ff';
+          const x = LAB.rand(0, canvas.width);
+          const y = LAB.rand(0, canvas.height);
+          const w = LAB.rand(50, 150);
+          const h = LAB.rand(2, 22);
+          ctx.fillStyle = LAB.chance(0.5) ? '#00ffff' : '#ff00ff';
           ctx.fillRect(x, y, w, h);
         }
       }
@@ -382,7 +379,7 @@
         'NULL_POINTER',
         'ID_CLASH',
         'KERNEL_PANIC'
-      ][Math.floor(Math.random() * 5)];
+      ][LAB.randInt(0, 4)];
 
       const msg = [
         'The instruction at 0x0045 refers to memory that could not be read.',
@@ -390,7 +387,7 @@
         'Stack trace leads to nowhere.',
         'Invalid handle to current existence.',
         'Critical memory has been deleted.'
-      ][Math.floor(Math.random() * 5)];
+      ][LAB.randInt(0, 4)];
 
       win.innerHTML = `
         <div class="error-title">
@@ -399,7 +396,7 @@
         </div>
         <div class="error-content">
           ${msg}<br>
-          <div class="error-btn" onclick="window.location.href=pageRandomiser.nextOne()">OK</div>
+          <div class="error-btn" onclick="window.location.href=LAB.pageRandomiser.nextOne()">OK</div>
         </div>
       `;
 
@@ -435,8 +432,8 @@
       // Add a glitch block
       const block = document.createElement('div');
       block.style.position = 'fixed';
-      block.style.left = Math.random() * 100 + '%';
-      block.style.top = Math.random() * 100 + '%';
+      block.style.left = LAB.rand(0, 100) + '%';
+      block.style.top = LAB.rand(0, 100) + '%';
       block.style.width = '200px';
       block.style.height = '20px';
       block.style.background = 'white';
@@ -494,7 +491,7 @@
           line.innerText = lines[index];
           console.appendChild(line);
           index++;
-          setTimeout(addLine, Math.random() * 500);
+          setTimeout(addLine, LAB.rand(0, 500));
         } else {
           setTimeout(() => {
             progress = 0;
@@ -515,7 +512,7 @@
 
     function spawnPopups(num = 20) {
       for (let i = 0; i < num; i++) {
-        setTimeout(() => createErrorWindow(Math.random() * window.innerWidth, Math.random() * window.innerHeight), i * 50);
+        setTimeout(() => createErrorWindow(LAB.rand(0, window.innerWidth), LAB.rand(0, window.innerHeight)), i * 50);
       }
     }
 

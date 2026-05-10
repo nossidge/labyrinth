@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Black Holes and Emulations">
   <title>Event horizon</title>
@@ -18,7 +18,7 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: #000;
+      background: #000000;
     }
 
     canvas {
@@ -77,12 +77,9 @@
   <div id="links"></div>
   <div id="crt"></div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/gravity-well";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('gravity-well');
 
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
@@ -106,28 +103,28 @@
       ['#ffff00', '#ff8800', '#ff0044', '#ffcc00'],
       ['#00ff88', '#00ccff', '#8855ff', '#00ffdd'],
     ];
-    const palette = palettes[Math.floor(Math.random() * palettes.length)];
+    const palette = palettes[LAB.randIndex(palettes)];
 
     // Gravity wells (attractors)
     const wellCount = 10;
     const wells = [];
 
     function calculateWellMass() {
-      return 800 + Math.random() * 120000;
+      return LAB.rand(800, 120800);
     }
 
     for (let i = 0; i < wellCount; i++) {
       wells.push({
-        x: W * (0.2 + Math.random() * 0.6),
-        y: H * (0.2 + Math.random() * 0.6),
+        x: LAB.rand(W * 0.2, W * 0.8),
+        y: LAB.rand(H * 0.2, H * 0.8),
         mass: calculateWellMass(),
         drift: {
-          ax: Math.random() * 0.0003 + 0.0001,
-          ay: Math.random() * 0.0003 + 0.0001,
-          px: Math.random() * Math.PI * 2,
-          py: Math.random() * Math.PI * 2,
-          rx: W * (0.05 + Math.random() * 0.15),
-          ry: H * (0.05 + Math.random() * 0.15),
+          ax: LAB.rand(0.0001, 0.0004),
+          ay: LAB.rand(0.0001, 0.0004),
+          px: LAB.rand(0, Math.PI * 2),
+          py: LAB.rand(0, Math.PI * 2),
+          rx: LAB.rand(W * 0.05, W * 0.2),
+          ry: LAB.rand(H * 0.05, H * 0.2),
         },
         ox: 0,
         oy: 0,
@@ -138,7 +135,7 @@
     const wellLinks = [];
     for (let i = 0; i < wellCount; i++) {
       const a = document.createElement('a');
-      a.href = pageRandomiser.nextOne();
+      a.href = LAB.pageRandomiser.nextOne();
       linksContainer.appendChild(a);
       wellLinks.push(a);
     }
@@ -148,21 +145,21 @@
     const particles = [];
 
     function spawnParticle() {
-      const edge = Math.floor(Math.random() * 4);
+      const edge = LAB.randInt(0, 3);
       let x, y;
-      if (edge === 0) { x = Math.random() * W; y = -10; }
-      else if (edge === 1) { x = W + 10; y = Math.random() * H; }
-      else if (edge === 2) { x = Math.random() * W; y = H + 10; }
-      else { x = -10; y = Math.random() * H; }
+      if (edge === 0) { x = LAB.rand(0, W); y = -10; }
+      else if (edge === 1) { x = W + 10; y = LAB.rand(0, H); }
+      else if (edge === 2) { x = LAB.rand(0, W); y = H + 10; }
+      else { x = -10; y = LAB.rand(0, H); }
 
       return {
         x, y,
-        vx: (Math.random() - 0.5) * 1.5,
-        vy: (Math.random() - 0.5) * 1.5,
-        color: palette[Math.floor(Math.random() * palette.length)],
-        radius: 2 + Math.random() * 3,
+        vx: LAB.rand(-0.75, 0.75),
+        vy: LAB.rand(-0.75, 0.75),
+        color: palette[LAB.randIndex(palette)],
+        radius: LAB.rand(2, 5),
         trail: [],
-        maxTrail: 15 + Math.floor(Math.random() * 20),
+        maxTrail: LAB.randInt(15, 34),
         life: 1,
         alive: true,
       };
@@ -171,8 +168,8 @@
     for (let i = 0; i < particleCount; i++) {
       const p = spawnParticle();
       // Start scattered across screen for initial appearance
-      p.x = Math.random() * W;
-      p.y = Math.random() * H;
+      p.x = LAB.rand(0, W);
+      p.y = LAB.rand(0, H);
       particles.push(p);
     }
 
@@ -317,10 +314,10 @@
     // Rearrange the wells every 8 seconds
     setInterval(() => {
       for (let i = 0; i < wells.length; i++) {
-        wells[i].x = W * (0.15 + Math.random() * 0.7);
-        wells[i].y = H * (0.15 + Math.random() * 0.7);
+        wells[i].x = LAB.rand(W * 0.15, W * 0.85);
+        wells[i].y = LAB.rand(H * 0.15, H * 0.85);
         wells[i].mass = calculateWellMass();
-        wellLinks[i].href = pageRandomiser.nextOne();
+        wellLinks[i].href = LAB.pageRandomiser.nextOne();
       }
     }, 8000);
 

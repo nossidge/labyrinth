@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="ten thousand coffee spoons when all you need is a coffee knife">
   <title>an overwhelming question</title>
@@ -21,37 +21,6 @@
       background: #1a0e04;
       font-family: 'Times New Roman', Times, serif;
       color: #c4956a;
-    }
-
-    /* CRT scanlines */
-    body::before {
-      content: "";
-      display: block;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background:
-        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%),
-        linear-gradient(90deg, rgba(255, 200, 100, 0.02), rgba(200, 150, 50, 0.01), rgba(255, 200, 100, 0.02));
-      background-size: 100% 2px, 3px 100%;
-      pointer-events: none;
-      z-index: 1000;
-    }
-
-    /* Noise overlay */
-    body::after {
-      content: "";
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      opacity: 0.04;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-      pointer-events: none;
-      z-index: 1001;
     }
 
     #scene {
@@ -145,6 +114,37 @@
         opacity: 1;
       }
     }
+
+    /* CRT scanlines */
+    body::before {
+      content: "";
+      display: block;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%),
+        linear-gradient(90deg, rgba(255, 200, 100, 0.02), rgba(200, 150, 50, 0.01), rgba(255, 200, 100, 0.02));
+      background-size: 100% 2px, 3px 100%;
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    /* Noise overlay */
+    body::after {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0.04;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 1001;
+    }
   </style>
 </head>
 
@@ -155,12 +155,9 @@
   <div id="counter"></div>
   <div id="poem-line"></div>
 
-  <script src="../../common/labyrinthPages.js"></script>
-  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/coffee-spoons";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('coffee-spoons');
 
     const scene = document.getElementById('scene');
     const pile = document.getElementById('pile');
@@ -324,17 +321,17 @@
     const piledSpoons = [];
 
     function createSpoonSVG(rotation) {
-      const hue = 30 + Math.random() * 15;
-      const lightness = 50 + Math.random() * 15;
+      const hue = LAB.rand(30, 45);
+      const lightness = LAB.rand(50, 65);
       const colour = `hsl(${hue}, 45%, ${lightness}%)`;
-      const gleamDelay = Math.random() * 4;
+      const gleamDelay = LAB.rand(0, 4);
 
       const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
       svg.setAttribute("width", "50");
       svg.setAttribute("height", "14");
       svg.setAttribute("viewBox", "0 0 50 14");
       svg.style.transform = `rotate(${rotation}deg)`;
-      svg.style.animation = `gleam ${3 + Math.random() * 2}s ease-in-out -${gleamDelay}s infinite`;
+      svg.style.animation = `gleam ${LAB.rand(3, 5)}s ease-in-out -${gleamDelay}s infinite`;
 
       // Handle
       const line = document.createElementNS("http://www.w3.org/2000/svg", "rect");
@@ -373,20 +370,20 @@
       const spreadX = 260;
       const spoonWidth = 50;
 
-      const x = -spreadX / 2 - spoonWidth / 2 + (col * (spreadX / 7)) + (Math.random() * 20 - 10);
-      const y = -(row * 12) + (Math.random() * 6 - 3);
+      const x = -spreadX / 2 - spoonWidth / 2 + (col * (spreadX / 7)) + (LAB.rand(-10, 10));
+      const y = -(row * 12) + (LAB.rand(-3, 3));
       return { x, y };
     }
 
     function dropSpoon() {
       spoonCount++;
-      const rotation = Math.random() * 40 - 20;
-      const fallRotation = Math.random() * 360 - 180;
+      const rotation = LAB.rand(-20, 20);
+      const fallRotation = LAB.rand(0, 360) - 180;
       const pos = getPilePosition();
-      const fallDuration = 2500 + Math.random() * 1500;
+      const fallDuration = LAB.rand(2500, 4000);
 
       const link = document.createElement('a');
-      link.href = pageRandomiser.nextOne();
+      link.href = LAB.pageRandomiser.nextOne();
       link.className = 'spoon-link';
       link.style.left = `${pos.x}px`;
       link.style.zIndex = spoonCount;

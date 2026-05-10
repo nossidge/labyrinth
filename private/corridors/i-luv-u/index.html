@@ -8,7 +8,7 @@ https://uk.pinterest.com/pin/glitter-hearts-gif--700520917033499611/
 -->
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Our almost-instinct almost true">
   <title>What will survive of us</title>
@@ -51,12 +51,9 @@ https://uk.pinterest.com/pin/glitter-hearts-gif--700520917033499611/
   <hr>
   <a href="../index.html">U</a>
 
-  <script src="../../common/labyrinthPages.js"></script>
-  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/i-luv-u";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('i-luv-u');
   </script>
 </body>
 

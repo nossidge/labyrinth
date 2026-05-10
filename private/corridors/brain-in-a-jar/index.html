@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Wearing the brain that she keeps in a jar by the door">
   <title>Brain Blessed</title>
@@ -133,12 +133,9 @@
     </a>
   </div>
 
-  <script src="../../common/labyrinthPages.js"></script>
-  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/brain-in-a-jar";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('brain-in-a-jar');
 
     const jarLink = document.getElementById('jar-link');
     const bubbleContainer = document.getElementById('bubble-container');
@@ -164,16 +161,16 @@
       bubble.className = 'bubble';
 
       // Bubble size
-      const bubbleSize = 10 + Math.random() * 8;
-      const duration = 5 + Math.random() * 7;
-      const drift = (Math.random() - 0.5) * 100; // horizontal drift
+      const bubbleSize = LAB.rand(10, 18);
+      const duration = LAB.rand(5, 12);
+      const drift = LAB.rand(-50, 50); // horizontal drift
 
-      // Randomize z-index: 50% chance to be in front, 50% chance to be behind
-      const isFront = Math.random() > 0.5;
+      // Randomise z-index: 50% chance to be in front, 50% chance to be behind
+      const isFront = LAB.chance(0.5);
       bubble.classList.add(isFront ? 'front' : 'behind');
 
       // Spawn position: center of container, spread left/right based on percentage
-      const spawnXPercent = 0.5 + (Math.random() - 0.5) * BUBBLE_SPAWN_WIDTH_PERCENT;
+      const spawnXPercent = 0.5 + LAB.rand(-0.5, 0.5) * BUBBLE_SPAWN_WIDTH_PERCENT;
       const spawnYPercent = BUBBLE_SPAWN_Y_PERCENT;
 
       // Clamp X position to stay within padding (as percentages of container width)
@@ -197,7 +194,7 @@
       bubble.style.left = (clampedXPercent * 100) + '%';
       bubble.style.top = (clampedYPercent * 100) + '%';
       bubble.style.transform = 'translate(-50%, -50%)'; // Center the bubble on its position
-      bubble.style.animationDelay = Math.random() * 2 + 's';
+      bubble.style.animationDelay = LAB.rand(0, 2) + 's';
 
       bubbleContainer.appendChild(bubble);
 

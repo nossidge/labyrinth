@@ -7,7 +7,7 @@ This game isn't very fun!
 -->
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Jules Rimet still gleaming">
   <title>First to score 3 goals</title>
@@ -28,14 +28,14 @@ This game isn't very fun!
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background-color: #000;
+      background-color: #000000;
       font-family: "Trebuchet MS", sans-serif;
       user-select: none;
     }
 
     #fans-area {
       height: 50px;
-      background: #333;
+      background: #333333;
       display: flex;
       align-items: center;
       justify-content: space-around;
@@ -65,7 +65,7 @@ This game isn't very fun!
 
     #pitch-canvas {
       display: block;
-      border: 1px solid #000;
+      border: 1px solid #000000;
     }
 
     #ui-layer {
@@ -80,13 +80,13 @@ This game isn't very fun!
 
     .scoreboard {
       background: linear-gradient(to right,
-          #eee 0%,
-          #eee 30%,
-          #222 70%,
-          #222 100%);
+          #eeeeee 0%,
+          #eeeeee 30%,
+          #222222 70%,
+          #222222 100%);
       color: white;
       padding: 5px 10px;
-      border: 3px outset #eee;
+      border: 3px outset #eeeeee;
       display: flex;
       gap: 15px;
       align-items: center;
@@ -99,10 +99,10 @@ This game isn't very fun!
 
     .score-val {
       font-size: 30px;
-      background: #000;
-      color: #0f0;
+      background: #000000;
+      color: #00ff00;
       padding: 0 10px;
-      border: 2px inset #555;
+      border: 2px inset #555555;
       font-family: "Courier New", Courier, monospace;
     }
 
@@ -113,11 +113,11 @@ This game isn't very fun!
     }
 
     .blue-score {
-      color: #33f;
+      color: #3333ff;
     }
 
     .yellow-score {
-      color: #ff0;
+      color: #ffff00;
     }
 
     #turn-indicator {
@@ -126,7 +126,7 @@ This game isn't very fun!
       left: 50%;
       transform: translateX(-50%);
       padding: 5px 15px;
-      border: 3px outset #eee;
+      border: 3px outset #eeeeee;
       font-weight: bold;
       text-transform: uppercase;
     }
@@ -162,17 +162,17 @@ This game isn't very fun!
       margin-bottom: 20px;
       text-align: center;
       text-transform: uppercase;
-      text-shadow: 4px 4px #000;
+      text-shadow: 4px 4px #000000;
     }
 
     .restart-btn {
-      background: #ccc;
+      background: #cccccc;
       color: black;
       padding: 10px 30px;
       font-size: 20px;
       font-weight: bold;
       cursor: pointer;
-      border: 3px outset #eee;
+      border: 3px outset #eeeeee;
     }
 
     .restart-btn:active {
@@ -229,12 +229,9 @@ This game isn't very fun!
     </div>
   </div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/subbuteo";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('subbuteo');
 
     // Configuration
     const PITCH_WIDTH = 1000;
@@ -274,7 +271,7 @@ This game isn't very fun!
       window.addEventListener('mousemove', onMouseMove);
       window.addEventListener('mouseup', onMouseUp);
 
-      document.getElementById('scoreboard-link').href = pageRandomiser.nextOne();
+      document.getElementById('scoreboard-link').href = LAB.pageRandomiser.nextOne();
 
       requestAnimationFrame(update);
     }
@@ -303,11 +300,11 @@ This game isn't very fun!
       for (let i = 0; i < 40; i++) {
         const a = document.createElement('a');
         a.className = 'fan';
-        a.href = pageRandomiser.nextOne();
-        a.textContent = fanEmojis[Math.floor(Math.random() * fanEmojis.length)];
+        a.href = LAB.pageRandomiser.nextOne();
+        a.textContent = fanEmojis[LAB.randIndex(fanEmojis)];
 
-        const speed = 1 + Math.random() * 2;
-        const delay = Math.random() * -2;
+        const speed = 1 + LAB.rand(0, 2);
+        const delay = LAB.rand(-2, 0);
         a.style.animation = `fan-bounce ${speed}s ease-in-out ${delay}s infinite alternate`;
 
         fansArea.appendChild(a);
@@ -320,7 +317,7 @@ This game isn't very fun!
       document.getElementById('win-overlay').style.display = 'none';
       updateScoreUI();
       resetPositions();
-      currentTurn = Math.random() < 0.5 ? 'blue' : 'yellow';
+      currentTurn = LAB.chance(0.5) ? 'blue' : 'yellow';
       updateTurnUI();
     }
 
@@ -626,7 +623,7 @@ This game isn't very fun!
       ctx.strokeRect(PITCH_WIDTH - 155, 150, 150, 350);
 
       // Goals
-      ctx.fillStyle = '#444';
+      ctx.fillStyle = '#444444';
       ctx.fillRect(-20, 225, 25, 200);
       ctx.fillRect(PITCH_WIDTH - 5, 225, 25, 200);
       ctx.strokeStyle = 'white';
@@ -654,7 +651,7 @@ This game isn't very fun!
           ctx.shadowBlur = 10;
         }
 
-        // Color the shirt more vibrant when it's their turn
+        // Colour the shirt more vibrant when it's their turn
         if (p.team === 'yellow') {
           if (isCurrentTurn && !gameEnded) {
             ctx.filter = 'sepia(1) saturate(10) brightness(1.2)';
@@ -674,7 +671,7 @@ This game isn't very fun!
 
         // Selection ring
         if (isSelected) {
-          ctx.strokeStyle = '#fff';
+          ctx.strokeStyle = '#ffffff';
           ctx.lineWidth = 3;
           ctx.beginPath();
           ctx.arc(p.x, p.y, p.radius + 8, 0, Math.PI * 2);
@@ -718,6 +715,7 @@ This game isn't very fun!
     }
 
     init();
+
   </script>
 </body>
 

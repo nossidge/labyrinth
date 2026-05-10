@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="⡾">
   <title>⠠⠞⠁</title>
@@ -18,7 +18,7 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: #111;
+      background: #111111;
     }
 
     #grid {
@@ -34,18 +34,18 @@
       border-radius: 50%;
       display: block;
       text-decoration: none;
-      border: 1px solid #333;
+      border: 1px solid #333333;
       transition: transform 0.2s ease, filter 0.2s ease;
     }
 
     .dot.light {
-      background-color: #fff;
-      border-color: #fff;
+      background-color: #ffffff;
+      border-color: #ffffff;
     }
 
     .dot.dark {
-      background-color: #111;
-      border-color: #555;
+      background-color: #111111;
+      border-color: #555555;
     }
 
     .dot:hover {
@@ -74,12 +74,9 @@
   <div id="crt-scanlines"></div>
   <div id="grid"></div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/diagonal-circles";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('diagonal-circles');
 
     const grid = document.getElementById('grid');
     const dotSize = 16;
@@ -110,15 +107,12 @@
       j: directionVectors.down,
     };
 
-    async function tryGotoDoor(nextDirection) {
+    function tryGotoDoor(nextDirection) {
       gotoArray.push(nextDirection.code);
       if (gotoArray.length > 8) gotoArray.shift();
       gotoSequence = ((gotoSequence << 2) | nextDirection.code) & 0xffff;
-      if (gotoSequence !== 0x05bb) return false;
-      const hash = await sha256(gotoArray.join(''));
-      const dest = hash[14] + hash[29] + hash[52] + hash[4];
-      location.assign(sd(dest));
-      return true;
+      if (gotoSequence !== 0x05bb) return;
+      location.assign(LAB.goto());
     }
 
     let cols, rows, dots, padX, padY;
@@ -128,7 +122,7 @@
     let gotoSequence = 0;
     let gotoArray = [];
 
-    const randomDirection = ['w', 'a', 's', 'd'][Math.floor(Math.random() * 4)];
+    const randomDirection = LAB.sample(['w', 'a', 's', 'd']);
     let direction = directions[randomDirection];
 
     function getDotTone(row, col) {
@@ -159,7 +153,7 @@
       for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
           const a = document.createElement('a');
-          a.href = pageRandomiser.nextOne();
+          a.href = LAB.pageRandomiser.nextOne();
           a.className = 'dot ' + getDotTone(r, c);
           a.style.width = dotSize + 'px';
           a.style.height = dotSize + 'px';
@@ -204,9 +198,8 @@
 
       const nextDirection = directions[e.key.toLowerCase()];
       if (!nextDirection) return;
-      direction = nextDirection;
 
-      e.preventDefault();
+      direction = nextDirection;
       tryGotoDoor(direction);
 
       stepPattern();

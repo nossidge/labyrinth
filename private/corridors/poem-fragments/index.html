@@ -10,7 +10,7 @@ But I make these pages for me, not for you.
 -->
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="poem fragments">
   <title>poem fragments</title>
@@ -78,6 +78,30 @@ But I make these pages for me, not for you.
       color: #777;
     }
 
+    #nav-footer {
+      position: fixed;
+      bottom: 12px;
+      width: 100%;
+      text-align: center;
+      font-size: 14px;
+      color: #666;
+      letter-spacing: 3px;
+      z-index: 50;
+      pointer-events: none;
+      text-transform: uppercase;
+    }
+
+    #nav-footer a {
+      color: inherit;
+      text-decoration: none;
+      pointer-events: auto;
+      transition: color 0.3s;
+    }
+
+    #nav-footer a:hover {
+      color: #999;
+    }
+
     #glow {
       position: fixed;
       width: 400px;
@@ -103,30 +127,6 @@ But I make these pages for me, not for you.
       z-index: 100;
       pointer-events: none;
     }
-
-    #nav-footer {
-      position: fixed;
-      bottom: 12px;
-      width: 100%;
-      text-align: center;
-      font-size: 14px;
-      color: #666;
-      letter-spacing: 3px;
-      z-index: 50;
-      pointer-events: none;
-      text-transform: uppercase;
-    }
-
-    #nav-footer a {
-      color: inherit;
-      text-decoration: none;
-      pointer-events: auto;
-      transition: color 0.3s;
-    }
-
-    #nav-footer a:hover {
-      color: #999;
-    }
   </style>
 </head>
 
@@ -136,12 +136,9 @@ But I make these pages for me, not for you.
   <div id="container"></div>
   <div id="nav-footer"></div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/poem-fragments";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('poem-fragments');
 
     const PHRASE_POOL = [
       {
@@ -234,7 +231,7 @@ But I make these pages for me, not for you.
         text: "the sorrows of your changing face".split(" "),
       }
     ];
-    const phraseRandomiser = new CyclicRandomiser(PHRASE_POOL);
+    const phraseRandomiser = new LAB.CyclicRandomiser(PHRASE_POOL);
 
     const container = document.getElementById('container');
     const glow = document.getElementById('glow');
@@ -260,8 +257,8 @@ But I make these pages for me, not for you.
         span.style.transform = `translate(${centerX}px, ${centerY}px)`;
         container.appendChild(span);
 
-        const angle = (i / items.length) * Math.PI * 2 + Math.random();
-        const speed = 15 + Math.random() * 20;
+        const angle = (i / items.length) * Math.PI * 2 + LAB.rand(0, 1);
+        const speed = LAB.rand(15, 35);
 
         const state = {
           el: span,
@@ -304,7 +301,7 @@ But I make these pages for me, not for you.
       const footerWords = `${phrase.poet} • ${phrase.poem}`.split(' ');
       footerWords.forEach((word, idx) => {
         const a = document.createElement('a');
-        a.href = pageRandomiser.nextOne();
+        a.href = LAB.pageRandomiser.nextOne();
         a.innerText = word;
         navFooter.appendChild(a);
         if (idx < footerWords.length - 1) {
@@ -315,17 +312,17 @@ But I make these pages for me, not for you.
       // Initialise words
       phrase.text.forEach((word, i) => {
         const a = document.createElement('a');
-        a.href = pageRandomiser.nextOne();
+        a.href = LAB.pageRandomiser.nextOne();
         a.className = 'word-link';
         a.innerText = word;
         a.style.opacity = "0";
 
         const state = {
           el: a,
-          x: Math.random() * window.innerWidth,
-          y: Math.random() * window.innerHeight,
-          vx: (Math.random() - 0.5) * 1.5,
-          vy: (Math.random() - 0.5) * 1.5,
+          x: LAB.rand(0, window.innerWidth),
+          y: LAB.rand(0, window.innerHeight),
+          vx: LAB.rand(-0.75, 0.75),
+          vy: LAB.rand(-0.75, 0.75),
           indices: [i],
           finished: false,
           phrase: phrase
@@ -351,10 +348,10 @@ But I make these pages for me, not for you.
 
       const state = {
         el: dot,
-        x: Math.random() * window.innerWidth,
-        y: Math.random() * window.innerHeight,
-        vx: (Math.random() - 0.5) * 0.2,
-        vy: (Math.random() - 0.5) * 0.2
+        x: LAB.rand(0, window.innerWidth),
+        y: LAB.rand(0, window.innerHeight),
+        vx: LAB.rand(-0.1, 0.1),
+        vy: LAB.rand(-0.1, 0.1)
       };
 
       container.appendChild(dot);
@@ -415,7 +412,7 @@ But I make these pages for me, not for you.
           explodeAndReset();
         };
       } else {
-        newEl.href = pageRandomiser.nextOne();
+        newEl.href = LAB.pageRandomiser.nextOne();
       }
 
       container.removeChild(a.el);

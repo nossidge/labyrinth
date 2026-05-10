@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Some spider...">
   <title>Charlotte's Webpage</title>
@@ -128,23 +128,20 @@
   <canvas id="canvas-background"></canvas>
   <div id="web-container"></div>
 
-  <script src="../../common/labyrinthPages.js"></script>
-  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/charlotte";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('charlotte');
 
     const phrases = [
-      "SOME PIG",
-      "TERRIFIC",
-      "RADIANT",
-      "HUMBLE"
+      'SOME PIG',
+      'TERRIFIC',
+      'RADIANT',
+      'HUMBLE',
     ];
 
     let currentPhraseIndex = 0;
 
-    // 5x5 Font Data
+    // Fonts are 5x5 pixels
     const font = {
       'A': [0, 1, 1, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1],
       'B': [1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0],
@@ -230,7 +227,7 @@
         for (const char of word) {
           const letterGrid = document.createElement('a');
           letterGrid.className = 'letter-grid';
-          letterGrid.href = pageRandomiser.nextOne();
+          letterGrid.href = LAB.pageRandomiser.nextOne();
 
           // Prevents phrase change being triggered just before the page change
           letterGrid.addEventListener('click', (e) => {
@@ -244,8 +241,8 @@
             if (bit) {
               pixel.classList.add('on');
               pixel.textContent = '🕸️';
-              pixel.style.animation = `pulse ${2 + Math.random() * 2}s ease-in-out infinite`;
-              pixel.style.animationDelay = `${Math.random() * 2}s`;
+              pixel.style.animation = `pulse ${LAB.rand(2, 4)}s ease-in-out infinite`;
+              pixel.style.animationDelay = `${LAB.rand(0, 2)}s`;
             }
             letterGrid.appendChild(pixel);
           });
@@ -267,6 +264,7 @@
 
     resize();
     renderPhrase(phrases[0]);
+
   </script>
 </body>
 

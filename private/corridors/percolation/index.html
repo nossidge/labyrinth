@@ -7,7 +7,7 @@ Percolated.
 -->
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="The percolations of listening to The Wallflowers">
   <title>p = 0.5927</title>
@@ -25,7 +25,7 @@ Percolated.
       background: #0a0a0a;
       overflow: hidden;
       font-family: "Courier New", monospace;
-      color: #aaa;
+      color: #aaaaaa;
     }
 
     #grid-container {
@@ -58,11 +58,11 @@ Percolated.
     }
 
     #hud .label {
-      color: #555;
+      color: #555555;
     }
 
     #hud .value {
-      color: #ccc;
+      color: #cccccc;
     }
 
     canvas {
@@ -123,12 +123,9 @@ Percolated.
     <span class="label">STATUS: </span><span class="value" id="status">FILLING</span>
   </div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/percolation";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('percolation');
 
     const canvas = document.getElementById('grid-canvas');
     const ctx = canvas.getContext('2d');
@@ -144,7 +141,7 @@ Percolated.
     let grid;           // 0 = blocked, 1 = open
     let parent;         // union-find parent
     let rank;           // union-find rank
-    let clusterColor;   // root -> colour string
+    let clusterColour;   // root -> colour string
     let openCount;
     let clusterCount;   // tracked incrementally
     let closedIndices;
@@ -155,10 +152,10 @@ Percolated.
 
     // Palette: distinct hues for clusters
     function hueForRoot(root) {
-      if (!clusterColor[root]) {
-        clusterColor[root] = `hsl(${(root * 137.508 + hueOffset) % 360}, 70%, 55%)`;
+      if (!clusterColour[root]) {
+        clusterColour[root] = `hsl(${(root * 137.508 + hueOffset) % 360}, 70%, 55%)`;
       }
-      return clusterColor[root];
+      return clusterColour[root];
     }
 
     // Union-Find
@@ -178,14 +175,14 @@ Percolated.
       if (rank[ra] < rank[rb]) { let t = ra; ra = rb; rb = t; }
       parent[rb] = ra;
       if (rank[ra] === rank[rb]) rank[ra]++;
-      if (!clusterColor[ra] && clusterColor[rb]) { clusterColor[ra] = clusterColor[rb]; }
+      if (!clusterColour[ra] && clusterColour[rb]) { clusterColour[ra] = clusterColour[rb]; }
     }
 
     function idx(c, r) { return r * cols + c; }
 
     function shuffle(arr) {
       for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
+        const j = LAB.randInt(0, i);
         [arr[i], arr[j]] = [arr[j], arr[i]];
       }
       return arr;
@@ -202,11 +199,11 @@ Percolated.
       grid = new Uint8Array(totalCells);
       parent = new Int32Array(totalCells);
       rank = new Int32Array(totalCells);
-      clusterColor = {};
+      clusterColour = {};
       openCount = 0;
       clusterCount = 0;
       percolated = false;
-      hueOffset = Math.random() * 360;
+      hueOffset = LAB.rand(0, 360);
       dirtyIndices = [];
 
       for (let i = 0; i < totalCells; i++) {
@@ -389,7 +386,7 @@ Percolated.
     }
 
     canvas.addEventListener('click', () => {
-      window.location.href = pageRandomiser.nextOne();
+      window.location.href = LAB.pageRandomiser.nextOne();
     });
 
     // Click the ` key to toggle the HUD

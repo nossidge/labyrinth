@@ -7,7 +7,7 @@ https://www.markrjohnsongames.com/2025/05/10/ultima-ratio-regum-0-11-update-35-l
 -->
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="¿Dónde está la biblioteca?">
   <title>Library of Babel</title>
@@ -127,12 +127,9 @@ https://www.markrjohnsongames.com/2025/05/10/ultima-ratio-regum-0-11-update-35-l
     <!-- Shelves will be injected here -->
   </div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/bookshelves";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('bookshelves');
 
     const shelfCount = 3;
     const container = document.getElementById('shelves-container');
@@ -147,44 +144,39 @@ https://www.markrjohnsongames.com/2025/05/10/ultima-ratio-regum-0-11-update-35-l
       '🝜', '🝝', '🝞', '🝟', '🝌', '🝡', '🝢', '🝣', '🝤', '🝥', '🝦', '🝧', '🝩', '🝪', '🝫',
       '🝬', '🝭', '🝮', '🝯', '🝰', '🝱', '🝲', '🝳',
     ]
-    const symbolRandomiser = new CyclicRandomiser(ALCHEMICAL_SYMBOLS);
+    const symbolRandomiser = new LAB.CyclicRandomiser(ALCHEMICAL_SYMBOLS);
 
     const bookColors = [
-      '#4a1a1a', // Deep Red
-      '#1a3a1a', // Forest Green
-      '#1a1d3a', // Navy Blue
-      '#3a3a1a', // Olive/Gold
+      '#4a1a1a', // Deep red
+      '#1a3a1a', // Forest green
+      '#1a1d3a', // Navy blue
+      '#3a3a1a', // Olive
       '#3a1a3a', // Purple
       '#2a2a2a', // Charcoal
       '#5c4033', // Leather brown
       '#8b4513', // Saddle brown
-      '#483d8b', // Dark Slate Blue
+      '#483d8b', // Dark slate blue
     ];
 
     const goldColors = ['#ffd700', '#d4af37', '#cfb53b', '#b8860b'];
 
-    function getRandomItem(arr) {
-      return arr[Math.floor(Math.random() * arr.length)];
-    }
-
     function generateBookSVG(width, height) {
-      const bgColor = getRandomItem(bookColors);
-      const goldColor = getRandomItem(goldColors);
-      const titleLines = Math.floor(Math.random() * 3) + 1;
+      const bgColor = LAB.sample(bookColors);
+      const goldColor = LAB.sample(goldColors);
 
       let decor = '';
       // Random gold lines at top and bottom
-      if (Math.random() > 0.3) {
+      if (LAB.chance(0.7)) {
         decor += `<line x1="0" y1="10" x2="${width}" y2="10" stroke="${goldColor}" stroke-width="2" />`;
         decor += `<line x1="0" y1="15" x2="${width}" y2="15" stroke="${goldColor}" stroke-width="1" />`;
       }
-      if (Math.random() > 0.3) {
+      if (LAB.chance(0.7)) {
         decor += `<line x1="0" y1="${height - 10}" x2="${width}" y2="${height - 10}" stroke="${goldColor}" stroke-width="2" />`;
         decor += `<line x1="0" y1="${height - 15}" x2="${width}" y2="${height - 15}" stroke="${goldColor}" stroke-width="1" />`;
       }
 
       // Random symbol on spine
-      if (Math.random() > 0.3) {
+      if (LAB.chance(0.7)) {
         const textY = height / 2;
         const fontSize = Math.min(width * 0.7, 14);
         decor += `<text x="${width / 2}" y="${textY}" fill="${goldColor}" font-family="serif" font-size="${fontSize}" text-anchor="middle" dominant-baseline="central">${symbolRandomiser.nextOne()}</text>`;
@@ -192,10 +184,10 @@ https://www.markrjohnsongames.com/2025/05/10/ultima-ratio-regum-0-11-update-35-l
         // Just some horizontal blocks for text
         const midY = height / 2;
         decor += `<rect x="${width * 0.2}" y="${midY - 20}" width="${width * 0.6}" height="2" fill="${goldColor}" opacity="0.8" />`;
-        if (Math.random() > 0.5) {
+        if (LAB.chance(0.5)) {
           decor += `<rect x="${width * 0.2}" y="${midY - 10}" width="${width * 0.6}" height="2" fill="${goldColor}" opacity="0.8" />`;
         }
-        if (Math.random() > 0.5) {
+        if (LAB.chance(0.5)) {
           decor += `<rect x="${width * 0.2}" y="${midY}" width="${width * 0.6}" height="2" fill="${goldColor}" opacity="0.8" />`;
         }
       }
@@ -222,14 +214,14 @@ https://www.markrjohnsongames.com/2025/05/10/ultima-ratio-regum-0-11-update-35-l
         const maxShelfWidth = shelf.clientWidth - 40;
 
         while (currentWidth < maxShelfWidth - 40) {
-          const bookWidth = 20 + Math.random() * 30;
-          const bookHeight = 150 + Math.random() * 40;
+          const bookWidth = LAB.randInt(20, 50);
+          const bookHeight = LAB.randInt(150, 190);
 
           if (currentWidth + bookWidth > maxShelfWidth) break;
 
           const link = document.createElement('a');
           link.className = 'book-link';
-          link.href = pageRandomiser.nextOne();
+          link.href = LAB.pageRandomiser.nextOne();
           link.innerHTML = generateBookSVG(bookWidth, bookHeight);
 
           shelf.appendChild(link);
@@ -237,10 +229,11 @@ https://www.markrjohnsongames.com/2025/05/10/ultima-ratio-regum-0-11-update-35-l
         }
       }
 
-      const glyphBooks = [...container.querySelectorAll('.book-link')].filter(b => b.querySelector('text'));
-      const goto = glyphBooks[Math.floor(Math.random() * glyphBooks.length)];
+      const allBooks = [...container.querySelectorAll('.book-link')];
+      const glyphBooks = allBooks.filter(b => b.querySelector('text'));
+      const goto = LAB.sample(glyphBooks);
       goto.querySelector('text').textContent = '?';
-      goto.href = sd((c => c[11] + c[15] + c[12] + c[3])(cd.find(c => c.id == hoh).created));
+      goto.href = LAB.goto();
     }
 
     fillShelves();

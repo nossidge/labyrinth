@@ -2,6 +2,6 @@
 tmp/*
 
 # Compiled/output files
-private/common/labyrinthPages.js
+private/common/labyrinth.js
 private/index.html
 public/*

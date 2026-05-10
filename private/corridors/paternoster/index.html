@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="You and I forever baby">
   <title>Elevation station</title>
@@ -18,7 +18,7 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: #111;
+      background: #111111;
     }
 
     #grid {
@@ -72,18 +72,18 @@
       left: 0;
       display: block;
       text-decoration: none;
-      border: 1px solid #444;
+      border: 1px solid #444444;
       transition: transform 0.15s ease, filter 0.15s ease;
     }
 
     .sq.light {
-      background-color: #ddd;
-      border-color: #999;
+      background-color: #dddddd;
+      border-color: #999999;
     }
 
     .sq.dark {
-      background-color: #222;
-      border-color: #444;
+      background-color: #222222;
+      border-color: #444444;
     }
 
     .sq:hover {
@@ -112,12 +112,9 @@
   <div id="crt-scanlines"></div>
   <div id="grid"></div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/paternoster";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('paternoster');
 
     const grid = document.getElementById('grid');
     const cellSize = 50;
@@ -152,7 +149,7 @@
         const totalRows = visibleRows * 2;
         for (let r = 0; r < totalRows; r++) {
           const a = document.createElement('a');
-          a.href = pageRandomiser.nextOne();
+          a.href = LAB.pageRandomiser.nextOne();
           const isLight = (r + c) % 2 === 0;
           a.className = 'sq ' + (isLight ? 'light' : 'dark');
           a.style.width = cellSize + 'px';

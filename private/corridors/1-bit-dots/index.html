@@ -11,16 +11,16 @@ https://baudinstudio.gumroad.com/l/gnnego
 -->
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="DOT MATRIX WITHOUT STEREO SOUND">
   <title>1-Bit Dots</title>
   <style>
     :root {
-      --bg-color: #222;
-      --dot-white: #fff;
-      --dot-black: #222;
-      --highlight-bg: #222;
+      --bg-color: #222222;
+      --dot-white: #ffffff;
+      --dot-black: #222222;
+      --highlight-bg: #222222;
     }
 
     * {
@@ -55,18 +55,18 @@ https://baudinstudio.gumroad.com/l/gnnego
 
     .dot-group:hover {
       background-color: var(--highlight-bg);
-      border: 1px solid #444;
+      border: 1px solid #444444;
       z-index: 5;
     }
 
     /* Invert dots on hover */
     .dot-group:hover .dot.white {
-      background-color: #000;
-      box-shadow: 0 0 2px #fff;
+      background-color: #000000;
+      box-shadow: 0 0 2px #ffffff;
     }
 
     .dot-group:hover .dot.black {
-      background-color: #555;
+      background-color: #555555;
     }
 
     .dot {
@@ -81,8 +81,7 @@ https://baudinstudio.gumroad.com/l/gnnego
       background-color: var(--dot-black);
     }
 
-    /* Scanline / CRT effect */
-    #overlays {
+    #crt-scanlines {
       position: fixed;
       top: 0;
       left: 0;
@@ -99,15 +98,12 @@ https://baudinstudio.gumroad.com/l/gnnego
 </head>
 
 <body>
-  <div id="overlays"></div>
+  <div id="crt-scanlines"></div>
   <main id="matrix-container"></main>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/1-bit-dots";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('1-bit-dots');
 
     const groupSpacing = 1;         // Pixel spacing between groups
     const groupSquareRoot = 10;     // The number squared of dots per group
@@ -137,7 +133,7 @@ https://baudinstudio.gumroad.com/l/gnnego
       for (let gr = 0; gr < groupRows; gr++) {
         for (let gc = 0; gc < groupCols; gc++) {
           const group = document.createElement('a');
-          group.href = pageRandomiser.nextOne();
+          group.href = LAB.pageRandomiser.nextOne();
           group.className = 'dot-group';
           group.style.gap = `${dotSpacing}px`;
 

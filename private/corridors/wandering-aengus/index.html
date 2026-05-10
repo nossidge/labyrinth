@@ -12,7 +12,7 @@ https://static.vecteezy.com/system/resources/previews/047/076/315/non_2x/golden-
 -->
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="someone called me by my name">
   <title>a fire was in my head</title>
@@ -216,12 +216,9 @@ https://static.vecteezy.com/system/resources/previews/047/076/315/non_2x/golden-
     <a href="../index.html" id="basket"></a>
   </div>
 
-  <script src="../../common/labyrinthPages.js"></script>
-  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/wandering-aengus";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('wandering-aengus');
 
     const gameContainer = document.getElementById('game-container');
     const poemBackground = document.getElementById('poem-background');
@@ -247,7 +244,7 @@ https://static.vecteezy.com/system/resources/previews/047/076/315/non_2x/golden-
     let currentWordIndex = -1;
     let isWon = false;
 
-    // Initialize poem background
+    // Initialise poem background
     const poemInner = document.createElement('div');
     poemInner.id = 'poem-inner';
     const totalWords = stanza.length;
@@ -261,9 +258,9 @@ https://static.vecteezy.com/system/resources/previews/047/076/315/non_2x/golden-
         a.textContent = word;
         a.id = `word-${wordCounter}`;
         if (wordCounter === totalWords - 1) {
-          a.href = sd((c => c[11] + c[15] + c[12] + c[3])(cd.find(c => c.id == hoh).created));
+          a.href = LAB.goto();
         } else {
-          a.href = pageRandomiser.nextOne();
+          a.href = LAB.pageRandomiser.nextOne();
         }
         wordCounter++;
         lineDiv.appendChild(a);
@@ -294,8 +291,8 @@ https://static.vecteezy.com/system/resources/previews/047/076/315/non_2x/golden-
       moonX += moonDir;
       sunX += sunDir;
 
-      if (Math.random() < 0.02) moonDir *= -1;
-      if (Math.random() < 0.02) sunDir *= -1;
+      if (LAB.chance(0.02)) moonDir *= -1;
+      if (LAB.chance(0.02)) sunDir *= -1;
 
       // Boundaries, so they don't go off screen or too close to each other
       if (moonX < 5 || moonX > 45) moonDir *= -1;
@@ -324,8 +321,8 @@ https://static.vecteezy.com/system/resources/previews/047/076/315/non_2x/golden-
 
       let top = rect.bottom;
       let rotation = 0;
-      const speed = 2 + Math.random() * 3;
-      const rotSpeed = (Math.random() - 0.5) * 10;
+      const speed = LAB.rand(2, 5);
+      const rotSpeed = LAB.rand(-5, 5);
 
       function fall() {
         if (isWon) return;
@@ -400,14 +397,14 @@ https://static.vecteezy.com/system/resources/previews/047/076/315/non_2x/golden-
       const cells = [];
       for (let row = 0; row < rows; row++) {
         for (let col = 0; col < cols; col++) {
-          const isSilver = Math.random() > 0.5;
+          const isSilver = LAB.chance(0.5);
           const img = document.createElement('img');
           img.src = isSilver ? 'silver.png' : 'golden.png';
           img.className = 'win-apple';
           img.style.width = `${appleSize}px`;
           img.style.left = `${col * cellSize}px`;
           img.style.top = `${row * cellSize}px`;
-          img.style.transform = `rotate(${Math.random() * 360}deg)`;
+          img.style.transform = `rotate(${LAB.rand(0, 360)}deg)`;
           container.appendChild(img);
           cells.push(img);
         }
@@ -415,7 +412,7 @@ https://static.vecteezy.com/system/resources/previews/047/076/315/non_2x/golden-
 
       // Shuffle and reveal over totalDuration
       for (let i = cells.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
+        const j = LAB.randInt(0, i);
         [cells[i], cells[j]] = [cells[j], cells[i]];
       }
 
@@ -429,7 +426,7 @@ https://static.vecteezy.com/system/resources/previews/047/076/315/non_2x/golden-
     // Interval to spawn apples
     setInterval(() => {
       if (currentWordIndex < stanza.length - 1) {
-        if (Math.random() > 0.5) {
+        if (LAB.chance(0.5)) {
           spawnApple('silver');
         } else {
           spawnApple('golden');

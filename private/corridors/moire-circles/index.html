@@ -8,7 +8,7 @@ hits your eye like a big pizza pie, that's a moiré.
 -->
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Film Moiré">
   <title>Moiré circles</title>
@@ -36,8 +36,7 @@ hits your eye like a big pizza pie, that's a moiré.
       z-index: 1;
     }
 
-    /* CRT scanline */
-    #crt {
+    #crt-scanlines {
       position: fixed;
       top: 0;
       left: 0;
@@ -54,17 +53,14 @@ hits your eye like a big pizza pie, that's a moiré.
 </head>
 
 <body>
-  <div id="crt"></div>
+  <div id="crt-scanlines"></div>
   <a href="../index.html">
     <canvas id="canvas"></canvas>
   </a>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/moire-circles";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('moire-circles');
 
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
@@ -89,28 +85,17 @@ hits your eye like a big pizza pie, that's a moiré.
       { h: 60, s: 90, l: 55 },
     ];
 
-    function rand(min, max) { return Math.random() * (max - min) + min; }
-    function randInt(min, max) { return Math.floor(rand(min, max + 1)); }
-
-    function shuffleArray(arr) {
-      for (let i = arr.length - 1; i > 0; i--) {
-        const j = randInt(0, i);
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-      }
-      return arr;
-    }
-
     function hsla(col, alpha) {
       return `hsla(${col.h}, ${col.s}%, ${col.l}%, ${alpha})`;
     }
 
-    const emitterCount = randInt(3, 5);
-    const chosenPalettes = shuffleArray([...palettes]).slice(0, emitterCount);
+    const emitterCount = LAB.randInt(3, 5);
+    const chosenPalettes = LAB.shuffle(palettes).slice(0, emitterCount);
 
     function randomEmitterPos() {
       return {
-        x: rand(0.15, 0.85) * W,
-        y: rand(0.15, 0.85) * H,
+        x: LAB.rand(0.15, 0.85) * W,
+        y: LAB.rand(0.15, 0.85) * H,
       };
     }
 
@@ -120,14 +105,14 @@ hits your eye like a big pizza pie, that's a moiré.
       emitters.push({
         x: pos.x, y: pos.y,
         color: chosenPalettes[i],
-        ringCount: randInt(38, 43),
-        baseSpeed: rand(0.3, 0.7),
-        phaseOffset: rand(0, Math.PI * 2),
-        driftAngle: rand(0, Math.PI * 2),
-        driftSpeed: rand(0.08, 0.2),
+        ringCount: LAB.randInt(38, 43),
+        baseSpeed: LAB.rand(0.3, 0.7),
+        phaseOffset: LAB.rand(0, Math.PI * 2),
+        driftAngle: LAB.rand(0, Math.PI * 2),
+        driftSpeed: LAB.rand(0.08, 0.2),
         originX: pos.x,
         originY: pos.y,
-        driftRadius: rand(30, 90),
+        driftRadius: LAB.rand(30, 90),
       });
     }
 
@@ -190,8 +175,8 @@ hits your eye like a big pizza pie, that's a moiré.
         const pos = randomEmitterPos();
         em.originX = pos.x;
         em.originY = pos.y;
-        em.driftAngle = rand(0, Math.PI * 2);
-        em.phaseOffset = rand(0, Math.PI * 2);
+        em.driftAngle = LAB.rand(0, Math.PI * 2);
+        em.phaseOffset = LAB.rand(0, Math.PI * 2);
       });
     });
 

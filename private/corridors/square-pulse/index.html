@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="pulsing matilda">
   <title>□▣■▣□▣■▣□</title>
@@ -18,7 +18,7 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: #000;
+      background: #000000;
     }
 
     canvas {
@@ -69,18 +69,9 @@
   <canvas id="canvas"></canvas>
   <div id="links"></div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/square-pulse";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
-
-    // Useful randomisation helpers
-    function rand(min, max) { return Math.random() * (max - min) + min; }
-    function randInt(min, max) { return Math.floor(rand(min, max + 1)); }
-    function randIndex(array) { return randInt(0, array.length - 1); }
-    function sample(array) { return array[randIndex(array)]; }
+    const LAB = new Labyrinth('square-pulse');
 
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
@@ -103,7 +94,7 @@
       ['#00fff0', '#ff003c', '#000000', '#111111', '#ffffff'],
     ];
 
-    let palette = sample(palettes);
+    let palette = LAB.sample(palettes);
 
     // Concentric rectangle blocks that decay and reform
     // It should look like they are growing/shrinking, or breathing sort of
@@ -122,18 +113,18 @@
         for (let col = 0; col < COLS; col++) {
           const cx = col * cellW + cellW / 2;
           const cy = row * cellH + cellH / 2;
-          const layers = randInt(3, 6);
+          const layers = LAB.randInt(3, 6);
 
           blocks.push({
             cx, cy,
             cellW, cellH,
             col, row,
             layers,
-            phase: rand(0, Math.PI * 2),
-            speed: rand(0.005, 0.025),
-            color1: sample(palette),
-            color2: sample(palette),
-            decayOffset: rand(0, 1000),
+            phase: LAB.rand(0, Math.PI * 2),
+            speed: LAB.rand(0.005, 0.025),
+            colour1: LAB.sample(palette),
+            colour2: LAB.sample(palette),
+            decayOffset: LAB.rand(0, 1000),
             glitchTimer: 0,
             glitchDuration: 0,
             glitchShiftX: 0,
@@ -155,7 +146,7 @@
       for (let row = 0; row < ROWS; row++) {
         for (let col = 0; col < COLS; col++) {
           const a = document.createElement('a');
-          a.href = pageRandomiser.nextOne();
+          a.href = LAB.pageRandomiser.nextOne();
           a.style.left = (col * cellW) + 'px';
           a.style.top = (row * cellH) + 'px';
           a.style.width = cellW + 'px';
@@ -182,11 +173,11 @@
         const breathe = (Math.sin(t * 0.7 + 1.3) + 1) / 2;
 
         // Occasional glitch
-        if (b.glitchTimer <= 0 && Math.random() < 0.003) {
-          b.glitchTimer = randInt(5, 14);
+        if (b.glitchTimer <= 0 && LAB.chance(0.003)) {
+          b.glitchTimer = LAB.randInt(5, 14);
           b.glitchDuration = b.glitchTimer;
-          b.glitchShiftX = rand(-0.5, 0.5) * b.cellW * 0.4;
-          b.glitchShiftY = rand(-0.5, 0.5) * b.cellH * 0.1;
+          b.glitchShiftX = LAB.rand(-0.5, 0.5) * b.cellW * 0.4;
+          b.glitchShiftY = LAB.rand(-0.5, 0.5) * b.cellH * 0.1;
         }
 
         let ox = 0, oy = 0;
@@ -214,7 +205,7 @@
 
           // Alternate colours per layer
           const alpha = 0.3 + 0.7 * layerDecay;
-          ctx.strokeStyle = (i % 2 === 0) ? b.color1 : b.color2;
+          ctx.strokeStyle = (i % 2 === 0) ? b.colour1 : b.colour2;
           ctx.globalAlpha = alpha;
           ctx.lineWidth = 1 + decay * 2;
 
@@ -222,7 +213,7 @@
 
           // Inner fill on some layers for depth
           if (i === 0) {
-            ctx.fillStyle = b.color1;
+            ctx.fillStyle = b.colour1;
             ctx.globalAlpha = alpha * 0.1;
             ctx.fillRect(x, y, w, h);
           }
@@ -233,10 +224,10 @@
 
       // Horizontal glitch bands
       // These span the entire width of the screen
-      if (Math.random() < 0.04) {
-        const bandY = rand(0, H);
-        const bandH = rand(2, 8);
-        const shift = rand(-20, 20);
+      if (LAB.chance(0.04)) {
+        const bandY = LAB.rand(0, H);
+        const bandH = LAB.rand(2, 8);
+        const shift = LAB.rand(-20, 20);
         const imgData = ctx.getImageData(0, bandY, W, bandH);
         ctx.putImageData(imgData, shift, bandY);
       }
@@ -258,10 +249,10 @@
       if (e.ctrlKey || e.altKey || e.shiftKey || e.metaKey) return;
       if (e.key === 'Tab' || e.key === 'F5') return;
 
-      palette = sample(palettes);
+      palette = LAB.sample(palettes);
       for (const b of blocks) {
-        b.color1 = sample(palette);
-        b.color2 = sample(palette);
+        b.colour1 = LAB.sample(palette);
+        b.colour2 = LAB.sample(palette);
       }
     });
 

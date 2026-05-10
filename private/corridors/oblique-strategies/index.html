@@ -14,7 +14,7 @@ musicians) break creative blocks by encouraging lateral thinking.
 -->
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Over One Hundred Worthwhile Dilemmas">
   <title>Oblique Strategies</title>
@@ -132,12 +132,9 @@ musicians) break creative blocks by encouraging lateral thinking.
     <div class="deck" id="deck" tabindex="0" title="Click or press any key to draw a card"></div>
   </div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/oblique-strategies";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('oblique-strategies');
 
     const STRATEGIES_POOL = [
       "(Organic) machinery",
@@ -353,7 +350,7 @@ musicians) break creative blocks by encouraging lateral thinking.
       "Your mistake was a hidden intention",
       " ",
     ];
-    const strategyRandomiser = new CyclicRandomiser(STRATEGIES_POOL);
+    const strategyRandomiser = new LAB.CyclicRandomiser(STRATEGIES_POOL);
 
     const container = document.body;
     const deck = document.getElementById('deck');
@@ -363,7 +360,7 @@ musicians) break creative blocks by encouraging lateral thinking.
       const phrase = strategyRandomiser.nextOne();
       const card = document.createElement('a');
       card.className = 'card';
-      card.href = pageRandomiser.nextOne();
+      card.href = LAB.pageRandomiser.nextOne();
       card.innerText = phrase;
 
       // Initial strategy: newly created cards go on top of old ones
@@ -375,9 +372,9 @@ musicians) break creative blocks by encouraging lateral thinking.
       });
 
       // Random end position (anywhere on the screen, independent of deck location)
-      const targetX = Math.random() * (window.innerWidth - 400);
-      const targetY = Math.random() * (window.innerHeight - 300);
-      const rotate = (Math.random() - 0.5) * 40;
+      const targetX = LAB.rand(0, window.innerWidth - 400);
+      const targetY = LAB.rand(0, window.innerHeight - 300);
+      const rotate = LAB.rand(-20, 20);
 
       // Start at deck position
       const deckRect = deck.getBoundingClientRect();

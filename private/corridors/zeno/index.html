@@ -2,17 +2,17 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description"
-    content="Half a league, half a half-league, half a half-half-league onward.">
+    content="Half a league, half a half-league, half a half-half-league onward">
   <title>Asymptote</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap"
     rel="stylesheet">
   <style>
-    /* Windows 95/98 Aesthetic */
+    /* Windows 95/98 sort of aesthetic */
     :root {
       --win-gray: #c0c0c0;
       --win-white: #ffffff;
@@ -24,7 +24,6 @@
 
     body {
       background-color: #008080;
-      /* Classic Teal Desktop */
       margin: 0;
       padding: 0;
       height: 100vh;
@@ -315,12 +314,9 @@
     <div id="taskbar-clock">00:00</div>
   </div>
 
-  <script src="../../common/labyrinthPages.js"></script>
-  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/zeno";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('zeno');
 
     const RATES_POOL = [
       "0.0001 atoms/sec",
@@ -346,9 +342,9 @@
       "Waiting for Achilles",
       "Reticulating splines",
     ];
-    const rateRandomiser = new CyclicRandomiser(RATES_POOL);
-    const timeRandomiser = new CyclicRandomiser(TIMES_POOL);
-    const descriptionRandomiser = new CyclicRandomiser(DESCRIPTIONS_POOL);
+    const rateRandomiser = new LAB.CyclicRandomiser(RATES_POOL);
+    const timeRandomiser = new LAB.CyclicRandomiser(TIMES_POOL);
+    const descriptionRandomiser = new LAB.CyclicRandomiser(DESCRIPTIONS_POOL);
 
     const progressBar = document.getElementById('progress-bar');
     const transferPercentage = document.getElementById('transfer-percentage');

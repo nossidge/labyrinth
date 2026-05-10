@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<!--[if lt IE 7]> <html class="no-js ie6 oldie" lang="en-US"> <![endif]-->
-<!--[if IE 7]>    <html class="no-js ie7 oldie" lang="en-US"> <![endif]-->
-<!--[if IE 8]>    <html class="no-js ie8 oldie" lang="en-US"> <![endif]-->
+<!--[if lt IE 7]> <html class="no-js ie6 oldie" lang="en-GB"> <![endif]-->
+<!--[if IE 7]>    <html class="no-js ie7 oldie" lang="en-GB"> <![endif]-->
+<!--[if IE 8]>    <html class="no-js ie8 oldie" lang="en-GB"> <![endif]-->
 <!--[if gt IE 8]><!-->
-<html class="no-js" lang="en-US"> <!--<![endif]-->
+<html class="no-js" lang="en-GB"> <!--<![endif]-->
 
 <!--
 Created with "CF Error Page Editor":
@@ -831,48 +831,44 @@ Hi dorks.
     </div>
   </div>
 
-  <script src="../../common/labyrinthPages.js"></script>
-  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/cloudflare";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('cloudflare');
 
-    document.addEventListener("DOMContentLoaded", function () {
-      // Reveal IP functionality
-      const ipFooter = document.getElementById("cf-footer-item-ip");
-      const revealBtn = document.getElementById("cf-footer-ip-reveal");
-      const ipSpan = document.getElementById("cf-footer-ip");
+    // Reveal IP functionality
+    const ipFooter = document.getElementById('cf-footer-item-ip');
+    const revealBtn = document.getElementById('cf-footer-ip-reveal');
+    const ipSpan = document.getElementById('cf-footer-ip');
 
-      if (ipFooter && revealBtn && ipSpan) {
-        ipFooter.classList.remove("hidden");
-        revealBtn.addEventListener("click", function () {
-          revealBtn.classList.add("hidden");
-          ipSpan.classList.remove("hidden");
-        });
-      }
+    if (ipFooter && revealBtn && ipSpan) {
+      ipFooter.classList.remove('hidden');
+      revealBtn.addEventListener('click', function () {
+        revealBtn.classList.add('hidden');
+        ipSpan.classList.remove('hidden');
+      });
+    }
 
-      // Dynamic timestamp functionality
-      const timestampEl = document.getElementById("cf-timestamp");
-      if (timestampEl) {
-        const now = new Date();
-        const year = now.getUTCFullYear();
-        const month = String(now.getUTCMonth() + 1).padStart(2, '0');
-        const day = String(now.getUTCDate()).padStart(2, '0');
-        const hours = String(now.getUTCHours()).padStart(2, '0');
-        const minutes = String(now.getUTCMinutes()).padStart(2, '0');
-        const seconds = String(now.getUTCSeconds()).padStart(2, '0');
+    // Dynamic timestamp functionality
+    const timestampEl = document.getElementById('cf-timestamp');
+    if (timestampEl) {
+      const now = new Date();
+      const year = now.getUTCFullYear();
+      const month = String(now.getUTCMonth() + 1).padStart(2, '0');
+      const day = String(now.getUTCDate()).padStart(2, '0');
+      const hours = String(now.getUTCHours()).padStart(2, '0');
+      const minutes = String(now.getUTCMinutes()).padStart(2, '0');
+      const seconds = String(now.getUTCSeconds()).padStart(2, '0');
 
-        timestampEl.textContent = `${year}-${month}-${day} ${hours}:${minutes}:${seconds} UTC`;
-      }
+      timestampEl.textContent = `${year}-${month}-${day} ${hours}:${minutes}:${seconds} UTC`;
+    }
 
-      // Randomised Ray ID (I guess this is a Cloudflare reference ID thing)
-      const rayIdEl = document.getElementById("cf-ray-id");
-      if (rayIdEl) {
-        const hex = crypto.getRandomValues(new Uint8Array(8)).toHex();
-        rayIdEl.textContent = hex;
-      }
-    });
+    // Randomised Ray ID (I guess this is a Cloudflare reference ID thing)
+    const rayIdEl = document.getElementById('cf-ray-id');
+    if (rayIdEl) {
+      const hex = crypto.getRandomValues(new Uint8Array(8)).toHex();
+      rayIdEl.textContent = hex;
+    }
+
   </script>
 </body>
 

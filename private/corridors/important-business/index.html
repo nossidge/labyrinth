@@ -2,9 +2,9 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Synergizing the paradigm shift in real-time metrics.">
+  <meta name="description" content="Synergizing the paradigm shift in real-time metrics">
   <title>IMPORTANT BUSINESS</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -466,12 +466,9 @@
     </div>
   </div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/important-business";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('important-business');
 
     const LOG_MESSAGES_POOL = [
       "Synergizing the paradigm shift in real-time metrics",
@@ -486,7 +483,7 @@
       "Incentivizing the next-gen workflow to move the needle on scalability",
       "Unpacking the omnichannel pain points in a post-normal landscape",
     ];
-    const logMessagesRandomiser = new CyclicRandomiser(LOG_MESSAGES_POOL);
+    const logMessagesRandomiser = new LAB.CyclicRandomiser(LOG_MESSAGES_POOL);
 
     const TICKER_QUOTES_POOL = [
       "THE MARKET IS ALWAYS RIGHT.",
@@ -508,7 +505,7 @@
       "INNOVATION WITHOUT PROFIT IS CONSIDERED INDUSTRIAL TREASON.",
       "YOUR IDENTITY IS PROPRIETARY PROPERTY OF THE CORPORATION.",
     ];
-    const tickerQuotesRandomiser = new CyclicRandomiser(TICKER_QUOTES_POOL);
+    const tickerQuotesRandomiser = new LAB.CyclicRandomiser(TICKER_QUOTES_POOL);
 
     const FIRST_NAMES_POOL = ["Alice", "Betty", "Carol", "David", "Edwin", "Fiona", "Grace",
       "Holly", "Irvin", "Julie", "Kathy", "Laura", "Megan", "Nancy", "Ollie", "Penny", "Quinn",
@@ -522,7 +519,7 @@
         EMPLOYEE_NAME_POOL.push(`${f} ${l}`);
       }
     }
-    const employeeNameRandomiser = new CyclicRandomiser(EMPLOYEE_NAME_POOL);
+    const employeeNameRandomiser = new LAB.CyclicRandomiser(EMPLOYEE_NAME_POOL);
 
     // Clock
     function updateClock() {
@@ -582,15 +579,15 @@
     const sentimentGrid = document.getElementById('sentiment-grid');
     for (let i = 0; i < 100; i++) {
       const div = document.createElement('div');
-      div.style.backgroundColor = `rgb(0, ${Math.floor(Math.random() * 255)}, 0)`;
+      div.style.backgroundColor = `rgb(0, ${LAB.randInt(0, 254)}, 0)`;
       sentimentGrid.appendChild(div);
     }
 
     function updateSentiment() {
       const children = sentimentGrid.children;
       for (let i = 0; i < children.length; i++) {
-        if (Math.random() > 0.8) {
-          children[i].style.backgroundColor = `rgb(0, ${Math.floor(Math.random() * 255)}, 0)`;
+        if (LAB.chance(0.2)) {
+          children[i].style.backgroundColor = `rgb(0, ${LAB.randInt(0, 254)}, 0)`;
         }
       }
     }
@@ -599,7 +596,7 @@
     // Transactions
     function addTransaction() {
       const list = document.getElementById('transaction-list');
-      const amount = (Math.random() * 10000).toFixed(2);
+      const amount = LAB.rand(0, 10000).toFixed(2);
       const hex = crypto.getRandomValues(new Uint8Array(4)).toHex().toUpperCase();
       const div = document.createElement('div');
       div.innerHTML = `TX_${hex}: +$${amount}`;
@@ -611,24 +608,24 @@
     // Random Data Updates
     function updateData() {
       // Update line chart
-      chart1.data.datasets[0].data = chart1.data.datasets[0].data.map(() => Math.floor(Math.random() * 50));
+      chart1.data.datasets[0].data = chart1.data.datasets[0].data.map(() => LAB.randInt(0, 49));
       chart1.update();
 
       // Update pie chart
-      chart2.data.datasets[0].data = chart2.data.datasets[0].data.map(() => Math.floor(Math.random() * 100));
+      chart2.data.datasets[0].data = chart2.data.datasets[0].data.map(() => LAB.randInt(0, 99));
       chart2.update();
 
       // Update market number
-      document.getElementById('market-num').innerText = (Math.random() * 100).toFixed(1) + '%';
+      document.getElementById('market-num').innerText = LAB.rand(0, 100).toFixed(1) + '%';
 
       // Update synergy needle
-      const deg = (Math.random() * 180) - 90;
+      const deg = LAB.rand(-90, 90);
       document.getElementById('synergy-needle').style.transform = `rotate(${deg}deg)`;
 
       // Update status lights
       const lights = [1, 2, 3, 4];
       lights.forEach(id => {
-        document.getElementById(`light-${id}`).classList.toggle('status-on', Math.random() > 0.7);
+        document.getElementById(`light-${id}`).classList.toggle('status-on', LAB.chance(0.3));
       });
     }
     setInterval(updateData, 3000);
@@ -639,11 +636,11 @@
       tbody.innerHTML = '';
       for (let i = 0; i < 8; i++) {
         const tr = document.createElement('tr');
-        const id = Math.floor(Math.random() * 10000);
+        const id = LAB.randInt(0, 9999);
         const name = employeeNameRandomiser.nextOne();
-        const status = Math.random() > 0.5 ? "ACTIVE" : "PENDING";
-        const output = (Math.random() * 100).toFixed(1);
-        const delta = (Math.random() * 10 - 5).toFixed(1);
+        const status = LAB.chance(0.5) ? "ACTIVE" : "PENDING";
+        const output = LAB.rand(0, 100).toFixed(1);
+        const delta = LAB.rand(-5, 5).toFixed(1);
         const deltaClass = delta >= 0 ? 'value-up' : 'value-down';
 
         tr.innerHTML = `

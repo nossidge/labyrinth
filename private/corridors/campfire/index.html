@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Submitted for the approval of the Midnight Society">
   <title>The embers remember</title>
@@ -56,7 +56,7 @@
       position: absolute;
       width: 2px;
       height: 2px;
-      background: #fff;
+      background: #ffffff;
       border-radius: 50%;
       animation: twinkle var(--dur) ease-in-out infinite;
       opacity: 0.4;
@@ -202,7 +202,7 @@
       height: 50px;
       left: 50%;
       transform: translateX(-50%);
-      background: linear-gradient(to top, #ffcc00 0%, #fff5aa 60%, #fff 100%);
+      background: linear-gradient(to top, #ffcc00 0%, #fff5aa 60%, #ffffff 100%);
       clip-path: polygon(50% 0%, 20% 55%, 10% 100%, 90% 100%, 80% 55%);
       animation: flicker3 0.25s ease-in-out infinite alternate;
     }
@@ -363,7 +363,7 @@
     }
 
     /* CRT overlay, my beloved */
-    #overlays {
+    #crt-scanlines {
       position: fixed;
       top: 0;
       left: 0;
@@ -380,7 +380,7 @@
 </head>
 
 <body>
-  <div id="overlays"></div>
+  <div id="crt-scanlines"></div>
 
   <div id="sky">
     <a id="moon" href="../index.html">🌕</a>
@@ -407,31 +407,22 @@
 
   <!-- People placed by JS -->
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/campfire";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
-
-    // Useful randomisation helpers
-    function rand(min, max) { return Math.random() * (max - min) + min; }
-    function randInt(min, max) { return Math.floor(rand(min, max + 1)); }
-    function randIndex(array) { return randInt(0, array.length - 1); }
-    function sample(array) { return array[randIndex(array)]; }
+    const LAB = new Labyrinth('campfire');
 
     const moonEl = document.getElementById('moon');
     const skyEl = document.getElementById('sky');
 
     // Populate people emoji
     const PEOPLE_POOL = ['🧑', '👩', '👨', '👩‍🦰', '🧔', '👱', '👩‍🦱', '🧑‍🦳'];
-    const peopleRandomiser = new CyclicRandomiser(PEOPLE_POOL);
+    const peopleRandomiser = new LAB.CyclicRandomiser(PEOPLE_POOL);
     const peopleCount = 8;
     const people = [];
     for (let i = 0; i < peopleCount; i++) {
       people.push({
         emoji: peopleRandomiser.nextOne(),
-        link: pageRandomiser.nextOne(),
+        link: LAB.pageRandomiser.nextOne(),
       });
     };
 
@@ -489,10 +480,10 @@
       const span = xMax - xMin;
       const step = span / count;
       for (let i = 0; i < count; i++) {
-        const xJitter = rand(-0.5, 0.5) * step * 0.5;
+        const xJitter = LAB.rand(-0.5, 0.5) * step * 0.5;
         const x = xMin + step * (i + 0.5) + xJitter;
-        const bottom = baseBottom + rand(-0.5, 0.5) * bottomVariance;
-        const size = rand(sizeMin, sizeMax);
+        const bottom = baseBottom + LAB.rand(-0.5, 0.5) * bottomVariance;
+        const size = LAB.rand(sizeMin, sizeMax);
         items.push({ x, bottom, size });
       }
       return items;
@@ -503,7 +494,7 @@
       items.forEach(item => {
         const el = document.createElement('div');
         el.className = className + ' generated';
-        el.textContent = sample(emojis);
+        el.textContent = LAB.sample(emojis);
         el.style.left = item.x + '%';
         el.style.bottom = item.bottom + '%';
         el.style.fontSize = Math.round(item.size) + 'px';
@@ -548,12 +539,12 @@
       for (let i = 0; i < 120; i++) {
         const star = document.createElement('div');
         star.className = 'star';
-        star.style.left = rand(0, 100) + '%';
-        star.style.top = rand(0, 90) + '%';
-        star.style.setProperty('--dur', rand(2, 6).toFixed(1) + 's');
-        star.style.setProperty('--peak', rand(0.4, 0.9).toFixed(2));
-        star.style.animationDelay = '-' + rand(0, 5).toFixed(1) + 's';
-        const size = randInt(1, 3);
+        star.style.left = LAB.rand(0, 100) + '%';
+        star.style.top = LAB.rand(0, 90) + '%';
+        star.style.setProperty('--dur', LAB.rand(2, 6).toFixed(1) + 's');
+        star.style.setProperty('--peak', LAB.rand(0.4, 0.9).toFixed(2));
+        star.style.animationDelay = '-' + LAB.rand(0, 5).toFixed(1) + 's';
+        const size = LAB.randInt(1, 3);
         star.style.width = size + 'px';
         star.style.height = size + 'px';
         skyEl.appendChild(star);
@@ -583,10 +574,10 @@
         a.style.top = y + '%';
         a.style.zIndex = parseInt(y);
         a.style.transform = 'translate(-50%, -50%)';
-        a.style.setProperty('--sway-dur', rand(2.5, 4.5).toFixed(1) + 's');
-        a.style.setProperty('--sway-deg', rand(1, 3).toFixed(1) + 'deg');
+        a.style.setProperty('--sway-dur', LAB.rand(2.5, 4.5).toFixed(1) + 's');
+        a.style.setProperty('--sway-deg', LAB.rand(1, 3).toFixed(1) + 'deg');
         a.style.setProperty('--lean-angle', leanAngle.toFixed(0) + 'deg');
-        a.style.animationDelay = '-' + rand(0, 3).toFixed(1) + 's';
+        a.style.animationDelay = '-' + LAB.rand(0, 3).toFixed(1) + 's';
 
         document.body.appendChild(a);
       }
@@ -598,19 +589,19 @@
       spark.className = 'spark';
 
       // Spawn near the fire
-      spark.style.left = rand(47.5, 52.5) + '%';
-      spark.style.top = rand(68.5, 71.5) + '%';
+      spark.style.left = LAB.rand(47.5, 52.5) + '%';
+      spark.style.top = LAB.rand(68.5, 71.5) + '%';
 
       // Random warm colour
       const colours = ['#ff6600', '#ff9900', '#ffcc00', '#ffaa33', '#ff4400'];
-      spark.style.background = sample(colours);
+      spark.style.background = LAB.sample(colours);
 
-      const dur = rand(1.5, 3.5).toFixed(1);
+      const dur = LAB.rand(1.5, 3.5).toFixed(1);
       spark.style.setProperty('--spark-dur', dur + 's');
-      spark.style.setProperty('--drift-x', rand(-40, 40) + 'px');
-      spark.style.setProperty('--drift-y', -rand(100, 300) + 'px');
+      spark.style.setProperty('--drift-x', LAB.rand(-40, 40) + 'px');
+      spark.style.setProperty('--drift-y', -LAB.rand(100, 300) + 'px');
 
-      const size = randInt(2, 4);
+      const size = LAB.randInt(2, 4);
       spark.style.width = size + 'px';
       spark.style.height = size + 'px';
 

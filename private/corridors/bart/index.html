@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Toe to tip, this is a Bart">
   <title>Just like Bart!</title>
@@ -59,17 +59,14 @@
     <input type="range" id="spike-slider" min="1" max="50" value="9">
   </div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/bart";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('bart');
 
     // These values must match the slider's min and max values
     const hairLinks = new Map();
     for (let i = 1; i <= 50; i++) {
-      hairLinks.set(i, pageRandomiser.nextOne());
+      hairLinks.set(i, LAB.pageRandomiser.nextOne());
     }
 
     // Position the hair triangles precisely on the image
@@ -162,6 +159,7 @@
     if (img.complete) {
       drawHair(parseInt(slider.value, 10));
     }
+
   </script>
 </body>
 

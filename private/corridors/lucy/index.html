@@ -19,7 +19,7 @@ But she is in her grave, and O
 -->
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="She dwelt among the untrodden ways">
   <title>Beside the springs of Dove</title>
@@ -35,7 +35,7 @@ But she is in her grave, and O
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: #000;
+      background: #000000;
       font-family: monospace;
     }
 
@@ -93,7 +93,7 @@ But she is in her grave, and O
       transform: translate(-50%, -50%);
       width: 4px;
       height: 4px;
-      background: #fff;
+      background: #ffffff;
       border-radius: 50%;
       box-shadow:
         0 0 6px 2px rgba(255, 255, 255, 0.9),
@@ -296,7 +296,7 @@ But she is in her grave, and O
       position: fixed;
       bottom: 12px;
       right: 12px;
-      color: #aaa;
+      color: #aaaaaa;
       font: 14px monospace;
       z-index: 200;
       pointer-events: none;
@@ -335,16 +335,9 @@ But she is in her grave, and O
 
   <div id="brightness-indicator"></div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/lucy";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
-
-    function rand(min, max) { return Math.random() * (max - min) + min; }
-    function randInt(min, max) { return Math.floor(rand(min, max + 1)); }
-    function sample(array) { return array[Math.floor(Math.random() * array.length)]; }
+    const LAB = new Labyrinth('lucy');
 
     const hillsSvg = document.getElementById('hills');
     const streamSvg = document.getElementById('stream-container');
@@ -394,13 +387,13 @@ But she is in her grave, and O
         const stepX = w / layer.segments;
         for (let i = 0; i <= layer.segments; i++) {
           const x = i * stepX;
-          const yOffset = Math.sin(i * 1.2 + rand(0, 2)) * layer.amplitude * h;
+          const yOffset = Math.sin(i * 1.2 + LAB.rand(0, 2)) * layer.amplitude * h;
           const y = layer.yBase * h - yOffset;
           if (i === 0) {
             d += ` L ${x} ${y}`;
           } else {
-            const cpx1 = (i - 0.5) * stepX + rand(-20, 20);
-            const cpy1 = y + rand(-15, 15);
+            const cpx1 = (i - 0.5) * stepX + LAB.rand(-20, 20);
+            const cpy1 = y + LAB.rand(-15, 15);
             d += ` Q ${cpx1} ${cpy1} ${x} ${y}`;
           }
         }
@@ -432,14 +425,14 @@ But she is in her grave, and O
       grad.setAttribute('x1', '0'); grad.setAttribute('y1', '0');
       grad.setAttribute('x2', '1'); grad.setAttribute('y2', '0');
       const stops = [
-        { offset: '0%', color: 'rgba(30,50,80,0.6)' },
-        { offset: '50%', color: 'rgba(40,65,100,0.7)' },
-        { offset: '100%', color: 'rgba(30,50,80,0.6)' },
+        { offset: '0%', colour: 'rgba(30,50,80,0.6)' },
+        { offset: '50%', colour: 'rgba(40,65,100,0.7)' },
+        { offset: '100%', colour: 'rgba(30,50,80,0.6)' },
       ];
       stops.forEach(s => {
         const stop = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
         stop.setAttribute('offset', s.offset);
-        stop.setAttribute('stop-color', s.color);
+        stop.setAttribute('stop-color', s.colour);
         grad.appendChild(stop);
       });
       defs.appendChild(grad);
@@ -464,7 +457,7 @@ But she is in her grave, and O
       turb.setAttribute('type', 'fractalNoise');
       turb.setAttribute('baseFrequency', '0.02 0.05');
       turb.setAttribute('numOctaves', '1');
-      turb.setAttribute('seed', String(randInt(0, 100)));
+      turb.setAttribute('seed', String(LAB.randInt(0, 100)));
       turb.setAttribute('stitchTiles', 'stitch');
       turb.setAttribute('x', '0');
       turb.setAttribute('y', '0');
@@ -513,12 +506,12 @@ But she is in her grave, and O
       // Build a wavy centre line
       const segments = 8;
       const stepX = w / segments;
-      let centrePath = `M ${-10} ${yCenter + rand(-10, 10)}`;
-      const centrePoints = [{ x: -10, y: yCenter + rand(-10, 10) }];
+      let centrePath = `M ${-10} ${yCenter + LAB.rand(-10, 10)}`;
+      const centrePoints = [{ x: -10, y: yCenter + LAB.rand(-10, 10) }];
 
       for (let i = 1; i <= segments + 1; i++) {
         const x = Math.min(i * stepX, w + 10);
-        const y = yCenter + Math.sin(i * 0.9 + 0.5) * amplitude + rand(-10, 10);
+        const y = yCenter + Math.sin(i * 0.9 + 0.5) * amplitude + LAB.rand(-10, 10);
         centrePoints.push({ x, y });
       }
 
@@ -528,7 +521,7 @@ But she is in her grave, and O
         const prev = centrePoints[i - 1];
         const cur = centrePoints[i];
         const cpx = (prev.x + cur.x) / 2;
-        const cpy = (prev.y + cur.y) / 2 - streamWidth / 2 + rand(-3, 3);
+        const cpy = (prev.y + cur.y) / 2 - streamWidth / 2 + LAB.rand(-3, 3);
         topPath += ` Q ${cpx} ${cpy} ${cur.x} ${cur.y - streamWidth / 2}`;
       }
 
@@ -541,7 +534,7 @@ But she is in her grave, and O
         } else {
           const next = centrePoints[i + 1];
           const cpx = (next.x + cur.x) / 2;
-          const cpy = (next.y + cur.y) / 2 + streamWidth / 2 + rand(-3, 3);
+          const cpy = (next.y + cur.y) / 2 + streamWidth / 2 + LAB.rand(-3, 3);
           botPath += ` Q ${cpx} ${cpy} ${cur.x} ${cur.y + streamWidth / 2}`;
         }
       }
@@ -574,33 +567,33 @@ But she is in her grave, and O
       for (let i = 0; i < density; i++) {
         const blade = document.createElement('div');
         blade.className = 'grass-blade';
-        const x = rand(0, 100);
-        const height = rand(10, 35);
-        const bottomPos = rand(0, 38);
+        const x = LAB.rand(0, 100);
+        const height = LAB.rand(10, 35);
+        const bottomPos = LAB.rand(0, 38);
         blade.style.left = x + '%';
         blade.style.bottom = bottomPos + '%';
         blade.style.height = height + 'px';
-        blade.style.background = sample(GRASS_COLOURS);
-        blade.style.opacity = rand(0.4, 0.9);
-        blade.style.setProperty('--sway-dur', rand(2, 5).toFixed(1) + 's');
-        blade.style.setProperty('--sway-delay', '-' + rand(0, 4).toFixed(1) + 's');
-        blade.style.setProperty('--sway-deg', rand(2, 8).toFixed(1) + 'deg');
+        blade.style.background = LAB.sample(GRASS_COLOURS);
+        blade.style.opacity = LAB.rand(0.4, 0.9);
+        blade.style.setProperty('--sway-dur', LAB.rand(2, 5).toFixed(1) + 's');
+        blade.style.setProperty('--sway-delay', '-' + LAB.rand(0, 4).toFixed(1) + 's');
+        blade.style.setProperty('--sway-deg', LAB.rand(2, 8).toFixed(1) + 'deg');
         grassDiv.appendChild(blade);
       }
     }
 
     function createRock(cx, cy, radiusX, radiusY, rotation) {
       const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-      const baseColour = sample(ROCK_BASE);
+      const baseColour = LAB.sample(ROCK_BASE);
 
       // Irregular rock shape using a bumpy ellipse
-      const points = randInt(8, 12);
+      const points = LAB.randInt(8, 12);
       let d = '';
       const vertices = [];
       for (let i = 0; i < points; i++) {
         const angle = (Math.PI * 2 * i) / points;
-        const rx = radiusX * (0.8 + rand(0, 0.4));
-        const ry = radiusY * (0.85 + rand(0, 0.3));
+        const rx = radiusX * (0.8 + LAB.rand(0, 0.4));
+        const ry = radiusY * (0.85 + LAB.rand(0, 0.3));
         const px = cx + Math.cos(angle) * rx;
         const py = cy + Math.sin(angle) * ry;
         vertices.push({ x: px, y: py });
@@ -611,8 +604,8 @@ But she is in her grave, and O
       for (let i = 0; i < vertices.length; i++) {
         const curr = vertices[i];
         const next = vertices[(i + 1) % vertices.length];
-        const cpx = (curr.x + next.x) / 2 + rand(-3, 3);
-        const cpy = (curr.y + next.y) / 2 + rand(-3, 3);
+        const cpx = (curr.x + next.x) / 2 + LAB.rand(-3, 3);
+        const cpy = (curr.y + next.y) / 2 + LAB.rand(-3, 3);
         d += ` Q ${cpx} ${cpy} ${next.x} ${next.y}`;
       }
       d += ' Z';
@@ -629,19 +622,19 @@ But she is in her grave, and O
       g.appendChild(rock);
 
       // Moss patches on top portion
-      const mossCount = randInt(2, 5);
+      const mossCount = LAB.randInt(2, 5);
       for (let m = 0; m < mossCount; m++) {
-        const angle = rand(-0.8, 0.8) - Math.PI / 2; // upper area
-        const dist = rand(0.3, 0.8);
+        const angle = LAB.rand(-0.8, 0.8) - Math.PI / 2; // upper area
+        const dist = LAB.rand(0.3, 0.8);
         const mx = cx + Math.cos(angle) * radiusX * dist;
         const my = cy + Math.sin(angle) * radiusY * dist;
         const moss = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
         moss.setAttribute('cx', mx);
         moss.setAttribute('cy', my);
-        moss.setAttribute('rx', rand(3, radiusX * 0.4));
-        moss.setAttribute('ry', rand(2, radiusY * 0.3));
-        moss.setAttribute('fill', sample(MOSS_COLOURS));
-        moss.setAttribute('opacity', rand(0.3, 0.7).toFixed(2));
+        moss.setAttribute('rx', LAB.rand(3, radiusX * 0.4));
+        moss.setAttribute('ry', LAB.rand(2, radiusY * 0.3));
+        moss.setAttribute('fill', LAB.sample(MOSS_COLOURS));
+        moss.setAttribute('opacity', LAB.rand(0.3, 0.7).toFixed(2));
         if (rotation) {
           moss.setAttribute('transform', `rotate(${rotation} ${cx} ${cy})`);
         }
@@ -649,18 +642,18 @@ But she is in her grave, and O
       }
 
       // Lichen spots scattered
-      const lichenCount = randInt(1, 4);
+      const lichenCount = LAB.randInt(1, 4);
       for (let l = 0; l < lichenCount; l++) {
-        const angle = rand(0, Math.PI * 2);
-        const dist = rand(0.2, 0.7);
+        const angle = LAB.rand(0, Math.PI * 2);
+        const dist = LAB.rand(0.2, 0.7);
         const lx = cx + Math.cos(angle) * radiusX * dist;
         const ly = cy + Math.sin(angle) * radiusY * dist;
         const lichen = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
         lichen.setAttribute('cx', lx);
         lichen.setAttribute('cy', ly);
-        lichen.setAttribute('r', rand(1.5, 4));
-        lichen.setAttribute('fill', sample(LICHEN_COLOURS));
-        lichen.setAttribute('opacity', rand(0.2, 0.5).toFixed(2));
+        lichen.setAttribute('r', LAB.rand(1.5, 4));
+        lichen.setAttribute('fill', LAB.sample(LICHEN_COLOURS));
+        lichen.setAttribute('opacity', LAB.rand(0.2, 0.5).toFixed(2));
         if (rotation) {
           lichen.setAttribute('transform', `rotate(${rotation} ${cx} ${cy})`);
         }
@@ -702,7 +695,7 @@ But she is in her grave, and O
       ];
 
       scattered.forEach(r => {
-        fgSvg.appendChild(createRock(r.x, r.y, r.rx, r.ry, rand(-20, 20)));
+        fgSvg.appendChild(createRock(r.x, r.y, r.rx, r.ry, LAB.rand(-20, 20)));
       });
 
       // Cluster rocks + violet (wrapped in a group for mouse hover interaction)
@@ -713,13 +706,13 @@ But she is in her grave, and O
       const clusterY = h * 0.70;
 
       const clusterRocks = [
-        { ox: -35, oy: -10, rx: 28, ry: 20, rot: rand(-15, 15) },
-        { ox: 10, oy: -18, rx: 35, ry: 24, rot: rand(-10, 10) },
-        { ox: -15, oy: 15, rx: 25, ry: 18, rot: rand(-20, 20) },
-        { ox: 40, oy: 5, rx: 22, ry: 16, rot: rand(-12, 12) },
-        { ox: -50, oy: 8, rx: 20, ry: 14, rot: rand(-18, 18) },
-        { ox: 25, oy: 22, rx: 18, ry: 13, rot: rand(-15, 15) },
-        { ox: -10, oy: -30, rx: 20, ry: 15, rot: rand(-10, 10) },
+        { ox: -35, oy: -10, rx: 28, ry: 20, rot: LAB.rand(-15, 15) },
+        { ox: 10, oy: -18, rx: 35, ry: 24, rot: LAB.rand(-10, 10) },
+        { ox: -15, oy: 15, rx: 25, ry: 18, rot: LAB.rand(-20, 20) },
+        { ox: 40, oy: 5, rx: 22, ry: 16, rot: LAB.rand(-12, 12) },
+        { ox: -50, oy: 8, rx: 20, ry: 14, rot: LAB.rand(-18, 18) },
+        { ox: 25, oy: 22, rx: 18, ry: 13, rot: LAB.rand(-15, 15) },
+        { ox: -10, oy: -30, rx: 20, ry: 15, rot: LAB.rand(-10, 10) },
       ];
 
       clusterRocks.forEach(r => {
@@ -867,7 +860,7 @@ But she is in her grave, and O
         const x = i * stepX;
         const y = horizonY + Math.sin(i * 0.8 + 0.7) * amplitude;
         const cpx = (i - 0.5) * stepX;
-        const cpy = horizonY + Math.sin((i - 0.5) * 0.8 + 0.7) * amplitude + rand(-2, 2);
+        const cpy = horizonY + Math.sin((i - 0.5) * 0.8 + 0.7) * amplitude + LAB.rand(-2, 2);
         d += ` Q ${cpx} ${cpy} ${x} ${y}`;
       }
       d += ` L ${w} ${h} Z`;

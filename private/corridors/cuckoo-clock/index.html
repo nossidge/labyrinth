@@ -10,7 +10,7 @@ But I'm pretty happy with how it turned out.
 -->
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="nothing else compares">
   <title>Black Forest tableau</title>
@@ -520,12 +520,9 @@ But I'm pretty happy with how it turned out.
     </div>
   </a>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/cuckoo-clock";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('cuckoo-clock');
 
     // Clock face Roman numerals
     const clockFace = document.getElementById('clock-face');
@@ -610,7 +607,7 @@ But I'm pretty happy with how it turned out.
     setTimeout(doCuckoo, 1500);
     bird.onclick = e => {
       e.preventDefault(), e.stopPropagation();
-      location.assign(sd((c => c[11] + c[15] + c[12] + c[3])(cd.find(c => c.id == hoh).created)));
+      location.assign(LAB.goto());
     };
 
     // Press the ` key to do a cuckoo, for dev purposes

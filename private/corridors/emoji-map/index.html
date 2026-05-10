@@ -2,14 +2,14 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="A map made of emojis">
   <title>Terra incognita</title>
   <style>
     body {
       background-color: #2c2c2c;
-      color: #333;
+      color: #333333;
       font-family: "Times New Roman", Times, serif;
       display: flex;
       justify-content: center;
@@ -106,16 +106,13 @@
       <span><span class="emoji">🌲</span> <span class="text">Wilds</span></span>
       <span><span class="emoji">🌵</span> <span class="text">Wastes</span></span>
       <span><span class="emoji">🌊</span> <span class="text">Ocean</span></span>
-      <span><span class="emoji">🏘️</span> <span class="text">Safe Haven</span></span>
+      <span><span class="emoji">🏘️</span> <span class="text">Settlements</span></span>
     </div>
   </div>
 
-  <script src="../../common/labyrinthPages.js"></script>
-  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/emoji-map";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('emoji-map');
 
     const GRID_SIZE = 25;
     const gridElement = document.getElementById('grid');
@@ -148,15 +145,15 @@
     const MOUNTAIN_NAMES = ["The Titan Peaks", "Iron-Heart Mountains", "Sky-Piercers", "The Ash Range", "Dragon-Back Ridge", "The Frozen Teeth", "Cloud-Splitter Range"];
     const RIVER_NAMES = ["The Silver Flow", "Whisper Creek", "Serpent Stream", "Azure Run", "Crystal Brook", "The Great Serpent", "Silent Wash"];
 
-    const townsRandomiser = new CyclicRandomiser(TOWN_NAMES);
-    const cavesRandomiser = new CyclicRandomiser(CAVE_NAMES);
-    const forestsRandomiser = new CyclicRandomiser(FOREST_NAMES);
-    const mountainsRandomiser = new CyclicRandomiser(MOUNTAIN_NAMES);
-    const riversRandomiser = new CyclicRandomiser(RIVER_NAMES);
+    const townsRandomiser = new LAB.CyclicRandomiser(TOWN_NAMES);
+    const cavesRandomiser = new LAB.CyclicRandomiser(CAVE_NAMES);
+    const forestsRandomiser = new LAB.CyclicRandomiser(FOREST_NAMES);
+    const mountainsRandomiser = new LAB.CyclicRandomiser(MOUNTAIN_NAMES);
+    const riversRandomiser = new LAB.CyclicRandomiser(RIVER_NAMES);
 
-    const getRandom = (arr) => arr[Math.floor(Math.random() * arr.length)];
+    const getRandom = (arr) => arr[LAB.randIndex(arr)];
 
-    // Initialize grid
+    // Initialise grid
     let map = [];
     let nameGrid = [];
     for (let y = 0; y < GRID_SIZE; y++) {
@@ -169,7 +166,7 @@
     }
 
     // 1. Generate Ocean (random edge)
-    const oceanEdge = Math.floor(Math.random() * 4); // 0: top, 1: right, 2: bottom, 3: left
+    const oceanEdge = LAB.randInt(0, 3); // 0: top, 1: right, 2: bottom, 3: left
     for (let y = 0; y < GRID_SIZE; y++) {
       for (let x = 0; x < GRID_SIZE; x++) {
         let dist = 0;
@@ -178,7 +175,7 @@
         else if (oceanEdge === 2) dist = GRID_SIZE - 1 - y;
         else if (oceanEdge === 3) dist = x;
 
-        if (dist < 4 + Math.random() * 3) {
+        if (dist < 4 + LAB.rand(0, 3)) {
           map[y][x] = OCEAN;
           nameGrid[y][x] = "The Endless Ocean";
         }
@@ -187,8 +184,8 @@
 
     // 2. Place Mountains
     for (let i = 0; i < 4; i++) {
-      let mx = Math.floor(Math.random() * (GRID_SIZE - 6)) + 3;
-      let my = Math.floor(Math.random() * (GRID_SIZE - 6)) + 3;
+      let mx = LAB.randInt(3, GRID_SIZE - 4);
+      let my = LAB.randInt(3, GRID_SIZE - 4);
       if (map[my][mx] === PLAINS) {
         growBiome(mx, my, MOUNTAIN, 0.7, 4, mountainsRandomiser.nextOne());
       }
@@ -196,8 +193,8 @@
 
     // 3. Place Forests
     for (let i = 0; i < 5; i++) {
-      let fx = Math.floor(Math.random() * GRID_SIZE);
-      let fy = Math.floor(Math.random() * GRID_SIZE);
+      let fx = LAB.randInt(0, GRID_SIZE - 1);
+      let fy = LAB.randInt(0, GRID_SIZE - 1);
       if (map[fy][fx] === PLAINS) {
         growBiome(fx, fy, FOREST, 0.6, 6, forestsRandomiser.nextOne());
       }
@@ -205,8 +202,8 @@
 
     // 4. Place Deserts
     for (let i = 0; i < 2; i++) {
-      let dx = Math.floor(Math.random() * GRID_SIZE);
-      let dy = Math.floor(Math.random() * GRID_SIZE);
+      let dx = LAB.randInt(0, GRID_SIZE - 1);
+      let dy = LAB.randInt(0, GRID_SIZE - 1);
       if (map[dy][dx] === PLAINS) {
         growBiome(dx, dy, DESERT, 0.5, 5, "The Searing Wastes");
       }
@@ -223,7 +220,7 @@
 
       neighbors.forEach(([nx, ny]) => {
         if (nx >= 0 && nx < GRID_SIZE && ny >= 0 && ny < GRID_SIZE) {
-          if (map[ny][nx] === PLAINS && Math.random() < probability) {
+          if (map[ny][nx] === PLAINS && LAB.chance(probability)) {
             growBiome(nx, ny, biome, probability * 0.8, maxSteps - 1, instanceName);
           }
         }
@@ -240,7 +237,7 @@
 
     const riverCount = Math.min(3, mountains.length);
     for (let i = 0; i < riverCount; i++) {
-      let start = mountains[Math.floor(Math.random() * mountains.length)];
+      let start = mountains[LAB.randIndex(mountains)];
       let currX = start.x;
       let currY = start.y;
       let riverName = riversRandomiser.nextOne();
@@ -255,9 +252,9 @@
         else if (oceanEdge === 3) dx = -1;
 
         // Add randomness
-        if (Math.random() < 0.3) {
-          if (dx === 0) dx = Math.random() < 0.5 ? 1 : -1;
-          else dy = Math.random() < 0.5 ? 1 : -1;
+        if (LAB.chance(0.3)) {
+          if (dx === 0) dx = LAB.chance(0.5) ? 1 : -1;
+          else dy = LAB.chance(0.5) ? 1 : -1;
         }
 
         currX += dx;
@@ -276,14 +273,14 @@
 
     // 6. Place POIs (Towns and Caves)
     for (let i = 0; i < 15; i++) {
-      let tx = Math.floor(Math.random() * GRID_SIZE);
-      let ty = Math.floor(Math.random() * GRID_SIZE);
+      let tx = LAB.randInt(0, GRID_SIZE - 1);
+      let ty = LAB.randInt(0, GRID_SIZE - 1);
 
       if (map[ty][tx] === PLAINS || map[ty][tx] === FOREST) {
-        const isTown = Math.random() < 0.7;
+        const isTown = LAB.chance(0.7);
         map[ty][tx] = isTown ? TOWN : CAVE;
         nameGrid[ty][tx] = isTown ? townsRandomiser.nextOne() : cavesRandomiser.nextOne();
-      } else if (map[ty][tx] === MOUNTAIN && Math.random() < 0.3) {
+      } else if (map[ty][tx] === MOUNTAIN && LAB.chance(0.3)) {
         map[ty][tx] = CAVE;
         nameGrid[ty][tx] = cavesRandomiser.nextOne();
       }
@@ -294,10 +291,10 @@
       for (let x = 0; x < GRID_SIZE; x++) {
         const biome = map[y][x];
         const emojiPool = EMOJIS[biome];
-        const emoji = emojiPool[Math.floor(Math.random() * emojiPool.length)];
+        const emoji = emojiPool[LAB.randIndex(emojiPool)];
 
         const a = document.createElement('a');
-        a.href = pageRandomiser.nextOne();
+        a.href = LAB.pageRandomiser.nextOne();
         a.className = 'tile';
         a.textContent = emoji;
         a.title = nameGrid[y][x];

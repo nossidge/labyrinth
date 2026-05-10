@@ -22,7 +22,7 @@ Thank you Stepan!
 -->
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="10 PRINT CHR$(205.5+RND(1)); : GOTO 10">
   <title>10 PRINT</title>
@@ -38,7 +38,7 @@ Thank you Stepan!
       width: 100%;
       height: 100%;
       background: #0d1a2d;
-      color: #fff;
+      color: #ffffff;
       font-family: monospace;
       overflow: hidden;
     }
@@ -53,7 +53,7 @@ Thank you Stepan!
     .container {
       position: relative;
       background: #0a1628;
-      border: 2px solid #334;
+      border: 2px solid #333344;
       padding: 20px;
       border-radius: 6px;
       box-shadow: 0 0 40px rgba(30, 80, 180, 0.15);
@@ -102,7 +102,7 @@ Thank you Stepan!
     }
 
     .nav-arrow {
-      color: #334;
+      color: #333344;
       font-size: 24px;
       font-weight: bold;
       line-height: 0.88;
@@ -131,14 +131,11 @@ Thank you Stepan!
     <div class="nav-arrow">\<br>/</div>
   </div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/10-print";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('10-print');
 
-    const COLORS = [
+    const COLOURS = [
       '#FF1744', '#F50057', '#D500F9', '#651FFF',
       '#2979F3', '#00B0FF', '#00BCD4', '#00BFA5',
       '#00C853', '#76FF03', '#FFEA00', '#FFC400',
@@ -147,7 +144,7 @@ Thank you Stepan!
       '#EF5350', '#EF9A9A', '#F48FB1', '#F8BBD0',
     ];
 
-    // ===== Configuration (mirrors lib/config.py) =====
+    // Configuration (mirrors lib/config.py)
     const CHARS = ['\u2571', '\u2572'];  // ╱ ╲
     const FILL = 'x';
 
@@ -160,7 +157,7 @@ Thank you Stepan!
       '\u2572\u2571x\u2571\u2572\u2571x\u2571\u2572'
     ];
 
-    // ===== Seeded RNG (mimics Python's random with seed) =====
+    // Seeded RNG (mimics Python's random with seed)
     // Using mulberry32 for better distribution
     function mulberry32(seed) {
       return function () {
@@ -171,7 +168,7 @@ Thank you Stepan!
       };
     }
 
-    // ===== Maze Generation (mirrors lib/tenprint.py Maze class) =====
+    // Maze Generation (mirrors lib/tenprint.py Maze class)
     function generateMaze(width, height, seed) {
       const rng = mulberry32(seed);
       const maze = [];
@@ -187,7 +184,7 @@ Thank you Stepan!
       return maze;
     }
 
-    // ===== MazePattern.adjacent (mirrors lib/mazepattern.py) =====
+    // MazePattern.adjacent (mirrors lib/mazepattern.py)
     function adjacent(window9) {
       // window9: string of 9 characters (3x3 row-major)
       // center char is window9[4]
@@ -210,7 +207,7 @@ Thank you Stepan!
       return adj;
     }
 
-    // ===== Neighbours calculation (mirrors Maze._calc_neighbours) =====
+    // Neighbours calculation (mirrors Maze._calc_neighbours)
     function calcNeighbours(maze, width, height) {
       // Build ghost_maze with FILL border
       const ghostMaze = [];
@@ -247,7 +244,7 @@ Thank you Stepan!
       return neighbours;
     }
 
-    // ===== BFS Connected Components (mirrors Maze._calc_components) =====
+    // BFS connected components (mirrors Maze._calc_components)
     function calcComponents(neighbours, width, height) {
       const visited = [];
       for (let i = 0; i < height; i++) visited.push(new Array(width).fill(false));
@@ -284,7 +281,6 @@ Thank you Stepan!
       return vertexBelong;
     }
 
-    // ===== Rendering =====
     function render(width, height, seed) {
       const maze = generateMaze(width, height, seed);
       const neighbours = calcNeighbours(maze, width, height);
@@ -299,17 +295,17 @@ Thank you Stepan!
       for (let i = 0; i < height; i++) {
         for (let j = 0; j < width; j++) {
           const comp = vertexBelong[i][j];
-          const color = COLORS[comp % COLORS.length];
+          const colour = COLOURS[comp % COLOURS.length];
 
           // Generate link for this component if not already done
           if (!componentToLink.has(comp)) {
-            componentToLink.set(comp, pageRandomiser.nextOne());
+            componentToLink.set(comp, LAB.pageRandomiser.nextOne());
           }
 
           const anchor = document.createElement('a');
           anchor.href = componentToLink.get(comp);
           anchor.textContent = maze[i][j];
-          anchor.style.color = color;
+          anchor.style.color = colour;
           anchor.style.textDecoration = 'none';
           anchor.style.cursor = 'pointer';
           anchor.dataset.component = comp;
@@ -338,12 +334,11 @@ Thank you Stepan!
       }
     }
 
-    // ===== History and Navigation =====
     let history = [];
     let historyIndex = -1;
 
     function generateSeed() {
-      return Math.floor(Math.random() * 0xFFFFFFFF);
+      return LAB.randInt(0, 0xFFFFFFFF - 1);
     }
 
     function createNewEntry() {
@@ -379,7 +374,6 @@ Thank you Stepan!
       render(80, 28, first.seed);
     }
 
-    // ===== Event listeners =====
     document.getElementById('nav-left').addEventListener('click', goToPrev);
     document.getElementById('nav-right').addEventListener('click', goToNext);
 
@@ -405,7 +399,8 @@ Thank you Stepan!
       }
     });
 
-    window.addEventListener('DOMContentLoaded', init);
+    init();
+
   </script>
 </body>
 

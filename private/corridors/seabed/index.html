@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Where the sea meets the moon-blanched land">
   <title>floors of silent seas</title>
@@ -302,12 +302,9 @@
   <div id="light-ripple"></div>
   <div id="scanlines"></div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/seabed";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('seabed');
 
     const pool = document.getElementById('pool');
     const vw = window.innerWidth;
@@ -321,12 +318,6 @@
       jellyfish: ['rgba(120,180,255,0.9)', 'rgba(180,120,255,0.9)', 'rgba(100,200,230,0.9)', 'rgba(160,140,255,0.9)'],
       seaweed: ['#1a5e2a', '#2a7e3a', '#0e4a1e', '#3a8e4a', '#1a6e30'],
     };
-
-    // Useful randomisation helpers
-    function rand(min, max) { return Math.random() * (max - min) + min; }
-    function randInt(min, max) { return Math.floor(rand(min, max + 1)); }
-    function randIndex(array) { return randInt(0, array.length - 1); }
-    function sample(array) { return array[randIndex(array)]; }
 
     // Seabed boundary: top of the sandy area
     const seabedTop = vh * 0.33;
@@ -377,7 +368,7 @@
         const points = [];
         for (let i = 0; i <= segments; i++) {
           const x = i * segW;
-          const phase = rand(0, Math.PI * 2);
+          const phase = LAB.rand(0, Math.PI * 2);
           const y = layer.yOffset + Math.sin((i / segments) * Math.PI * layer.freq + phase) * layer.amp;
           points.push({ x, y });
         }
@@ -401,14 +392,14 @@
         '#1a2a3a', '#1e2e3e', '#142434', '#0e1e2e', '#223344', '#18283a',
       ];
       for (let i = 0; i < 100; i++) {
-        const px = rand(0, w);
-        const py = rand(40, h);
-        const rx = rand(3, 12);
-        const ry = rx * rand(0.4, 0.8);
-        const rot = rand(0, 180);
-        const col = sample(pebbleColors);
+        const px = LAB.rand(0, w);
+        const py = LAB.rand(40, h);
+        const rx = LAB.rand(3, 12);
+        const ry = rx * LAB.rand(0.4, 0.8);
+        const rot = LAB.rand(0, 180);
+        const col = LAB.sample(pebbleColors);
         svgContent += `<ellipse cx="${px}" cy="${py}" rx="${rx}" ry="${ry}"
-          fill="${col}" opacity="${rand(0.2, 0.5)}"
+          fill="${col}" opacity="${LAB.rand(0.2, 0.5)}"
           transform="rotate(${rot} ${px} ${py})"/>`;
       }
 
@@ -426,19 +417,21 @@
     function createStarfish(x, y) {
       const a = document.createElement('a');
       a.className = 'creature starfish';
-      a.href = pageRandomiser.nextOne();
+      a.href = LAB.pageRandomiser.nextOne();
       a.style.left = x + 'px';
       a.style.top = y + 'px';
-      const size = rand(40, 80);
+      const size = LAB.rand(40, 80);
       a.style.width = size + 'px';
       a.style.height = size + 'px';
-      const rotation = rand(0, 360);
-      const color = sample(palettes.starfish);
+      const rotation = LAB.rand(0, 360);
+      const color = LAB.sample(palettes.starfish);
 
-      a.innerHTML = `<svg viewBox="0 0 100 100" style="transform:rotate(${rotation}deg)">
-        <polygon points="50,5 61,35 95,35 67,55 78,90 50,70 22,90 33,55 5,35 39,35"
-          fill="${color}" stroke="${color}" stroke-width="2" stroke-linejoin="round"/>
-      </svg>`;
+      a.innerHTML = `
+        <svg viewBox="0 0 100 100" style="transform:rotate(${rotation}deg)">
+          <polygon points="50,5 61,35 95,35 67,55 78,90 50,70 22,90 33,55 5,35 39,35"
+            fill="${color}" stroke="${color}" stroke-width="2" stroke-linejoin="round"/>
+        </svg>
+      `;
       applyPerspective(a, y);
       pool.appendChild(a);
     }
@@ -447,30 +440,30 @@
     function createAnemone(x, y) {
       const a = document.createElement('a');
       a.className = 'creature anemone';
-      a.href = pageRandomiser.nextOne();
+      a.href = LAB.pageRandomiser.nextOne();
       a.style.left = x + 'px';
       a.style.top = y + 'px';
-      const height = rand(50, 90);
+      const height = LAB.rand(50, 90);
       a.style.height = height + 'px';
 
-      const numTendrils = randInt(7, 16);
-      const baseColor = sample(palettes.anemone);
+      const numTendrils = LAB.randInt(7, 16);
+      const baseColor = LAB.sample(palettes.anemone);
 
       for (let i = 0; i < numTendrils; i++) {
         const t = document.createElement('div');
         t.className = 'tendril';
-        const h = rand(20, height - 10);
+        const h = LAB.rand(20, height - 10);
         t.style.height = h + 'px';
         t.style.background = baseColor;
-        t.style.opacity = rand(0.5, 0.9);
-        const spread = rand(-20, 20);
+        t.style.opacity = LAB.rand(0.5, 0.9);
+        const spread = LAB.rand(-20, 20);
         t.style.left = `calc(50% + ${spread}px)`;
 
-        const swayFrom = rand(-15, -5);
-        const swayTo = rand(5, 15);
+        const swayFrom = LAB.rand(-15, -5);
+        const swayTo = LAB.rand(5, 15);
         t.style.setProperty('--sway-from', swayFrom + 'deg');
         t.style.setProperty('--sway-to', swayTo + 'deg');
-        t.style.animation = `sway ${rand(2, 5)}s ease-in-out ${rand(0, 2)}s infinite`;
+        t.style.animation = `sway ${LAB.rand(2, 5)}s ease-in-out ${LAB.rand(0, 2)}s infinite`;
 
         // Glowing tip
         t.style.boxShadow = `0 -3px 6px ${baseColor}`;
@@ -497,30 +490,30 @@
     function createUrchin(x, y) {
       const a = document.createElement('a');
       a.className = 'creature urchin';
-      a.href = pageRandomiser.nextOne();
+      a.href = LAB.pageRandomiser.nextOne();
       a.style.left = x + 'px';
       a.style.top = y + 'px';
-      const size = rand(30, 55);
+      const size = LAB.rand(30, 55);
       a.style.width = size + 'px';
       a.style.height = size + 'px';
 
-      const color = sample(palettes.urchin);
+      const color = LAB.sample(palettes.urchin);
 
       const body = document.createElement('div');
       body.className = 'urchin-body';
       body.style.background = `radial-gradient(circle at 40% 40%, ${color}, #0a0515)`;
       body.style.color = color;
-      body.style.animation = `urchinPulse ${rand(3, 6)}s ease-in-out infinite`;
+      body.style.animation = `urchinPulse ${LAB.rand(3, 6)}s ease-in-out infinite`;
 
-      const numSpines = randInt(12, 24);
+      const numSpines = LAB.randInt(12, 24);
       for (let i = 0; i < numSpines; i++) {
         const spine = document.createElement('div');
         spine.className = 'spine';
         const angle = (360 / numSpines) * i;
-        const length = rand(8, size * 0.5);
+        const length = LAB.rand(8, size * 0.5);
         spine.style.height = length + 'px';
         spine.style.transform = `rotate(${angle}deg)`;
-        spine.style.opacity = rand(0.4, 0.8);
+        spine.style.opacity = LAB.rand(0.4, 0.8);
         body.appendChild(spine);
       }
 
@@ -533,14 +526,14 @@
     function createJellyfish(x, y) {
       const a = document.createElement('a');
       a.className = 'creature jellyfish';
-      a.href = pageRandomiser.nextOne();
+      a.href = LAB.pageRandomiser.nextOne();
       a.style.left = x + 'px';
       a.style.top = y + 'px';
-      a.style.animation = `jellyBob ${rand(3, 6)}s ease-in-out infinite`;
+      a.style.animation = `jellyBob ${LAB.rand(3, 6)}s ease-in-out infinite`;
 
-      const color = sample(palettes.jellyfish);
-      const bellWidth = rand(35, 60);
-      const bellHeight = rand(25, 40);
+      const color = LAB.sample(palettes.jellyfish);
+      const bellWidth = LAB.rand(35, 60);
+      const bellHeight = LAB.rand(25, 40);
 
       const bell = document.createElement('div');
       bell.className = 'jelly-bell';
@@ -552,18 +545,18 @@
 
       const tentacles = document.createElement('div');
       tentacles.className = 'jelly-tentacles';
-      const numTentacles = randInt(4, 8);
+      const numTentacles = LAB.randInt(4, 8);
       for (let i = 0; i < numTentacles; i++) {
         const t = document.createElement('div');
         t.className = 'jelly-t';
-        t.style.height = rand(20, 45) + 'px';
+        t.style.height = LAB.rand(20, 45) + 'px';
         t.style.background = color;
-        t.style.opacity = rand(0.4, 0.7);
-        const skewFrom = rand(-10, -3);
-        const skewTo = rand(3, 10);
+        t.style.opacity = LAB.rand(0.4, 0.7);
+        const skewFrom = LAB.rand(-10, -3);
+        const skewTo = LAB.rand(3, 10);
         t.style.setProperty('--skew-from', skewFrom + 'deg');
         t.style.setProperty('--skew-to', skewTo + 'deg');
-        t.style.animation = `jellyTentacle ${rand(1.5, 3.5)}s ease-in-out ${rand(0, 1)}s infinite`;
+        t.style.animation = `jellyTentacle ${LAB.rand(1.5, 3.5)}s ease-in-out ${LAB.rand(0, 1)}s infinite`;
         tentacles.appendChild(t);
       }
       a.appendChild(tentacles);
@@ -576,28 +569,28 @@
     function createSeaweed(x, y) {
       const a = document.createElement('a');
       a.className = 'creature seaweed';
-      a.href = pageRandomiser.nextOne();
+      a.href = LAB.pageRandomiser.nextOne();
       a.style.left = x + 'px';
       a.style.top = y + 'px';
 
-      const color = sample(palettes.seaweed);
-      const numFronds = randInt(4, 10);
-      const totalHeight = rand(60, 140);
+      const color = LAB.sample(palettes.seaweed);
+      const numFronds = LAB.randInt(4, 10);
+      const totalHeight = LAB.rand(60, 140);
 
       for (let i = 0; i < numFronds; i++) {
         const frond = document.createElement('div');
         frond.className = 'frond';
-        const h = rand(12, 22);
+        const h = LAB.rand(12, 22);
         frond.style.height = h + 'px';
         frond.style.background = color;
-        frond.style.opacity = rand(0.5, 0.85);
-        frond.style.marginTop = rand(-4, 2) + 'px';
+        frond.style.opacity = LAB.rand(0.5, 0.85);
+        frond.style.marginTop = LAB.rand(-4, 2) + 'px';
 
-        const frondFrom = rand(-8, -2);
-        const frondTo = rand(2, 8);
+        const frondFrom = LAB.rand(-8, -2);
+        const frondTo = LAB.rand(2, 8);
         frond.style.setProperty('--frond-from', frondFrom + 'deg');
         frond.style.setProperty('--frond-to', frondTo + 'deg');
-        frond.style.animation = `frondSway ${rand(2, 5)}s ease-in-out ${rand(0, 2)}s infinite`;
+        frond.style.animation = `frondSway ${LAB.rand(2, 5)}s ease-in-out ${LAB.rand(0, 2)}s infinite`;
         a.appendChild(frond);
       }
 
@@ -609,13 +602,13 @@
     function spawnBubble() {
       const bubble = document.createElement('div');
       bubble.className = 'bubble';
-      const size = rand(4, 14);
+      const size = LAB.rand(4, 14);
       bubble.style.width = size + 'px';
       bubble.style.height = size + 'px';
       bubble.style.position = 'absolute';
-      bubble.style.left = rand(0, vw) + 'px';
-      bubble.style.top = rand(vh * 0.4, vh) + 'px';
-      bubble.style.animation = `bubbleRise ${rand(6, 14)}s linear forwards`;
+      bubble.style.left = LAB.rand(0, vw) + 'px';
+      bubble.style.top = LAB.rand(vh * 0.4, vh) + 'px';
+      bubble.style.animation = `bubbleRise ${LAB.rand(6, 14)}s linear forwards`;
       pool.appendChild(bubble);
       bubble.addEventListener('animationend', () => bubble.remove());
     }
@@ -650,8 +643,8 @@
         let attempts = 0;
         let x, y;
         do {
-          x = rand(margin, vw - margin);
-          y = rand(seabedTop + margin * 0.5, vh - margin);
+          x = LAB.rand(margin, vw - margin);
+          y = LAB.rand(seabedTop + margin * 0.5, vh - margin);
           attempts++;
         } while (
           attempts < 50 &&
@@ -666,8 +659,8 @@
         let attempts = 0;
         let x, y;
         do {
-          x = rand(margin, vw - margin);
-          y = rand(margin, vh - margin);
+          x = LAB.rand(margin, vw - margin);
+          y = LAB.rand(margin, vh - margin);
           attempts++;
         } while (
           attempts < 50 &&
@@ -686,12 +679,13 @@
 
     // Initial bubble burst
     for (let i = 0; i < 5; i++) {
-      setTimeout(spawnBubble, rand(0, 3000));
+      setTimeout(spawnBubble, LAB.rand(0, 3000));
     }
 
     // Click anywhere on the page (except anchors) to respawn sealife
     document.body.addEventListener('click', (e) => {
-      if (e.target.matches('a')) return;
+      if (e.target.closest('a')) return;
+
       populatePool();
     });
 

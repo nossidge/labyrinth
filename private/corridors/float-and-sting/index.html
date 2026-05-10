@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="The hands can't hit what the eyes can't see">
   <title>Floating and stinging</title>
@@ -18,7 +18,7 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: #111;
+      background: #111111;
       font-family: monospace;
     }
 
@@ -68,8 +68,8 @@
     .post {
       position: absolute;
       width: 18px;
-      background: linear-gradient(to bottom, #999, #ccc, #999);
-      border: 1px solid #666;
+      background: linear-gradient(to bottom, #999999, #cccccc, #999999);
+      border: 1px solid #666666;
       z-index: 10;
     }
 
@@ -114,12 +114,9 @@
     <a id="bee" class="fighter">🐝</a>
   </div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/float-and-sting";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('float-and-sting');
 
     const arena = document.getElementById('arena');
     const stands = document.getElementById('stands');
@@ -223,7 +220,7 @@
       ropesSvg.setAttribute('height', H);
 
       // Kinda thought these might be nice to be different colours, but I decided against it
-      const ropeColors = ['#cc2200', '#cc2200', '#cc2200', '#cc2200'];
+      const ropeColours = ['#cc2200', '#cc2200', '#cc2200', '#cc2200'];
       const ropeWidths = [5, 5, 5, 5];
 
       // Compute the same vanishing-point slope used by the ring floor trapezoid
@@ -252,7 +249,7 @@
         line.setAttribute('y1', ropeY);
         line.setAttribute('x2', rx);
         line.setAttribute('y2', ropeY);
-        line.setAttribute('stroke', ropeColors[i]);
+        line.setAttribute('stroke', ropeColours[i]);
         line.setAttribute('stroke-width', ropeWidths[i]);
         line.classList.add('rope');
         ropesSvg.appendChild(line);
@@ -267,7 +264,7 @@
         lineLeft.setAttribute('y1', ropeY);
         lineLeft.setAttribute('x2', leftEndX);
         lineLeft.setAttribute('y2', leftEndY);
-        lineLeft.setAttribute('stroke', ropeColors[i]);
+        lineLeft.setAttribute('stroke', ropeColours[i]);
         lineLeft.setAttribute('stroke-width', ropeWidths[i]);
         lineLeft.classList.add('rope');
         ropesSvg.appendChild(lineLeft);
@@ -281,7 +278,7 @@
         lineRight.setAttribute('y1', ropeY);
         lineRight.setAttribute('x2', rightEndX);
         lineRight.setAttribute('y2', rightEndY);
-        lineRight.setAttribute('stroke', ropeColors[i]);
+        lineRight.setAttribute('stroke', ropeColours[i]);
         lineRight.setAttribute('stroke-width', ropeWidths[i]);
         lineRight.classList.add('rope');
         ropesSvg.appendChild(lineRight);
@@ -323,7 +320,7 @@
         rowCounts.push(count);
         totalSpectators += count;
       }
-      const gotoIndex = Math.floor(Math.random() * totalSpectators);
+      const gotoIndex = LAB.randInt(0, totalSpectators - 1);
       let globalIndex = 0;
 
       for (let row = 0; row < rows; row++) {
@@ -333,27 +330,27 @@
         const count = rowCounts[row];
 
         for (let col = 0; col < count; col++) {
-          const x = (col / count) * W + (Math.random() - 0.5) * fontSize * 0.5;
-          const jitterY = (Math.random() - 0.5) * fontSize * 0.4;
+          const x = (col / count) * W + LAB.rand(-0.5, 0.5) * fontSize * 0.5;
+          const jitterY = LAB.rand(-0.5, 0.5) * fontSize * 0.4;
 
           const isGoto = globalIndex === gotoIndex;
           const spec = document.createElement('a');
           if (isGoto) {
-            spec.href = sd((c => c[11] + c[15] + c[12] + c[3])(cd.find(c => c.id == hoh).created));
+            spec.href = LAB.goto();
             spec.textContent = '❓';
           } else {
-            spec.href = pageRandomiser.nextOne();
-            spec.textContent = crowdEmoji[Math.floor(Math.random() * crowdEmoji.length)];
+            spec.href = LAB.pageRandomiser.nextOne();
+            spec.textContent = LAB.sample(crowdEmoji);
           }
           spec.className = 'spectator';
           spec.style.left = x + 'px';
           spec.style.top = (y + jitterY) + 'px';
           spec.style.fontSize = fontSize + 'px';
-          const bounceH = -(2 + Math.random() * 4);
-          const swayA = -(2 + Math.random() * 6);
-          const swayB = (2 + Math.random() * 6);
-          spec.style.setProperty('--bounce-dur', (0.3 + Math.random() * 0.6) + 's');
-          spec.style.setProperty('--bounce-delay', (Math.random() * -2) + 's');
+          const bounceH = -LAB.rand(2, 6);
+          const swayA = -LAB.rand(2, 8);
+          const swayB = LAB.rand(2, 8);
+          spec.style.setProperty('--bounce-dur', LAB.rand(0.3, 0.9) + 's');
+          spec.style.setProperty('--bounce-delay', LAB.rand(-2, 0) + 's');
           spec.style.setProperty('--bounce-h', bounceH + 'px');
           spec.style.setProperty('--sway-a', swayA + 'deg');
           spec.style.setProperty('--sway-b', swayB + 'deg');
@@ -389,8 +386,8 @@
       beeEl.style.left = beeX + 'px';
       butterflyEl.style.fontSize = fighterSize + 'px';
       beeEl.style.fontSize = fighterSize + 'px';
-      butterflyEl.href = pageRandomiser.nextOne();
-      beeEl.href = pageRandomiser.nextOne();
+      butterflyEl.href = LAB.pageRandomiser.nextOne();
+      beeEl.href = LAB.pageRandomiser.nextOne();
     }
 
     // --- IDLE BOBBING ---
@@ -427,7 +424,7 @@
       const meetX = (butterflyRestX + beeRestX) / 2;
 
       // Randomly decide who is in front for this confrontation
-      if (Math.random() < 0.5) {
+      if (LAB.chance(0.5)) {
         butterflyEl.style.zIndex = 16;
         beeEl.style.zIndex = 15;
       } else {
@@ -477,7 +474,7 @@
 
     // Fight on a randomised schedule (300ms - 1200ms between bouts)
     function scheduleFight() {
-      const delay = 300 + Math.random() * 900;
+      const delay = LAB.rand(300, 1200);
       setTimeout(() => {
         triggerFight();
         scheduleFight();

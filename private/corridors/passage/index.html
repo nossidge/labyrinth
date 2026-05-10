@@ -11,7 +11,7 @@ https://en.wikipedia.org/wiki/Passage_(video_game)
 -->
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Samsara">
   <title>Passage</title>
@@ -81,21 +81,9 @@ https://en.wikipedia.org/wiki/Passage_(video_game)
       font-size: 9px;
       margin-top: -4px;
       opacity: 0.8;
-      background: #000;
+      background: #000000;
       padding: 1px 2px;
-      border: 1px solid #444;
-      pointer-events: none;
-    }
-
-    .grain {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48ZmlsdGVyIGlkPSJuIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iMC44NSIgbnVtT2N0YXZlcz0iMyIgc3RpdGNoVGlsZXM9InN0aXRjaCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbHRlcj0idXJsKCNuKSIvPjwvc3ZnPg==');
-      opacity: 0.15;
-      z-index: 100;
+      border: 1px solid #444444;
       pointer-events: none;
     }
 
@@ -147,7 +135,7 @@ https://en.wikipedia.org/wiki/Passage_(video_game)
       left: 10px;
       max-height: 94vh;
       overflow-y: auto;
-      background: #111;
+      background: #111111;
       border: 1px solid var(--settings-color);
       padding: 10px;
       z-index: 100;
@@ -187,7 +175,7 @@ https://en.wikipedia.org/wiki/Passage_(video_game)
 
     .setting-row input {
       width: 80px;
-      background: #000;
+      background: #000000;
       color: var(--settings-color);
       border: 1px solid var(--settings-color);
       font-family: inherit;
@@ -206,7 +194,7 @@ https://en.wikipedia.org/wiki/Passage_(video_game)
       position: fixed;
       top: 10px;
       right: 10px;
-      background: #111;
+      background: #111111;
       border: 1px solid var(--settings-color);
       padding: 10px;
       z-index: 100;
@@ -283,9 +271,9 @@ https://en.wikipedia.org/wiki/Passage_(video_game)
       font-size: 9px;
       margin-top: -4px;
       opacity: 0.8;
-      background: #000;
+      background: #000000;
       padding: 1px 2px;
-      border: 1px solid #444;
+      border: 1px solid #444444;
       pointer-events: none;
     }
 
@@ -307,7 +295,7 @@ https://en.wikipedia.org/wiki/Passage_(video_game)
 
     hr {
       border: none;
-      border-top: 1px dashed #444;
+      border-top: 1px dashed #444444;
       margin: 15px 0;
     }
 
@@ -330,6 +318,18 @@ https://en.wikipedia.org/wiki/Passage_(video_game)
 
     a {
       text-decoration: none;
+    }
+
+    .grain {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48ZmlsdGVyIGlkPSJuIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iMC44NSIgbnVtT2N0YXZlcz0iMyIgc3RpdGNoVGlsZXM9InN0aXRjaCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbHRlcj0idXJsKCNuKSIvPjwvc3ZnPg==');
+      opacity: 0.15;
+      z-index: 100;
+      pointer-events: none;
     }
   </style>
 </head>
@@ -513,12 +513,9 @@ https://en.wikipedia.org/wiki/Passage_(video_game)
     </div>
   </div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/passage";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('passage');
 
     const peopleContainer = document.getElementById('people-container');
     const tethersSvg = document.getElementById('tethers');
@@ -635,30 +632,30 @@ https://en.wikipedia.org/wiki/Passage_(video_game)
     class Person {
       constructor(options = {}) {
         this.id = nextId++;
-        this.x = options.x !== undefined ? options.x : Math.random() * window.innerWidth;
-        this.y = options.y !== undefined ? options.y : Math.random() * window.innerHeight;
-        this.vx = (Math.random() - 0.5) * 2;
-        this.vy = (Math.random() - 0.5) * 2;
-        this.gender = options.gender || (Math.random() > 0.5 ? 'M' : 'F');
+        this.x = options.x !== undefined ? options.x : LAB.rand(0, window.innerWidth);
+        this.y = options.y !== undefined ? options.y : LAB.rand(0, window.innerHeight);
+        this.vx = (LAB.rand(-0.5, 0.5)) * 2;
+        this.vy = (LAB.rand(-0.5, 0.5)) * 2;
+        this.gender = options.gender || (LAB.chance(0.5) ? 'M' : 'F');
 
         // Gay marriage modeling: 5% chance of display gender being opposite of biological gender.
         // This is just a visual thing, it doesn't affect anything else in the simulation.
-        this.genderDisplayed = (Math.random() < 0.05) ? (this.gender === 'M' ? 'F' : 'M') : this.gender;
+        this.genderDisplayed = (LAB.chance(0.05)) ? (this.gender === 'M' ? 'F' : 'M') : this.gender;
 
-        this.skinTone = options.skinTone || SKIN_TONES[Math.floor(Math.random() * SKIN_TONES.length)];
-        this.compatibility = options.compatibility || Math.floor(Math.random() * CONFIG.compatibilityMax) + 1;
+        this.skinTone = options.skinTone || SKIN_TONES[LAB.randIndex(SKIN_TONES)];
+        this.compatibility = options.compatibility || LAB.randInt(1, CONFIG.compatibilityMax);
         this.age = options.age || 0;
-        this.lifespan = options.lifespan || (CONFIG.lifespanRange[0] + Math.random() * (CONFIG.lifespanRange[1] - CONFIG.lifespanRange[0]));
+        this.lifespan = options.lifespan || LAB.rand(CONFIG.lifespanRange[0], CONFIG.lifespanRange[1]);
         this.partner = null;
         this.parents = options.parents || [];
         this.siblings = options.siblings || [];
         this.childrenCount = 0;
         this.spawnedChildren = 0;
         this.lastBirthTime = 0;
-        this.birthCooldown = CONFIG.birthCooldownRange[0] + Math.random() * (CONFIG.birthCooldownRange[1] - CONFIG.birthCooldownRange[0]);
+        this.birthCooldown = LAB.rand(CONFIG.birthCooldownRange[0], CONFIG.birthCooldownRange[1]);
 
         this.element = document.createElement('a');
-        this.element.href = pageRandomiser.nextOne();
+        this.element.href = LAB.pageRandomiser.nextOne();
         this.element.className = 'person';
         this.element.innerHTML = `<span class="emoji"></span><span class="compatibility-hint">${this.compatibility}</span>`;
         this.element.style.left = `${this.x}px`;
@@ -744,8 +741,8 @@ https://en.wikipedia.org/wiki/Passage_(video_game)
         this.vy *= CONFIG.momentumLoss;
 
         // Add a bit of random drift to keep things chaotic and lively
-        this.vx += (Math.random() - 0.5) * 0.2;
-        this.vy += (Math.random() - 0.5) * 0.2;
+        this.vx += (LAB.rand(-0.5, 0.5)) * 0.2;
+        this.vy += (LAB.rand(-0.5, 0.5)) * 0.2;
 
         this.element.style.left = `${this.x}px`;
         this.element.style.top = `${this.y}px`;
@@ -776,8 +773,8 @@ https://en.wikipedia.org/wiki/Passage_(video_game)
           x: this.x,
           y: this.y,
           parents: [this, this.partner],
-          compatibility: Math.random() > 0.5 ? this.compatibility : this.partner.compatibility,
-          skinTone: Math.random() > 0.5 ? this.skinTone : this.partner.skinTone,
+          compatibility: LAB.chance(0.5) ? this.compatibility : this.partner.compatibility,
+          skinTone: LAB.chance(0.5) ? this.skinTone : this.partner.skinTone,
           siblings: []
         });
 
@@ -799,7 +796,7 @@ https://en.wikipedia.org/wiki/Passage_(video_game)
     function init() {
       for (let i = 0; i < CONFIG.initialPopulation; i++) {
         people.push(new Person({
-          age: Math.random() * 20
+          age: LAB.rand(0, 20)
         }));
       }
     }
@@ -934,7 +931,7 @@ https://en.wikipedia.org/wiki/Passage_(video_game)
             if (dist < CONFIG.marryingDistance) {
               p1.partner = p2;
               p2.partner = p1;
-              p1.childrenCount = Math.floor(CONFIG.childrenDesiredMin + Math.random() * (CONFIG.childrenDesiredMax - CONFIG.childrenDesiredMin));
+              p1.childrenCount = LAB.randInt(CONFIG.childrenDesiredMin, CONFIG.childrenDesiredMax - 1);
               p2.childrenCount = p1.childrenCount;
               p1.lastBirthTime = now;
               p2.lastBirthTime = now;

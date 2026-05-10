@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Delphic as fieves">
   <title>Oracular Spectacular</title>
@@ -111,11 +111,6 @@
       animation: shake 0.1s infinite;
     }
 
-    /*
-    Simulate shaking by doing lots of fast rotation.
-    This actually looks pretty good, despite how janky it seems.
-    So there's no need to animate it up and down or side to side.
-    */
     @keyframes shake {
       0% {
         transform: translate(1px, 1px) rotate(0deg);
@@ -195,12 +190,9 @@
     </div>
   </div>
 
-  <script src="../../common/labyrinthPages.js"></script>
-  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/magic-8-ball";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('magic-8-ball');
 
     const MESSAGES_POOL = [
       "It is certain",
@@ -224,7 +216,7 @@
       "Outlook not so good",
       "Very doubtful",
     ];
-    const messagesRandomiser = new CyclicRandomiser(MESSAGES_POOL);
+    const messagesRandomiser = new LAB.CyclicRandomiser(MESSAGES_POOL);
 
     const container = document.getElementById('eight-ball-container');
     const ball = document.getElementById('eight-ball');
@@ -241,7 +233,7 @@
     eight.addEventListener('click', (e) => {
       if (!hasShaken) {
         e.stopPropagation();
-        window.location.href = pageRandomiser.nextOne();
+        window.location.href = LAB.pageRandomiser.nextOne();
       }
     });
 
@@ -263,7 +255,6 @@
       container.classList.add('shaking');
       container.classList.remove('revealing', 'clickable-message');
 
-      // Fading out only (Faster)
       triangle.style.transition = 'opacity 0.5s ease-in-out';
       triangle.style.opacity = '0';
       triangle.style.transform = 'scale(1)';
@@ -300,7 +291,7 @@
       setTimeout(() => {
         isShaking = false;
         container.classList.add('clickable-message');
-        oracleLink.href = pageRandomiser.nextOne();
+        oracleLink.href = LAB.pageRandomiser.nextOne();
       }, 1000);
     }
 

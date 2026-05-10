@@ -2,14 +2,14 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="cataclyzma">
   <title>symbolizma</title>
   <style>
     body {
-      background-color: #000;
-      color: #0f0;
+      background-color: #000000;
+      color: #00ff00;
       font-family: "Courier New", Courier, monospace;
       margin: 0;
       padding: 0;
@@ -18,7 +18,7 @@
       align-items: center;
       height: 100vh;
       overflow: hidden;
-      background-image: radial-gradient(#111 1px, transparent 1px);
+      background-image: radial-gradient(#111111 1px, transparent 1px);
       background-size: 20px 20px;
     }
 
@@ -32,13 +32,13 @@
       position: absolute;
       width: 50px;
       height: 50px;
-      background-color: #111;
-      border: 1px solid #333;
+      background-color: #111111;
+      border: 1px solid #333333;
       display: flex;
       justify-content: center;
       align-items: center;
       text-decoration: none;
-      color: #444;
+      color: #444444;
       font-size: 12px;
       transition: all 0.2s ease-in-out;
       z-index: 10;
@@ -46,8 +46,8 @@
 
     .shard:hover {
       background-color: #ff00ff;
-      color: #fff;
-      border-color: #fff;
+      color: #ffffff;
+      border-color: #ffffff;
       transform: scale(1.2) rotate(5deg);
       z-index: 100;
       box-shadow: 0 0 15px #ff00ff;
@@ -55,7 +55,7 @@
 
     .shard.corrupted {
       background-color: #00ffff;
-      color: #000;
+      color: #000000;
     }
 
     #overlay {
@@ -77,12 +77,9 @@
   <div id="overlay"></div>
   <div id="container"></div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/symbolizma";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('symbolizma');
 
     const container = document.getElementById('container');
     const chars = '!?@#$%^&*()_+-=[]{}|;:,.<>/\\0123456789';
@@ -90,25 +87,25 @@
     function createShards() {
       for (let y = 0; y < 12; y++) {
         for (let x = 0; x < 12; x++) {
-          // Add some randomness to position to make it look "fragmented"
-          const offsetX = (Math.random() - 0.5) * 15;
-          const offsetY = (Math.random() - 0.5) * 15;
+          // Add some randomness to position to make it look fragmented
+          const offsetX = LAB.rand(-7.5, 7.5);
+          const offsetY = LAB.rand(-7.5, 7.5);
 
           const shard = document.createElement('a');
-          shard.href = pageRandomiser.nextOne();
+          shard.href = LAB.pageRandomiser.nextOne();
           shard.className = 'shard';
           shard.style.left = (x * 50 + offsetX) + 'px';
           shard.style.top = (y * 50 + offsetY) + 'px';
-          shard.innerText = chars[Math.floor(Math.random() * chars.length)];
+          shard.innerText = chars[LAB.randIndex(chars)];
 
-          // Randomize initial tilt
-          shard.style.transform = `rotate(${(Math.random() - 0.5) * 10}deg)`;
+          // Randomise initial tilt
+          shard.style.transform = `rotate(${LAB.rand(-5, 5)}deg)`;
 
           shard.addEventListener('mouseenter', () => {
             // Chance to "corrupt" the neighbors
-            if (Math.random() > 0.7) {
+            if (LAB.chance(0.3)) {
               const shards = document.querySelectorAll('.shard');
-              const randomShard = shards[Math.floor(Math.random() * shards.length)];
+              const randomShard = shards[LAB.randIndex(shards)];
               randomShard.classList.add('corrupted');
               randomShard.innerText = '~';
               setTimeout(() => randomShard.classList.remove('corrupted'), 1000);
@@ -124,12 +121,12 @@
     function drift() {
       const shards = document.querySelectorAll('.shard');
       shards.forEach(s => {
-        if (Math.random() > 0.98) {
+        if (LAB.chance(0.02)) {
           const currentLeft = parseFloat(s.style.left);
           const currentTop = parseFloat(s.style.top);
-          s.style.left = (currentLeft + (Math.random() - 0.5) * 2) + 'px';
-          s.style.top = (currentTop + (Math.random() - 0.5) * 2) + 'px';
-          s.innerText = chars[Math.floor(Math.random() * chars.length)];
+          s.style.left = (currentLeft + LAB.rand(-1, 1)) + 'px';
+          s.style.top = (currentTop + LAB.rand(-1, 1)) + 'px';
+          s.innerText = chars[LAB.randIndex(chars)];
         }
       });
       requestAnimationFrame(drift);

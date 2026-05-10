@@ -10,7 +10,7 @@ Also, MP and mompster EX does nothing at the moment.
 -->
 
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="You gotsta get ridda all dem mompsters!">
   <title>Mompster quest</title>
@@ -54,7 +54,6 @@ Also, MP and mompster EX does nothing at the moment.
       padding: 12px;
     }
 
-    /* Area title */
     .area {
       position: absolute;
       top: 12px;
@@ -212,7 +211,6 @@ Also, MP and mompster EX does nothing at the moment.
       font-weight: bold;
     }
 
-    /* Battle log */
     .log {
       position: absolute;
       left: 12px;
@@ -267,12 +265,9 @@ Also, MP and mompster EX does nothing at the moment.
     </div>
   </div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/mompster-quest";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('mompster-quest');
 
     const AREAS = [
       { level: 0, name: "Training Area", monsters: 1, pwr: 0 },
@@ -350,7 +345,7 @@ Also, MP and mompster EX does nothing at the moment.
       memberDiv.className = 'member' + (char.isBoss ? ' boss' : '');
       memberDiv.id = `char-${char.id}`;
       memberDiv.innerHTML = `
-        <a href="${pageRandomiser.nextOne()}" class="avatar">${char.icon}</a>
+        <a href="${LAB.pageRandomiser.nextOne()}" class="avatar">${char.icon}</a>
         <div>
           <div class="name">${char.name} <span class="lvl" id="lvl-${char.id}">Lv.${char.level}</span></div>
           <div class="bar hp"><span id="hp-bar-${char.id}" style="width: ${hpPct}%"></span></div>
@@ -414,14 +409,14 @@ Also, MP and mompster EX does nothing at the moment.
 
       // Action
       const area = AREAS[currentAreaIdx];
-      const target = targets[Math.floor(Math.random() * targets.length)];
+      const target = LAB.sample(targets);
 
       let damage = 0;
       if (activeChar.team === 'players') {
-        damage = Math.floor(Math.random() * (4 + activeChar.level)) + 4;
+        damage = LAB.randInt(4, 7 + activeChar.level);
       } else {
         const baseDmg = activeChar.isBoss ? 15 : area.pwr;
-        damage = area.pwr > 0 ? Math.floor(Math.random() * arenaPwr()) + baseDmg : 0;
+        damage = area.pwr > 0 ? LAB.randInt(baseDmg, baseDmg + arenaPwr() - 1) : 0;
       }
 
       target.hp.current -= damage;
@@ -449,7 +444,7 @@ Also, MP and mompster EX does nothing at the moment.
       if (victory) {
         addLog("Victory! The area is cleared.");
 
-        // Final Win condition
+        // Win condition
         if (currentAreaIdx === AREAS.length - 1) {
           gameWon = true;
           addLog("*************************************");
@@ -517,20 +512,20 @@ Also, MP and mompster EX does nothing at the moment.
       if (currentAreaIdx === AREAS.length - 1) {
         addLog("A foul presence emerges...");
 
-        const m1Base = MONSTER_POOL[Math.floor(Math.random() * MONSTER_POOL.length)];
+        const m1Base = LAB.sample(MONSTER_POOL);
         const m1 = createChar(m1Base.name, m1Base.icon, m1Base.hp + 50, m1Base.mp, 'enemies', `e0-${Date.now()}`, 5);
 
-        const bBase = BOSS_POOL[Math.floor(Math.random() * BOSS_POOL.length)];
+        const bBase = LAB.sample(BOSS_POOL);
         const boss = createChar(bBase.name, bBase.icon, bBase.hp, bBase.mp, 'enemies', `boss-${Date.now()}`, 10, true);
 
-        const m2Base = MONSTER_POOL[Math.floor(Math.random() * MONSTER_POOL.length)];
+        const m2Base = LAB.sample(MONSTER_POOL);
         const m2 = createChar(m2Base.name, m2Base.icon, m2Base.hp + 50, m2Base.mp, 'enemies', `e2-${Date.now()}`, 5);
 
         enemies = [m1, boss, m2];
         enemies.forEach(e => renderMember(enemyContainer, e));
       } else {
         for (let i = 0; i < area.monsters; i++) {
-          const mBase = MONSTER_POOL[Math.floor(Math.random() * MONSTER_POOL.length)];
+          const mBase = LAB.sample(MONSTER_POOL);
           const m = createChar(mBase.name, mBase.icon, mBase.hp + (area.pwr * 10), mBase.mp, 'enemies', `e${i}-${Date.now()}`, 1 + area.pwr);
           enemies.push(m);
           renderMember(enemyContainer, m);
@@ -550,8 +545,8 @@ Also, MP and mompster EX does nothing at the moment.
 
     function initGame() {
       const playerContainer = document.getElementById('player-party');
-      const shuffledNames = [...PLAYER_NAME_POOL].sort(() => 0.5 - Math.random());
-      const shuffledIcons = [...PLAYER_ICON_POOL].sort(() => 0.5 - Math.random());
+      const shuffledNames = LAB.shuffle(PLAYER_NAME_POOL);
+      const shuffledIcons = LAB.shuffle(PLAYER_ICON_POOL);
 
       // Create players
       for (let i = 0; i < 3; i++) {
@@ -565,7 +560,7 @@ Also, MP and mompster EX does nothing at the moment.
         if (gameWon) return;
         players.forEach(p => {
           if (p.alive && p.hp.current < p.hp.max) {
-            const regen = Math.floor(Math.random() * 5) + p.level;
+            const regen = LAB.randInt(p.level, p.level + 4);
             p.hp.current = Math.min(p.hp.max, p.hp.current + regen);
             addLog(`${p.icon} ${p.name} regenerates for ${regen} HP!`);
             updateCharUI(p);
@@ -576,7 +571,8 @@ Also, MP and mompster EX does nothing at the moment.
       startBattle();
     }
 
-    window.onload = initGame;
+    initGame();
+
   </script>
 </body>
 

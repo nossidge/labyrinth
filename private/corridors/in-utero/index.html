@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Ex uno plures">
   <title>Umbilical thoughts</title>
@@ -170,12 +170,9 @@
 
   <div id="words-container"></div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/in-utero";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('in-utero');
 
     const thoughts = [
       "Becoming", "Connection", "Floating", "Growth", "Heartbeat", "Love",
@@ -200,14 +197,6 @@
       canvas.height = window.innerHeight;
     }
 
-    function shuffle(array) {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-      }
-      return array;
-    }
-
     function clearWordsContainer() {
       wordsContainer.innerHTML = '';
       elements = [];
@@ -222,9 +211,9 @@
       const vw = window.innerWidth;
       const radius = Math.min(vw, vh) * 0.35;
 
-      shuffle(thoughts).forEach((thought, i) => {
-        const angle = (i / thoughts.length) * Math.PI * 2 + Math.random() * 0.2;
-        const dist = radius + (Math.random() - 0.5) * 100;
+      LAB.shuffle(thoughts).forEach((thought, i) => {
+        const angle = (i / thoughts.length) * Math.PI * 2 + LAB.rand(0, 0.2);
+        const dist = radius + LAB.rand(-50, 50);
 
         const xPx = (vw / 2) + Math.cos(angle) * dist - 50;
         const yPx = (vh / 2) + Math.sin(angle) * dist;
@@ -235,19 +224,19 @@
         const a = document.createElement('a');
         a.className = 'thought-word';
         a.innerText = thought;
-        a.href = pageRandomiser.nextOne();
+        a.href = LAB.pageRandomiser.nextOne();
         a.style.left = `${xPct}%`;
         a.style.top = `${yPct}%`;
 
-        const duration = 10 + Math.random() * 10;
-        const delay = -Math.random() * duration;
+        const duration = LAB.rand(10, 20);
+        const delay = LAB.rand(-duration, 0);
         a.style.animation = `drift ${duration}s ease-in-out ${delay}s infinite alternate`;
 
         wordsContainer.appendChild(a);
         elements.push({
           el: a,
           angle: angle,
-          phase: Math.random() * Math.PI * 2
+          phase: LAB.rand(0, Math.PI * 2)
         });
       });
     }
@@ -263,8 +252,8 @@
       const babyCount = thoughts.length;
 
       for (let i = 0; i < babyCount; i++) {
-        const angle = (i / babyCount) * Math.PI * 2 + Math.random() * 0.2;
-        const dist = radius + (Math.random() - 0.5) * 100;
+        const angle = (i / babyCount) * Math.PI * 2 + LAB.rand(0, 0.2);
+        const dist = radius + LAB.rand(-50, 50);
 
         const xPx = (vw / 2) + Math.cos(angle) * dist - 60;
         const yPx = (vh / 2) + Math.sin(angle) * dist - 40;
@@ -276,22 +265,22 @@
         a.className = 'thought-baby';
         a.style.left = `${xPct}%`;
         a.style.top = `${yPct}%`;
-        a.href = pageRandomiser.nextOne();
+        a.href = LAB.pageRandomiser.nextOne();
 
         const img = document.createElement('img');
         img.src = 'baby.png';
         img.alt = 'Thought Baby';
         a.appendChild(img);
 
-        const duration = 12 + Math.random() * 8;
-        const delay = -Math.random() * duration;
+        const duration = LAB.rand(12, 20);
+        const delay = LAB.rand(-duration, 0);
         a.style.animation = `drift ${duration}s ease-in-out ${delay}s infinite alternate`;
 
         wordsContainer.appendChild(a);
         elements.push({
           el: a,
           angle: angle,
-          phase: Math.random() * Math.PI * 2
+          phase: LAB.rand(0, Math.PI * 2)
         });
       }
     }

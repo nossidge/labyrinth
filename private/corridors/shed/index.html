@@ -9,7 +9,7 @@ Pretty simple trick, but fun I think!
 -->
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="I'm just chasing rainbows all the time">
   <title>The sharpest bulb in the shed</title>
@@ -149,18 +149,15 @@ Pretty simple trick, but fun I think!
     <div id="tools-container"></div>
   </div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/shed";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('shed');
 
     const TOOL_EMOJIS_POOL = [
       '🔨', '🪚', '🪛', '🔧', '🪠', '🧹', '🧺', '✂️', '🪓', '📎', '🖇️',
       '⛏️', '🛠️', '🧰', '🔩', '⚙️', '🧤', '🔦', '📐', '📏', '🪵', '🪴',
     ];
-    const toolRandomiser = new CyclicRandomiser(TOOL_EMOJIS_POOL);
+    const toolRandomiser = new LAB.CyclicRandomiser(TOOL_EMOJIS_POOL);
 
     const toolsContainer = document.getElementById('tools-container');
     const shelvesContainer = document.getElementById('shelves-container');
@@ -169,20 +166,20 @@ Pretty simple trick, but fun I think!
     function createTool(shelfBottom) {
       const emoji = toolRandomiser.nextOne();
       const a = document.createElement('a');
-      a.href = pageRandomiser.nextOne();
+      a.href = LAB.pageRandomiser.nextOne();
       a.className = 'tool';
       a.innerText = emoji;
 
       // State for animation
-      const x = 15 + Math.random() * 70;
-      const rot = (Math.random() * 30 - 15);
-      const bottom = shelfBottom + 25 + (Math.random() * 5);
+      const x = 15 + LAB.rand(0, 70);
+      const rot = (LAB.rand(-15, 15));
+      const bottom = shelfBottom + 25 + (LAB.rand(0, 5));
 
       // Random velocity between 0.1 and 0.15 or -0.1 and -0.15
       const min = 0.1;
       const max = 0.15;
-      const speed = min + Math.random() * (max - min);
-      const vx = Math.random() < 0.5 ? -speed : speed;
+      const speed = LAB.rand(min, max);
+      const vx = LAB.chance(0.5) ? -speed : speed;
 
       a.style.bottom = bottom + 'px';
       a.style.left = x + '%';
@@ -214,7 +211,7 @@ Pretty simple trick, but fun I think!
         shelvesContainer.appendChild(shelf);
 
         // Populate shelf with tools
-        const toolCount = 6 + Math.floor(Math.random() * 5);
+        const toolCount = 6 + LAB.randInt(0, 4);
         for (let i = 0; i < toolCount; i++) {
           createTool(bottom);
         }

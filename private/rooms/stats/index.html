@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Page creation statistics">
   <title>Labyrinth Statistics</title>
@@ -316,21 +316,21 @@
           </div>
 
           <div class="metric-card">
+            <div class="metric-label">Pages Remaining</div>
+            <div class="metric-value" id="pagesRemaining">—</div>
+            <div class="metric-subtitle">Pages until 365 goal</div>
+          </div>
+
+          <div class="metric-card">
             <div class="metric-label">Days Active</div>
             <div class="metric-value" id="daysActive">—</div>
-            <div class="metric-subtitle">Since 2026-01-01</div>
+            <div class="metric-subtitle">Since start of 2026</div>
           </div>
 
           <div class="metric-card">
             <div class="metric-label">Days Remaining</div>
             <div class="metric-value" id="daysRemaining">—</div>
             <div class="metric-subtitle">Until end of 2026</div>
-          </div>
-
-          <div class="metric-card">
-            <div class="metric-label">Target</div>
-            <div class="metric-value">365</div>
-            <div class="metric-subtitle">One per day goal</div>
           </div>
 
           <div class="metric-card">
@@ -346,7 +346,7 @@
           </div>
 
           <div class="metric-card metric-card-wide">
-            <a href="#" id="randomPageButton" class="random-button">
+            <a href="../index.html" id="randomPageButton" class="random-button">
               Visit Random Page
             </a>
           </div>
@@ -381,13 +381,9 @@
     </div>
   </div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/stats";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
-    document.getElementById('randomPageButton').href = pageRandomiser.nextOne();
+    const LAB = new Labyrinth('stats');
 
     const epochDate = new Date('2026-01-01');
     const today = new Date();
@@ -419,11 +415,11 @@
 
     // Calculate metrics
     function calculateMetrics() {
-      const sortedByDate = [...corridorsData].sort((a, b) =>
+      const sortedByDate = [...LAB.corridorsData].sort((a, b) =>
         new Date(a.created) - new Date(b.created)
       );
 
-      const totalCorridors = corridorsData.length;
+      const totalCorridors = LAB.corridorsData.length;
       const daysActive = Math.floor((today - epochDate) / (1000 * 60 * 60 * 24));
       const avgPerDay = (totalCorridors / daysActive).toFixed(2);
       const daysRemaining = 365 - daysActive;
@@ -441,6 +437,7 @@
       document.getElementById('daysActive').textContent = daysActive;
       document.getElementById('avgPerDay').textContent = avgPerDay;
       document.getElementById('daysRemaining').textContent = daysRemaining;
+      document.getElementById('pagesRemaining').textContent = 365 - totalCorridors;
       document.getElementById('upToDate').textContent = `Up to ${formattedDate}`;
 
       // Status badge
@@ -472,7 +469,7 @@
       const cumulativeData = [];
       let running = 0;
 
-      // Initialize all days with 0
+      // Initialise all days with 0
       for (let i = 0; i <= Math.floor((today - epochDate) / (1000 * 60 * 60 * 24)); i++) {
         const date = new Date(epochDate);
         date.setDate(date.getDate() + i);
@@ -504,12 +501,12 @@
     const cumulativeChart = new Chart(ctxCumulative, {
       type: 'line',
       data: {
-        labels: cumulativeData.map(d => new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })),
+        labels: cumulativeData.map(d => new Date(d.date).toLocaleDateString('en-GB', { month: 'short', day: 'numeric' })),
         datasets: [
           {
             label: 'Target (1 per day)',
             data: idealData,
-            borderColor: '#999',
+            borderColor: '#999999',
             borderWidth: 2,
             borderDash: [5, 5],
             fill: false,
@@ -519,12 +516,12 @@
           {
             label: 'Actual progress',
             data: cumulativeData.map(d => d.count),
-            borderColor: '#333',
-            backgroundColor: '#ddd',
+            borderColor: '#333333',
+            backgroundColor: '#dddddd',
             borderWidth: 2,
             fill: true,
-            pointBackgroundColor: '#333',
-            pointBorderColor: '#333',
+            pointBackgroundColor: '#333333',
+            pointBorderColor: '#333333',
             pointRadius: 2,
             pointHoverRadius: 4
           }
@@ -541,23 +538,23 @@
         },
         plugins: {
           legend: {
-            labels: { color: '#333' }
+            labels: { color: '#333333' }
           }
         },
         scales: {
           y: {
             beginAtZero: true,
-            ticks: { color: '#333' }
+            ticks: { color: '#333333' }
           },
           x: {
-            ticks: { color: '#333' }
+            ticks: { color: '#333333' }
           }
         }
       }
     });
 
     // Generate and manage corridors table
-    let tableData = [...corridorsData];
+    let tableData = [...LAB.corridorsData];
     let currentSort = { column: 'created', direction: 'asc' };
 
     function sortTable(column) {
@@ -643,6 +640,7 @@
 
     // Initial render with default sort (created descending)
     sortTable('created');
+
   </script>
 </body>
 

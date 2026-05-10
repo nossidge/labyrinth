@@ -8,7 +8,7 @@ a Van de Graaff generator, with a bit of "Galaxy on Orion's belt" in there too.
 -->
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Great balls of Tesla">
   <title>Electrostatics</title>
@@ -72,21 +72,15 @@ a Van de Graaff generator, with a bit of "Galaxy on Orion's belt" in there too.
   </a>
   <canvas id="arc-canvas"></canvas>
 
-  <script src="../../common/labyrinthPages.js"></script>
-  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/plasma-ball";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('plasma-ball');
 
     const globe = document.getElementById('globe-container');
     const galaxyCanvas = document.getElementById('galaxy-canvas');
     const arcCanvas = document.getElementById('arc-canvas');
     const gCtx = galaxyCanvas.getContext('2d');
     const aCtx = arcCanvas.getContext('2d');
-
-    // Useful randomisation helper
-    function rand(min, max) { return Math.random() * (max - min) + min; }
 
     // Swirling nebula/galaxy inside the ball
     let gW, gH, gCx, gCy;
@@ -109,18 +103,18 @@ a Van de Graaff generator, with a bit of "Galaxy on Orion's belt" in there too.
     function initNebulae() {
       nebulae.length = 0;
       for (let i = 0; i < NEBULA_COUNT; i++) {
-        const angle = rand(0, Math.PI * 2);
-        const dist = rand(0, gW * 0.38);
+        const angle = LAB.rand(0, Math.PI * 2);
+        const dist = LAB.rand(0, gW * 0.38);
         nebulae.push({
           angle: angle,
           dist: dist,
-          speed: rand(0.002, 0.008) * (Math.random() < 0.5 ? 1 : -1),
-          size: rand(1.5, 4),
-          hue: rand(240, 320),
-          saturation: rand(50, 100),
-          lightness: rand(40, 80),
-          alpha: rand(0.3, 0.8),
-          drift: rand(-0.3, 0.3),
+          speed: LAB.rand(0.002, 0.008) * (LAB.chance(0.5) ? 1 : -1),
+          size: LAB.rand(1.5, 4),
+          hue: LAB.rand(240, 320),
+          saturation: LAB.rand(50, 100),
+          lightness: LAB.rand(40, 80),
+          alpha: LAB.rand(0.3, 0.8),
+          drift: LAB.rand(-0.3, 0.3),
         });
       }
     }
@@ -204,7 +198,7 @@ a Van de Graaff generator, with a bit of "Galaxy on Orion's belt" in there too.
 
       for (let i = 1; i < segments; i++) {
         const t = i / segments;
-        const jag = rand(-len * 0.08, len * 0.08);
+        const jag = LAB.rand(-len * 0.08, len * 0.08);
         points.push({
           x: x1 + dx * t + perpX * jag,
           y: y1 + dy * t + perpY * jag,
@@ -245,12 +239,12 @@ a Van de Graaff generator, with a bit of "Galaxy on Orion's belt" in there too.
 
       for (let a = 0; a < ARC_COUNT; a++) {
         const t = ARC_COUNT === 1 ? 0 : (a / (ARC_COUNT - 1)) * 2 - 1;
-        const arcAngle = baseAngle + t * spread + rand(-0.15, 0.15);
+        const arcAngle = baseAngle + t * spread + LAB.rand(-0.15, 0.15);
 
         const startX = gc.x + Math.cos(arcAngle) * gc.r;
         const startY = gc.y + Math.sin(arcAngle) * gc.r;
 
-        const points = generateArc(startX, startY, mouseX, mouseY, 8 + Math.floor(rand(0, 6)));
+        const points = generateArc(startX, startY, mouseX, mouseY, LAB.randInt(8, 13));
 
         // Draw glow
         aCtx.beginPath();
@@ -258,8 +252,8 @@ a Van de Graaff generator, with a bit of "Galaxy on Orion's belt" in there too.
         for (let i = 1; i < points.length; i++) {
           aCtx.lineTo(points[i].x, points[i].y);
         }
-        aCtx.strokeStyle = `hsla(${270 + rand(-20, 20)}, 80%, 70%, ${glowAlpha})`;
-        aCtx.lineWidth = rand(3, 6);
+        aCtx.strokeStyle = `hsla(${LAB.rand(250, 290)}, 80%, 70%, ${glowAlpha})`;
+        aCtx.lineWidth = LAB.rand(3, 6);
         aCtx.stroke();
 
         // Draw core
@@ -268,8 +262,8 @@ a Van de Graaff generator, with a bit of "Galaxy on Orion's belt" in there too.
         for (let i = 1; i < points.length; i++) {
           aCtx.lineTo(points[i].x, points[i].y);
         }
-        aCtx.strokeStyle = `hsla(${270 + rand(-20, 20)}, 90%, 88%, ${rand(coreAlphaMin, coreAlphaMax)})`;
-        aCtx.lineWidth = rand(1, 2);
+        aCtx.strokeStyle = `hsla(${LAB.rand(250, 290)}, 90%, 88%, ${LAB.rand(coreAlphaMin, coreAlphaMax)})`;
+        aCtx.lineWidth = LAB.rand(1, 2);
         aCtx.stroke();
       }
     }
@@ -326,7 +320,7 @@ a Van de Graaff generator, with a bit of "Galaxy on Orion's belt" in there too.
         const dx = mouseX - gc.x;
         const dy = mouseY - gc.y;
         if (Math.sqrt(dx * dx + dy * dy) < gc.r) {
-          window.location.href = pageRandomiser.nextOne();
+          window.location.href = LAB.pageRandomiser.nextOne();
           return;
         }
       }
@@ -335,7 +329,7 @@ a Van de Graaff generator, with a bit of "Galaxy on Orion's belt" in there too.
 
     // Desktop click to navigate
     globe.addEventListener('click', () => {
-      window.location.href = pageRandomiser.nextOne();
+      window.location.href = LAB.pageRandomiser.nextOne();
     });
 
     // Animation loop

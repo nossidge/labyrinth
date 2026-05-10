@@ -14,7 +14,7 @@ Thanks BladeDev!
 -->
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="I'm not locked in here with you">
   <title>Fearful symmetry</title>
@@ -169,7 +169,6 @@ Thanks BladeDev!
             values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 50 -20" result="goo" />
         </filter>
       </defs>
-
       <g id="svgGroup" filter="url(#gloop)"></g>
     </svg>
 
@@ -185,12 +184,9 @@ Thanks BladeDev!
     </svg>
   </div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/rorschach";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('rorschach');
 
     const svgGroup = document.getElementById('svgGroup');
     const svgGroupRight = document.getElementById('svgGroupRight');
@@ -203,8 +199,8 @@ Thanks BladeDev!
     let historyIndex = -1;
 
     function generateCircleData() {
-      const cx = Math.floor(Math.random() * 350) + 75;
-      const cy = Math.floor(Math.random() * 500);
+      const cx = LAB.randInt(75, 424);
+      const cy = LAB.randInt(0, 499);
 
       // Calculate maximum radius based on distance to nearest edge
       // This is so that a circle doesn't go off the edge of the SVG
@@ -216,8 +212,8 @@ Thanks BladeDev!
         return null;
       }
 
-      const radius = Math.floor(Math.random() * (maxRadiusPossible - 9)) + 10;
-      const corridor = pageRandomiser.nextOne();
+      const radius = LAB.randInt(10, maxRadiusPossible);
+      const corridor = LAB.pageRandomiser.nextOne();
 
       return { cx, cy, radius, corridor };
     }

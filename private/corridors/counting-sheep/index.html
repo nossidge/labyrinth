@@ -11,7 +11,7 @@ https://cdn.iconscout.com/icon/free/png-512/free-fence-icon-svg-download-png-450
 -->
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Perchance to dream">
   <title>one two three four...</title>
@@ -171,45 +171,38 @@ https://cdn.iconscout.com/icon/free/png-512/free-fence-icon-svg-download-png-450
   <div class="grain"></div>
 
   <div id="counter-container">
-    <a id="counter-link" href="#">0</a>
+    <a id="counter-link" href="../index.html">0</a>
   </div>
 
   <div id="field">
     <div class="bg-circle top-left"></div>
     <div class="bg-circle bottom-right"></div>
 
-    <a id="fence-link" href="#">
+    <a id="fence-link" href="../index.html">
       <img id="fence-img" src="fence.png" alt="fence">
     </a>
 
     <div id="sheep-container"></div>
   </div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/counting-sheep";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('counting-sheep');
 
     let sheepCount = 0;
     const counterDisplay = document.getElementById('counter-link');
     const sheepContainer = document.getElementById('sheep-container');
-    const fenceLink = document.getElementById('fence-link');
-
-    counterDisplay.href = pageRandomiser.nextOne();
-    fenceLink.href = pageRandomiser.nextOne();
 
     function spawnSheep() {
       const sheep = document.createElement('a');
       sheep.className = 'sheep';
       sheep.textContent = '🐑';
-      sheep.href = pageRandomiser.nextOne();
+      sheep.href = LAB.pageRandomiser.nextOne();
 
       // Start position: top right area
       // We want them to cross the fence which is roughly in the middle
       const startX = window.innerWidth + 200;
-      const startY = Math.random() * (window.innerHeight * 0.4);
+      const startY = LAB.rand(0, window.innerHeight * 0.4);
 
       sheep.style.left = startX + 'px';
       sheep.style.top = startY + 'px';
@@ -223,7 +216,7 @@ https://cdn.iconscout.com/icon/free/png-512/free-fence-icon-svg-download-png-450
       const midX = window.innerWidth / 2;
       const midY = window.innerHeight / 2;
 
-      const speedX = 3 + Math.random() * 2;
+      const speedX = 3 + LAB.rand(0, 2);
 
       // Calculate speedY to ensure sheep crosses at (midX, midY)
       const framesToMid = (startX - midX) / speedX;
@@ -276,7 +269,7 @@ https://cdn.iconscout.com/icon/free/png-512/free-fence-icon-svg-download-png-450
     }
 
     // Spawn periodically
-    setInterval(spawnSheep, 2500 + Math.random() * 2000);
+    setInterval(spawnSheep, LAB.rand(2500, 4500));
 
     // Initial spawn
     spawnSheep();

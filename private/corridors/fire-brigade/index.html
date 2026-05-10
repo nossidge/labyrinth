@@ -9,7 +9,7 @@ Let me know if you find a layout that is impossible to win.
 -->
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Sam is the hero next door">
   <title>🚒 💦 🔥</title>
@@ -27,12 +27,12 @@ Let me know if you find a layout that is impossible to win.
     }
 
     body {
-      background-color: #000;
+      background-color: #000000;
       background-image:
         linear-gradient(rgba(0, 255, 255, 0.05) 1px, transparent 1px),
         linear-gradient(90deg, rgba(0, 255, 255, 0.05) 1px, transparent 1px);
       background-size: 20px 20px;
-      color: #888;
+      color: #888888;
       font-family: "Courier New", Courier, monospace;
       display: flex;
       align-items: center;
@@ -51,8 +51,8 @@ Let me know if you find a layout that is impossible to win.
     }
 
     #ui-container {
-      border: var(--border) solid #444;
-      background: #111;
+      border: var(--border) solid #444444;
+      background: #111111;
       padding: var(--pad);
       position: relative;
     }
@@ -61,8 +61,8 @@ Let me know if you find a layout that is impossible to win.
       display: grid;
       grid-template-columns: repeat(12, var(--cell));
       grid-template-rows: repeat(12, var(--cell));
-      background: #000;
-      border: var(--grid-border) solid #333;
+      background: #000000;
+      border: var(--grid-border) solid #333333;
     }
 
     .cell {
@@ -134,12 +134,12 @@ Let me know if you find a layout that is impossible to win.
     }
 
     #status.success {
-      color: #0f0;
+      color: #00ff00;
     }
 
     #status.failure {
-      color: #f00;
-      text-shadow: 0 0 5px #f00;
+      color: #ff0000;
+      text-shadow: 0 0 5px #ff0000;
     }
 
     #status.flooded {
@@ -181,7 +181,6 @@ Let me know if you find a layout that is impossible to win.
 </head>
 
 <body>
-
   <div id="outer">
     <div id="ui-container">
       <div id="grid"></div>
@@ -189,15 +188,12 @@ Let me know if you find a layout that is impossible to win.
     <a id="status"></a>
   </div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/fire-brigade";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('fire-brigade');
 
     const statusElement = document.getElementById('status');
-    statusElement.href = sd((c => c[11] + c[15] + c[12] + c[3])(cd.find(c => c.id == hoh).created));
+    statusElement.href = LAB.goto();
 
     const PIPES_CONFIG = {
       '─': { n: 0, s: 0, e: 1, w: 1, rotate: '│' },
@@ -216,7 +212,7 @@ Let me know if you find a layout that is impossible to win.
     const BUILDINGS_POOL = [
       '🏠', '🏢', '🏭', '🏥', '🏤', '🏨', '🏦', '🏪', '🏫', '🏛️', '🏚️', '🏗️'
     ];
-    const buildingsRandomiser = new CyclicRandomiser(BUILDINGS_POOL);
+    const buildingsRandomiser = new LAB.CyclicRandomiser(BUILDINGS_POOL);
 
     const GRID_SIZE = 12;
     const INNER_START = 1;
@@ -225,14 +221,14 @@ Let me know if you find a layout that is impossible to win.
     function randomDestination() {
       const min = (INNER_END / 2) + 2;
       const max = INNER_END;
-      const halfWayValue = Math.floor(Math.random() * (max - min) + min);
+      const halfWayValue = LAB.randInt(min, max - 1);
       return { r: halfWayValue, c: GRID_SIZE - 1 };
     }
 
     function randomSource() {
       const min = 1;
       const max = INNER_END / 2;
-      const halfWayValue = Math.floor(Math.random() * (max - min) + min);
+      const halfWayValue = LAB.randInt(min, max - 1);
       return { r: halfWayValue, c: 0 };
     }
 
@@ -252,12 +248,12 @@ Let me know if you find a layout that is impossible to win.
           cell.className = 'cell';
 
           if (r === sourcePos.r && c === sourcePos.c) {
-            cell.innerHTML = `<a href="${pageRandomiser.nextOne()}" class="building-link">${sourceEmoji}</a>`;
+            cell.innerHTML = `<a href="${LAB.pageRandomiser.nextOne()}" class="building-link">${sourceEmoji}</a>`;
             cell.classList.add('building', 'source');
             gridData[r][c] = { type: 'source', r, c };
           } else if (r === destPos.r && c === destPos.c) {
             const emoji = buildingsRandomiser.nextOne();
-            cell.innerHTML = `<a href="${pageRandomiser.nextOne()}" class="building-link">${emoji}</a><div class="fire-ovl">🔥</div>`;
+            cell.innerHTML = `<a href="${LAB.pageRandomiser.nextOne()}" class="building-link">${emoji}</a><div class="fire-ovl">🔥</div>`;
             cell.classList.add('building');
             gridData[r][c] = { type: 'building', r, c, onFire: true };
           } else if (r >= INNER_START && r <= INNER_END && c >= INNER_START && c <= INNER_END) {
@@ -271,9 +267,9 @@ Let me know if you find a layout that is impossible to win.
               if (r === 1 && c === 1) {
                 connectingPipes = connectingPipes.filter(p => p !== '─');
               }
-              char = connectingPipes[Math.floor(Math.random() * connectingPipes.length)];
+              char = LAB.sample(connectingPipes);
             } else {
-              char = PIPE_CHARS[Math.floor(Math.random() * PIPE_CHARS.length)];
+              char = LAB.sample(PIPE_CHARS);
             }
             cell.innerHTML = `<span class="pipe-char">${char}</span>`;
             cell.classList.add('pipe-cell');
@@ -283,7 +279,7 @@ Let me know if you find a layout that is impossible to win.
             const isCorner = (r === 0 || r === GRID_SIZE - 1) && (c === 0 || c === GRID_SIZE - 1);
             if (!isCorner) {
               const emoji = buildingsRandomiser.nextOne();
-              cell.innerHTML = `<a href="${pageRandomiser.nextOne()}" class="building-link">${emoji}</a>`;
+              cell.innerHTML = `<a href="${LAB.pageRandomiser.nextOne()}" class="building-link">${emoji}</a>`;
               cell.classList.add('building');
               gridData[r][c] = { type: 'building', r, c, onFire: false };
             } else {

@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="take it from me">
   <title>hip to be</title>
@@ -19,7 +19,7 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: #000;
+      background: #000000;
     }
 
     #container {
@@ -32,16 +32,16 @@
 
     .ring {
       position: absolute;
-      border: 2px solid #fff;
+      border: 2px solid #ffffff;
       display: block;
     }
 
     .ring.dark {
-      border-color: #444;
+      border-color: #444444;
     }
 
     .ring.light {
-      border-color: #fff;
+      border-color: #ffffff;
     }
 
     #crt-scanlines {
@@ -64,12 +64,9 @@
   <div id="crt-scanlines"></div>
   <div id="container"></div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/growing-squares";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('growing-squares');
 
     const container = document.getElementById('container');
     const rings = [];
@@ -91,7 +88,7 @@
     let ringsSpawned = 0;
     function spawnRing() {
       const a = document.createElement('a');
-      a.href = pageRandomiser.nextOne();
+      a.href = LAB.pageRandomiser.nextOne();
       a.className = 'ring ' + (ringsSpawned % 2 === 0 ? 'light' : 'dark');
       ringsSpawned++;
 

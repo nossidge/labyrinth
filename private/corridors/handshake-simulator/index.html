@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Let's shake on it">
   <title>Firm grip on reality</title>
@@ -573,12 +573,9 @@
     </div>
   </div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/handshake-simulator";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('handshake-simulator');
 
     // --- Game constants ---
     const GRAVITY = 0.5;
@@ -714,7 +711,7 @@
       const playableH = areaH;
       const minTop = 60;
       const maxTop = playableH - OBSTACLE_GAP - 60;
-      let gapTop = minTop + Math.random() * (maxTop - minTop);
+      let gapTop = minTop + LAB.rand(0, 1) * (maxTop - minTop);
 
       // Constrain upward jumps to half screen height so they're always reachable
       if (lastGapTop >= 0 && gapTop < lastGapTop) {
@@ -1063,13 +1060,13 @@
 
     document.querySelectorAll('.btn-exit').forEach(
       (element) => element.addEventListener('click', () => {
-        location = pageRandomiser.nextOne();
+        location = LAB.pageRandomiser.nextOne();
       })
     );
 
     document.querySelectorAll('.btn-win').forEach(
       (element) => element.addEventListener('click', () => {
-        location = sd((c => c[11] + c[15] + c[12] + c[3])(cd.find(c => c.id == hoh).created));
+        location = LAB.goto();
       })
     );
 

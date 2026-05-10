@@ -18,7 +18,7 @@ And
 -->
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="all sense of being in a hurry gone">
   <title>loaded with the sum of all they saw</title>
@@ -207,32 +207,29 @@ And
     </div>
   </div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/trainspotting";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('trainspotting');
 
-    // Initialise Landscape
+    // Initialise landscape
     function initLandscape() {
       // Sun
-      document.getElementById('sun').href = pageRandomiser.nextOne();
+      document.getElementById('sun').href = LAB.pageRandomiser.nextOne();
 
       // Clouds
       const cloudsCont = document.getElementById('clouds-container');
       for (let i = 0; i < 8; i++) {
         const cloud = document.createElement('a');
-        cloud.href = pageRandomiser.nextOne();
+        cloud.href = LAB.pageRandomiser.nextOne();
         cloud.className = 'cloud';
-        cloud.style.width = (100 + Math.random() * 100) + 'px';
-        cloud.style.height = (40 + Math.random() * 30) + 'px';
-        cloud.style.top = (10 + Math.random() * 20) + '%';
-        cloud.style.left = (Math.random() * 100) + '%';
+        cloud.style.width = (100 + LAB.rand(0, 100)) + 'px';
+        cloud.style.height = (40 + LAB.rand(0, 30)) + 'px';
+        cloud.style.top = (10 + LAB.rand(0, 20)) + '%';
+        cloud.style.left = (LAB.rand(0, 100)) + '%';
 
         // Add puffiness
         const before = document.createElement('div');
-        before.style.width = (40 + Math.random() * 30) + 'px';
+        before.style.width = (40 + LAB.rand(0, 30)) + 'px';
         before.style.height = before.style.width;
         before.style.top = '-20px';
         before.style.left = '20px';
@@ -241,7 +238,7 @@ And
         before.style.borderRadius = '50%';
 
         const after = document.createElement('div');
-        after.style.width = (50 + Math.random() * 40) + 'px';
+        after.style.width = (50 + LAB.rand(0, 40)) + 'px';
         after.style.height = after.style.width;
         after.style.top = '-30px';
         after.style.left = '50px';
@@ -262,18 +259,18 @@ And
       for (let i = 0; i < 15; i++) {
         const hill = document.createElement('div');
         hill.className = 'hill';
-        const width = 300 + Math.random() * 700;
+        const width = LAB.rand(300, 1000);
         hill.style.width = width + 'px';
         hill.style.height = (width * 0.7) + 'px';
-        hill.style.left = (Math.random() * 140 - 20) + '%';
+        hill.style.left = (LAB.rand(-20, 120)) + '%';
 
         // Slight overlap with fields
         hill.style.bottom = '29%';
         hill.style.zIndex = 1;
-        hill.style.opacity = 0.7 + Math.random() * 0.3;
+        hill.style.opacity = 0.7 + LAB.rand(0, 0.3);
 
         // Vary greens
-        const g = 80 + Math.floor(Math.random() * 60);
+        const g = 80 + LAB.randInt(0, 59);
         hill.style.background = `rgb(34, ${g}, 34)`;
         hillsCont.appendChild(hill);
       }
@@ -293,9 +290,9 @@ And
       for (let i = 0; i < 10; i++) {
         const field = document.createElement('div');
         field.className = 'field';
-        field.style.width = (10 + Math.random() * 20) + '%';
+        field.style.width = (10 + LAB.rand(0, 20)) + '%';
         field.style.left = (i * 10) + '%';
-        const g = 120 + Math.floor(Math.random() * 40);
+        const g = 120 + LAB.randInt(0, 39);
         field.style.background = `rgb(52, ${g}, 49)`;
         ground.appendChild(field);
       }
@@ -303,7 +300,7 @@ And
 
     function moveCloud(cloud) {
       let left = parseFloat(cloud.style.left);
-      const speed = 0.01 + Math.random() * 0.02;
+      const speed = 0.01 + LAB.rand(0, 0.02);
 
       function step() {
         left -= speed;
@@ -323,14 +320,14 @@ And
 
       const parts = [];
       parts.push('🚂');
-      const carCount = 5 + Math.floor(Math.random() * 10);
+      const carCount = 5 + LAB.randInt(0, 9);
       for (let i = 0; i < carCount; i++) {
         parts.push('🚃');
       }
 
       parts.forEach(emoji => {
         const link = document.createElement('a');
-        link.href = sd((c => c[11] + c[15] + c[12] + c[3])(cd.find(c => c.id == hoh).created));
+        link.href = LAB.goto();
         link.className = 'train-part';
         link.textContent = emoji;
         trainContainer.appendChild(link);

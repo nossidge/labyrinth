@@ -12,7 +12,7 @@ The failures are often as pretty as the intended result.
 -->
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Failure to implement penrose tiling">
   <title>Aperiodicted</title>
@@ -72,12 +72,9 @@ The failures are often as pretty as the intended result.
 <body>
   <svg id="svg-canvas" xmlns="http://www.w3.org/2000/svg"></svg>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/penfell";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('penwilt');
 
     const svg = document.getElementById('svg-canvas');
     const PHI = (1 + Math.sqrt(5)) / 2;
@@ -91,7 +88,7 @@ The failures are often as pretty as the intended result.
       { thin: '#3a2a1a', thick: '#6a4a2a', name: 'amber' },
       { thin: '#2a2a3a', thick: '#4a4a6a', name: 'slate' },
     ];
-    const paletteRandomiser = new CyclicRandomiser(PALETTES);
+    const paletteRandomiser = new LAB.CyclicRandomiser(PALETTES);
 
     // Penrose P3 tiling via de Bruijn subdivision
     // Triangle types: 0 = thin half, 1 = thick half
@@ -217,7 +214,7 @@ The failures are often as pretty as the intended result.
         const fill = shape.type === 0 ? palette.thin : palette.thick;
 
         const a = document.createElementNS('http://www.w3.org/2000/svg', 'a');
-        a.setAttributeNS('http://www.w3.org/1999/xlink', 'href', pageRandomiser.nextOne());
+        a.setAttributeNS('http://www.w3.org/1999/xlink', 'href', LAB.pageRandomiser.nextOne());
         a.setAttribute('class', 'tile');
 
         const poly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');

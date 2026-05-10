@@ -2,10 +2,10 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>You look lonely.</title>
-  <meta name="description" content="I can fix that.">
+  <meta name="description" content="I can fix that">
+  <title>You look lonely</title>
   <style>
     * {
       margin: 0;
@@ -178,84 +178,72 @@
     <a href="#" class="character-link pos-lc tint-pink"><img></a>
   </div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/blade-runner";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('blade-runner');
 
     const characters = [
       {
         image: "batty.jpg",
-        link: pageRandomiser.nextOne(),
+        link: LAB.pageRandomiser.nextOne(),
         quote: "I've seen things you people wouldn't believe."
       },
       {
         image: "deckard.jpg",
-        link: pageRandomiser.nextOne(),
+        link: LAB.pageRandomiser.nextOne(),
         quote: "Maybe in those last moments he loved life more than he ever had before."
       },
       {
         image: "leon.jpg",
-        link: pageRandomiser.nextOne(),
+        link: LAB.pageRandomiser.nextOne(),
         quote: "Let me tell you about my mother."
       },
       {
         image: "pris.jpg",
-        link: pageRandomiser.nextOne(),
+        link: LAB.pageRandomiser.nextOne(),
         quote: "I think, Sebastian, therefore I am."
       },
       {
         image: "rachael.jpg",
-        link: pageRandomiser.nextOne(),
+        link: LAB.pageRandomiser.nextOne(),
         quote: "I'm not in the business. I am the business."
       },
       {
         image: "sebastian.jpg",
-        link: pageRandomiser.nextOne(),
+        link: LAB.pageRandomiser.nextOne(),
         quote: "I make friends. They're toys. My friends are toys. I make them. It's a hobby."
       },
       {
         image: "tyrell.jpg",
-        link: pageRandomiser.nextOne(),
+        link: LAB.pageRandomiser.nextOne(),
         quote: "The light that burns twice as bright burns half as long."
       },
       {
         image: "gaff.jpg",
-        link: pageRandomiser.nextOne(),
+        link: LAB.pageRandomiser.nextOne(),
         quote: "It's too bad she won't live! But then again, who does?"
       },
     ];
 
-    function shuffle(array) {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-      }
-      return array;
-    }
+    const originalTitle = document.title;
+    const shuffled = LAB.shuffle(characters);
+    const elements = document.querySelectorAll('.character-link');
 
-    window.addEventListener('DOMContentLoaded', () => {
-      const originalTitle = document.title;
-      const shuffled = shuffle([...characters]);
-      const elements = document.querySelectorAll('.character-link');
-
-      elements.forEach((element, index) => {
-        const character = shuffled[index];
-        const img = element.querySelector('img');
-        img.src = character.image;
-        img.alt = character.quote;
-        element.addEventListener('mouseenter', () => {
-          document.title = img.alt;
-        });
-        element.addEventListener('mouseleave', () => {
-          document.title = originalTitle;
-        });
-        element.href = character.link;
-        element.classList.add('ready');
+    elements.forEach((element, index) => {
+      const character = shuffled[index];
+      const img = element.querySelector('img');
+      img.src = character.image;
+      img.alt = character.quote;
+      element.addEventListener('mouseenter', () => {
+        document.title = img.alt;
       });
+      element.addEventListener('mouseleave', () => {
+        document.title = originalTitle;
+      });
+      element.href = character.link;
+      element.classList.add('ready');
     });
+
   </script>
 </body>
 

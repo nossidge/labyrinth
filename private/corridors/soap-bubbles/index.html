@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="A BUBBLE ON A NEEDLE">
   <title>I'm forever blowing bubbles</title>
@@ -20,7 +20,7 @@
       overflow: hidden;
       background: linear-gradient(to bottom, #1a1a2e 0%, #0f0f1e 50%, #16213e 100%);
       font-family: Georgia, serif;
-      color: #fff;
+      color: #ffffff;
     }
 
     body {
@@ -29,21 +29,6 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-    }
-
-    /* Uusual scanline overlay that I use when something's not pretty enough yet */
-    #overlays {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      pointer-events: none;
-      z-index: 200;
-      background:
-        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
-        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 255, 0, 0.03));
-      background-size: 100% 2px, 3px 100%;
     }
 
     #container {
@@ -191,36 +176,47 @@
         transform: translate(var(--tx), var(--ty));
       }
     }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 200;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 255, 0, 0.03));
+      background-size: 100% 2px, 3px 100%;
+    }
   </style>
 </head>
 
 <body>
-  <div id="overlays"></div>
+  <div id="crt-scanlines"></div>
   <div id="container"></div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/soap-bubbles";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('soap-bubbles');
 
     const container = document.getElementById('container');
 
     function createParticles(x, y) {
-      const count = 8 + Math.random() * 8;
+      const count = 8 + LAB.rand(0, 8);
       for (let i = 0; i < count; i++) {
         const particle = document.createElement('div');
         particle.className = 'particle';
         const angle = (Math.PI * 2 * i) / count;
-        const speed = 100 + Math.random() * 200;
+        const speed = LAB.rand(100, 300);
         const tx = Math.cos(angle) * speed;
         const ty = Math.sin(angle) * speed - 100;
         particle.style.left = x + 'px';
         particle.style.top = y + 'px';
         particle.style.setProperty('--tx', tx + 'px');
         particle.style.setProperty('--ty', ty + 'px');
-        particle.style.setProperty('--duration', (0.6 + Math.random() * 0.4) + 's');
+        particle.style.setProperty('--duration', (0.6 + LAB.rand(0, 0.4)) + 's');
         particle.style.animationDuration = particle.style.getPropertyValue('--duration');
         container.appendChild(particle);
 
@@ -231,10 +227,10 @@
     function createResidue(x, y) {
       const residue = document.createElement('a');
       residue.className = 'residue';
-      residue.href = pageRandomiser.nextOne();
+      residue.href = LAB.pageRandomiser.nextOne();
 
       const emojis = ['◆', '●', '✦', '⬢', '★', '▴', '▪'];
-      residue.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+      residue.textContent = emojis[LAB.randIndex(emojis)];
 
       residue.style.left = (x - 40) + 'px';
       residue.style.top = (y - 40) + 'px';
@@ -268,9 +264,9 @@
       const bubble = document.createElement('div');
       bubble.className = 'bubble';
 
-      const startX = Math.random() * (window.innerWidth - 80);
-      const duration = 5 + Math.random() * 4;
-      const rotation = -10 + Math.random() * 20;
+      const startX = LAB.rand(0, window.innerWidth - 80);
+      const duration = 5 + LAB.rand(0, 4);
+      const rotation = -10 + LAB.rand(0, 20);
 
       // If no bubbleTop provided, start at bottom of screen
       if (bubbleTop === null) {
@@ -283,7 +279,7 @@
       // Calculate a random pop position between bubble top (going up) and top of screen
       const maxPopY = bubbleTopValue - 100;
       const minPopY = 0;
-      const popY = minPopY + Math.random() * (maxPopY - minPopY);
+      const popY = LAB.rand(minPopY, maxPopY);
 
       bubble.style.left = startX + 'px';
       bubble.style.top = bubbleTop;
@@ -319,17 +315,18 @@
     // Pre-populate the page with some bubbles already rising at random Y positions
     const initialBubbleCount = 10;
     for (let i = 0; i < initialBubbleCount; i++) {
-      const randomY = (window.innerHeight * 0.4) + Math.random() * (window.innerHeight * 0.6);
+      const randomY = LAB.rand(window.innerHeight * 0.4, window.innerHeight);
       createBubble(randomY + 'px');
     }
 
     // Spawn bubbles infinitely in waves
     setInterval(() => {
-      const spawnCount = 1 + Math.floor(Math.random() * 3);
+      const spawnCount = 1 + LAB.randInt(0, 2);
       for (let i = 0; i < spawnCount; i++) {
         setTimeout(() => createBubble(), i * 200);
       }
     }, 400);
+
   </script>
 </body>
 

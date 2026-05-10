@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="the sky above the port">
   <title>Dead Channel</title>
@@ -18,7 +18,7 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: #000;
+      background: #000000;
     }
 
     #grid {
@@ -62,27 +62,17 @@
   <div id="crt-scanlines"></div>
   <div id="grid"></div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/dead-channel";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
-
-    // Useful randomisation helpers
-    function rand(min, max) { return Math.random() * (max - min) + min; }
-    function randInt(min, max) { return Math.floor(rand(min, max + 1)); }
-    function randIndex(array) { return randInt(0, array.length - 1); }
-    function sample(array) { return array[randIndex(array)]; }
-    function chance(probability) { return rand(0, 1) < probability; }
+    const LAB = new Labyrinth('dead-channel');
 
     const grid = document.getElementById('grid');
     const cellW = 16;
     const cellH = 12;
-    const baseLight = '#ccc';
-    const baseDark = '#222';
-    const flickerLight = '#333';
-    const flickerDark = '#bbb';
+    const baseLight = '#cccccc';
+    const baseDark = '#222222';
+    const flickerLight = '#333333';
+    const flickerDark = '#bbbbbb';
     const waveSpeed = 0.004;
     const waveWidth = 0.25;
 
@@ -112,7 +102,7 @@
 
     function randomCount(expectedCount) {
       const whole = Math.floor(expectedCount);
-      return whole + (chance(expectedCount - whole) ? 1 : 0);
+      return whole + (LAB.chance(expectedCount - whole) ? 1 : 0);
     }
 
     function startFlicker(cell, now) {
@@ -120,7 +110,7 @@
         return false;
       }
 
-      cell._flickerEnd = now + rand(80, 280);
+      cell._flickerEnd = now + LAB.rand(80, 280);
       activeFlickers.add(cell);
       setCellColour(cell, true);
       return true;
@@ -138,16 +128,16 @@
       }
 
       if (startCol === 0 && endCol === cols - 1) {
-        return sample(cells);
+        return LAB.sample(cells);
       }
 
-      const col = randInt(startCol, endCol);
+      const col = LAB.randInt(startCol, endCol);
       const column = columns[col];
       if (!column || !column.length) {
         return null;
       }
 
-      return sample(column);
+      return LAB.sample(column);
     }
 
     function triggerRandomFlickers(count, now, startCol = 0, endCol = cols - 1) {
@@ -178,8 +168,8 @@
       for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
           const a = document.createElement('a');
-          a.href = pageRandomiser.nextOne();
-          const isLight = chance(0.5);
+          a.href = LAB.pageRandomiser.nextOne();
+          const isLight = LAB.chance(0.5);
           a._isLight = isLight;
           a._flickerEnd = 0;
           setCellColour(a);

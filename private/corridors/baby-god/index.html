@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="They serve the One True Infant">
   <title>Babies for the Baby God</title>
@@ -140,12 +140,9 @@
     WE HUNGER 🍼 WE CRAWL 🍼 WE SERVE 🍼 WE HUNGER 🍼 WE CRAWL 🍼 WE SERVE
   </marquee>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/baby-god";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('baby-god');
 
     const GODS_POOL = ['baby1.jpg', 'baby2.jpg', 'baby3.jpg', 'baby4.jpg'];
     const EMOJIS_POOL = ['👶', '👶🏻', '👶🏼', '👶🏽', '👶🏾', '👶🏿'];
@@ -160,9 +157,9 @@
       "the cradle shakes",
       "the ritual begins",
     ];
-    const godsRandomiser = new CyclicRandomiser(GODS_POOL);
-    const emojisRandomiser = new CyclicRandomiser(EMOJIS_POOL);
-    const phrasesRandomiser = new CyclicRandomiser(PHRASES_POOL);
+    const godsRandomiser = new LAB.CyclicRandomiser(GODS_POOL);
+    const emojisRandomiser = new LAB.CyclicRandomiser(EMOJIS_POOL);
+    const phrasesRandomiser = new LAB.CyclicRandomiser(PHRASES_POOL);
 
     const god = document.getElementById('baby-god');
     const throne = document.getElementById('god-throne');
@@ -177,8 +174,8 @@
       const p = document.createElement('div');
       p.className = 'weird-phrase';
       p.innerText = phrasesRandomiser.nextOne();
-      p.style.left = Math.random() * 80 + 10 + '%';
-      p.style.top = Math.random() * 80 + 10 + '%';
+      p.style.left = LAB.rand(10, 90) + '%';
+      p.style.top = LAB.rand(10, 90) + '%';
       document.body.appendChild(p);
       setTimeout(() => p.remove(), 3000);
     }
@@ -188,24 +185,24 @@
       const emoji = emojisRandomiser.nextOne();
       baby.innerHTML = emoji;
       baby.className = 'crawling-baby';
-      baby.href = pageRandomiser.nextOne();
+      baby.href = LAB.pageRandomiser.nextOne();
 
       // Start at a random edge
-      const edge = Math.floor(Math.random() * 4);
+      const edge = LAB.randInt(0, 3);
       let x, y;
       const pad = 100;
       if (edge === 0) { // Top
-        x = Math.random() * window.innerWidth;
+        x = LAB.rand(0, window.innerWidth);
         y = -pad;
       } else if (edge === 1) { // Right
         x = window.innerWidth + pad;
-        y = Math.random() * window.innerHeight;
+        y = LAB.rand(0, window.innerHeight);
       } else if (edge === 2) { // Bottom
-        x = Math.random() * window.innerWidth;
+        x = LAB.rand(0, window.innerWidth);
         y = window.innerHeight + pad;
       } else { // Left
         x = -pad;
-        y = Math.random() * window.innerHeight;
+        y = LAB.rand(0, window.innerHeight);
       }
 
       baby.style.left = x + 'px';
@@ -216,8 +213,8 @@
         el: baby,
         x: x,
         y: y,
-        speed: 1 + Math.random() * 3,
-        rotation: Math.random() * 360
+        speed: LAB.rand(1, 4),
+        rotation: LAB.rand(0, 360)
       });
     }
 
@@ -250,11 +247,11 @@
         }
       }
 
-      if (Math.random() < 0.04 && babies.length < 15) {
+      if (LAB.chance(0.04) && babies.length < 15) {
         createBaby();
       }
 
-      if (Math.random() < 0.01) {
+      if (LAB.chance(0.01)) {
         spawnPhrase();
       }
 
@@ -275,7 +272,9 @@
       }, 50);
 
       // Shake god
-      throne.style.transform = `scale(1.1) translate(${(Math.random() - 0.5) * 20}px, ${(Math.random() - 0.5) * 20}px)`;
+      const x = LAB.rand(-10, 10);
+      const y = LAB.rand(-10, 10);
+      throne.style.transform = `scale(1.1) translate(${x}px, ${y}px)`;
       setTimeout(() => {
         throne.style.transform = 'scale(1)';
       }, 100);
@@ -291,7 +290,7 @@
       const drip = document.createElement('div');
       drip.className = 'blood-drip';
       drip.innerHTML = '🌢';
-      drip.style.left = Math.random() * 100 + 'vw';
+      drip.style.left = LAB.rand(0, 100) + 'vw';
       drip.style.top = '-20px';
       document.body.appendChild(drip);
 
@@ -314,6 +313,7 @@
     });
 
     update();
+
   </script>
 </body>
 

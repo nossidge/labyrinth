@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Beyond Good and Knievel">
   <title>Cool Beans</title>
@@ -52,12 +52,10 @@
       height: 0;
       border-left: 200px solid transparent;
       border-right: 0px solid transparent;
-      /* Right-aligned ramp */
       border-bottom: 80px solid var(--ramp-color);
       z-index: 5;
     }
 
-    /* Alternative ramp design: a simple triangle */
     #ramp::after {
       content: '';
       position: absolute;
@@ -76,7 +74,6 @@
       z-index: 20;
       display: inline-block;
       transition: none;
-      /* We'll handle positioning in JS */
     }
 
     .message {
@@ -129,12 +126,9 @@
     <div id="ground"></div>
   </div>
 
-  <script src="../../common/labyrinthPages.js"></script>
-  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/stuntman";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('stuntman');
 
     // It turns out they all face left...
     // Sod it, I'm leaving this in.
@@ -206,8 +200,8 @@
       'WICKED!',
       'WILD!',
     ];
-    const vehicleRandomiser = new CyclicRandomiser(VEHICLES_POOL);
-    const messageRandomiser = new CyclicRandomiser(MESSAGES_POOL);
+    const vehicleRandomiser = new LAB.CyclicRandomiser(VEHICLES_POOL);
+    const messageRandomiser = new LAB.CyclicRandomiser(MESSAGES_POOL);
 
     const world = document.getElementById('world');
     const ramp = document.getElementById('ramp');
@@ -238,7 +232,7 @@
 
         this.x = -100;
         this.y = groundY - 40;
-        this.vx = 6 + Math.random() * 6;
+        this.vx = LAB.rand(6, 12);
         this.vy = 0;
         this.rotation = 0;
         this.vRotate = 0;
@@ -262,8 +256,8 @@
           } else if (this.x >= rampJumpPoint) {
             // Jump!
             this.isJumping = true;
-            this.vy = -12 - Math.random() * 8; // Launch velocity
-            this.vRotate = 15 + Math.random() * 25; // Flip speed
+            this.vy = LAB.rand(-20, -12); // Launch velocity
+            this.vRotate = LAB.rand(15, 40); // Flip speed
           } else {
             // Flat ground before ramp
             this.y = groundY - 40;
@@ -308,7 +302,7 @@
     const activeVehicles = [];
 
     function loop() {
-      if (Math.random() < 0.02) {
+      if (LAB.chance(0.02)) {
         activeVehicles.push(new StuntVehicle());
       }
 
@@ -323,9 +317,12 @@
 
     loop();
 
+    let resizeTimeout;
     window.addEventListener('resize', () => {
-      location.reload();
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => location.reload(), 100);
     });
+
   </script>
 </body>
 

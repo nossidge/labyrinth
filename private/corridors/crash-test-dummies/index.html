@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Mmm Mmm Mmm Mmm">
   <title>HARD IMPACT</title>
@@ -122,12 +122,9 @@
     <!-- Symbols and noise will be injected here -->
   </div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/crash-test-dummies";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('crash-test-dummies');
 
     const grid = document.getElementById('grid');
     const symbolCount = 40;
@@ -137,11 +134,11 @@
       const deco = document.createElement('div');
       deco.className = 'symbol small';
       deco.style.position = 'absolute';
-      deco.style.left = Math.random() * 100 + '%';
-      deco.style.top = Math.random() * 100 + '%';
+      deco.style.left = LAB.rand(0, 100) + '%';
+      deco.style.top = LAB.rand(0, 100) + '%';
       deco.style.opacity = '0.1';
       deco.style.pointerEvents = 'none';
-      deco.style.transform = `translate(-50%, -50%) rotate(${Math.random() * 360}deg)`;
+      deco.style.transform = `translate(-50%, -50%) rotate(${LAB.rand(0, 360)}deg)`;
       document.body.appendChild(deco);
     }
 
@@ -150,34 +147,34 @@
     for (let i = 0; i < symbolCount; i++) {
       const wrapper = document.createElement('div');
       wrapper.style.position = 'absolute';
-      wrapper.style.left = Math.random() * 95 + '%';
-      wrapper.style.top = Math.random() * 95 + '%';
-      wrapper.style.zIndex = Math.floor(Math.random() * 10);
-      wrapper.style.transform = `translate(-50%, -50%) rotate(${Math.random() * 360}deg)`;
+      wrapper.style.left = LAB.rand(0, 95) + '%';
+      wrapper.style.top = LAB.rand(0, 95) + '%';
+      wrapper.style.zIndex = LAB.randInt(0, 9);
+      wrapper.style.transform = `translate(-50%, -50%) rotate(${LAB.rand(0, 360)}deg)`;
 
       const link = document.createElement('a');
-      link.href = pageRandomiser.nextOne();
+      link.href = LAB.pageRandomiser.nextOne();
       link.className = 'symbol-link';
 
       const symbol = document.createElement('div');
       symbol.className = 'symbol';
 
-      const size = Math.random() * 150 + 20;
+      const size = LAB.rand(20, 170);
       symbol.style.width = size + 'px';
       symbol.style.height = size + 'px';
       symbol.style.borderWidth = (size / 15) + 'px';
 
-      if (Math.random() > 0.8) {
+      if (LAB.chance(0.2)) {
         // Rectangular test plates
         symbol.style.borderRadius = '0';
-        if (Math.random() > 0.5) {
+        if (LAB.chance(0.5)) {
           // Checkerboard pattern is only halved, not quartered
           symbol.style.background = 'linear-gradient(45deg, var(--black) 50%, var(--white) 50%)';
         }
       }
 
       // Invert colors randomly
-      if (Math.random() > 0.9) {
+      if (LAB.chance(0.1)) {
         symbol.style.filter = 'invert(1)';
       }
 

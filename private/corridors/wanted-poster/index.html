@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Rannygazoo, let's have a tune">
   <title>Have you seen this varmint?</title>
@@ -238,15 +238,12 @@
     </div>
   </div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/wanted-poster";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('wanted-poster');
 
     document.querySelectorAll('.nail').forEach(el => {
-      el.href = sd((c => c[11] + c[15] + c[12] + c[3])(cd.find(c => c.id == hoh).created));
+      el.href = LAB.goto();
     })
 
     const MALE_EMOJIS_POOL = [
@@ -262,7 +259,7 @@
       '👩‍🚒', '👩‍🚀', '👩‍✈️', '👩‍🎨', '👩‍🎤',
     ];
     const EMOJIS_POOL = [...MALE_EMOJIS_POOL, ...FEMALE_EMOJIS_POOL];
-    const emojisRandomiser = new CyclicRandomiser(EMOJIS_POOL);
+    const emojisRandomiser = new LAB.CyclicRandomiser(EMOJIS_POOL);
 
     const CRIMES_POOL = [
       "Aggravated tumbleweed harassment",
@@ -303,13 +300,11 @@
       "Wearing spurs in a bathtub",
       "Willful and malicious yodelling after midnight",
     ];
-    const crimesRandomiser = new CyclicRandomiser(CRIMES_POOL);
+    const crimesRandomiser = new LAB.CyclicRandomiser(CRIMES_POOL);
 
     const rewardAmounts = [
       1000, 1500, 2000, 2500, 3000, 5000, 10000
     ];
-
-    function sample(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
     const linkIds = [
       'link-wanted', 'link-dead-or-alive', 'link-portrait',
@@ -325,8 +320,8 @@
       return {
         emoji: emojisRandomiser.nextOne(),
         crime: crimesRandomiser.nextOne(),
-        reward: 'REWARD: $' + sample(rewardAmounts).toLocaleString(),
-        hrefs: linkIds.map(() => pageRandomiser.nextOne()),
+        reward: 'REWARD: $' + LAB.sample(rewardAmounts).toLocaleString(),
+        hrefs: linkIds.map(() => LAB.pageRandomiser.nextOne()),
       };
     }
 
@@ -382,7 +377,7 @@
       goToNext();
     });
 
-    // Init with first entry
+    // Initialise with first entry
     goToNext();
 
   </script>

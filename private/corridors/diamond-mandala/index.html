@@ -9,7 +9,7 @@ Imperfection is beauty :-)
 -->
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Shine on">
   <title>Forever</title>
@@ -156,12 +156,9 @@ Imperfection is beauty :-)
     </svg>
   </div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/diamond-mandala";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('diamond-mandala');
 
     // Configuration
     const mandala = {
@@ -239,13 +236,13 @@ Imperfection is beauty :-)
              ${petalX} ${petalY - petalRadius}
         `;
         path.setAttribute('d', d);
-        const colorIndex = i % 2;
-        path.setAttribute('fill', colorIndex === 0 ? 'var(--petal-color-light)' : 'var(--petal-color-dark)');
-        path.setAttribute('opacity', colorIndex === 0 ? '0.7' : '0.5');
+        const colourIndex = i % 2;
+        path.setAttribute('fill', colourIndex === 0 ? 'var(--petal-color-light)' : 'var(--petal-color-dark)');
+        path.setAttribute('opacity', colourIndex === 0 ? '0.7' : '0.5');
 
         const link = document.createElementNS('http://www.w3.org/2000/svg', 'a');
         link.setAttribute('class', 'mandala-link');
-        link.setAttribute('href', pageRandomiser.nextOne());
+        link.setAttribute('href', LAB.pageRandomiser.nextOne());
         link.appendChild(path);
         group.appendChild(link);
         ring.appendChild(group);
@@ -257,21 +254,21 @@ Imperfection is beauty :-)
     ringElements.forEach((ring) => {
       const link = document.createElementNS('http://www.w3.org/2000/svg', 'a');
       link.setAttribute('class', 'mandala-link');
-      link.setAttribute('href', pageRandomiser.nextOne());
+      link.setAttribute('href', LAB.pageRandomiser.nextOne());
       const parent = ring.parentNode;
       parent.replaceChild(link, ring);
       link.appendChild(ring);
     });
 
-    // Create center as clickable
+    // Create centre as clickable
     const centerDotClickable = svg.querySelector('.center-dot');
     const centerLink = document.createElementNS('http://www.w3.org/2000/svg', 'a');
     centerLink.setAttribute('class', 'mandala-link');
-    centerLink.setAttribute('href', pageRandomiser.nextOne());
+    centerLink.setAttribute('href', LAB.pageRandomiser.nextOne());
     centerDotClickable.parentNode.replaceChild(centerLink, centerDotClickable);
     centerLink.appendChild(centerDotClickable);
 
-    // Initialize petals
+    // Initialise petals
     createPetals('petal-ring-1', 192, 12, 0, 1);
     createPetals('petal-ring-2', 100, 12, 360 / 12, 0.7);
 
@@ -294,6 +291,7 @@ Imperfection is beauty :-)
     }
     resizeHandler();
     window.addEventListener('resize', resizeHandler);
+
   </script>
 </body>
 

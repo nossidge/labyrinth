@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Tartaneous administration">
   <title>spartan tartan</title>
@@ -18,7 +18,7 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: #000;
+      background: #000000;
     }
 
     canvas {
@@ -72,14 +72,9 @@
   <div id="links"></div>
   <div id="crt-scanlines"></div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/spartan-tartan";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
-
-    function rand(min, max) { return Math.random() * (max - min) + min; }
+    const LAB = new Labyrinth('spartan-tartan');
 
     const linksContainer = document.getElementById('links');
     const canvas = document.getElementById('canvas');
@@ -97,23 +92,23 @@
 
       for (let i = 0; i < hCount; i++) {
         hThreads.push({
-          y: (H / hCount) * i + rand(0, H / hCount),
-          speed: rand(0.3, 1.0),
-          offset: rand(0, W),
-          hue: (360 / hCount) * i + rand(0, 10),
-          width: rand(2, 6),
-          alpha: rand(0.4, 0.6),
+          y: (H / hCount) * i + LAB.rand(0, H / hCount),
+          speed: LAB.rand(0.3, 1.0),
+          offset: LAB.rand(0, W),
+          hue: (360 / hCount) * i + LAB.rand(0, 10),
+          width: LAB.rand(2, 6),
+          alpha: LAB.rand(0.4, 0.6),
         });
       }
 
       for (let i = 0; i < vCount; i++) {
         vThreads.push({
-          x: (W / vCount) * i + rand(0, W / vCount),
-          speed: rand(0.2, 0.8),
-          offset: rand(0, H),
-          hue: (360 / vCount) * i + rand(0, 10) + 180,
-          width: rand(2, 6),
-          alpha: rand(0.4, 0.6),
+          x: (W / vCount) * i + LAB.rand(0, W / vCount),
+          speed: LAB.rand(0.2, 0.8),
+          offset: LAB.rand(0, H),
+          hue: (360 / vCount) * i + LAB.rand(0, 10) + 180,
+          width: LAB.rand(2, 6),
+          alpha: LAB.rand(0.4, 0.6),
         });
       }
     }
@@ -140,7 +135,7 @@
       for (const [y1, y2] of yBands) {
         for (const [x1, x2] of xBands) {
           const a = document.createElement('a');
-          a.href = pageRandomiser.nextOne();
+          a.href = LAB.pageRandomiser.nextOne();
           a.style.left = x1 + 'px';
           a.style.top = y1 + 'px';
           a.style.width = (x2 - x1) + 'px';

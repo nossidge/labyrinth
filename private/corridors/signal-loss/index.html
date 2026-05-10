@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="TVGoHome">
   <title>Please stand by</title>
@@ -105,7 +105,7 @@
       transform: translate(-50%, -50%);
       font-size: 48px;
       font-weight: bold;
-      color: #ccc;
+      color: #cccccc;
       letter-spacing: 12px;
       text-transform: uppercase;
       z-index: 5;
@@ -127,21 +127,6 @@
       pointer-events: none;
     }
 
-    /* Lovely old CRT scanline */
-    #crt {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      pointer-events: none;
-      z-index: 100;
-      background:
-        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%),
-        linear-gradient(90deg, rgba(255, 0, 0, 0.04), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.04));
-      background-size: 100% 2px, 3px 100%;
-    }
-
     /* Rectangle with rounded corners, like the rounded edges of an old TV */
     #vignette {
       position: fixed;
@@ -156,6 +141,21 @@
         inset 0 0 80px 40px rgba(0, 0, 0, 0.6),
         inset 0 0 200px 100px rgba(0, 0, 0, 0.3);
     }
+
+    /* Lovely old CRT scanline */
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 100;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.04), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.04));
+      background-size: 100% 2px, 3px 100%;
+    }
   </style>
 </head>
 
@@ -167,20 +167,12 @@
     <div id="no-signal">NO SIGNAL</div>
   </div>
   <div id="vignette"></div>
-  <div id="crt"></div>
+  <div id="crt-scanlines"></div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/signal-loss";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('signal-loss');
 
-    // Useful randomisation helpers
-    function rand(min, max) { return Math.random() * (max - min) + min; }
-    function randInt(min, max) { return Math.floor(rand(min, max + 1)); }
-    function randIndex(array) { return randInt(0, array.length - 1); }
-    function sample(array) { return array[randIndex(array)]; }
 
     // SMPTE colour bar colours, from their logo:
     // https://en.wikipedia.org/wiki/Society_of_Motion_Picture_and_Television_Engineers
@@ -203,7 +195,7 @@
     // Create colour bars as links
     barColours.forEach(colour => {
       const link = document.createElement('a');
-      link.href = pageRandomiser.nextOne();
+      link.href = LAB.pageRandomiser.nextOne();
       link.className = 'bar-link';
       link.style.backgroundColor = colour;
 
@@ -232,11 +224,11 @@
     function drawStatic() {
       const data = staticImageData.data;
       for (let i = 0; i < data.length; i += 4) {
-        const v = rand(0, 255);
+        const v = LAB.rand(0, 255);
         data[i] = v;
         data[i + 1] = v;
         data[i + 2] = v;
-        data[i + 3] = rand(0, 120);
+        data[i + 3] = LAB.rand(0, 120);
       }
       ctx.putImageData(staticImageData, 0, 0);
     }
@@ -266,21 +258,21 @@
 
     function triggerGlitch() {
       glitchSlices.forEach(slice => {
-        if (rand(0, 1) > 0.5) {
-          const y = rand(0, window.innerHeight);
-          const h = rand(1, 7);
-          const shift = rand(-20, 20);
+        if (LAB.rand(0, 1) > 0.5) {
+          const y = LAB.rand(0, window.innerHeight);
+          const h = LAB.rand(1, 7);
+          const shift = LAB.rand(-20, 20);
           slice.style.top = y + 'px';
           slice.style.height = h + 'px';
           slice.style.transform = `translateX(${shift}px)`;
-          slice.style.opacity = rand(0.3, 0.8);
-          slice.style.background = rand(0, 1) > 0.7
-            ? `rgba(${rand(0, 255)}, ${rand(0, 255)}, ${rand(0, 255)}, 0.3)`
+          slice.style.opacity = LAB.rand(0.3, 0.8);
+          slice.style.background = LAB.rand(0, 1) > 0.7
+            ? `rgba(${LAB.rand(0, 255)}, ${LAB.rand(0, 255)}, ${LAB.rand(0, 255)}, 0.3)`
             : `rgba(255, 255, 255, 0.15)`;
 
           setTimeout(() => {
             slice.style.opacity = 0;
-          }, rand(50, 150));
+          }, LAB.rand(50, 150));
         }
       });
     }
@@ -326,7 +318,7 @@
       rollingBand.style.top = bandY + 'px';
 
       // Random glitch bursts
-      if (rand(0, 1) > 0.92) {
+      if (LAB.rand(0, 1) > 0.92) {
         triggerGlitch();
       }
 
@@ -362,7 +354,7 @@
           barsContainer.style.opacity = 1 - dissolveProgress * 0.8;
 
           // Glitches intensify
-          if (rand(0, 1) > 0.7) triggerGlitch();
+          if (LAB.rand(0, 1) > 0.7) triggerGlitch();
 
           if (phaseTime > DISSOLVE_DURATION) {
             phase = 'static';
@@ -378,7 +370,7 @@
           // Flash "NO SIGNAL"
           noSignal.style.opacity = Math.sin(phaseTime * 0.005) > 0 ? 0.8 : 0;
 
-          if (rand(0, 1) > 0.85) triggerGlitch();
+          if (LAB.rand(0, 1) > 0.85) triggerGlitch();
 
           if (phaseTime > STATIC_DURATION) {
             phase = 'reforming';
@@ -386,7 +378,7 @@
 
             // Reassign links on reform
             document.querySelectorAll('.bar-link').forEach(link => {
-              link.href = pageRandomiser.nextOne();
+              link.href = LAB.pageRandomiser.nextOne();
             });
           }
           break;

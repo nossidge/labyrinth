@@ -3,12 +3,13 @@
 
 <head>
   <title>Entering...</title>
-  <script src="../common/labyrinthPages.js"></script>
+  <script src="../common/labyrinth.js"></script>
   <script>
     window.onload = function () {
-      if (typeof labyrinthPages !== 'undefined' && labyrinthPages.length > 0) {
+      const labyrinthPages = typeof corridorsData !== 'undefined' ? corridorsData.map(c => c.url) : [];
+      if (labyrinthPages.length > 0) {
         const randomPage = labyrinthPages[Math.floor(Math.random() * labyrinthPages.length)];
-        // Paths in labyrinthPages are relative to common/labyrinthPages.js (../../corridors/...)
+        // Paths in labyrinthPages are relative to common/labyrinth.js (../../corridors/...)
         // From random/index.html we need ../corridors/...
         const target = randomPage.replace(/^\.\.\/\.\.\//, '../');
         window.location.href = target;

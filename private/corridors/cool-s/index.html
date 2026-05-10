@@ -6,7 +6,7 @@ https://en.wikipedia.org/wiki/Cool_S
 -->
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Every school desk in every school in every country">
   <title>Stüssy or not Stüssy</title>
@@ -87,18 +87,13 @@ https://en.wikipedia.org/wiki/Cool_S
     </svg>
   </a>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/cool-s";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
-
-    function rand(min, max) { return Math.random() * (max - min) + min; }
+    const LAB = new Labyrinth('cool-s');
 
     const SPAWN_DELAY = 60;
 
-    const SPRAY_COLORS_POOL = [
+    const SPRAY_COLOURS_POOL = [
       '#ff073a', '#ff6fff', '#ff00ff', '#fe01b1',
       '#39ff14', '#0fff50', '#7fff00', '#ccff00',
       '#00ffff', '#04d9ff', '#4dffff', '#0ff0fc',
@@ -106,7 +101,7 @@ https://en.wikipedia.org/wiki/Cool_S
       '#ff6700', '#ff4500', '#ff3503', '#fc6600',
       '#bf00ff', '#b026ff', '#9d00ff', '#7b68ee',
     ];
-    const coloursRandomiser = new CyclicRandomiser(SPRAY_COLORS_POOL);
+    const coloursRandomiser = new LAB.CyclicRandomiser(SPRAY_COLOURS_POOL);
 
     const centralLink = document.getElementById('central-link');
     const centralS = document.getElementById('central-s');
@@ -119,12 +114,14 @@ https://en.wikipedia.org/wiki/Cool_S
     }
 
     function coolSvg(colour) {
-      return `<svg xmlns="http://www.w3.org/2000/svg"
-        xmlns:xlink="http://www.w3.org/1999/xlink" viewBox=".5 .5 5 11">
-        <path id="a" fill="none" stroke="${colour}" stroke-width=".4"
-          d="M3 9V7L1 5V3L3 1 5 3V5L4 6" />
-        <use xlink:href="#a" transform="rotate(180 3 6)" />
-      </svg>`;
+      return `
+        <svg xmlns="http://www.w3.org/2000/svg"
+          xmlns:xlink="http://www.w3.org/1999/xlink" viewBox=".5 .5 5 11">
+          <path id="a" fill="none" stroke="${colour}" stroke-width=".4"
+            d="M3 9V7L1 5V3L3 1 5 3V5L4 6" />
+          <use xlink:href="#a" transform="rotate(180 3 6)" />
+        </svg>
+      `;
     }
 
     function spawnS() {
@@ -133,15 +130,15 @@ https://en.wikipedia.org/wiki/Cool_S
       img.src = svgToDataUri(coolSvg(colour));
       img.className = 'spawned-s';
 
-      const size = rand(30, 120);
+      const size = LAB.rand(30, 120);
       img.style.width = size + 'px';
       img.style.height = 'auto';
 
       const offset = 40;
-      img.style.left = rand(-offset, offset + window.innerWidth - size) + 'px';
-      img.style.top = rand(-offset, offset + window.innerHeight - size * 2) + 'px';
+      img.style.left = LAB.rand(-offset, offset + window.innerWidth - size) + 'px';
+      img.style.top = LAB.rand(-offset, offset + window.innerHeight - size * 2) + 'px';
 
-      const rotation = rand(-30, 30);
+      const rotation = LAB.rand(-30, 30);
       img.style.transform = 'rotate(' + rotation + 'deg)';
 
       img.style.filter = 'drop-shadow(0 0 4px ' + colour + ')';

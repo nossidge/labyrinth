@@ -7,7 +7,7 @@ https://www.freepik.com/icon/cut_391327
 -->
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="A close shave">
   <title>Tonsorial artistry</title>
@@ -151,12 +151,9 @@ https://www.freepik.com/icon/cut_391327
     <!-- Gallery of shaved faces -->
   </div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/barbershop";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('barbershop');
 
     const faceContainer = document.getElementById('face-container');
     const doneBtn = document.getElementById('done-btn');
@@ -167,27 +164,35 @@ https://www.freepik.com/icon/cut_391327
     let shaveCtx = null;
     let isMouseDown = false;
 
-    const skins = ['#f5d0c5', '#e8beac', '#d29a7d', '#b07b5a', '#8d5524', '#c68642', '#e0ac69', '#f1c27d', '#ffdbac'];
-    const eyeColors = ['#634e34', '#2e536f', '#3d671d', '#1c1c1c', '#4b2d1c'];
-    const hairColors = ['#090806', '#2c222b', '#71635a', '#b8a33c', '#d6b37d', '#a56b46', '#91553d', '#533d32', '#3b3024', '#eeeeee'];
+    const skins = [
+      '#f5d0c5', '#e8beac', '#d29a7d', '#b07b5a', '#8d5524',
+      '#c68642', '#e0ac69', '#f1c27d', '#ffdbac',
+    ];
+    const eyeColors = [
+      '#634e34', '#2e536f', '#3d671d', '#1c1c1c', '#4b2d1c',
+    ];
+    const hairColors = [
+      '#090806', '#2c222b', '#71635a', '#b8a33c', '#d6b37d',
+      '#a56b46', '#91553d', '#533d32', '#3b3024', '#eeeeee',
+    ];
 
     function generateRandomFace() {
       return {
-        id: Math.random().toString(36).substr(2, 9),
-        skin: skins[Math.floor(Math.random() * skins.length)],
-        eyeColor: eyeColors[Math.floor(Math.random() * eyeColors.length)],
-        hairColor: hairColors[Math.floor(Math.random() * hairColors.length)],
-        faceShape: ['round', 'square', 'long', 'pointy'][Math.floor(Math.random() * 4)],
-        eyeType: ['circle', 'oval', 'line'][Math.floor(Math.random() * 3)],
-        eyeSize: 4 + Math.random() * 8,
-        noseType: ['pointy', 'round', 'flat'][Math.floor(Math.random() * 3)],
-        noseWidth: 10 + Math.random() * 20,
-        mouthType: ['smile', 'frown', 'flat', 'surprised'][Math.floor(Math.random() * 4)],
-        mouthWidth: 20 + Math.random() * 50,
-        mouthCurve: Math.random() * 20 - 10,
-        beardType: Math.floor(Math.random() * 5), // 0: full, 1: goatee, 2: stash, 3: mutton, 4: patch
-        hairType: Math.floor(Math.random() * 4), // 0: afro, 1: flat, 2: spike, 3: bald
-        hasGlasses: Math.random() > 0.8
+        id: LAB.rand(0, 1).toString(36).substr(2, 9),
+        skin: skins[LAB.randIndex(skins)],
+        eyeColor: eyeColors[LAB.randIndex(eyeColors)],
+        hairColor: hairColors[LAB.randIndex(hairColors)],
+        faceShape: ['round', 'square', 'long', 'pointy'][LAB.randInt(0, 3)],
+        eyeType: ['circle', 'oval', 'line'][LAB.randInt(0, 2)],
+        eyeSize: LAB.rand(4, 12),
+        noseType: ['pointy', 'round', 'flat'][LAB.randInt(0, 2)],
+        noseWidth: LAB.rand(10, 30),
+        mouthType: ['smile', 'frown', 'flat', 'surprised'][LAB.randInt(0, 3)],
+        mouthWidth: LAB.rand(20, 70),
+        mouthCurve: LAB.rand(-10, 10),
+        beardType: LAB.randInt(0, 4), // 0: full, 1: goatee, 2: stash, 3: mutton, 4: patch
+        hairType: LAB.randInt(0, 3), // 0: afro, 1: flat, 2: spike, 3: bald
+        hasGlasses: LAB.chance(0.2)
       };
     }
 
@@ -395,8 +400,8 @@ https://www.freepik.com/icon/cut_391327
       // Add noise/texture to hair
       shaveCtx.globalAlpha = 0.2;
       for (let i = 0; i < 5000; i++) {
-        shaveCtx.fillStyle = Math.random() > 0.5 ? '#fff' : '#000';
-        shaveCtx.fillRect(Math.random() * 400, Math.random() * 400, 1, 1);
+        shaveCtx.fillStyle = LAB.chance(0.5) ? '#fff' : '#000';
+        shaveCtx.fillRect(LAB.rand(0, 400), LAB.rand(0, 400), 1, 1);
       }
       shaveCtx.globalAlpha = 1.0;
 
@@ -434,7 +439,7 @@ https://www.freepik.com/icon/cut_391327
 
     function addToGallery() {
       const item = document.createElement('a');
-      item.href = pageRandomiser.nextOne();
+      item.href = LAB.pageRandomiser.nextOne();
       item.className = 'gallery-item';
 
       const wrap = document.createElement('div');
@@ -446,7 +451,7 @@ https://www.freepik.com/icon/cut_391327
       const svg = createFaceSVG(currentFaceProps, 100);
       wrap.appendChild(svg);
 
-      // Hair Snapshot
+      // Hair snapshot
       const hairData = shaveCanvas.toDataURL();
       const hairImg = document.createElement('img');
       hairImg.src = hairData;
@@ -461,7 +466,7 @@ https://www.freepik.com/icon/cut_391327
       item.appendChild(wrap);
 
       const text = document.createElement('span');
-      text.innerText = 'SHAVED #' + Math.floor(Math.random() * 9000 + 1000);
+      text.innerText = 'SHAVED #' + LAB.randInt(1000, 9999);
       item.appendChild(text);
 
       gallery.prepend(item);
@@ -488,7 +493,7 @@ https://www.freepik.com/icon/cut_391327
     for (let i = 0; i < 5; i++) {
       const fakeProps = generateRandomFace();
       const item = document.createElement('a');
-      item.href = pageRandomiser.nextOne();
+      item.href = LAB.pageRandomiser.nextOne();
       item.className = 'gallery-item';
       const wrap = document.createElement('div');
       wrap.style.position = 'relative';
@@ -497,7 +502,7 @@ https://www.freepik.com/icon/cut_391327
       wrap.appendChild(createFaceSVG(fakeProps, 100));
       item.appendChild(wrap);
       const text = document.createElement('span');
-      text.innerText = 'SHAVED #' + Math.floor(Math.random() * 9000 + 1000);
+      text.innerText = 'SHAVED #' + LAB.randInt(1000, 9999);
       item.appendChild(text);
       gallery.prepend(item);
     }

@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="I've got nobody to hug, I'm such an ugly bug">
   <title>The Ugly Bug Ball</title>
@@ -40,7 +40,7 @@
     .disco-string {
       width: 4px;
       height: 30px;
-      background: #888;
+      background: #888888;
     }
 
     .disco-ball {
@@ -237,7 +237,7 @@
     }
 
     .dancer:hover {
-      filter: drop-shadow(0 0 14px #fff);
+      filter: drop-shadow(0 0 14px #ffffff);
       z-index: 100;
     }
 
@@ -386,8 +386,7 @@
       }
     }
 
-    /* CRT overlay */
-    #overlays {
+    #crt-overlay {
       position: fixed;
       top: 0;
       left: 0;
@@ -404,7 +403,7 @@
 </head>
 
 <body>
-  <div id="overlays"></div>
+  <div id="crt-overlay"></div>
 
   <!-- Disco ball, really hacky but I like it :-) -->
   <a class="disco-ball-wrap" href="../index.html">
@@ -437,12 +436,9 @@
   <!-- Bug zone -->
   <div class="bug-zone" id="bug-zone"></div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/ugly-bug-ball";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('ugly-bug-ball');
 
     // Floor tiles
     const floorEl = document.getElementById('dance-floor');
@@ -470,11 +466,11 @@
       for (let col = 0; col < floorCols; col++) {
         const tile = document.createElement('div');
         tile.className = 'floor-tile';
-        const pair = neonColors[Math.floor(Math.random() * neonColors.length)];
+        const pair = LAB.sample(neonColors);
         tile.style.setProperty('--tile-c1', pair[0]);
         tile.style.setProperty('--tile-c2', pair[1]);
-        tile.style.animationDelay = '-' + (Math.random() * 2).toFixed(2) + 's';
-        tile.style.animationDuration = (1.5 + Math.random() * 1.5).toFixed(2) + 's';
+        tile.style.animationDelay = '-' + (LAB.rand(0, 2)).toFixed(2) + 's';
+        tile.style.animationDuration = LAB.rand(1.5, 3).toFixed(2) + 's';
         floorEl.appendChild(tile);
       }
     }
@@ -484,21 +480,9 @@
     const dances = ['bounce', 'wiggle', 'hop', 'sway', 'spin', 'pulse', 'groove'];
     const bugZone = document.getElementById('bug-zone');
 
-    function randRange(min, max) {
-      return min + Math.random() * (max - min);
-    }
-
-    function pickDance() {
-      return dances[Math.floor(Math.random() * dances.length)];
-    }
-
-    function pickBug() {
-      return bugs[Math.floor(Math.random() * bugs.length)];
-    }
-
-    function bugFontSize() {
-      return randRange(50, 70).toFixed(0) + 'px'
-    }
+    function pickDance() { return LAB.sample(dances); }
+    function pickBug() { return LAB.sample(bugs); }
+    function bugFontSize() { return LAB.rand(50, 70).toFixed(0) + 'px' }
 
     // Pre-calculate positions that don't overlap
     const MIN_DIST = 10; // minimum distance in % between spawn points
@@ -509,8 +493,8 @@
         let best = null;
         let bestMinDist = -1;
         for (let attempt = 0; attempt < maxAttempts; attempt++) {
-          const x = randRange(xMin, xMax);
-          const y = randRange(yMin, yMax);
+          const x = LAB.rand(xMin, xMax);
+          const y = LAB.rand(yMin, yMax);
           let nearest = Infinity;
           for (const p of placed) {
             const d = Math.sqrt((x - p.x) ** 2 + (y - p.y) ** 2);
@@ -532,14 +516,14 @@
 
     function makeSoloDancer(emoji, x, y) {
       const a = document.createElement('a');
-      a.href = pageRandomiser.nextOne();
-      a.className = (Math.random() > 0.5) ? 'dancer' : 'dancer face-right';
+      a.href = LAB.pageRandomiser.nextOne();
+      a.className = (LAB.chance(0.5)) ? 'dancer' : 'dancer face-right';
       a.textContent = emoji;
       a.style.left = x + '%';
       a.style.top = y + '%';
       a.style.animationName = pickDance();
-      a.style.setProperty('--dance-speed', randRange(0.6, 1.8).toFixed(2) + 's');
-      a.style.animationDelay = '-' + randRange(0, 2).toFixed(2) + 's';
+      a.style.setProperty('--dance-speed', LAB.rand(0.6, 1.8).toFixed(2) + 's');
+      a.style.animationDelay = '-' + LAB.rand(0, 2).toFixed(2) + 's';
       a.style.fontSize = bugFontSize();
       return a;
     }
@@ -550,28 +534,28 @@
       container.style.left = x + '%';
       container.style.top = y + '%';
       const pairAnims = ['pair-sway', 'pair-bounce'];
-      container.style.animationName = pairAnims[Math.floor(Math.random() * pairAnims.length)];
-      container.style.animationDuration = randRange(1, 2).toFixed(2) + 's';
+      container.style.animationName = LAB.sample(pairAnims);
+      container.style.animationDuration = LAB.rand(1, 2).toFixed(2) + 's';
       container.style.animationIterationCount = 'infinite';
       container.style.animationTimingFunction = 'ease-in-out';
-      container.style.animationDelay = '-' + randRange(0, 2).toFixed(2) + 's';
+      container.style.animationDelay = '-' + LAB.rand(0, 2).toFixed(2) + 's';
 
       const size = bugFontSize();
 
       const a1 = document.createElement('a');
-      a1.href = pageRandomiser.nextOne();
+      a1.href = LAB.pageRandomiser.nextOne();
       a1.className = 'dancer face-right';
       a1.textContent = bug1;
       a1.style.animationName = pickDance();
-      a1.style.setProperty('--dance-speed', randRange(0.6, 1.4).toFixed(2) + 's');
+      a1.style.setProperty('--dance-speed', LAB.rand(0.6, 1.4).toFixed(2) + 's');
       a1.style.fontSize = size;
 
       const a2 = document.createElement('a');
-      a2.href = pageRandomiser.nextOne();
+      a2.href = LAB.pageRandomiser.nextOne();
       a2.className = 'dancer';
       a2.textContent = bug2;
       a2.style.animationName = pickDance();
-      a2.style.setProperty('--dance-speed', randRange(0.6, 1.4).toFixed(2) + 's');
+      a2.style.setProperty('--dance-speed', LAB.rand(0.6, 1.4).toFixed(2) + 's');
       a2.style.fontSize = size;
 
       container.appendChild(a1);
@@ -599,6 +583,7 @@
         populateBugs();
       }
     });
+
   </script>
 </body>
 

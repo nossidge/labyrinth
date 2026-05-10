@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Under the table and dreaming">
   <title>Red and black antennae waving</title>
@@ -48,7 +48,7 @@
 
     .item:hover {
       transform: scale(1.5) rotate(0deg) !important;
-      filter: drop-shadow(0 0 5px #fff);
+      filter: drop-shadow(0 0 5px #ffffff);
       z-index: 1000;
     }
 
@@ -86,14 +86,6 @@
       color: #8b4513;
     }
 
-    #links-container {
-      position: fixed;
-      bottom: 10px;
-      right: 10px;
-      font-size: 10px;
-      opacity: 0.3;
-    }
-
     a {
       color: inherit;
     }
@@ -108,34 +100,31 @@
 
   <div id="pile"></div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/ants-marching";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('ants-marching');
 
     const ITEMS_POOL = [
-      { emoji: '🍎', link: pageRandomiser.nextOne() },
-      { emoji: '🍕', link: pageRandomiser.nextOne() },
-      { emoji: '🍃', link: pageRandomiser.nextOne() },
-      { emoji: '🍬', link: pageRandomiser.nextOne() },
-      { emoji: '🍭', link: pageRandomiser.nextOne() },
-      { emoji: '🍓', link: pageRandomiser.nextOne() },
-      { emoji: '🌽', link: pageRandomiser.nextOne() },
-      { emoji: '🍇', link: pageRandomiser.nextOne() },
-      { emoji: '🍒', link: pageRandomiser.nextOne() },
-      { emoji: '🍑', link: pageRandomiser.nextOne() },
-      { emoji: '🍐', link: pageRandomiser.nextOne() },
-      { emoji: '🍉', link: pageRandomiser.nextOne() },
-      { emoji: '🍄', link: pageRandomiser.nextOne() },
-      { emoji: '🌰', link: pageRandomiser.nextOne() },
-      { emoji: '🌾', link: pageRandomiser.nextOne() },
-      { emoji: '🌿', link: pageRandomiser.nextOne() },
-      { emoji: '🍂', link: pageRandomiser.nextOne() },
-      { emoji: '🍁', link: pageRandomiser.nextOne() },
+      { emoji: '🍎', link: LAB.pageRandomiser.nextOne() },
+      { emoji: '🍕', link: LAB.pageRandomiser.nextOne() },
+      { emoji: '🍃', link: LAB.pageRandomiser.nextOne() },
+      { emoji: '🍬', link: LAB.pageRandomiser.nextOne() },
+      { emoji: '🍭', link: LAB.pageRandomiser.nextOne() },
+      { emoji: '🍓', link: LAB.pageRandomiser.nextOne() },
+      { emoji: '🌽', link: LAB.pageRandomiser.nextOne() },
+      { emoji: '🍇', link: LAB.pageRandomiser.nextOne() },
+      { emoji: '🍒', link: LAB.pageRandomiser.nextOne() },
+      { emoji: '🍑', link: LAB.pageRandomiser.nextOne() },
+      { emoji: '🍐', link: LAB.pageRandomiser.nextOne() },
+      { emoji: '🍉', link: LAB.pageRandomiser.nextOne() },
+      { emoji: '🍄', link: LAB.pageRandomiser.nextOne() },
+      { emoji: '🌰', link: LAB.pageRandomiser.nextOne() },
+      { emoji: '🌾', link: LAB.pageRandomiser.nextOne() },
+      { emoji: '🌿', link: LAB.pageRandomiser.nextOne() },
+      { emoji: '🍂', link: LAB.pageRandomiser.nextOne() },
+      { emoji: '🍁', link: LAB.pageRandomiser.nextOne() },
     ];
-    const itemRandomiser = new CyclicRandomiser(ITEMS_POOL);
+    const itemRandomiser = new LAB.CyclicRandomiser(ITEMS_POOL);
 
     const statusEl = document.getElementById('colony-status');
     const countEl = document.getElementById('count');
@@ -144,8 +133,8 @@
 
     function createAnt() {
       const antData = {
-        id: Date.now() + Math.random(),
-        side: Math.floor(Math.random() * 4),
+        id: Date.now() + LAB.rand(0, 1),
+        side: LAB.randInt(0, 3),
         progress: 0,
         returning: false,
         item: itemRandomiser.nextOne()
@@ -162,7 +151,7 @@
       carriedLink.textContent = antData.item.emoji;
       carriedLink.href = antData.item.link;
 
-      if (Math.random() > 0.5) {
+      if (LAB.chance(0.5)) {
         antEl.appendChild(antBody);
         antEl.appendChild(carriedLink);
       } else {
@@ -174,21 +163,23 @@
 
       let startX, startY;
       const padding = 100;
+      const h = window.innerHeight;
+      const w = window.innerWidth;
 
       switch (antData.side) {
-        case 0: startX = Math.random() * window.innerWidth; startY = -padding; break;
-        case 1: startX = window.innerWidth + padding; startY = Math.random() * window.innerHeight; break;
-        case 2: startX = Math.random() * window.innerWidth; startY = window.innerHeight + padding; break;
-        case 3: startX = -padding; startY = Math.random() * window.innerHeight; break;
+        case 0: startX = LAB.rand(0, w); startY = -padding; break;
+        case 1: startX = w + padding; startY = LAB.rand(0, h); break;
+        case 2: startX = LAB.rand(0, w); startY = h + padding; break;
+        case 3: startX = -padding; startY = LAB.rand(0, h); break;
       }
 
       // Target is somewhere in the pile area
-      const targetX = window.innerWidth / 2 + (Math.random() - 0.5) * 150;
-      const targetY = window.innerHeight / 2 + (Math.random() - 0.5) * 150;
+      const targetX = w / 2 + LAB.rand(-75, 75);
+      const targetY = h / 2 + LAB.rand(-75, 75);
 
       let currentX = startX;
       let currentY = startY;
-      const speed = 1.5 + Math.random() * 2;
+      const speed = LAB.rand(1.5, 3.5);
       let frame = 0;
 
       function move() {
@@ -258,7 +249,7 @@
       setTimeout(() => {
         item.style.left = `calc(50% + ${finalX}px)`;
         item.style.top = `calc(50% + ${finalY}px)`;
-        item.style.transform = `rotate(${Math.random() * 360}deg)`;
+        item.style.transform = `rotate(${LAB.rand(0, 360)}deg)`;
 
         setTimeout(() => {
           item.style.transition = 'transform 0.2s, filter 0.2s, opacity 1s';
@@ -277,7 +268,7 @@
     }
 
     function scheduleFadeAway(el) {
-      const lifetime = 10000 + Math.random() * 20000; // 10-30 seconds
+      const lifetime = LAB.rand(10000, 30000); // 10-30 seconds
       setTimeout(() => {
         fadeAndRemove(el);
       }, lifetime);
@@ -292,7 +283,7 @@
       }, 1000);
     }
 
-    // Initialize the pile with static items that have already been placed by previous ants
+    // Initialise the pile with static items that have already been placed by previous ants
     for (let i = 0; i < 20; i++) {
       const itemData = itemRandomiser.nextOne();
       const item = document.createElement('a');
@@ -300,12 +291,12 @@
       item.textContent = itemData.emoji;
       item.href = itemData.link;
 
-      const tx = (Math.random() - 0.5) * 150;
-      const ty = (Math.random() - 0.5) * 150;
+      const tx = LAB.rand(-75, 75);
+      const ty = LAB.rand(-75, 75);
 
       item.style.left = `calc(50% + ${tx}px)`;
       item.style.top = `calc(50% + ${ty}px)`;
-      item.style.transform = `rotate(${Math.random() * 360}deg)`;
+      item.style.transform = `rotate(${LAB.rand(0, 360)}deg)`;
 
       pileEl.appendChild(item);
       itemCount++;
@@ -316,7 +307,7 @@
 
     setInterval(createAnt, 1500);
     for (let i = 0; i < 4; i++) {
-      setTimeout(createAnt, Math.random() * 3000);
+      setTimeout(createAnt, LAB.rand(0, 3000));
     }
 
     // Dev mode for those who know the secret key
@@ -325,6 +316,7 @@
         statusEl.style.display = statusEl.style.display === 'none' ? 'block' : 'none';
       }
     });
+
   </script>
 </body>
 

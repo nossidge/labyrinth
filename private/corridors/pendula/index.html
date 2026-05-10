@@ -2,13 +2,13 @@
 <html lang="en">
 
 <!--
-This is based on those pendulum wave demonstrations.
+This is based on those pendulum wave science demonstrations.
 Each pendulum from left to right has a slightly increasing swing period.
 So it gives pretty emergent wave patterns from just really simple motion.
 -->
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Granite">
   <title>The Pit</title>
@@ -58,12 +58,9 @@ So it gives pretty emergent wave patterns from just really simple motion.
     <canvas id="canvas"></canvas>
   </a>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/pendula";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('pendula');
 
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
@@ -95,7 +92,7 @@ So it gives pretty emergent wave patterns from just really simple motion.
       W = canvas.width = window.innerWidth;
       H = canvas.height = window.innerHeight;
 
-      palette = PALETTES[Math.floor(Math.random() * PALETTES.length)];
+      palette = LAB.sample(PALETTES);
 
       const pivotY = H * 0.08;
 
@@ -109,10 +106,10 @@ So it gives pretty emergent wave patterns from just really simple motion.
         const period = BASE_PERIOD + i * PERIOD_INCREMENT;
         const pivotX = spacing * (i + 1);
         const length = H * 0.55;
-        const color = palette[i % palette.length];
+        const colour = palette[i % palette.length];
 
         pendulums.push({
-          pivotX, pivotY, length, period, color,
+          pivotX, pivotY, length, period, colour,
           bobX: pivotX, bobY: pivotY + length,
         });
       }
@@ -148,12 +145,12 @@ So it gives pretty emergent wave patterns from just really simple motion.
 
           ctx.beginPath();
           ctx.arc(bx, by, BOB_RADIUS * 0.6, 0, Math.PI * 2);
-          ctx.fillStyle = p.color.replace(')', `, ${alpha})`).replace('rgb', 'rgba');
+          ctx.fillStyle = p.colour.replace(')', `, ${alpha})`).replace('rgb', 'rgba');
 
           // Handle hex colours
-          const r = parseInt(p.color.slice(1, 3), 16);
-          const g = parseInt(p.color.slice(3, 5), 16);
-          const b = parseInt(p.color.slice(5, 7), 16);
+          const r = parseInt(p.colour.slice(1, 3), 16);
+          const g = parseInt(p.colour.slice(3, 5), 16);
+          const b = parseInt(p.colour.slice(5, 7), 16);
           ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${alpha})`;
           ctx.fill();
         });
@@ -180,9 +177,9 @@ So it gives pretty emergent wave patterns from just really simple motion.
         const gradient = ctx.createRadialGradient(
           p.bobX, p.bobY, 0, p.bobX, p.bobY, BOB_RADIUS * 3
         );
-        const r = parseInt(p.color.slice(1, 3), 16);
-        const g = parseInt(p.color.slice(3, 5), 16);
-        const b = parseInt(p.color.slice(5, 7), 16);
+        const r = parseInt(p.colour.slice(1, 3), 16);
+        const g = parseInt(p.colour.slice(3, 5), 16);
+        const b = parseInt(p.colour.slice(5, 7), 16);
         gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0.3)`);
         gradient.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
         ctx.beginPath();
@@ -193,7 +190,7 @@ So it gives pretty emergent wave patterns from just really simple motion.
         // Bob
         ctx.beginPath();
         ctx.arc(p.bobX, p.bobY, BOB_RADIUS, 0, Math.PI * 2);
-        ctx.fillStyle = p.color;
+        ctx.fillStyle = p.colour;
         ctx.fill();
       });
 

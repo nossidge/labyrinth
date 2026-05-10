@@ -2,9 +2,9 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Remember, remember.">
+  <meta name="description" content="Remember, remember">
   <title>It's The Fireworks Talking</title>
   <style>
     :root {
@@ -130,12 +130,9 @@
     <!-- Buildings will be generated here -->
   </div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/city-fireworks";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('city-fireworks');
 
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
@@ -150,14 +147,12 @@
       for (let i = 0; i < buildingCount; i++) {
         const building = document.createElement('a');
         building.className = 'building';
-        building.href = i === 0
-          ? sd((c => c[11] + c[15] + c[12] + c[3])(cd.find(c => c.id == hoh).created))
-          : pageRandomiser.nextOne();
-        if (Math.random() > 0.8) building.classList.add('tower');
-        if (Math.random() > 0.8) building.classList.add('antenna');
+        building.href = i === 0 ? LAB.goto() : LAB.pageRandomiser.nextOne();
+        if (LAB.chance(0.2)) building.classList.add('tower');
+        if (LAB.chance(0.2)) building.classList.add('antenna');
 
-        const bHeight = 15 + Math.random() * 80;
-        const bWidth = 30 + Math.random() * 60;
+        const bHeight = LAB.rand(15, 95);
+        const bWidth = LAB.rand(30, 90);
         building.style.height = bHeight + '%';
         building.style.width = bWidth + 'px';
         building.style.flex = 'none';
@@ -167,7 +162,7 @@
         for (let j = 0; j < windowCount; j++) {
           const win = document.createElement('div');
           win.className = 'window';
-          if (Math.random() > 0.8) win.classList.add('on');
+          if (LAB.chance(0.2)) win.classList.add('on');
           building.appendChild(win);
         }
 
@@ -179,13 +174,13 @@
     function flickerWindows() {
       const windows = document.querySelectorAll('.window');
       if (windows.length > 0) {
-        const count = Math.floor(Math.random() * 3);
+        const count = LAB.randInt(0, 2);
         for (let i = 0; i < count; i++) {
-          const win = windows[Math.floor(Math.random() * windows.length)];
+          const win = windows[LAB.randIndex(windows)];
           win.classList.toggle('on');
         }
       }
-      setTimeout(flickerWindows, 500 + Math.random() * 200);
+      setTimeout(flickerWindows, LAB.rand(500, 700));
     }
     setTimeout(flickerWindows, 200);
 
@@ -199,7 +194,7 @@
         this.friction = 0.95;
         this.gravity = 0.05;
         this.opacity = 1;
-        this.life = 100 + Math.random() * 50;
+        this.life = LAB.rand(100, 150);
       }
 
       draw() {
@@ -226,9 +221,9 @@
     const colours = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff', '#ffffff', '#ffaa00'];
 
     function createFirework(x, y) {
-      const particleCount = 60 + Math.random() * 60;
-      const color = colours[Math.floor(Math.random() * colours.length)];
-      const type = Math.random();
+      const particleCount = LAB.rand(60, 120);
+      const color = colours[LAB.randIndex(colours)];
+      const type = LAB.rand(0, 1);
 
       // Flash effect
       const flash = document.getElementById('flash-overlay');
@@ -241,19 +236,19 @@
         if (type < 0.3) {
           // Sphere
           const angle = (Math.PI * 2 / particleCount) * i;
-          const speed = Math.random() * 5 + 3;
+          const speed = LAB.rand(3, 8);
           vx = Math.cos(angle) * speed;
           vy = Math.sin(angle) * speed;
         } else if (type < 0.6) {
           // Ring
           const angle = (Math.PI * 2 / particleCount) * i;
-          const speed = Math.random() + 4;
+          const speed = LAB.rand(4, 5);
           vx = Math.cos(angle) * speed;
           vy = Math.sin(angle) * speed;
         } else {
           // Chaotic explosion
-          vx = (Math.random() - 0.5) * 12;
-          vy = (Math.random() - 0.5) * 12;
+          vx = LAB.rand(-6, 6);
+          vy = LAB.rand(-6, 6);
         }
 
         particles.push(new Particle(x, y, color, { x: vx, y: vy }));
@@ -279,11 +274,11 @@
 
     // Launch random fireworks
     function launchAutoFirework() {
-      const x = Math.random() * width;
-      const y = Math.random() * (height * 0.6); // Top part of screen
+      const x = LAB.rand(0, width);
+      const y = LAB.rand(0, height * 0.6); // Top part of screen
       createFirework(x, y);
 
-      const nextInterval = 500 + Math.random() * 2000;
+      const nextInterval = LAB.rand(500, 2500);
       setTimeout(launchAutoFirework, nextInterval);
     }
 

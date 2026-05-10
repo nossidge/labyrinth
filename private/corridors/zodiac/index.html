@@ -18,7 +18,7 @@ https://oldwww.tumblr.com/post/673223302462013440
 -->
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Starring Jake Gyllenhaal, Mark Ruffalo, and Robert Downey Jr.">
   <title>Zodiac (2007)</title>
@@ -38,7 +38,7 @@ https://oldwww.tumblr.com/post/673223302462013440
       padding: 0;
       width: 100%;
       height: 100%;
-      background: #000 url('stars.webp') repeat;
+      background: #000000 url('stars.webp') repeat;
       color: var(--text-color);
       font-family: monospace;
       overflow: hidden;
@@ -137,12 +137,9 @@ https://oldwww.tumblr.com/post/673223302462013440
 
   <div id="star-tag" class="star-name-tag"></div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/zodiac";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('zodiac');
 
     const CONSTELLATIONS = {
       'Aries': {
@@ -437,13 +434,13 @@ https://oldwww.tumblr.com/post/673223302462013440
       // Create stars
       starsData.forEach(star => {
         const el = document.createElement('a');
-        el.href = pageRandomiser.nextOne();
+        el.href = LAB.pageRandomiser.nextOne();
         el.className = 'star';
         el.style.left = `${(star.x / 1000) * 100}%`;
         el.style.top = `${(star.y / 800) * 100}%`;
         el.dataset.id = star.id;
-        el.innerHTML = ['✨', '⭐', '🌟'][Math.floor(Math.random() * 3)];
-        el.style.setProperty('--twinkle-duration', (2 + Math.random() * 3) + 's');
+        el.innerHTML = LAB.sample(['✨', '⭐', '🌟']);
+        el.style.setProperty('--twinkle-duration', LAB.rand(2, 5) + 's');
 
         // TODO: Possibly never, but it might be nice...
         // This `starTag` stuff is all to do with star names.

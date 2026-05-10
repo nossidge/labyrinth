@@ -11,7 +11,7 @@ https://www.shutterstock.com/video/clip-1046255161-hieroglyphics-on-ancient-egyp
 -->
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Asps. Very dangerous. You go first.">
   <title>Snakes. Why did it have to be snakes?</title>
@@ -134,12 +134,9 @@ https://www.shutterstock.com/video/clip-1046255161-hieroglyphics-on-ancient-egyp
     <!-- This is where all the snakes live -->
   </div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/snakes";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('snakes');
 
     const pit = document.getElementById('pit');
     const torch = document.getElementById('torch');
@@ -156,7 +153,7 @@ https://www.shutterstock.com/video/clip-1046255161-hieroglyphics-on-ancient-egyp
     let velX = 0;
     let velY = 0;
 
-    const k = 0.01; // Spring constant
+    const spring = 0.01;
     const damping = 0.99;
     const gravity = 0.4;
     const naturalLength = 400;
@@ -224,7 +221,7 @@ https://www.shutterstock.com/video/clip-1046255161-hieroglyphics-on-ancient-egyp
         const distance = Math.sqrt(dx * dx + dy * dy);
 
         // Spring force
-        const force = (distance - naturalLength) * k;
+        const force = (distance - naturalLength) * spring;
         const fx = (dx / distance) * force;
         const fy = (dy / distance) * force;
 
@@ -267,14 +264,14 @@ https://www.shutterstock.com/video/clip-1046255161-hieroglyphics-on-ancient-egyp
     function createSnake() {
       const s = document.createElement('a');
       s.className = 'snake';
-      s.href = pageRandomiser.nextOne();
-      s.innerText = snakeEmojis[Math.floor(Math.random() * snakeEmojis.length)];
+      s.href = LAB.pageRandomiser.nextOne();
+      s.innerText = LAB.sample(snakeEmojis);
 
-      const x = Math.random() * 100;
-      const duration = 2 + Math.random() * 3;
+      const x = LAB.rand(0, 100);
+      const duration = LAB.rand(2, 5);
 
       s.style.left = x + '%';
-      s.style.bottom = (Math.random() * 50) + 'px';
+      s.style.bottom = LAB.rand(0, 50) + 'px';
       s.style.animation = `wriggle ${duration}s ease-in-out infinite alternate`;
 
       pit.appendChild(s);

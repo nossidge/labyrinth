@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="The mirror crack'd from side to side">
   <title>The curse is come upon me</title>
@@ -50,17 +50,9 @@
 <body>
   <svg id="mirror" aria-label="A broken mirror mandala of clickable shards"></svg>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/shattered-glass";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
-
-    function rand(min, max) { return Math.random() * (max - min) + min; }
-    function randInt(min, max) { return Math.floor(rand(min, max + 1)); }
-    function randIndex(array) { return randInt(0, array.length - 1); }
-    function sample(array) { return array[randIndex(array)]; }
+    const LAB = new Labyrinth('shattered-glass');
 
     const ns = 'http://www.w3.org/2000/svg';
     const svg = document.getElementById('mirror');
@@ -75,13 +67,13 @@
 
     function createShard(points) {
       const a = document.createElementNS(ns, 'a');
-      a.setAttribute('href', pageRandomiser.nextOne());
+      a.setAttribute('href', LAB.pageRandomiser.nextOne());
 
       const polygon = document.createElementNS(ns, 'polygon');
       polygon.setAttribute('class', 'piece');
       polygon.setAttribute('points', points.map(point => `${point.x},${point.y}`).join(' '));
-      polygon.setAttribute('fill', sample(palette));
-      polygon.setAttribute('opacity', rand(0.74, 0.94).toFixed(2));
+      polygon.setAttribute('fill', LAB.sample(palette));
+      polygon.setAttribute('opacity', LAB.rand(0.74, 0.94).toFixed(2));
       a.appendChild(polygon);
       svg.appendChild(a);
       return polygon;
@@ -101,12 +93,12 @@
         const step = (Math.PI * 2) / count;
 
         for (let i = 0; i < count; i++) {
-          const a1 = (i * step) + rand(-0.05, 0.05);
-          const a2 = ((i + 1) * step) + rand(-0.05, 0.05);
-          const p1 = polar(inner + rand(-18, 18), a1);
-          const p2 = polar(outer + rand(-20, 20), a1 + rand(-0.04, 0.04));
-          const p3 = polar(outer + rand(-20, 20), a2 + rand(-0.04, 0.04));
-          const p4 = polar(inner + rand(-18, 18), a2);
+          const a1 = (i * step) + LAB.rand(-0.05, 0.05);
+          const a2 = ((i + 1) * step) + LAB.rand(-0.05, 0.05);
+          const p1 = polar(inner + LAB.rand(-18, 18), a1);
+          const p2 = polar(outer + LAB.rand(-20, 20), a1 + LAB.rand(-0.04, 0.04));
+          const p3 = polar(outer + LAB.rand(-20, 20), a2 + LAB.rand(-0.04, 0.04));
+          const p4 = polar(inner + LAB.rand(-18, 18), a2);
           createShard([p1, p2, p3, p4]);
         }
       }

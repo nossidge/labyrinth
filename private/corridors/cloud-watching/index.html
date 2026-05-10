@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Yet what is any ocean, but a multitude of drops?">
   <title>Your Monet or your Strife</title>
@@ -59,7 +59,7 @@
 
     .cloud-blob {
       position: absolute;
-      background: #fff;
+      background: #ffffff;
       border-radius: 50%;
     }
   </style>
@@ -67,18 +67,9 @@
 
 <body>
   <div id="sky"></div>
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/cloud-watching";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
-
-    // Useful randomisation helpers
-    function rand(min, max) { return Math.random() * (max - min) + min; }
-    function randInt(min, max) { return Math.floor(rand(min, max + 1)); }
-    function randIndex(array) { return randInt(0, array.length - 1); }
-    function sample(array) { return array[randIndex(array)]; }
+    const LAB = new Labyrinth('cloud-watching');
 
     const sky = document.getElementById('sky');
     let W = window.innerWidth;
@@ -216,12 +207,12 @@
       BASE_LAYERS.forEach(layer => {
         const count = scaleCount(layer.count);
         for (let i = 0; i < count; i++) {
-          const cloudW = rand(120, 220) * layer.scale;
-          const cloudH = cloudW * rand(0.5, 0.7);
-          const shape = sample(CLOUD_SHAPES);
+          const cloudW = LAB.rand(120, 220) * layer.scale;
+          const cloudH = cloudW * LAB.rand(0.5, 0.7);
+          const shape = LAB.sample(CLOUD_SHAPES);
 
           const wrapper = document.createElement('a');
-          wrapper.href = pageRandomiser.nextOne();
+          wrapper.href = LAB.pageRandomiser.nextOne();
           wrapper.className = 'cloud';
           wrapper.style.width = cloudW + 'px';
           wrapper.style.height = cloudH + 'px';
@@ -238,8 +229,8 @@
             wrapper.appendChild(blob);
           });
 
-          const x = rand(-cloudW, W);
-          const y = rand(layer.yMin * H, layer.yMax * H);
+          const x = LAB.rand(-cloudW, W);
+          const y = LAB.rand(layer.yMin * H, layer.yMax * H);
           wrapper.style.left = x + 'px';
           wrapper.style.top = y + 'px';
 
@@ -250,7 +241,7 @@
             x: x,
             y: y,
             w: cloudW,
-            speed: layer.speed * rand(0.7, 1.3),
+            speed: layer.speed * LAB.rand(0.7, 1.3),
           });
         }
       });
@@ -280,8 +271,8 @@
         c.x += c.speed;
         if (c.x > W + 20) {
           c.x = -c.w - 20;
-          c.y = rand(0.05 * H, 0.75 * H);
-          c.el.href = pageRandomiser.nextOne();
+          c.y = LAB.rand(0.05 * H, 0.75 * H);
+          c.el.href = LAB.pageRandomiser.nextOne();
         }
         c.el.style.left = c.x + 'px';
         c.el.style.top = c.y + 'px';

@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Girls best friend">
   <title>Diamond Shift</title>
@@ -14,7 +14,7 @@
     }
 
     body {
-      background-color: #111;
+      background-color: #111111;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -31,7 +31,7 @@
       width: 50px;
       height: 50px;
       transform: rotate(45deg);
-      border: 1px solid #fff;
+      border: 1px solid #ffffff;
       display: block;
       text-decoration: none;
       transition:
@@ -41,11 +41,11 @@
     }
 
     .diamond.light {
-      background-color: #fff;
+      background-color: #ffffff;
     }
 
     .diamond.dark {
-      background-color: #111;
+      background-color: #111111;
     }
 
     .diamond:hover {
@@ -54,7 +54,7 @@
       z-index: 999 !important;
     }
 
-    #overlays {
+    #crt-scanlines {
       position: fixed;
       top: 0;
       left: 0;
@@ -71,15 +71,12 @@
 </head>
 
 <body>
-  <div id="overlays"></div>
+  <div id="crt-scanlines"></div>
   <main id="grid"></main>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/diamond-shift";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('diamond-shift');
 
     const maxCols = 14;
     const maxRows = 10;
@@ -130,7 +127,7 @@
         const row = [];
         for (let c = 0; c < currentCols; c++) {
           const a = document.createElement('a');
-          a.href = pageRandomiser.nextOne();
+          a.href = LAB.pageRandomiser.nextOne();
           const isLight = (r + c) % 2 === 0;
           a.className = `diamond ${isLight ? 'light' : 'dark'}`;
           a.style.top = `${r * spacing}px`;

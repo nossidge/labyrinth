@@ -19,7 +19,7 @@ And not waving but drowning.
 -->
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Poor chap, he always loved larking">
   <title>much too far out</title>
@@ -164,12 +164,9 @@ And not waving but drowning.
     </a>
   </div>
 
-  <script src="../../common/labyrinthPages.js"></script>
-  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/not-waving";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('not-waving');
 
     const scene = document.getElementById('scene');
 
@@ -208,9 +205,9 @@ And not waving but drowning.
         svg.style.left = '0';
 
         // Generate wave path
-        const amplitude = 8 + Math.random() * 10;
-        const freq = 0.003 + Math.random() * 0.004;
-        const phase = Math.random() * Math.PI * 2;
+        const amplitude = LAB.rand(8, 18);
+        const freq = LAB.rand(0.003, 0.007);
+        const phase = LAB.rand(0, Math.PI * 2);
 
         let d = `M 0 ${amplitude + 15}`;
         for (let x = 0; x <= vw; x += 8) {
@@ -227,14 +224,14 @@ And not waving but drowning.
         div.appendChild(svg);
 
         // Animate undulation
-        const animDuration = 4 + Math.random() * 4;
-        const animDelay = Math.random() * 3;
+        const animDuration = LAB.rand(4, 8);
+        const animDelay = LAB.rand(0, 3);
         div.style.animation = `waveUndulate${i} ${animDuration}s ease-in-out ${animDelay}s infinite alternate`;
 
         // Inject keyframes
         const style = document.createElement('style');
         style.setAttribute('data-wave', '');
-        const drift = 3 + Math.random() * 5;
+        const drift = LAB.rand(3, 8);
         style.textContent = `
           @keyframes waveUndulate${i} {
             0% { transform: translateY(0) translateX(0); }

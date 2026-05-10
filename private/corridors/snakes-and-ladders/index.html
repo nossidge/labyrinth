@@ -10,7 +10,7 @@ I wanted these to be procedurally generated, but it turns out handcrafted always
 -->
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Ladders. Why did it have to be ladders?">
   <title>Snakes and Ladders</title>
@@ -51,7 +51,7 @@ I wanted these to be procedurally generated, but it turns out handcrafted always
 
     .control-panel {
       background: #e0e0e0;
-      border: 2px solid #333;
+      border: 2px solid #333333;
       padding: 15px;
       box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
     }
@@ -76,14 +76,14 @@ I wanted these to be procedurally generated, but it turns out handcrafted always
       width: 100%;
       padding: 5px;
       font-family: monospace;
-      border: 1px solid #333;
+      border: 1px solid #333333;
     }
 
     .btn {
       width: 100%;
       padding: 8px;
       background: #d0d0d0;
-      border: 2px outset #999;
+      border: 2px outset #999999;
       font-family: monospace;
       font-size: 12px;
       cursor: pointer;
@@ -105,7 +105,7 @@ I wanted these to be procedurally generated, but it turns out handcrafted always
 
     .dice-panel {
       background: #e0e0e0;
-      border: 2px solid #333;
+      border: 2px solid #333333;
       padding: 15px;
       box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
     }
@@ -126,7 +126,7 @@ I wanted these to be procedurally generated, but it turns out handcrafted always
     .die {
       width: 50px;
       height: 50px;
-      border: 2px solid #333;
+      border: 2px solid #333333;
       background: white;
       display: flex;
       align-items: center;
@@ -156,7 +156,7 @@ I wanted these to be procedurally generated, but it turns out handcrafted always
       position: relative;
       width: 500px;
       height: 500px;
-      border: 3px solid #333;
+      border: 3px solid #333333;
       background: white;
       box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.4);
     }
@@ -171,7 +171,7 @@ I wanted these to be procedurally generated, but it turns out handcrafted always
     }
 
     .cell {
-      border: 1px solid #999;
+      border: 1px solid #999999;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -202,14 +202,14 @@ I wanted these to be procedurally generated, but it turns out handcrafted always
       bottom: 2px;
       right: 4px;
       font-size: 10px;
-      color: #999;
+      color: #999999;
     }
 
     .player-token {
       width: 18px;
       height: 18px;
       border-radius: 50%;
-      border: 2px solid #333;
+      border: 2px solid #333333;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -271,7 +271,7 @@ I wanted these to be procedurally generated, but it turns out handcrafted always
       margin-bottom: 10px;
       padding: 10px;
       background: #e0e0e0;
-      border: 2px solid #333;
+      border: 2px solid #333333;
       min-height: 40px;
       display: flex;
       align-items: center;
@@ -281,7 +281,7 @@ I wanted these to be procedurally generated, but it turns out handcrafted always
     }
 
     .status-bar.animating {
-      color: #666;
+      color: #666666;
     }
 
     .status-content {
@@ -289,12 +289,12 @@ I wanted these to be procedurally generated, but it turns out handcrafted always
     }
 
     .status-content.winning {
-      color: #000;
+      color: #000000;
     }
 
     .previous-rolls {
       background: #e0e0e0;
-      border: 2px solid #333;
+      border: 2px solid #333333;
       padding: 15px;
       box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
       overflow-y: auto;
@@ -318,7 +318,7 @@ I wanted these to be procedurally generated, but it turns out handcrafted always
       width: 16px;
       height: 16px;
       border-radius: 50%;
-      border: 2px solid #333;
+      border: 2px solid #333333;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -399,12 +399,9 @@ I wanted these to be procedurally generated, but it turns out handcrafted always
     </div>
   </div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/snakes-and-ladders";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('snakes-and-ladders');
 
     const BOARD_SIZE = 10;
     const TOTAL_CELLS = BOARD_SIZE * BOARD_SIZE;
@@ -423,9 +420,9 @@ I wanted these to be procedurally generated, but it turns out handcrafted always
     };
 
     const colors = ['#ff6b6b', '#4ecdc4', '#ffe66d', '#95e1d3'];
-    const colorClasses = ['player-1', 'player-2', 'player-3', 'player-4'];
+    const colourClasses = ['player-1', 'player-2', 'player-3', 'player-4'];
 
-    function initializeBoard() {
+    function initialiseBoard() {
       const boardEl = document.getElementById('board');
       boardEl.innerHTML = '';
 
@@ -488,10 +485,10 @@ I wanted these to be procedurally generated, but it turns out handcrafted always
         if (!cell) return;
 
         const token = document.createElement('a');
-        token.className = `player-token ${colorClasses[index]} player-position-${index}`;
+        token.className = `player-token ${colourClasses[index]} player-position-${index}`;
         token.textContent = index + 1;
         token.title = `Player ${index + 1}: Cell ${player.position}`;
-        token.href = pageRandomiser.nextOne();
+        token.href = LAB.pageRandomiser.nextOne();
 
         const cellContent = cell.querySelector('.cell-content');
         cellContent.appendChild(token);
@@ -710,12 +707,12 @@ I wanted these to be procedurally generated, but it turns out handcrafted always
         }
 
         // Remove the player token at the current position to avoid duplicates
-        const playerTokens = document.querySelectorAll(`.player-token.${colorClasses[playerIndex]}`);
+        const playerTokens = document.querySelectorAll(`.player-token.${colourClasses[playerIndex]}`);
         playerTokens.forEach(token => token.remove());
 
         // Create a temporary counter element for animation
         const slideElement = document.createElement('div');
-        slideElement.className = `player-token ${colorClasses[playerIndex]} snake-slide`;
+        slideElement.className = `player-token ${colourClasses[playerIndex]} snake-slide`;
         slideElement.textContent = playerIndex + 1;
 
         const board = document.getElementById('board');
@@ -764,12 +761,12 @@ I wanted these to be procedurally generated, but it turns out handcrafted always
         }
 
         // Remove the player token at the current position to avoid duplicates
-        const playerTokens = document.querySelectorAll(`.player-token.${colorClasses[playerIndex]}`);
+        const playerTokens = document.querySelectorAll(`.player-token.${colourClasses[playerIndex]}`);
         playerTokens.forEach(token => token.remove());
 
         // Create a temporary counter element for animation
         const climbElement = document.createElement('div');
-        climbElement.className = `player-token ${colorClasses[playerIndex]} snake-slide`;
+        climbElement.className = `player-token ${colourClasses[playerIndex]} snake-slide`;
         climbElement.textContent = playerIndex + 1;
 
         const board = document.getElementById('board');
@@ -804,8 +801,8 @@ I wanted these to be procedurally generated, but it turns out handcrafted always
         return;
       }
 
-      const die1 = Math.floor(Math.random() * 6) + 1;
-      const die2 = Math.floor(Math.random() * 6) + 1;
+      const die1 = LAB.randInt(1, 6);
+      const die2 = LAB.randInt(1, 6);
       const total = die1 + die2;
 
       gameState.lastRoll = { die1, die2, total };
@@ -890,7 +887,7 @@ I wanted these to be procedurally generated, but it turns out handcrafted always
         item.className = 'roll-item';
 
         const counter = document.createElement('div');
-        counter.className = `roll-item-counter ${colorClasses[roll.playerIndex]}`;
+        counter.className = `roll-item-counter ${colourClasses[roll.playerIndex]}`;
         counter.textContent = roll.playerIndex + 1;
 
         const text = document.createElement('div');
@@ -959,7 +956,7 @@ I wanted these to be procedurally generated, but it turns out handcrafted always
 
       const svg = document.getElementById('snakesLayer');
       const link = createSVG('a', {
-        'xlink:href': pageRandomiser.nextOne(),
+        'xlink:href': LAB.pageRandomiser.nextOne(),
         class: 'snake-link'
       });
 
@@ -1007,11 +1004,10 @@ I wanted these to be procedurally generated, but it turns out handcrafted always
       svg.appendChild(link);
     }
 
-    // Initialize board on page load
-    window.addEventListener('DOMContentLoaded', () => {
-      initializeBoard();
-      startGame();
-    });
+    // Initialise board on page load
+    initialiseBoard();
+    startGame();
+
   </script>
 </body>
 

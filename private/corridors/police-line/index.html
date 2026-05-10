@@ -17,7 +17,7 @@ convert input.png -resize 30% -colors 16 -define png:compression-level=9 PNG8:ou
 -->
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="ACAB Rocky">
   <title>Nothing to see here</title>
@@ -97,32 +97,23 @@ convert input.png -resize 30% -colors 16 -define png:compression-level=9 PNG8:ou
 <body>
   <div id="scene"></div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/police-line";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
-
-    // Useful randomisation helpers
-    function rand(min, max) { return Math.random() * (max - min) + min; }
-    function randInt(min, max) { return Math.floor(rand(min, max + 1)); }
-    function randIndex(array) { return randInt(0, array.length - 1); }
-    function sample(array) { return array[randIndex(array)]; }
+    const LAB = new Labyrinth('police-line');
 
     const TAPE_DESIGNS_POOL = [
       // Classic blue/white
       {
         bg: '#0033a0',
-        color: '#ffffff',
-        border: '3px solid #fff',
+        colour: '#ffffff',
+        border: '3px solid #ffffff',
         fontFamily: '"Arial", "Helvetica", sans-serif',
         shadow: '1px 1px 0 rgba(0,0,0,0.5)',
       },
       // Blue with white checkerboard band (Battenburg effect in JS below)
       {
         bg: '#002776',
-        color: '#ffffff',
+        colour: '#ffffff',
         border: 'none',
         fontFamily: '"Arial Black", sans-serif',
         checkerboard: true,
@@ -131,48 +122,48 @@ convert input.png -resize 30% -colors 16 -define png:compression-level=9 PNG8:ou
       // Yellow/black (Yank style)
       {
         bg: '#ffd100',
-        color: '#000000',
-        border: '3px solid #000',
+        colour: '#000000',
+        border: '3px solid #000000',
         fontFamily: '"Arial Black", "Impact", sans-serif',
         shadow: '2px 2px 0 rgba(0,0,0,0.2)',
       },
       // Yellow with black chevrons pattern
       {
-        bg: 'repeating-linear-gradient(-45deg, #ffd100, #ffd100 10px, #000 10px, #000 20px)',
-        color: '#ffd100',
-        border: '3px solid #000',
+        bg: 'repeating-linear-gradient(-45deg, #ffd100, #ffd100 10px, #000000 10px, #000000 20px)',
+        colour: '#ffd100',
+        border: '3px solid #000000',
         fontFamily: '"Impact", "Arial Black", sans-serif',
-        textBg: '#000',
+        textBg: '#000000',
         shadow: 'none',
       },
       // Red/white
       {
         bg: '#cc0000',
-        color: '#ffffff',
-        border: '3px solid #fff',
+        colour: '#ffffff',
+        border: '3px solid #ffffff',
         fontFamily: '"Impact", sans-serif',
         shadow: '2px 2px 0 rgba(0,0,0,0.3)',
       },
       // Reflective silver/black
       {
         bg: 'linear-gradient(180deg, #e8e8e8, #b0b0b0, #e8e8e8)',
-        color: '#000000',
-        border: '2px solid #333',
+        colour: '#000000',
+        border: '2px solid #333333',
         fontFamily: '"Courier New", monospace',
         shadow: '0 0 6px rgba(255,255,255,0.3)',
       },
       // Fluorescent orange
       {
         bg: '#ff6600',
-        color: '#000000',
-        border: '3px solid #000',
+        colour: '#000000',
+        border: '3px solid #000000',
         fontFamily: '"Arial Black", sans-serif',
         shadow: '0 0 8px rgba(255,102,0,0.4)',
       },
       // Black with yellow text
       {
-        bg: '#111',
-        color: '#ffd100',
+        bg: '#111111',
+        colour: '#ffd100',
         border: '3px solid #ffd100',
         fontFamily: '"Impact", sans-serif',
         shadow: '0 0 10px rgba(255,209,0,0.3)',
@@ -180,7 +171,7 @@ convert input.png -resize 30% -colors 16 -define png:compression-level=9 PNG8:ou
       // White with blue text (forensics)
       {
         bg: '#f0f0f0',
-        color: '#003380',
+        colour: '#003380',
         border: '2px solid #003380',
         fontFamily: '"Georgia", serif',
         shadow: 'none',
@@ -188,15 +179,15 @@ convert input.png -resize 30% -colors 16 -define png:compression-level=9 PNG8:ou
       // Neon green / black (hazmat kinda)
       {
         bg: '#39ff14',
-        color: '#000',
-        border: '3px solid #000',
+        colour: '#000000',
+        border: '3px solid #000000',
         fontFamily: '"Arial Black", sans-serif',
         shadow: '0 0 12px rgba(57,255,20,0.5)',
       },
       // Yellow with red text
       {
         bg: '#ffd100',
-        color: '#cc0000',
+        colour: '#cc0000',
         border: '3px solid #cc0000',
         fontFamily: '"Impact", sans-serif',
         shadow: '1px 1px 0 rgba(0,0,0,0.15)',
@@ -204,7 +195,7 @@ convert input.png -resize 30% -colors 16 -define png:compression-level=9 PNG8:ou
       // Dark navy with silver text
       {
         bg: '#0c1445',
-        color: '#c0c0c0',
+        colour: '#c0c0c0',
         border: '2px solid #c0c0c0',
         fontFamily: '"Courier New", monospace',
         shadow: '0 0 6px rgba(192,192,192,0.3)',
@@ -232,19 +223,19 @@ convert input.png -resize 30% -colors 16 -define png:compression-level=9 PNG8:ou
       const viewH = window.innerHeight;
 
       for (let i = 0; i < count; i++) {
-        const design = sample(TAPE_DESIGNS_POOL);
-        const text = sample(TAPE_TEXTS_POOL);
+        const design = LAB.sample(TAPE_DESIGNS_POOL);
+        const text = LAB.sample(TAPE_TEXTS_POOL);
 
         const tape = document.createElement('a');
-        tape.href = pageRandomiser.nextOne();
+        tape.href = LAB.pageRandomiser.nextOne();
         tape.className = 'tape';
 
-        const angle = rand(-65, 65);
-        const height = rand(28, 56);
+        const angle = LAB.rand(-65, 65);
+        const height = LAB.rand(28, 56);
         const fontSize = height * 0.5;
         const width = tapeWidth;
         const x = (viewW - tapeWidth) / 2;
-        const y = rand(-30, viewH - 30);
+        const y = LAB.rand(-30, viewH - 30);
 
         tape.style.left = x + 'px';
         tape.style.top = y + 'px';
@@ -252,8 +243,8 @@ convert input.png -resize 30% -colors 16 -define png:compression-level=9 PNG8:ou
         tape.style.height = height + 'px';
         tape.style.fontSize = fontSize + 'px';
         tape.style.transform = `rotate(${angle}deg)`;
-        tape.style.zIndex = randInt(1, 20);
-        tape.style.opacity = rand(0.75, 1);
+        tape.style.zIndex = LAB.randInt(1, 20);
+        tape.style.opacity = LAB.rand(0.75, 1);
 
         // This feels hacky, but it works :-)
         if (design.bg.includes('gradient') || design.bg.includes('repeating')) {
@@ -262,7 +253,7 @@ convert input.png -resize 30% -colors 16 -define png:compression-level=9 PNG8:ou
           tape.style.backgroundColor = design.bg;
         }
 
-        tape.style.color = design.color;
+        tape.style.color = design.colour;
         tape.style.border = design.border;
         tape.style.fontFamily = design.fontFamily;
         tape.style.textShadow = design.shadow;
@@ -285,7 +276,7 @@ convert input.png -resize 30% -colors 16 -define png:compression-level=9 PNG8:ou
         if (design.checkerboard) {
           tape.style.borderTop = '6px solid transparent';
           tape.style.borderBottom = '6px solid transparent';
-          tape.style.borderImage = 'repeating-linear-gradient(90deg, #fff 0 8px, #0033a0 8px 16px) 6';
+          tape.style.borderImage = 'repeating-linear-gradient(90deg, #ffffff 0 8px, #0033a0 8px 16px) 6';
         }
 
         tape.innerHTML = inner;
@@ -309,7 +300,6 @@ convert input.png -resize 30% -colors 16 -define png:compression-level=9 PNG8:ou
       if (e.ctrlKey || e.altKey || e.shiftKey || e.metaKey) return;
       if (e.key === 'Tab' || e.key === 'F5') return;
 
-      e.preventDefault();
       generateTapes();
     });
 

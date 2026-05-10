@@ -8,7 +8,7 @@ Forget it Jake, it's Tongaborough
 -->
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Lesothoburg, Nigeriaville, Tongaborough">
   <title>Forget it Jake</title>
@@ -116,12 +116,9 @@ Forget it Jake, it's Tongaborough
     </a>
   </div>
 
-  <script src="../../common/labyrinthPages.js"></script>
-  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/chinatown";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('chinatown');
 
     const COUNTRIES_POOL = [
       "Afghanistan",
@@ -319,7 +316,7 @@ Forget it Jake, it's Tongaborough
       "Zambia",
       "Zimbabwe",
     ];
-    const countriesRandomiser = new CyclicRandomiser(COUNTRIES_POOL);
+    const countriesRandomiser = new LAB.CyclicRandomiser(COUNTRIES_POOL);
 
     const SETTLEMENTS_POOL = [
       "bastion",
@@ -372,7 +369,7 @@ Forget it Jake, it's Tongaborough
       "ward",
       "wick",
     ];
-    const settlementsRandomiser = new CyclicRandomiser(SETTLEMENTS_POOL);
+    const settlementsRandomiser = new LAB.CyclicRandomiser(SETTLEMENTS_POOL);
 
     const phraseElement = document.getElementById('phrase');
 
@@ -386,7 +383,7 @@ Forget it Jake, it's Tongaborough
       const settlement = settlementsRandomiser.nextOne();
       return {
         text: `Forget it Jake, it's ${country}${settlement}`,
-        href: pageRandomiser.nextOne(),
+        href: LAB.pageRandomiser.nextOne(),
       };
     }
 
@@ -448,7 +445,7 @@ Forget it Jake, it's Tongaborough
     // Init with the canonical first entry
     history.push({
       text: "Forget it Jake, it's Chinatown",
-      href: pageRandomiser.nextOne(),
+      href: LAB.pageRandomiser.nextOne(),
     });
     historyIndex = 0;
     phraseElement.textContent = history[0].text;

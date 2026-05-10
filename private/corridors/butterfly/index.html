@@ -9,7 +9,7 @@ But I could never make you stay
 -->
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Come my lady. Come, come my lady.">
   <title>Papillon</title>
@@ -25,7 +25,7 @@ But I could never make you stay
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: #000;
+      background: #000000;
     }
 
     canvas {
@@ -56,16 +56,9 @@ But I could never make you stay
   <canvas id="canvas"></canvas>
   <div id="crt"></div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/butterfly";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
-
-    // Useful randomisation helpers
-    function rand(min, max) { return Math.random() * (max - min) + min; }
-    function randInt(min, max) { return Math.floor(rand(min, max + 1)); }
+    const LAB = new Labyrinth('butterfly');
 
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
@@ -99,7 +92,7 @@ But I could never make you stay
         glow: '#ff4488', bg: '#0a0208'
       },
     ];
-    const palettesRandomiser = new CyclicRandomiser(PALETTES_POOL);
+    const palettesRandomiser = new LAB.CyclicRandomiser(PALETTES_POOL);
 
     let pal;
     let time = 0;
@@ -117,28 +110,28 @@ But I could never make you stay
       dustParticles.length = 0;
       for (let i = 0; i < dustCount; i++) {
         dustParticles.push({
-          x: rand(-1, 1),
-          y: rand(-1, 1),
-          vx: rand(-0.001, 0.001),
-          vy: rand(-0.004, -0.001),
-          size: rand(1, 4),
-          alpha: rand(0.2, 0.8),
-          phase: rand(0, Math.PI * 2),
+          x: LAB.rand(-1, 1),
+          y: LAB.rand(-1, 1),
+          vx: LAB.rand(-0.001, 0.001),
+          vy: LAB.rand(-0.004, -0.001),
+          size: LAB.rand(1, 4),
+          alpha: LAB.rand(0.2, 0.8),
+          phase: LAB.rand(0, Math.PI * 2),
         });
       }
     }
 
     // Generate randomised vein paths for forewing
     function generateForewingVeins() {
-      const count = randInt(3, 7);
+      const count = LAB.randInt(3, 7);
       const veins = [];
       for (let i = 0; i < count; i++) {
         const t = i / (count - 1);
         const startY = -15 + t * 30;
-        const midX = rand(25, 55);
-        const midY = startY + rand(-20, -5) * (1 - t) + rand(5, 15) * t;
-        const endX = rand(65, 92);
-        const endY = startY + rand(-30, -10) * (1 - t) + rand(0, 10) * t;
+        const midX = LAB.rand(25, 55);
+        const midY = startY + LAB.rand(-20, -5) * (1 - t) + LAB.rand(5, 15) * t;
+        const endX = LAB.rand(65, 92);
+        const endY = startY + LAB.rand(-30, -10) * (1 - t) + LAB.rand(0, 10) * t;
         veins.push({ startY, midX, midY, endX, endY });
       }
       return veins;
@@ -146,15 +139,15 @@ But I could never make you stay
 
     // Generate randomised vein paths for hindwing
     function generateHindwingVeins() {
-      const count = randInt(2, 5);
+      const count = LAB.randInt(2, 5);
       const veins = [];
       for (let i = 0; i < count; i++) {
         const t = i / Math.max(count - 1, 1);
         const startY = 18 + t * 15;
-        const midX = rand(20, 45);
-        const midY = startY + rand(8, 25);
-        const endX = rand(45, 72);
-        const endY = startY + rand(10, 35);
+        const midX = LAB.rand(20, 45);
+        const midY = startY + LAB.rand(8, 25);
+        const endX = LAB.rand(45, 72);
+        const endY = startY + LAB.rand(10, 35);
         veins.push({ startY, midX, midY, endX, endY });
       }
       return veins;
@@ -417,11 +410,11 @@ But I could never make you stay
       // Fur texture on thorax
       ctx.globalAlpha = 0.15;
       for (let i = 0; i < 20; i++) {
-        const fx = rand(-5, 5) * s;
-        const fy = rand(-7, 17) * s;
+        const fx = LAB.rand(-5, 5) * s;
+        const fy = LAB.rand(-7, 17) * s;
         ctx.beginPath();
         ctx.moveTo(fx, fy);
-        ctx.lineTo(fx + rand(-1.5, 1.5) * s, fy + rand(0, 4) * s);
+        ctx.lineTo(fx + LAB.rand(-1.5, 1.5) * s, fy + LAB.rand(0, 4) * s);
         ctx.strokeStyle = pal.accent;
         ctx.lineWidth = 0.5 * s;
         ctx.stroke();
@@ -502,9 +495,9 @@ But I could never make you stay
         d.x += Math.sin(time * 0.01 + d.phase) * 0.001;
 
         if (d.y < -1.5 || d.x < -1.5 || d.x > 1.5) {
-          d.x = rand(-1, 1);
-          d.y = rand(1, 1.5);
-          d.alpha = rand(0.2, 0.8);
+          d.x = LAB.rand(-1, 1);
+          d.y = LAB.rand(1, 1.5);
+          d.alpha = LAB.rand(0.2, 0.8);
         }
 
         const px = cx + d.x * 100 * scale;
@@ -556,7 +549,7 @@ But I could never make you stay
 
     // Click anywhere to navigate
     canvas.addEventListener('click', () => {
-      window.location.href = pageRandomiser.nextOne();
+      window.location.href = LAB.pageRandomiser.nextOne();
     });
 
     // Keypress regenerates the butterfly

@@ -11,7 +11,7 @@ https://objkt.com/users/tz1TUdvDnKN77H4M5bnmffSunwQ1vQ8BWLWY
 -->
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="A 7x7 grid of white and black circles that swap places">
   <title>Swapping Circles</title>
@@ -75,8 +75,7 @@ https://objkt.com/users/tz1TUdvDnKN77H4M5bnmffSunwQ1vQ8BWLWY
       transform: scale(1.1);
     }
 
-    /* CRT Effect from 1-bit-dots */
-    #overlays {
+    #crt-scanlines {
       position: fixed;
       top: 0;
       left: 0;
@@ -93,24 +92,20 @@ https://objkt.com/users/tz1TUdvDnKN77H4M5bnmffSunwQ1vQ8BWLWY
 </head>
 
 <body>
-  <div id="overlays"></div>
+  <div id="crt-scanlines"></div>
   <main id="grid-container"></main>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/swapping-circles";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('swapping-circles');
 
-    const gridSize = 7;
     const container = document.getElementById('grid-container');
-
     const circles = [];
-    const cellSide = 80;
-    const gap = 1;
     const circleSize = 60;
+    const cellSide = 80;
     const offset = (cellSide - circleSize) / 2;
+    const gridSize = 7;
+    const gap = 1;
 
     function getPos(index) {
       const col = index % gridSize;
@@ -151,13 +146,13 @@ https://objkt.com/users/tz1TUdvDnKN77H4M5bnmffSunwQ1vQ8BWLWY
       // Shuffle their starting positions
       const startIndices = Array.from({ length: 49 }, (_, i) => i);
       for (let i = startIndices.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
+        const j = LAB.randInt(0, i);
         [startIndices[i], startIndices[j]] = [startIndices[j], startIndices[i]];
       }
 
       allCirclesData.forEach((data, i) => {
         const circle = document.createElement('a');
-        circle.href = pageRandomiser.nextOne();
+        circle.href = LAB.pageRandomiser.nextOne();
         circle.className = `circle ${data.type}`;
         const startIdx = startIndices[i];
         circle.dataset.index = startIdx;
@@ -177,7 +172,7 @@ https://objkt.com/users/tz1TUdvDnKN77H4M5bnmffSunwQ1vQ8BWLWY
       if (homeless.length === 0) return;
 
       // Pick a random homeless circle
-      const c1 = homeless[Math.floor(Math.random() * homeless.length)];
+      const c1 = LAB.sample(homeless);
       const idx1 = parseInt(c1.dataset.index);
       const h1 = parseInt(c1.dataset.home);
 
@@ -195,7 +190,7 @@ https://objkt.com/users/tz1TUdvDnKN77H4M5bnmffSunwQ1vQ8BWLWY
       if (moves.length === 0) return;
 
       // Move toward target
-      const idx2 = moves[Math.floor(Math.random() * moves.length)];
+      const idx2 = LAB.sample(moves);
       const c2 = circles.find(c => parseInt(c.dataset.index) === idx2);
 
       // This shouldn't happen in a full grid, but best to be sure

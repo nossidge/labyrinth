@@ -10,7 +10,7 @@ So this is what you get instead :-)
 -->
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Rotary Interfractional">
   <title>Rotational imagery</title>
@@ -182,12 +182,9 @@ So this is what you get instead :-)
     <button id="next-btn" class="nav-button">&rarr;</button>
   </div>
 
-  <script src="../../common/labyrinthPages.js"></script>
-  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/kaleidoscope-snowflake";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('rotational-imagery');
 
     const linkElement = document.getElementById('link');
     const canvas = document.getElementById('kaleidoscope');
@@ -216,15 +213,15 @@ So this is what you get instead :-)
         this.y = y;
         this.size = size;
         this.type = type; // 'circle', 'triangle', 'square', 'star', 'polygon'
-        this.color = this.randomColor();
-        this.rotation = Math.random() * Math.PI * 2;
-        this.opacity = 0.3 + Math.random() * 0.4;
+        this.color = this.randomColour();
+        this.rotation = LAB.rand(0, Math.PI * 2);
+        this.opacity = LAB.rand(0.3, 0.7);
       }
 
-      randomColor() {
-        const hue = Math.random() * 360;
-        const sat = 50 + Math.random() * 30;
-        const light = 40 + Math.random() * 20;
+      randomColour() {
+        const hue = LAB.rand(0, 360);
+        const sat = LAB.rand(50, 80);
+        const light = LAB.rand(40, 60);
         return `hsla(${hue}, ${sat}%, ${light}%, ${this.opacity})`;
       }
 
@@ -259,7 +256,7 @@ So this is what you get instead :-)
             this.drawStar(ctx, this.size);
             break;
           case 'polygon':
-            this.drawPolygon(ctx, this.size, 5 + Math.floor(Math.random() * 3));
+            this.drawPolygon(ctx, this.size, LAB.randInt(5, 7));
             break;
           case 'line':
             ctx.beginPath();
@@ -338,13 +335,13 @@ So this is what you get instead :-)
       const density = 150; // Dense for intricacy
       for (let i = 0; i < density; i++) {
         // Random angle within one segment (0 to segmentAngle)
-        const angle = Math.random() * segmentAngle;
-        const r = Math.random() * radius;
+        const angle = LAB.rand(0, segmentAngle);
+        const r = LAB.rand(0, radius);
         const x = Math.cos(angle) * r;
         const y = Math.sin(angle) * r;
-        const size = 1 + Math.random() * 10;
+        const size = LAB.rand(1, 11);
         const types = ['circle', 'triangle', 'square', 'star', 'polygon', 'line', 'hexagon'];
-        const type = types[Math.floor(Math.random() * types.length)];
+        const type = LAB.sample(types);
         shapes.push(new Shape(x, y, size, type));
       }
 
@@ -371,7 +368,7 @@ So this is what you get instead :-)
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       // Setup stroke
-      ctx.strokeStyle = '#999';
+      ctx.strokeStyle = '#999999';
 
       // Create the full kaleidoscope by rotating the segment
       for (let i = 0; i < symmetry; i++) {
@@ -416,7 +413,7 @@ So this is what you get instead :-)
       ctx.arc(centerX, centerY, 8, 0, Math.PI * 2);
       ctx.fill();
 
-      ctx.strokeStyle = '#555';
+      ctx.strokeStyle = '#555555';
       ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.arc(centerX, centerY, 8, 0, Math.PI * 2);
@@ -428,7 +425,7 @@ So this is what you get instead :-)
     function createNewEntry() {
       return {
         shapes: generateShapes(currentSymmetry),
-        href: pageRandomiser.nextOne(),
+        href: LAB.pageRandomiser.nextOne(),
         symmetry: currentSymmetry,
       };
     }
@@ -512,6 +509,7 @@ So this is what you get instead :-)
     window.addEventListener('resize', resize);
 
     init();
+
   </script>
 </body>
 

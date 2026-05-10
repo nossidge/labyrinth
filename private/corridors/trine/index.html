@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="tilde trine">
   <title>tilde trine</title>
@@ -112,8 +112,6 @@
       transform: translate(-30vmin, 24vmin) rotate(240deg);
     }
 
-    /* Removed pause - tildes keep spinning */
-
     body.pyramid #container::before {
       content: '';
       position: absolute;
@@ -164,20 +162,6 @@
       color: inherit;
       text-decoration: none;
     }
-
-    .hidden-link {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 100;
-      display: none;
-    }
-
-    body.pyramid .hidden-link {
-      display: block;
-    }
   </style>
 </head>
 
@@ -201,12 +185,9 @@
     </a>
   </div>
 
-  <script src="../../common/labyrinthPages.js"></script>
-  <script src="../../common/CyclicRandomiser.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/trine";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('trine');
 
     const tildes = document.querySelectorAll('.tilde');
     const lines = {
@@ -256,7 +237,7 @@
           // Add links after animation
           setTimeout(() => {
             tildes.forEach(t => {
-              const link = pageRandomiser.nextOne();
+              const link = LAB.pageRandomiser.nextOne();
               t.href = link;
             });
           }, 1500);
@@ -266,11 +247,11 @@
 
     // Background mystery text
     const bgText = document.getElementById('background-text');
-    const words = "the power of the three. resonance within the void. approximate the triangle. find the exit. seek the truth. the labyrinth pulse. three tildes. cyclic motion. infinite loop. power pyramid. ancient terminal. resonance. frequency. trinity. power. knowledge. void. waves. signals. echoes.";
+    const words = "the power of the three. resonance within the void. approximate the triangle. find the exit. seek the truth. the labyrinth pulse. three tildes. cyclic motion. infinite loop. power pyramid. ancient terminal. resonance. frequency. trinity. power. knowledge. void. waves. signals. echoes.".split(' ');
     const wordCount = 2000;
-    let bgContent = "";
+    let bgContent = '';
     for (let i = 0; i < wordCount; i++) {
-      bgContent += words.split(' ')[Math.floor(Math.random() * words.split(' ').length)] + " ";
+      bgContent += LAB.sample(words) + ' ';
     }
     bgText.textContent = bgContent;
 

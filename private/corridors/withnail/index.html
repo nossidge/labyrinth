@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Hair are your aerials. They pick up signals from the cosmos.">
   <title>This'll tend to make you very high.</title>
@@ -199,12 +199,9 @@
     <!-- Images will repeat here -->
   </div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/withnail";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('withnail');
 
     const cloudsContainer = document.getElementById('clouds');
     const withnailRow = document.getElementById('withnail-row');
@@ -214,7 +211,7 @@
     for (let i = 0; i < 20; i++) {
       const c = document.createElement('div');
       c.className = 'cloud-bottom';
-      c.style.transform = `scale(${0.8 + Math.random() * 0.5})`;
+      c.style.transform = `scale(${LAB.rand(0.8, 1.3)})`;
       cloudsContainer.appendChild(c);
     }
 
@@ -224,7 +221,7 @@
       withnailRow.innerHTML = '';
       for (let i = 0; i < count; i++) {
         const link = document.createElement('a');
-        link.href = pageRandomiser.nextOne();
+        link.href = LAB.pageRandomiser.nextOne();
         link.className = 'withnail-link';
 
         const img = document.createElement('img');
@@ -252,7 +249,7 @@
       function move() {
         pos += 8;
         signal.style.top = pos + 'px';
-        signal.style.opacity = Math.random() * 0.5 + 0.2; // Flicker
+        signal.style.opacity = LAB.rand(0.2, 0.7); // Flicker
 
         if (pos >= targetY) {
           impact();
@@ -277,7 +274,7 @@
         svg.setAttribute("height", "300");
         svg.setAttribute("viewBox", "0 0 120 300");
 
-        svg.style.left = (startX - 100 + (Math.random() * 60 - 30)) + 'px';
+        svg.style.left = (startX - 100 + LAB.rand(-30, 30)) + 'px';
         svg.style.top = (startY - 250) + 'px';
         svg.style.zIndex = "19";
 
@@ -287,14 +284,14 @@
         let curY = 300;
         const segments = 6;
         for (let j = 0; j < segments; j++) {
-          curX += (Math.random() * 80 - 40);
+          curX += LAB.rand(-40, 40);
           curY -= 50;
           d += `L${curX},${curY} `;
         }
 
         path.setAttribute("d", d);
         path.setAttribute("stroke", i === 0 ? "white" : "var(--signal-yellow)");
-        path.setAttribute("stroke-width", Math.random() * 4 + 2);
+        path.setAttribute("stroke-width", LAB.rand(2, 6));
         path.setAttribute("fill", "none");
         path.setAttribute("stroke-linecap", "round");
         path.setAttribute("stroke-linejoin", "round");
@@ -304,7 +301,7 @@
 
         let jitterCount = 0;
         const jitter = setInterval(() => {
-          svg.style.transform = `translateX(${(Math.random() - 0.5) * 10}px)`;
+          svg.style.transform = `translateX(${LAB.rand(-5, 5)}px)`;
           jitterCount++;
           if (jitterCount > 10) {
             clearInterval(jitter);
@@ -321,7 +318,7 @@
       const images = document.querySelectorAll('.withnail-img');
       if (images.length === 0) return;
 
-      const luckyIndex = Math.floor(Math.random() * images.length);
+      const luckyIndex = LAB.randIndex(images);
       const img = images[luckyIndex];
 
       img.style.filter = 'brightness(3) contrast(1.5) hue-rotate(45deg)';

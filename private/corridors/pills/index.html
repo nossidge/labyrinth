@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="It feels so good swimming in your stomach">
   <title>Jagged and little</title>
@@ -127,12 +127,9 @@
 <body>
   <div id="container"></div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/pills";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('pills');
 
     const container = document.getElementById('container');
 
@@ -151,11 +148,11 @@
 
     function createPill() {
       const link = document.createElement('a');
-      link.href = pageRandomiser.nextOne();
+      link.href = LAB.pageRandomiser.nextOne();
       link.className = 'pill-link';
 
-      const type = Math.random() > 0.4 ? 'capsule' : 'tablet';
-      const colors = pillColors[Math.floor(Math.random() * pillColors.length)];
+      const type = LAB.chance(0.6) ? 'capsule' : 'tablet';
+      const colors = LAB.sample(pillColors);
 
       const pill = document.createElement('div');
       pill.className = `pill ${type}`;
@@ -175,21 +172,21 @@
         pill.style.backgroundColor = colors.top;
       }
 
-      if (Math.random() > 0.3) {
+      if (LAB.chance(0.7)) {
         const text = document.createElement('div');
         text.className = 'pill-text';
-        text.innerText = pillTexts[Math.floor(Math.random() * pillTexts.length)];
+        text.innerText = LAB.sample(pillTexts);
         pill.appendChild(text);
       }
 
-      link.style.left = Math.random() * 100 + '%';
+      link.style.left = LAB.rand(0, 100) + '%';
 
-      const duration = 5 + Math.random() * 10;
-      const delay = (Math.random() * 10) - 10; // A negative delay means it starts mid-fall
+      const duration = LAB.rand(5, 15);
+      const delay = LAB.rand(-10, 0); // A negative delay means it starts mid-fall
       link.style.animation = `fall ${duration}s linear ${delay}s infinite`;
 
       // Random scale
-      const scale = 0.5 + Math.random();
+      const scale = LAB.rand(0.5, 1.5);
       link.style.transform = `scale(${scale})`;
 
       link.appendChild(pill);
@@ -201,6 +198,7 @@
     for (let i = 0; i < pillCount; i++) {
       createPill();
     }
+
   </script>
 </body>
 

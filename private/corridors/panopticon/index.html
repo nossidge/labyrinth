@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="The eyes have it">
   <title>Panopticon</title>
@@ -40,14 +40,14 @@
       align-items: center;
       justify-content: center;
       transition: transform 0.1s ease-out;
-      box-shadow: 4px 4px 0px #000;
-      border: 3px solid #000;
+      box-shadow: 4px 4px 0px #000000;
+      border: 3px solid #000000;
     }
 
     .pupil {
       width: 15px;
       height: 15px;
-      background: #000;
+      background: #000000;
       border-radius: 50%;
       position: relative;
     }
@@ -58,7 +58,7 @@
       left: 2px;
       width: 4px;
       height: 4px;
-      background: #fff;
+      background: #ffffff;
       border-radius: 50%;
     }
 
@@ -80,19 +80,16 @@
   <div id="static"></div>
   <div id="eyes-container"></div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/panopticon";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('panopticon');
 
     const container = document.getElementById('eyes-container');
     const eyes = [];
 
     function createEye() {
       const eye = document.createElement('a');
-      eye.href = pageRandomiser.nextOne();
+      eye.href = LAB.pageRandomiser.nextOne();
       eye.className = 'eye';
 
       const pupil = document.createElement('div');
@@ -103,13 +100,13 @@
       pupil.appendChild(reflection);
       eye.appendChild(pupil);
 
-      const x = Math.random() * (window.innerWidth - 50);
-      const y = Math.random() * (window.innerHeight - 50);
+      const x = LAB.rand(0, window.innerWidth - 50);
+      const y = LAB.rand(0, window.innerHeight - 50);
 
       eye.style.left = x + 'px';
       eye.style.top = y + 'px';
 
-      const scale = 2 + Math.random() * 2;
+      const scale = LAB.rand(2, 4);
       eye.style.transform = `scale(${scale})`;
       eye.dataset.baseScale = scale;
 

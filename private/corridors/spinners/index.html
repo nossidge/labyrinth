@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="I got to be your friend now, baby">
   <title>Move out of my way</title>
@@ -111,8 +111,8 @@
     .spinner.segments::before {
       inset: 0;
       background: repeating-conic-gradient(var(--ink) 0 22.5deg, transparent 22.5deg 45deg);
-      -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - var(--stroke) - 1px), #000 calc(100% - var(--stroke)));
-      mask: radial-gradient(farthest-side, transparent calc(100% - var(--stroke) - 1px), #000 calc(100% - var(--stroke)));
+      -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - var(--stroke) - 1px), #000000 calc(100% - var(--stroke)));
+      mask: radial-gradient(farthest-side, transparent calc(100% - var(--stroke) - 1px), #000000 calc(100% - var(--stroke)));
       animation: spin calc(var(--duration) * 0.88) linear infinite;
       opacity: 0.95;
     }
@@ -186,17 +186,9 @@
 <body>
   <main id="field"></main>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/spinners";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
-
-    function rand(min, max) { return Math.random() * (max - min) + min; }
-    function randInt(min, max) { return Math.floor(rand(min, max + 1)); }
-    function randIndex(array) { return randInt(0, array.length - 1); }
-    function sample(array) { return array[randIndex(array)]; }
+    const LAB = new Labyrinth('spinners');
 
     const field = document.getElementById('field');
 
@@ -204,9 +196,9 @@
     const variants = ['ring', 'dual', 'arc', 'dotted', 'segments', 'orbit', 'beads'];
 
     function createSpinner(cellSide) {
-      const variant = sample(variants);
+      const variant = LAB.sample(variants);
       const spinner = document.createElement('span');
-      const size = Math.floor(rand(cellSide * 0.34, cellSide * 0.68));
+      const size = Math.floor(LAB.rand(cellSide * 0.34, cellSide * 0.68));
       const stroke = Math.max(3, Math.round(size / 7));
 
       spinner.className = 'spinner ' + variant;
@@ -214,8 +206,8 @@
       spinner.style.setProperty('--stroke', stroke + 'px');
       spinner.style.setProperty('--dot', Math.max(5, Math.round(size / 5.5)) + 'px');
       spinner.style.setProperty('--bead', Math.max(4, Math.round(size / 7.5)) + 'px');
-      spinner.style.setProperty('--ink', sample(colours));
-      spinner.style.setProperty('--duration', rand(0.7, 1.9).toFixed(2) + 's');
+      spinner.style.setProperty('--ink', LAB.sample(colours));
+      spinner.style.setProperty('--duration', LAB.rand(0.7, 1.9).toFixed(2) + 's');
 
       if (variant === 'orbit') {
         const first = document.createElement('span');
@@ -259,7 +251,7 @@
       for (let i = 0; i < count; i++) {
         const link = document.createElement('a');
         link.className = 'tile';
-        link.href = pageRandomiser.nextOne();
+        link.href = LAB.pageRandomiser.nextOne();
         link.appendChild(createSpinner(cellSide));
         fragment.appendChild(link);
       }

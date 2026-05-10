@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Middlest">
   <title>where did the blue sky go?</title>
@@ -153,16 +153,11 @@
 
   <div id="scanlines"></div>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/travis";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('travis');
 
     // Useful helpers
-    function rand(min, max) { return Math.random() * (max - min) + min; }
-    function randInt(min, max) { return Math.floor(rand(min, max + 1)); }
     function clamp(value, low, high) { return Math.max(low, Math.min(high, value)); }
 
     const wanderer = document.getElementById('wanderer');
@@ -311,12 +306,12 @@
       const cloudWidth = 78 * getScale(posY);
 
       // Random position within cloud width
-      const offsetX = rand(-cloudWidth * 0.5, cloudWidth * 0.5);
+      const offsetX = LAB.rand(-cloudWidth * 0.5, cloudWidth * 0.5);
       const startX = wandererRect.left + wandererRect.width / 2 + offsetX;
       const startY = wandererRect.top + 50 * getScale(posY);
 
       const scale = getScale(posY);
-      const dropHeight = rand(8, 16) * scale;
+      const dropHeight = LAB.rand(8, 16) * scale;
       const dropWidth = Math.max(1, 2 * scale);
 
       drop.style.left = startX + 'px';
@@ -327,9 +322,9 @@
       document.body.appendChild(drop);
 
       // Animate falling
-      const fallDistance = rand(110, 160) * scale;
-      const duration = rand(300, 500);
-      const drift = rand(-3, 3);
+      const fallDistance = LAB.rand(110, 160) * scale;
+      const duration = LAB.rand(300, 500);
+      const drift = LAB.rand(-3, 3);
 
       let start = null;
       function animateDrop(ts) {
@@ -350,7 +345,7 @@
 
     // Splash a raindrop on the ground
     function spawnSplash(x, y) {
-      const count = randInt(2, 4);
+      const count = LAB.randInt(2, 4);
       for (let i = 0; i < count; i++) {
         const splash = document.createElement('div');
         splash.className = 'splash';
@@ -358,15 +353,15 @@
         splash.style.top = y + 'px';
 
         const scale = getScale(posY);
-        const size = Math.max(1, randInt(1, 3) * scale);
+        const size = Math.max(1, LAB.randInt(1, 3) * scale);
         splash.style.width = size + 'px';
         splash.style.height = size + 'px';
 
         document.body.appendChild(splash);
 
-        const vx = rand(-8, 8);
-        const vy = rand(-6, -1);
-        const dur = rand(200, 400);
+        const vx = LAB.rand(-8, 8);
+        const vy = LAB.rand(-6, -1);
+        const dur = LAB.rand(200, 400);
         let start = null;
 
         function animateSplash(ts) {

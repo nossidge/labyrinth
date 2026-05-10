@@ -12,7 +12,7 @@ https://processing.org/examples/penrosetile.html
 -->
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Failure to implement penrose tiling">
   <title>Aperiodiction</title>
@@ -54,7 +54,7 @@ https://processing.org/examples/penrosetile.html
 
     #link-layer a:hover polygon,
     #link-layer a:hover line {
-      stroke: #fff;
+      stroke: #ffffff;
       stroke-width: 2;
     }
 
@@ -80,12 +80,9 @@ https://processing.org/examples/penrosetile.html
   <canvas id="penrose-canvas"></canvas>
   <svg id="link-layer" xmlns="http://www.w3.org/2000/svg"></svg>
 
-  <script src="../../common/CyclicRandomiser.js"></script>
-  <script src="../../common/labyrinthPages.js"></script>
+  <script src="../../common/labyrinth.js"></script>
   <script>
-    const currentPage = "corridors/penrose";
-    const otherPages = labyrinthPages.filter(p => !p.includes(currentPage));
-    const pageRandomiser = new CyclicRandomiser(otherPages);
+    const LAB = new Labyrinth('penfell');
 
     // Penrose L-System
     const axiom = '[X]++[X]++[X]++[X]++[X]';
@@ -238,7 +235,7 @@ https://processing.org/examples/penrosetile.html
       ['#c8e870', '#98c040', '#d8f090', '#78a030', '#b0d860'],
       ['#e87070', '#c04040', '#f09090', '#a03030', '#d86060'],
     ];
-    const paletteRandomiser = new CyclicRandomiser(PALETTES);
+    const paletteRandomiser = new LAB.CyclicRandomiser(PALETTES);
 
     function render() {
       const canvas = document.getElementById('penrose-canvas');
@@ -269,7 +266,7 @@ https://processing.org/examples/penrosetile.html
       ctx.fillRect(0, 0, w, h);
 
       shapes.forEach((shape, i) => {
-        const color = palette[i % palette.length];
+        const colour = palette[i % palette.length];
         if (shape.points.length >= 3) {
           // Rhombus
           ctx.beginPath();
@@ -278,9 +275,9 @@ https://processing.org/examples/penrosetile.html
             ctx.lineTo(shape.points[p].x, shape.points[p].y);
           }
           ctx.closePath();
-          ctx.fillStyle = color + '40';
+          ctx.fillStyle = colour + '40';
           ctx.fill();
-          ctx.strokeStyle = color + 'cc';
+          ctx.strokeStyle = colour + 'cc';
           ctx.lineWidth = 0.8;
           ctx.stroke();
         } else {
@@ -288,7 +285,7 @@ https://processing.org/examples/penrosetile.html
           ctx.beginPath();
           ctx.moveTo(shape.points[0].x, shape.points[0].y);
           ctx.lineTo(shape.points[1].x, shape.points[1].y);
-          ctx.strokeStyle = color + '99';
+          ctx.strokeStyle = colour + '99';
           ctx.lineWidth = 0.6;
           ctx.stroke();
         }
@@ -297,10 +294,10 @@ https://processing.org/examples/penrosetile.html
       // Create SVG link overlays
       shapes.forEach((shape, i) => {
         const a = document.createElementNS('http://www.w3.org/2000/svg', 'a');
-        a.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', pageRandomiser.nextOne());
-        a.setAttribute('href', pageRandomiser.nextOne());
+        a.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', LAB.pageRandomiser.nextOne());
+        a.setAttribute('href', LAB.pageRandomiser.nextOne());
 
-        const color = palette[i % palette.length];
+        const colour = palette[i % palette.length];
 
         if (shape.points.length >= 3) {
           const poly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
@@ -312,7 +309,7 @@ https://processing.org/examples/penrosetile.html
           poly.style.cssText = 'cursor:pointer;';
 
           poly.addEventListener('mouseenter', () => {
-            poly.setAttribute('fill', color + '60');
+            poly.setAttribute('fill', colour + '60');
             poly.setAttribute('stroke', '#ffffff99');
             poly.setAttribute('stroke-width', '1.5');
           });

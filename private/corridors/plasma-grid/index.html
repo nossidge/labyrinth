@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Miasma of incandescent plasma">
+  <title>Plasma grid</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000000;
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #frame {
+      width: 95vmin;
+      height: 95vmin;
+      position: relative;
+      background: #050505;
+      box-shadow:
+        0 0 60px rgba(255, 255, 255, 0.08),
+        inset 0 0 40px rgba(0, 0, 0, 0.6);
+      padding: 6px;
+    }
+
+    #grid {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      grid-template-columns: repeat(var(--count-cols, 36), 1fr);
+      grid-template-rows: repeat(var(--count-rows, 36), 1fr);
+      gap: 2px;
+    }
+
+    .pixel {
+      display: block;
+      transition:
+        background-color 0.9s ease,
+        transform 0.15s ease,
+        box-shadow 0.15s ease;
+      box-shadow: inset 0 0 3px rgba(255, 255, 255, 0.35);
+    }
+
+    .pixel:hover {
+      z-index: 10;
+      box-shadow: 0 0 14px currentColor, 0 0 4px #ffffff;
+      background: linear-gradient(rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0.08) 50%);
+      background-size: 100% 2px;
+      transform: scale(2);
+    }
+
+    /* CRT scanlines */
+    #frame::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0.08) 50%);
+      background-size: 100% 4px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="frame">
+    <div id="grid"></div>
+  </div>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('plasma-grid');
+
+    const grid = document.getElementById('grid');
+    const cols = 36;
+    const rows = 36;
+    grid.style.setProperty('--count-cols', cols);
+    grid.style.setProperty('--count-rows', rows);
+
+    function pickColour(x, y, t) {
+      const v =
+        Math.sin(x * 0.3 + t) +
+        Math.cos(y * 0.3 - t * 0.8) +
+        Math.sin((x + y) * 0.18 + t * 0.5);
+      const hue = ((v * 60) + (t * 30)) % 360;
+      const sat = 65 + Math.sin(x * 0.1 + y * 0.1 + t) * 25;
+      const light = 48 + Math.cos((x + y) * 0.15 + t * 0.6) * 18;
+      return `hsl(${(hue + 360) % 360}, ${sat}%, ${light}%)`;
+    }
+
+    // Build all pixels in a fragment to avoid per-element layout thrash.
+    // Store coords alongside the element so we don't pay a DOM read
+    // (and string -> number coercion) on every animation frame.
+    const pixels = new Array(rows * cols);
+    const fragment = document.createDocumentFragment();
+    for (let y = 0; y < rows; y++) {
+      for (let x = 0; x < cols; x++) {
+        const el = document.createElement('a');
+        el.className = 'pixel';
+        el.href = LAB.pageRandomiser.nextOne();
+        const c = pickColour(x, y, 0);
+        el.style.backgroundColor = c;
+        el.style.color = c;
+        fragment.appendChild(el);
+        pixels[y * cols + x] = { el, x, y };
+      }
+    }
+    grid.appendChild(fragment);
+
+    // Pixels update their colour a little bit every so often.
+    // Don't update every pixel each frame, update only a percentage.
+    // This will make it look a little bit more random.
+    const percentToChange = 0.6;
+    const pixelCountToChange = Math.floor(pixels.length * percentToChange);
+
+    // Partial Fisher-Yates shuffle into a reusable scratch buffer.
+    const scratch = pixels.slice();
+    function shuffleSample(arr, n = 1) {
+      const len = arr.length;
+      for (let i = 0; i < n; i++) {
+        const j = i + ((LAB.rand(0, len - i)) | 0);
+        const tmp = arr[i];
+        arr[i] = arr[j];
+        arr[j] = tmp;
+      }
+    }
+
+    const fps = 10;
+    const targetFrameMs = 1000 / fps;
+    let previousTime = 0;
+    let t = 0;
+
+    function animate(now) {
+      if (now - previousTime >= targetFrameMs) {
+        previousTime = now;
+        t += 0.12;
+
+        shuffleSample(scratch, pixelCountToChange);
+        for (let i = 0; i < pixelCountToChange; i++) {
+          const p = scratch[i];
+          const c = pickColour(p.x, p.y, t);
+          p.el.style.backgroundColor = c;
+          p.el.style.color = c;
+        }
+      }
+      requestAnimationFrame(animate);
+    }
+
+    requestAnimationFrame(animate);
+
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Riding on a big white butterfly">
+  <title>fly like paper</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      background-color: #f5f0e0;
+      position: relative;
+    }
+
+    /* Ruled horizontal lines */
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image:
+        linear-gradient(rgba(120, 150, 200, 0.3) 2px, transparent 2px);
+      background-size: 100% 56px;
+      background-position: 0 28px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Left margin line */
+    body::after {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 120px;
+      width: 4px;
+      height: 100%;
+      background: rgba(200, 80, 80, 0.35);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    #container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    .plane {
+      position: absolute;
+      display: block;
+      text-decoration: none;
+      z-index: 2;
+      will-change: transform;
+    }
+
+    .plane-body {
+      width: 0;
+      height: 0;
+      border-left: 56px solid transparent;
+      border-right: 56px solid transparent;
+      border-bottom: 160px solid rgba(255, 255, 255, 0.92);
+      position: relative;
+      filter: drop-shadow(4px 6px 8px rgba(0, 0, 0, 0.15));
+    }
+
+    /* Fold line down the center */
+    .plane-body::after {
+      content: "";
+      position: absolute;
+      top: 0px;
+      left: -1px;
+      width: 2px;
+      height: 160px;
+      background: rgba(180, 200, 215, 0.6);
+    }
+
+    /* Wing crease */
+    .plane-body::before {
+      content: "";
+      position: absolute;
+      top: 48px;
+      left: -18px;
+      width: 36px;
+      height: 4px;
+      background: rgba(180, 200, 215, 0.45);
+    }
+
+    .plane:hover .plane-body {
+      border-bottom-color: #ffffff;
+      filter: drop-shadow(4px 8px 16px rgba(0, 0, 0, 0.3));
+    }
+  </style>
+</head>
+
+<body>
+  <div id="container"></div>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('paper-planes');
+
+    const container = document.getElementById('container');
+    const planes = [];
+    const MAX_PLANES = 140;
+
+    function randomEdgePosition() {
+      const edge = LAB.randInt(0, 3);
+      let x, y, angle;
+
+      switch (edge) {
+        case 0: // top
+          x = LAB.rand(0, window.innerWidth);
+          y = -100;
+          angle = LAB.rand(50, 130);
+          break;
+        case 1: // right
+          x = window.innerWidth + 100;
+          y = LAB.rand(0, window.innerHeight);
+          angle = LAB.rand(140, 220);
+          break;
+        case 2: // bottom
+          x = LAB.rand(0, window.innerWidth);
+          y = window.innerHeight + 100;
+          angle = LAB.rand(230, 310);
+          break;
+        case 3: // left
+          x = -100;
+          y = LAB.rand(0, window.innerHeight);
+          angle = LAB.rand(-40, 40);
+          break;
+      }
+      return { x, y, angle };
+    }
+
+    function launchPlane(startX, startY, targetAngle) {
+      if (planes.length >= MAX_PLANES) {
+        const oldest = planes.shift();
+        if (oldest.el.parentNode) oldest.el.parentNode.removeChild(oldest.el);
+      }
+
+      const link = document.createElement('a');
+      link.href = LAB.pageRandomiser.nextOne();
+      link.className = 'plane';
+      link.innerHTML = '<div class="plane-body"></div>';
+      link.style.left = startX + 'px';
+      link.style.top = startY + 'px';
+
+      container.appendChild(link);
+
+      const speed = LAB.rand(3.6, 4.6);
+      const wobble = LAB.chance(0.5);
+      const wobbleAmount = LAB.rand(3, 9);
+      const wobbleSpeed = LAB.rand(0.02, 0.06);
+      const arc = LAB.rand(-0.15, 0.15);
+      const scale = LAB.rand(0.6, 1.2);
+
+      const plane = {
+        el: link,
+        x: startX,
+        y: startY,
+        angle: targetAngle,
+        speed: speed,
+        wobble: wobble,
+        wobbleAmount: wobbleAmount,
+        wobbleSpeed: wobbleSpeed,
+        arc: arc,
+        scale: scale,
+        age: 0,
+        settled: false
+      };
+
+      planes.push(plane);
+    }
+
+    function launchFromEdge() {
+      const pos = randomEdgePosition();
+      launchPlane(pos.x, pos.y, pos.angle);
+    }
+
+    function isOffScreen(x, y, margin) {
+      return x < -margin || x > window.innerWidth + margin ||
+        y < -margin || y > window.innerHeight + margin;
+    }
+
+    function animate() {
+      for (let i = planes.length - 1; i >= 0; i--) {
+        const p = planes[i];
+        if (p.settled) continue;
+
+        p.age++;
+        const rad = p.angle * Math.PI / 180;
+        p.x += Math.cos(rad) * p.speed;
+        p.y += Math.sin(rad) * p.speed;
+        p.angle += p.arc;
+
+        let wobbleOffset = 0;
+        if (p.wobble) {
+          wobbleOffset = Math.sin(p.age * p.wobbleSpeed) * p.wobbleAmount;
+        }
+
+        const displayAngle = p.angle + wobbleOffset + 90;
+
+        // Some planes settle and pile up after travelling far enough
+        if (p.age > LAB.rand(300, 500) && LAB.chance(0.005)) {
+          p.settled = true;
+          p.el.style.transform = `translate(-50%, -50%) rotate(${displayAngle}deg) scale(${p.scale})`;
+          continue;
+        }
+
+        p.el.style.left = p.x + 'px';
+        p.el.style.top = p.y + 'px';
+        p.el.style.transform = `translate(-50%, -50%) rotate(${displayAngle}deg) scale(${p.scale})`;
+
+        if (isOffScreen(p.x, p.y, 200)) {
+          if (p.el.parentNode) p.el.parentNode.removeChild(p.el);
+          planes.splice(i, 1);
+        }
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    // Launch initial batch from edges
+    for (let i = 0; i < 8; i++) {
+      setTimeout(() => launchFromEdge(), i * 400);
+    }
+
+    // Keep launching planes periodically
+    setInterval(launchFromEdge, LAB.rand(200, 700));
+
+    // Press any key to launch a plane from the edge
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey || e.altKey || e.shiftKey || e.metaKey) return;
+      if (e.key === 'Tab' || e.key === 'F5') return;
+
+      launchFromEdge();
+    });
+
+    // Click background to launch a plane from that specific position
+    container.addEventListener('click', (e) => {
+      if (e.target === container) {
+        const angle = LAB.rand(0, 360);
+        launchPlane(e.clientX, e.clientY, angle);
+      }
+    });
+
+    animate();
+
+  </script>
+</body>
+
+</html>

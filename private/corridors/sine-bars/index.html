@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+"Oh dear, my bank is now a trendy wine bar"
+https://www.youtube.com/watch?v=5Io6gK5b1MU
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="soh kit too yah">
+  <title>trendy sine bar</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000000;
+    }
+
+    #bars {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #bars a {
+      display: block;
+      width: 100%;
+      text-decoration: none;
+      transition: filter 0.15s;
+    }
+
+    #bars a:hover {
+      filter: invert(0.5);
+    }
+  </style>
+</head>
+
+<body>
+  <div id="bars"></div>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('sine-bars');
+
+    const container = document.getElementById('bars');
+    const barCount = 40;
+    let minH;
+    let maxH;
+    let bars = [];
+
+    function buildBars() {
+      minH = 5;
+      maxH = Math.floor(window.innerHeight / barCount) * 2.5;
+      container.innerHTML = '';
+      bars = [];
+      for (let i = 0; i < barCount; i++) {
+        const a = document.createElement('a');
+        a.href = LAB.pageRandomiser.nextOne();
+        a.style.backgroundColor = (i % 2 === 0) ? '#ffffff' : '#000000';
+        a.style.borderTop = (i % 2 === 0) ? 'none' : '1px solid #333333';
+        a.dataset.index = i;
+        container.appendChild(a);
+        bars.push(a);
+      }
+    }
+
+    buildBars();
+    window.addEventListener('resize', buildBars);
+
+    let time = 0;
+    function animate() {
+      time += 0.04;
+      for (const bar of bars) {
+        const index = parseInt(bar.dataset.index);
+        const wave = Math.sin(time - index * 0.3);
+        const height = minH + (maxH - minH) * ((wave + 1) / 2);
+        bar.style.height = height + 'px';
+      }
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+
+  </script>
+</body>
+
+</html>

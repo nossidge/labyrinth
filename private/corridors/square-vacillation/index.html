@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="bit flop">
+  <title>Square Vacillation</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #111111;
+    }
+
+    #grid {
+      position: absolute;
+      overflow: hidden;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .cell {
+      position: absolute;
+      display: block;
+      text-decoration: none;
+      border: 1px solid #333333;
+      transition: transform 0.15s ease, filter 0.15s ease;
+    }
+
+    .cell.light {
+      background-color: #dddddd;
+      border-color: #888888;
+    }
+
+    .cell.dark {
+      background-color: #222222;
+      border-color: #444444;
+    }
+
+    .cell:hover {
+      transform: scale(1.2);
+      filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.5));
+      z-index: 50;
+    }
+
+    #divider {
+      position: absolute;
+      top: 0;
+      left: 0;
+      background: #666666;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 100;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 255, 0, 0.03));
+      background-size: 100% 2px, 3px 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+  <div id="divider"></div>
+  <div id="grid"></div>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('square-vacillation');
+
+    const grid = document.getElementById('grid');
+    const divider = document.getElementById('divider');
+    const cellSize = 40;
+    const gap = 2;
+    const step = cellSize + gap;
+    const pendulumPixelSpeed = 1.5;
+
+    let cols, rows, cells;
+    let isVertical = false;
+
+    function init() {
+      grid.innerHTML = '';
+      cols = Math.ceil(window.innerWidth / step) + 1;
+      rows = Math.ceil(window.innerHeight / step) + 1;
+      cells = [];
+
+      const padX = (window.innerWidth - cols * step + gap) / 2;
+      const padY = (window.innerHeight - rows * step + gap) / 2;
+
+      isVertical = window.innerHeight > window.innerWidth;
+
+      if (isVertical) {
+        divider.style.left = '0';
+        divider.style.width = '100%';
+        divider.style.height = '2px';
+      } else {
+        divider.style.top = '0';
+        divider.style.width = '2px';
+        divider.style.height = '100%';
+      }
+
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const a = document.createElement('a');
+          a.href = LAB.pageRandomiser.nextOne();
+          a.className = 'cell';
+          a.style.width = cellSize + 'px';
+          a.style.height = cellSize + 'px';
+          a.style.left = (padX + c * step) + 'px';
+          a.style.top = (padY + r * step) + 'px';
+          grid.appendChild(a);
+          cells.push({
+            el: a,
+            x: padX + c * step + cellSize / 2,
+            y: padY + r * step + cellSize / 2
+          });
+        }
+      }
+    }
+
+    function animate(timestamp) {
+      if (isVertical) {
+        const h = window.innerHeight;
+        const angularSpeed = pendulumPixelSpeed / h;
+        const swing = Math.sin(timestamp * angularSpeed);
+        const lineY = h / 2 + swing * (h * 0.4);
+        divider.style.top = lineY + 'px';
+
+        for (const cell of cells) {
+          if (cell.y < lineY) {
+            cell.el.className = 'cell light';
+          } else {
+            cell.el.className = 'cell dark';
+          }
+        }
+      } else {
+        const w = window.innerWidth;
+        const angularSpeed = pendulumPixelSpeed / w;
+        const swing = Math.sin(timestamp * angularSpeed);
+        const lineX = w / 2 + swing * (w * 0.4);
+        divider.style.left = lineX + 'px';
+
+        for (const cell of cells) {
+          if (cell.x < lineX) {
+            cell.el.className = 'cell light';
+          } else {
+            cell.el.className = 'cell dark';
+          }
+        }
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    init();
+    requestAnimationFrame(animate);
+
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(init, 200);
+    });
+
+  </script>
+</body>
+
+</html>

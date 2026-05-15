@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Ari Asteroid">
+  <title>Pure belter</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #f0f0ee;
+    }
+
+    #container {
+      position: fixed;
+      inset: 0;
+    }
+
+    .asteroid {
+      position: absolute;
+      display: block;
+      transition: filter 0.2s;
+      text-decoration: none;
+      pointer-events: none;
+    }
+
+    .asteroid:hover {
+      filter: invert(1);
+    }
+
+    .asteroid svg {
+      display: block;
+      overflow: visible;
+      pointer-events: none;
+    }
+
+    .asteroid polygon {
+      cursor: pointer;
+      pointer-events: visiblePainted;
+    }
+
+    /* Dotted noise overlay */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 100000;
+      background-image:
+        radial-gradient(rgba(0, 0, 0, 0.18) 0.5px, transparent 0.5px);
+      background-size: 3px 3px;
+      mix-blend-mode: multiply;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="container"></div>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('asteroids');
+
+    const container = document.getElementById('container');
+    const asteroids = [];
+    const MIN_VELOCITY = 0.1;
+    const MAX_VELOCITY = 0.7;
+    const COUNT = 99;
+
+    function makePolygon(size) {
+      const verts = LAB.randInt(5, 10);
+      const points = [];
+      for (let i = 0; i < verts; i++) {
+        const angle = (i / verts) * Math.PI * 2;
+        const r = size * LAB.rand(0.6, 1.1);
+        const x = size + Math.cos(angle) * r;
+        const y = size + Math.sin(angle) * r;
+        points.push(`${x.toFixed(1)},${y.toFixed(1)}`);
+      }
+      return points.join(' ');
+    }
+
+    function spawn() {
+      const size = LAB.randInt(40, 130);
+      const a = document.createElement('a');
+      a.className = 'asteroid';
+      a.href = LAB.pageRandomiser.nextOne();
+
+      const isWhite = LAB.chance(0.5);
+      const fill = isWhite ? '#efefef' : '#101010';
+      const stroke = isWhite ? '#101010' : '#efefef';
+
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      const dim = size * 2 + 4;
+      svg.setAttribute('width', dim);
+      svg.setAttribute('height', dim);
+      svg.setAttribute('viewBox', `-2 -2 ${dim} ${dim}`);
+
+      const poly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+      poly.setAttribute('points', makePolygon(size));
+      poly.setAttribute('fill', fill);
+      poly.setAttribute('stroke', stroke);
+      poly.setAttribute('stroke-width', '1.5');
+      svg.appendChild(poly);
+
+      a.appendChild(svg);
+      container.appendChild(a);
+
+      const data = {
+        el: a,
+        x: LAB.rand(0, window.innerWidth),
+        y: LAB.rand(0, window.innerHeight),
+        vx: LAB.rand(MIN_VELOCITY, MAX_VELOCITY) * (LAB.chance(0.5) ? 1 : -1),
+        vy: LAB.rand(MIN_VELOCITY, MAX_VELOCITY) * (LAB.chance(0.5) ? 1 : -1),
+        rot: LAB.rand(0, 360),
+        vr: LAB.rand(-0.05, 0.05),
+        size: size
+      };
+      asteroids.push(data);
+    }
+
+    function init() {
+      asteroids.length = 0;
+      container.innerHTML = '';
+      for (let i = 0; i < COUNT; i++) spawn();
+    }
+
+    function tick() {
+      for (const a of asteroids) {
+        a.x += a.vx;
+        a.y += a.vy;
+        a.rot += a.vr;
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+        const margin = a.size * 2;
+        if (a.x < -margin) a.x = w + margin;
+        if (a.x > w + margin) a.x = -margin;
+        if (a.y < -margin) a.y = h + margin;
+        if (a.y > h + margin) a.y = -margin;
+        a.el.style.transform = `translate(${a.x - a.size}px, ${a.y - a.size}px) rotate(${a.rot}deg)`;
+      }
+      requestAnimationFrame(tick);
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey || e.altKey || e.shiftKey || e.metaKey) return;
+      if (e.key === 'Tab' || e.key === 'F5') return;
+
+      init();
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    init();
+    tick();
+
+  </script>
+</body>
+
+</html>

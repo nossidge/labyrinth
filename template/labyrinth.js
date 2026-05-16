@@ -55,6 +55,7 @@ class Labyrinth {
     this.otherPages = this.labyrinthPages.filter(p => !p.includes(`corridors/${this.corridorId}`));
     this.pageRandomiser = new CyclicRandomiser(this.otherPages);
     this.CyclicRandomiser = CyclicRandomiser;
+    this.ignoredKeys = this._ignoredKeys();
     this._schedulePageVisitLog();
 
     window.addEventListener('DOMContentLoaded', () => {
@@ -106,7 +107,7 @@ class Labyrinth {
     const log = () => this._logPageVisit();
 
     if ('requestIdleCallback' in window) {
-      window.requestIdleCallback(log, {timeout: 2000});
+      window.requestIdleCallback(log, { timeout: 2000 });
     } else {
       window.setTimeout(log, 0);
     }
@@ -150,11 +151,59 @@ class Labyrinth {
     }
   }
 
+  // Allow most keypresses to be used, but ignore special browser keys
+  handleKeydown(e, callback) {
+    const tag = e.target.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+    if (e.target.isContentEditable || e.isComposing) return;
+    if (e.ctrlKey || e.altKey || e.shiftKey || e.metaKey) return;
+    if (this.ignoredKeys.has(e.key)) return;
+    if (/^F\d{1,2}$/.test(e.key)) return; // function keys
+
+    callback();
+  }
+
+  _ignoredKeys() {
+    return new Set([
+      // modifiers
+      'Shift',
+      'Control',
+      'Alt',
+      'Meta',
+
+      // navigation
+      'Home',
+      'End',
+      'PageUp',
+      'PageDown',
+
+      // editing
+      'Backspace',
+      'Delete',
+      'Insert',
+
+      // misc
+      'Escape',
+      'Tab',
+      'Enter',
+      'CapsLock',
+      'NumLock',
+      'ScrollLock',
+      'Pause',
+      'ContextMenu',
+      'PrintScreen',
+    ]);
+  }
+
   // Find all anchors that link to the parent index
   // e.g. `<a href="../index.html" class="highlight">example</a>`
   // And replace the href with `this.pageRandomiser.nextOne()`
   _randomiseParentIndexLinks() {
     const anchors = document.querySelectorAll('a[href="../index.html"]');
-    anchors.forEach(anchor => anchor.href = this.pageRandomiser.nextOne());
+    anchors.forEach(anchor => {
+      const href = this.pageRandomiser.nextOne();
+      anchor.setAttribute('href', href);
+      anchor.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', href);
+    });
   }
 }

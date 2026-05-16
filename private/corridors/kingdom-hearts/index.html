@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+This web page is 100% affiliated with Square Enix and The Walt Disney Company.
+I was paid a great deal of money to build this authentic, high-quality website.
+This is official marketing material and all of the plot info here is canon.
+
+Source for the "ComicHearts.otf" font:
+https://reddit.com/r/KingdomHearts/comments/dexmtv/
+https://x.com/SpectreProXy/status/1267666172700495873
+https://drive.google.com/file/d/1rTzRzO63EXKpI4--N1dcgigJNSnwsvGO/view
+
+The idea for this page came from this YouTube video:
+https://www.youtube.com/watch?v=6R7mG1HvNfk&t=108s
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Kingdom Hearts - The Story So Far">
+  <title>Kingdom Hearts - The Story So Far</title>
+  <style>
+    @font-face {
+      font-family: "ComicHearts";
+      src: url("ComicHearts.otf") format("opentype");
+      font-display: swap;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+      width: 100%;
+      background-color: #000000;
+      color: #ffffff;
+      font-family: "Trebuchet MS", "Helvetica Neue", Arial, sans-serif;
+      overflow: hidden;
+    }
+
+    /* Little vignette / glow type thing at top-left */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse 60% 50% at 0% 0%, rgba(60, 80, 120, 0.18), transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .layout {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: row;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    .pane-left {
+      flex: 0 0 44%;
+      max-width: 720px;
+      display: flex;
+      flex-direction: column;
+      padding: 38px 30px 30px 50px;
+      overflow: hidden;
+    }
+
+    .header {
+      margin-bottom: 70px;
+      filter: brightness(0.9);
+    }
+
+    .header:hover {
+      filter: brightness(1);
+    }
+
+    .title {
+      font-family: "Arial Black", Impact, sans-serif;
+      font-style: italic;
+      font-weight: 900;
+      font-size: 86px;
+      letter-spacing: 4px;
+      color: #ffffff;
+      line-height: 0.95;
+      text-shadow: 2px 2px 0 #000000, -1px 1px 0 rgba(255, 255, 255, 0.15);
+      transform: skewX(-8deg);
+      display: inline-block;
+      padding-right: 18px;
+      border-bottom: 2px solid #ffffff;
+      padding-bottom: 4px;
+    }
+
+    .subtitle {
+      margin-top: 18px;
+      font-family: "Arial Narrow", Arial, sans-serif;
+      font-style: italic;
+      font-weight: bold;
+      font-size: 16px;
+      letter-spacing: 3px;
+      color: #ffffff;
+      text-transform: uppercase;
+      transform: skewX(-8deg);
+      display: inline-block;
+    }
+
+    .menu {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .menu-row {
+      position: relative;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      padding: 0 22px 0 24px;
+      border-radius: 0 22px 22px 0;
+      background: linear-gradient(to right, rgba(40, 40, 45, 0.85), rgba(15, 15, 18, 0.4) 85%, transparent);
+      color: #aaa;
+      font-weight: bold;
+      font-size: 18px;
+      letter-spacing: 0.5px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
+
+    .menu-row.sub {
+      margin-left: 28px;
+      height: 38px;
+      font-size: 16px;
+      background: linear-gradient(to right, rgba(30, 30, 34, 0.7), rgba(10, 10, 12, 0.3) 85%, transparent);
+    }
+
+    .menu-row.active {
+      background: linear-gradient(to right, #003e96 0%, #001a4a 60%, #000000 100%);
+      color: #ffffff;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.25),
+        0 1px 0 rgba(0, 0, 0, 0.6);
+    }
+
+    .menu-row.active::before {
+      content: "";
+      position: absolute;
+      left: 18px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 16px;
+      height: 16px;
+      background: linear-gradient(135deg, #ffe27a 0%, #ff8800 100%);
+      box-shadow: 0 0 6px rgba(255, 170, 60, 0.7);
+    }
+
+    .menu-row.active .label {
+      margin-left: 26px;
+    }
+
+    .label {
+      flex: 1 1 auto;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .menu-row:has(.new-tag) .label {
+      padding-right: 50px;
+    }
+
+    .new-tag {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%) skewX(-12deg);
+      font-family: "Arial Black", Impact, sans-serif;
+      font-style: italic;
+      font-size: 14px;
+      letter-spacing: 1px;
+      color: transparent;
+      background: linear-gradient(to bottom, #ffe27a 0%, #ff7f00 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
+    }
+
+    .pane-right {
+      flex: 1 1 auto;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      padding: 70px 60px 90px 0;
+      min-width: 0;
+    }
+
+    .scroll-wrap {
+      position: relative;
+      flex: 1 1 auto;
+      min-height: 0;
+      padding-right: 30px;
+    }
+
+    .text {
+      height: 100%;
+      overflow-y: auto;
+      padding: 10px 30px 40px 30px;
+      font-family: "ComicHearts", "Trebuchet MS", "Helvetica Neue", Arial, sans-serif;
+      font-size: 22px;
+      line-height: 38px;
+      color: #ffffff;
+      background-image: linear-gradient(to bottom, transparent 36px, rgba(255, 255, 255, 0.18) 37px, transparent 38px);
+      background-size: 100% 38px;
+      background-position: 0 1px;
+      scrollbar-width: none;
+    }
+
+    .text::-webkit-scrollbar {
+      display: none;
+    }
+
+    .text .chapter {
+      font-style: italic;
+      font-weight: bold;
+      color: #ffffff;
+      margin-top: 30px;
+    }
+
+    .text .para {
+      margin-bottom: 38px;
+    }
+
+    .scrollbar {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      right: 0;
+      width: 14px;
+    }
+
+    .scrollbar .arrow {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      height: 16px;
+      background: none;
+      border: none;
+      padding: 0;
+      font: inherit;
+      color: inherit;
+    }
+
+    .scrollbar .arrow::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 0;
+      height: 0;
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      transform: translate(-50%, -50%);
+    }
+
+    .scrollbar .arrow.up {
+      top: -2px;
+    }
+
+    .scrollbar .arrow.up::before {
+      border-bottom: 9px solid #ffffff;
+      margin-top: -2px;
+    }
+
+    .scrollbar .arrow.down {
+      bottom: -2px;
+    }
+
+    .scrollbar .arrow.down::before {
+      border-top: 9px solid #ffffff;
+      margin-top: 2px;
+    }
+
+    .scrollbar .arrow:hover::before {
+      filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8));
+    }
+
+    .scrollbar .arrow:active::before {
+      filter: drop-shadow(0 0 5px rgba(255, 255, 255, 1));
+    }
+
+    .scrollbar .track {
+      position: absolute;
+      top: 16px;
+      bottom: 16px;
+      left: 50%;
+      width: 1px;
+      transform: translateX(-50%);
+      background: rgba(255, 255, 255, 0.35);
+    }
+
+    .scrollbar .thumb {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 8px;
+      background: #ffffff;
+      box-shadow: 0 0 4px rgba(255, 255, 255, 0.4);
+      transition: top 0.01s linear, height 0.01s linear;
+    }
+
+    .continue-btn {
+      position: absolute;
+      right: 90px;
+      bottom: 28px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: none;
+      border: none;
+      color: #ffffff;
+      font-family: inherit;
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      padding: 0;
+      cursor: pointer;
+      transition: transform 0.15s ease, filter 0.15s ease;
+    }
+
+    .continue-btn:hover {
+      filter: brightness(1.2);
+    }
+
+    .continue-btn:active {
+      transform: scale(0.97);
+    }
+
+    .continue-btn .x-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #6db4ff 0%, #1f5bcc 60%, #0a2a72 100%);
+      box-shadow:
+        inset 0 1px 1px rgba(255, 255, 255, 0.5),
+        0 0 6px rgba(60, 130, 255, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-family: "Arial Black", Impact, sans-serif;
+      font-weight: 900;
+      font-size: 18px;
+      line-height: 1;
+      text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
+    }
+
+    a {
+      text-decoration: none;
+    }
+
+    a:hover {
+      filter: brightness(1.2);
+    }
+
+    @media (max-width: 900px) {
+
+      html,
+      body {
+        overflow: auto;
+      }
+
+      .mobile-hide {
+        display: none;
+      }
+
+      .layout {
+        flex-direction: column;
+        height: auto;
+        min-height: 100vh;
+      }
+
+      .pane-left {
+        flex: 0 0 auto;
+        max-width: none;
+        padding: 24px 18px 16px 22px;
+      }
+
+      .header {
+        margin-bottom: 24px;
+      }
+
+      .title {
+        font-size: 56px;
+        letter-spacing: 2px;
+      }
+
+      .subtitle {
+        font-size: 12px;
+        letter-spacing: 2px;
+        margin-top: 12px;
+      }
+
+      .menu-row {
+        height: 38px;
+        font-size: 15px;
+      }
+
+      .menu-row.active {
+        font-size: 17px;
+      }
+
+      .menu-row.sub {
+        height: 32px;
+        font-size: 13px;
+      }
+
+      .pane-right {
+        padding: 10px 18px 90px 18px;
+        min-height: 70vh;
+      }
+
+      .scroll-wrap {
+        padding-right: 18px;
+      }
+
+      .text {
+        padding: 6px 12px 24px 12px;
+        font-size: 16px;
+        line-height: 32px;
+        background-image: linear-gradient(to bottom, transparent 30px, rgba(255, 255, 255, 0.18) 31px, transparent 32px);
+        background-size: 100% 32px;
+      }
+
+      .text .para {
+        margin-bottom: 32px;
+      }
+
+      .continue-btn {
+        right: 44px;
+        bottom: 44px;
+        font-size: 18px;
+      }
+
+      .continue-btn .x-icon {
+        width: 26px;
+        height: 26px;
+        font-size: 16px;
+      }
+
+      .scrollbar {
+        display: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="layout">
+    <aside class="pane-left">
+      <a href="../index.html" class="header">
+        <div class="title">STORY</div>
+        <div class="subtitle">- Kingdom Hearts - The Story So Far -</div>
+      </a>
+
+      <nav class="menu" aria-label="Story menu">
+        <a href="../index.html" class="menu-row">
+          <span class="label">Birth by Sleep</span>
+        </a>
+        <a href="../index.html" class="menu-row sub active">
+          <span class="label">The Story So Far</span>
+        </a>
+        <a href="../index.html" class="menu-row mobile-hide">
+          <span class="label">0.2 Birth by Sleep - A fragmentary passage -</span>
+        </a>
+        <a href="../index.html" class="menu-row mobile-hide sub">
+          <span class="label">Prologue</span>
+          <span class="new-tag">NEW!</span>
+        </a>
+        <a href="../index.html" class="menu-row mobile-hide sub">
+          <span class="label">Opening</span>
+          <span class="new-tag">NEW!</span>
+        </a>
+      </nav>
+    </aside>
+
+    <section class="pane-right">
+      <div class="scroll-wrap">
+        <div id="text" class="text" tabindex="0"></div>
+        <div class="scrollbar">
+          <button type="button" class="arrow up" id="arrow-up" aria-label="Scroll up"></button>
+          <div class="track"></div>
+          <div class="thumb" id="thumb"></div>
+          <button type="button" class="arrow down" id="arrow-down"
+            aria-label="Scroll down"></button>
+        </div>
+      </div>
+
+      <button id="continue" class="continue-btn" type="button">
+        <span class="x-icon">X</span>
+        <span>Continue</span>
+      </button>
+    </section>
+  </div>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('kingdom-hearts');
+
+    const chapterHeader = [
+      `- Embarking on a Journey -`,
+      `- Footsteps in the Dark -`,
+      `- Converging and Diverging -`,
+      `- True Ambitions Revealed -`,
+      `- Forging the χ-blade -`,
+      `- Retrieving a Heart -`,
+      `- Wandering through the Darkness -`,
+    ];
+
+    const paragraphStart = [
+      `Years later, Master Xehanort, no longer a young man, returns home.`,
+      `Xehanort places him on the ground and begins to walk away when a miracle occurs: Ventus's heart manages to repair itself and a Keyblade appears in his hand.`,
+      `At the Land of Departure, a world protected by generations of Keyblade Masters, Terra, Aqua, and Ventus train under Master Eraqus in the hopes of becoming masters themselves.`,
+      `The night before Terra and Aqua are to take the Mark of Mastery exam, the three gaze up at the night sky, each with Aqua's handmade Wayfinder in hand.`,
+      `On the day of the exam, Xehanort is there to witness Terra and Aqua demonstrate their abilities.`,
+      `During their demonstration, Terra finds Aqua's strength overwhelming and subconsciously resorts to using the power of darkness.`,
+      `Xehanort approaches the devastated Terra and encourages him to embrace the darkness.`,
+      `A short while later, Master Eraqus and his students receive word from Master Yen Sid, a powerful sorcerer who watches over the realm of light.`,
+      `Meanwhile, a mysterious boy in a mask appears before Ventus and hints at Terra's bleak future.`,
+      `As for Aqua, Master Eraqus instructs her to retrieve Ventus and to keep an eye on Terra.`,
+      `On his journey across the worlds, Terra learns of Xehanort's interest in the pure hearts of light and the Unversed's connection to the masked boy.`,
+      `Meanwhile, Ventus continues to search for Terra when the masked boy appears, Keyblade in hand.`,
+      `Mickey explains that he's training under Yen Sid, and that he rushed off without permission when he realized the worlds are in trouble.`,
+      `Seeking the counsel of one wiser than himself, Terra visits Yen Sid.`,
+      `After departing from Yen Sid's tower, Terra hears Xehanort's voice call out to him.`,
+      `Terra heads to the city of light, Radiant Garden, to fulfill his promise to Xehanort.`,
+      `Aqua sees a young girl being attacked by the Unversed and rushes to her side.`,
+      `Elsewhere in the city, Ventus is on the trail of a large Unversed when he crosses paths with Terra and Aqua.`,
+      `Shortly after, a man named Braig confronts Terra, claiming he's taken Xehanort hostage.`,
+      `After her battle against the masked boy, Aqua decides to resolve everything herself without getting her friends further involved.`,
+      `Ventus, left behind by the others, meets a young boy named Lea and the two become fast friends.`,
+      `While in the Lanes Between, Terra feels a warm light and follows it to Destiny Islands.`,
+      `Guided by the same light, Aqua also finds her way to Destiny Islands.`,
+      `While rescuing Mickey, Ventus runs into his former master, Xehanort.`,
+      `Ventus returns to Eraqus in search of answers.`,
+      `Before his battle with Eraqus, Terra tries to move Ventus to a safe place—Destiny Islands.`,
+      `Aqua finds Mickey in the Lanes Between and returns him to Yen Sid.`,
+      `The three friends assemble at the Keyblade Graveyard, a barren plain filled with countless lifeless keys left behind from the Keyblade War.`,
+      `Terra tells Aqua and Ventus that he has come to settle the score with Xehanort, who had tricked him into defeating their master.`,
+      `Xehanort and Vanitas arrive, and the battle begins.`,
+      `Aqua watches over Ventus, but Braig appears and the two clash.`,
+      `Seeing the blade forged, Xehanort unlocks his heart and tries to possess the body of Terra.`,
+      `Aqua awakens to the sight of Mickey and the body of Ventus fused with Vanitas.`,
+      `After the clash at the Keyblade Graveyard, Mickey finds Aqua and Ventus in the Lanes Between and takes them to Yen Sid's tower.`,
+      `Aqua returns to the Land of Departure with Ventus and sees Master Eraqus's Keyblade on the ground.`,
+      `Aqua follows the voice to Radiant Garden where she encounters Terra-Xehanort.`,
+      `Without a heart, Terra-Xehanort begins falling into darkness.`,
+      `Back in Radiant Garden, Ansem the Wise follows his disciple Braig to where the body of Terra-Xehanort lies.`,
+      `Aqua wanders within the darkness, weary from her endless encounters with the dark creatures.`,
+      `As Aqua roams the Dark World, she comes upon a familiar sight—the Castle of Dreams.`,
+    ];
+
+    const paragraphMiddle = [
+      `Donned in a black coat, he carries at his side a young boy, Ventus, wrapped in white cloth.`,
+      `Dark monsters called the Unversed have appeared in all corners of the world, and the princesses of light are in danger.`,
+      `Xehanort is also nowhere to be found.`,
+      `As the two battle, Ventus finds himself backed into a corner.`,
+      `Suddenly, a Keyblade wielder calling himself Mickey appears.`,
+      `The two meet and Xehanort confesses to his past crimes: It is his fault the masked boy, Vanitas, exists.`,
+      `He is a creation of pure darkness that came from Ventus, and Xehanort requests Terra to right the wrong he has created.`,
+      `Mickey arrives just in time to help.`,
+      `After they defeat the monsters, Mickey and Aqua speak briefly before he is whisked away by the Star Shard.`,
+      `The three combine their powers and defeat the Unversed, but their happy reunion is short-lived.`,
+      `He challenges Terra for his Keyblade, and the two battle until Terra emerges victorious.`,
+      `Having relied on the power of darkness to win, however, Terra is disappointed and convinces himself that he cannot return home.`,
+      `Freed from Braig's imprisonment, Xehanort explains to Terra that he had not been controlled by the darkness, but had successfully channeled it instead.`,
+      `He then convinces Terra to become his pupil; Terra accepts.`,
+      `There, he meets Riku and learns that the young boy wishes to become strong to protect the things that matter to him.`,
+      `She realizes that someone had passed Riku the power of the Keyblade and wonders if it was Terra.`,
+      `The reunion reawakens the boy's sleeping memories, and Xehanort urges his former pupil to clash with Vanitas in order to forge the χ-blade.`,
+      `But after hearing what his pupil has learned about the χ-blade, Eraqus raises his Keyblade, determined to eliminate the boy and thwart Xehanort's plan of forging the blade.`,
+      `Terra arrives just in time and battles his master to protect his friend.`,
+      `Near the battle's end, Xehanort appears and strikes down the weakened Eraqus.`,
+      `He then urges Terra to meet him at the Keyblade Graveyard.`,
+      `But Vanitas is already there and tells the boy that they must clash to forge the χ-blade.`,
+      `Ventus, however, refuses to fight.`,
+      `There, she learns that Master Eraqus has been struck down by Xehanort and Terra.`,
+      `Xehanort claims it to be "the place where all Keyblade wielders leave their mark on fate."`,
+      `Aqua insists that doing so was exactly what Xehanort wants.`,
+      `Ventus then confesses that he may have to fight Vanitas, which would result in the forging of the χ-blade.`,
+      `Terra, separated from his friends, stands alone as he faces Xehanort.`,
+      `Ventus attempts to protect his friend, but is frozen by his former master.`,
+      `She defeats him, but is then attacked by Vanitas.`,
+      `Terra summons his armor to protect himself, but it crumbles to the ground and his body becomes the new vessel for Xehanort, who becomes Terra-Xehanort.`,
+      `But Terra's heart is not gone.`,
+      `In Ventus's hand is the χ-blade.`,
+      `Mickey and Aqua are no match for the wielder of the legendary blade; however, by relying on the power of her friends, Aqua summons enough strength to shatter the weapon.`,
+      `Aqua awakens to learn that Ventus's heart is asleep and Terra's whereabouts are unknown.`,
+      `She picks it up and, remembering her mentor's words, uses it to lock the Land away.`,
+      `It transforms into Castle Oblivion and Aqua hides the body of Ventus within one of its chambers.`,
+      `Quickly realizing that someone has taken over her friend's body, she fights the mysterious man to get her friend's heart back.`,
+      `During the battle, a light begins to shine from within the man's body.`,
+      `Aqua grabs Terra, but soon realizes that they both won't make it out in time.`,
+      `Aqua entrusts Terra's body to her armor, places her Keyblade in his hand, and sends him back to the realm of light.`,
+      `Though the mysterious man has lost his memories, he recalls his name—Xehanort.`,
+      `Eventually, she finds herself surrounded by monsters and wonders if it's time to give up.`,
+      `Just then, two lights appear in the distance, and Terra and Ventus's Keyblades soar from the darkness and defeat the creatures.`,
+    ];
+
+    const paragraphEnd = [
+      `Ventus's eyes are devoid of life; he has lost a piece of his heart, the result of one of Xehanort's experiments.`,
+      `Through his surprise, Xehanort smiles as he hatches a new plan.`,
+      `Little do they know, this would be the last night they share together.`,
+      `Though both are slated to receive the title of Master, Xehanort insists they both take the test.`,
+      `For this, Master Eraqus grants only Aqua the title of Master.`,
+      `Feeling relieved, Terra finds himself placing trust in him.`,
+      `Master Eraqus informs Aqua and Terra that they are to defeat these creatures and find Xehanort.`,
+      `Worried, Ventus leaves the Land of Departure to chase after his friend.`,
+      `As Aqua watches from afar, she becomes worried about her friend and his affinity to the darkness.`,
+      `Together, they defeat the masked boy.`,
+      `In the same situation himself, Ventus quickly befriends his new ally.`,
+      `There the young man explains the appearance of the Unversed and the disappearance of Xehanort, and is told to think of them as one problem.`,
+      `Terra accepts.`,
+      `Unbeknownst to him, his closest friends are there too.`,
+      `Sensing a special light within the young girl, Aqua casts a magic spell on her to protect her from the darkness.`,
+      `Terra discovers that Aqua has been sent by Master Eraqus to follow him, and he storms off, feeling betrayed by his friends and mentor.`,
+      `Shortly after, he leaves to continue his search for Vanitas.`,
+      `Terra, seeing himself in Riku, bequeaths the power of the Keyblade to him and promises him they will meet again someday.`,
+      `Aqua, sensing the extraordinary strength of his friend Sora's heart, instructs Sora to stick by Riku and keep him safe.`,
+      `He also tells the boy to seek out Eraqus to learn the truth.`,
+      `There, Xehanort says, he can witness Aqua and Ventus fall with his own eyes.`,
+      `To spur him into action, Vanitas reveals his plan to deal with Aqua and Terra at the Keyblade Graveyard.`,
+      `She races to the Keyblade Graveyard to confront her friend and discover the truth.`,
+      `It is where the decisive battle would take place and in turn, summon Kingdom Hearts.`,
+      `He urges his friends to put an end to him if it comes to that.`,
+      `Terra, consumed with rage, raises his Keyblade.`,
+      `Before he can deliver the final blow, Ventus summons the strength to unfreeze himself and fights Vanitas, thus forging the χ-blade.`,
+      `His will lingers within his armor and clashes with Terra-Xehanort.`,
+      `Ventus begins fighting back from within Vanitas, and to prevent the total union of their souls, Ventus decides to destroy the χ-blade, even if it means his heart might vanish forever.`,
+      `She then decides to seek out Terra and find a safe place for Ventus to rest.`,
+      `While departing, she hears the voice of Terra who asked her to put an end to him.`,
+      `Realizing that Terra is fighting back, Terra-Xehanort turns his Keyblade on himself.`,
+      `She herself continues to descend into darkness, promising to one day return to wake Ventus.`,
+      `Hearing the familiar name, Braig grins.`,
+      `Filled with a new hope, Aqua smiles as she continues her trek through the darkness.`,
+    ];
+
+    const headerRand = new LAB.CyclicRandomiser(chapterHeader);
+    const startRand = new LAB.CyclicRandomiser(paragraphStart);
+    const middleRand = new LAB.CyclicRandomiser(paragraphMiddle);
+    const endRand = new LAB.CyclicRandomiser(paragraphEnd);
+
+    const textDiv = document.getElementById('text');
+    const continueBtn = document.getElementById('continue');
+    const thumbEl = document.getElementById('thumb');
+
+    const headerFirst = '- The Beginning -';
+    const startFirst = 'Destiny Islands—a small set of islands, and the home of a young man yearning for adventure.';
+
+    // Build a single random paragraph element
+    function buildParagraph(initialGeneration, initialParagraph) {
+      const p = document.createElement('p');
+      p.className = 'para';
+      const sentences = [initialParagraph ? startFirst : startRand.nextOne()];
+
+      // 0-2 middle sentences
+      const min = initialGeneration ? 2 : 0;
+      const middleCount = LAB.randInt(min, 2);
+      for (let i = 0; i < middleCount; i++) {
+        sentences.push(middleRand.nextOne());
+      }
+
+      // 70% chance of an ending sentence
+      if (LAB.chance(0.7)) {
+        sentences.push(endRand.nextOne());
+      }
+
+      p.textContent = sentences.join(' ');
+      return p;
+    }
+
+    // Append a chunk of story: chapter header, then paragraphs
+    function appendStory(initialGeneration) {
+      const frag = document.createDocumentFragment();
+
+      const h = document.createElement('p');
+      h.className = 'para chapter';
+      h.textContent = initialGeneration ? headerFirst : headerRand.nextOne();
+      frag.appendChild(h);
+
+      const paraCount = initialGeneration ? 3 : LAB.randInt(2, 3);
+      let initialParagraph = initialGeneration;
+      for (let i = 0; i < paraCount; i++) {
+        frag.appendChild(buildParagraph(initialGeneration, initialParagraph));
+        initialParagraph = false;
+      }
+
+      textDiv.appendChild(frag);
+      requestAnimationFrame(updateScrollbar);
+    }
+
+    // Scrollbar position calculation stuff
+    function updateScrollbar() {
+      const scrollH = textDiv.scrollHeight;
+      const clientH = textDiv.clientHeight;
+      const scrollTop = textDiv.scrollTop;
+
+      if (scrollH <= clientH) {
+        thumbEl.style.display = 'none';
+        return;
+      }
+      thumbEl.style.display = 'block';
+
+      const arrowPx = 16; // top/bottom arrows = 16px each
+      const trackH = thumbEl.parentElement.clientHeight - (arrowPx * 2);
+      const thumbH = Math.max(20, (clientH / scrollH) * trackH);
+      const maxThumbTop = trackH - thumbH;
+      const ratio = scrollTop / (scrollH - clientH);
+      const top = 16 + ratio * maxThumbTop;
+
+      thumbEl.style.height = thumbH + 'px';
+      thumbEl.style.top = top + 'px';
+    }
+
+    textDiv.addEventListener('scroll', updateScrollbar);
+    window.addEventListener('resize', updateScrollbar);
+
+    // Scrollbar interaction: arrow buttons + thumb drag
+    const arrowUp = document.getElementById('arrow-up');
+    const arrowDown = document.getElementById('arrow-down');
+    const ARROW_STEP = 38; // Pixels per arrow tick (one line)
+
+    function holdToScroll(button, direction) {
+      let intervalId = null;
+      let timeoutId = null;
+
+      const start = (e) => {
+        if (timeoutId || intervalId) return;
+        if (e && e.cancelable) e.preventDefault();
+
+        textDiv.scrollTop += direction * ARROW_STEP;
+        // Begin auto-repeat after a short delay
+        timeoutId = setTimeout(() => {
+          intervalId = setInterval(() => {
+            textDiv.scrollTop += direction * ARROW_STEP;
+          }, 40);
+        }, 350);
+      };
+
+      const stop = () => {
+        if (timeoutId) { clearTimeout(timeoutId); timeoutId = null; }
+        if (intervalId) { clearInterval(intervalId); intervalId = null; }
+      };
+
+      button.addEventListener('mousedown', start);
+      button.addEventListener('mouseup', stop);
+      button.addEventListener('mouseleave', stop);
+      button.addEventListener('blur', stop);
+
+      button.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') start(e);
+      });
+      button.addEventListener('keyup', (e) => {
+        if (e.key === 'Enter') stop();
+      });
+
+      const arrowKey = (direction === 1) ? 'ArrowDown' : 'ArrowUp';
+      document.addEventListener('keydown', (e) => {
+        if (e.key === arrowKey) start(e);
+      });
+      document.addEventListener('keyup', (e) => {
+        if (e.key === arrowKey) stop();
+      });
+    }
+
+    holdToScroll(arrowUp, -1);
+    holdToScroll(arrowDown, 1);
+
+    // This is for the scroll bar thumb: compute scroll position from pointer Y
+    let dragState = null;
+
+    thumbEl.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      const scrollH = textDiv.scrollHeight;
+      const clientH = textDiv.clientHeight;
+      if (scrollH <= clientH) return;
+
+      const arrowPx = 16;
+      const trackH = thumbEl.parentElement.clientHeight - (arrowPx * 2);
+      const thumbH = thumbEl.offsetHeight;
+
+      dragState = {
+        startY: e.clientY,
+        startScrollTop: textDiv.scrollTop,
+        ratio: (scrollH - clientH) / (trackH - thumbH),
+      };
+      document.body.style.userSelect = 'none';
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (!dragState) return;
+      const dy = e.clientY - dragState.startY;
+      textDiv.scrollTop = dragState.startScrollTop + dy * dragState.ratio;
+    });
+
+    document.addEventListener('mouseup', () => {
+      if (!dragState) return;
+      dragState = null;
+      document.body.style.userSelect = '';
+    });
+
+    continueBtn.addEventListener('click', () => {
+      appendStory(false);
+      textDiv.scrollTo({ top: textDiv.scrollHeight, behavior: 'smooth' });
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') return;
+      LAB.handleKeydown(e, () => {
+        continueBtn.click();
+      });
+    });
+
+    appendStory(true);
+
+  </script>
+</body>
+
+</html>

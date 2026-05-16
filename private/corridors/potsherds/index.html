@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Antony Sherd">
+  <title>It belongs in a museum</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background:
+        repeating-linear-gradient(0deg,
+          transparent 0, transparent 79px,
+          rgba(0, 0, 0, 0.25) 79px, rgba(0, 0, 0, 0.25) 80px),
+        repeating-linear-gradient(90deg,
+          transparent 0, transparent 79px,
+          rgba(0, 0, 0, 0.25) 79px, rgba(0, 0, 0, 0.25) 80px),
+        radial-gradient(ellipse at 30% 30%, #a07a55 0%, #6b4a2c 70%, #3d2613 100%);
+      font-family: 'Courier New', monospace;
+    }
+
+    svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .sherd-group {
+      cursor: pointer;
+      transition: transform 0.3s ease, filter 0.3s ease;
+      transform-origin: center;
+      transform-box: fill-box;
+      filter: drop-shadow(2px 4px 3px rgba(0, 0, 0, 0.55));
+    }
+
+    .sherd-group:hover {
+      transform: translate(-2px, -5px) scale(1.05);
+      filter:
+        drop-shadow(5px 9px 7px rgba(0, 0, 0, 0.75)) brightness(1.18);
+    }
+
+    .sherd {
+      stroke: #2a1408;
+      stroke-width: 1.2;
+    }
+  </style>
+</head>
+
+<body>
+  <svg id="dig"></svg>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('potsherds');
+
+    const ns = 'http://www.w3.org/2000/svg';
+    const svg = document.getElementById('dig');
+    const W = window.innerWidth, H = window.innerHeight;
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+
+    const palette = [
+      '#c4684e', '#9c4a30', '#7a3520', '#a85a3a', '#d2856a',
+      '#e8a075', '#5e2818', '#b86c4e', '#8a3a25', '#bf6041',
+    ];
+    const decoColours = ['#3a1810', '#1a0805', '#5e2818'];
+
+    function makeSherd(cx, cy, size, rotation) {
+      const sides = LAB.randInt(5, 8);
+      const pts = [];
+      for (let i = 0; i < sides; i++) {
+        const a = (i / sides) * Math.PI * 2 + rotation + LAB.rand(-0.2, 0.2);
+        const r = size * (LAB.rand(0.55, 1.15));
+        pts.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r]);
+      }
+      return pts;
+    }
+
+    function pick(arr) {
+      return arr[LAB.randIndex(arr)];
+    }
+
+    // Lay sherds down without too much overlap
+    function init() {
+      // Clear any previously rendered content
+      while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+      const placed = [];
+      const target = 26;
+      let attempts = 0;
+      while (placed.length < target && attempts < 600) {
+        attempts++;
+        const size = LAB.rand(55, 145);
+        const cx = LAB.rand(size, W - size);
+        const cy = LAB.rand(size, H - size);
+        const ok = placed.every(p =>
+          Math.hypot(p.cx - cx, p.cy - cy) > (p.size + size) * 0.65
+        );
+        if (ok) placed.push({ cx, cy, size, rotation: LAB.rand(0, Math.PI * 2) });
+      }
+
+      // Define one clipPath per sherd so painted dots stay inside
+      const defs = document.createElementNS(ns, 'defs');
+      svg.appendChild(defs);
+
+      placed.forEach(({ cx, cy, size, rotation }, idx) => {
+        const a = document.createElementNS(ns, 'a');
+        a.setAttribute('href', LAB.pageRandomiser.nextOne());
+
+        const pts = makeSherd(cx, cy, size, rotation);
+        const ptsStr = pts.map(p => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ');
+
+        const g = document.createElementNS(ns, 'g');
+        g.setAttribute('class', 'sherd-group');
+
+        const poly = document.createElementNS(ns, 'polygon');
+        poly.setAttribute('points', ptsStr);
+        poly.setAttribute('class', 'sherd');
+        poly.setAttribute('fill', pick(palette));
+        g.appendChild(poly);
+
+        // Painted dot decorations clipped to the sherd
+        const clipId = `clip-${idx}`;
+        const cp = document.createElementNS(ns, 'clipPath');
+        cp.setAttribute('id', clipId);
+        const cpPoly = document.createElementNS(ns, 'polygon');
+        cpPoly.setAttribute('points', ptsStr);
+        cp.appendChild(cpPoly);
+        defs.appendChild(cp);
+
+        const decoG = document.createElementNS(ns, 'g');
+        decoG.setAttribute('clip-path', `url(#${clipId})`);
+        decoG.style.pointerEvents = 'none';
+
+        const dotCount = LAB.randInt(2, 6);
+        for (let i = 0; i < dotCount; i++) {
+          const dx = cx + LAB.rand(-0.6 * size, 0.6 * size);
+          const dy = cy + LAB.rand(-0.6 * size, 0.6 * size);
+          const dot = document.createElementNS(ns, 'circle');
+          dot.setAttribute('cx', dx);
+          dot.setAttribute('cy', dy);
+          dot.setAttribute('r', LAB.rand(2, 7));
+          dot.setAttribute('fill', pick(decoColours));
+          dot.setAttribute('opacity', 0.7);
+          decoG.appendChild(dot);
+        }
+
+        // A painted band/stripe
+        if (LAB.chance(0.6)) {
+          const ang = LAB.rand(0, Math.PI * 2);
+          const stripe = document.createElementNS(ns, 'line');
+          stripe.setAttribute('x1', cx + Math.cos(ang) * size * 1.5);
+          stripe.setAttribute('y1', cy + Math.sin(ang) * size * 1.5);
+          stripe.setAttribute('x2', cx - Math.cos(ang) * size * 1.5);
+          stripe.setAttribute('y2', cy - Math.sin(ang) * size * 1.5);
+          stripe.setAttribute('stroke', pick(decoColours));
+          stripe.setAttribute('stroke-width', LAB.rand(1.5, 4.5));
+          stripe.setAttribute('opacity', 0.6);
+          decoG.appendChild(stripe);
+        }
+
+        g.appendChild(decoG);
+        a.appendChild(g);
+        svg.appendChild(a);
+      });
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey || e.altKey || e.shiftKey || e.metaKey) return;
+      if (e.key === 'Tab' || e.key === 'F5') return;
+
+      init();
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    init();
+
+  </script>
+</body>
+
+</html>

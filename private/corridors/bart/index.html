@@ -13,22 +13,34 @@
       box-sizing: border-box;
     }
 
+    html,
+    body {
+      height: 100%;
+      overflow: hidden;
+    }
+
     body {
       background-color: #5fb2f1;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      min-height: 100vh;
+      padding: 20px;
     }
 
     #bart-container {
       position: relative;
-      display: inline-block;
+      display: block;
+      max-width: 100%;
     }
 
     #bart-container img {
       display: block;
+      width: auto;
+      height: auto;
+      max-width: 100%;
+      /* Reserve 120px for the slider area and a little spike room */
+      max-height: calc((100vh - 120px) * 0.9);
     }
 
     #hair-canvas {
@@ -39,12 +51,14 @@
     }
 
     #controls {
-      margin-top: 40px;
+      margin-top: 30px;
       text-align: center;
+      width: 100%;
+      max-width: 300px;
     }
 
     #spike-slider {
-      width: 300px;
+      width: 100%;
     }
   </style>
 </head>
@@ -101,9 +115,15 @@
 
       const scaleX = img.offsetWidth / w;
       const scaleY = img.offsetHeight / h;
+      const extraScaled = extra * scaleY;
+
+      // Reserve space above the image so the spikes occupy layout space
+      container.style.paddingTop = extraScaled + 'px';
+
       canvas.style.width = (w * scaleX) + 'px';
       canvas.style.height = ((h + extra) * scaleY) + 'px';
-      canvas.style.top = (-extra * scaleY) + 'px';
+      canvas.style.top = '0px';
+      canvas.style.left = '0px';
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.translate(0, extra);
@@ -147,18 +167,14 @@
       }
     }
 
-    slider.addEventListener('input', () => {
-      const count = parseInt(slider.value, 10);
-      drawHair(count);
-    });
-
-    img.addEventListener('load', () => {
-      drawHair(parseInt(slider.value, 10));
-    });
-
-    if (img.complete) {
+    function init() {
       drawHair(parseInt(slider.value, 10));
     }
+
+    slider.addEventListener('input', init);
+    window.addEventListener('resize', init);
+
+    if (img.complete) init();
 
   </script>
 </body>

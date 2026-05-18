@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+I've been collecting these off and on for the past few years.
+
+Using this blackout poetry engine:
+https://blackout.tilde.town/
+
+By our beloved founder ~vilmibm
+https://tilde.town/~vilmibm/blog/#blackout
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="A little something to make you sweeter">
+  <title>Blackout poetry</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #000000;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+    }
+
+    main {
+      max-width: 1399px;
+      width: 100%;
+      padding: 40px;
+      background: #090909;
+      border-left: 1px solid #1a1a1a;
+      border-right: 1px solid #1a1a1a;
+      box-shadow: 4px 0 12px rgba(0, 0, 0, 0.6), -4px 0 12px rgba(0, 0, 0, 0.6);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    @media (max-width: 1399px) {
+      main {
+        padding: 20px;
+      }
+    }
+
+    #image-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px 0;
+    }
+
+    #link {
+      display: block;
+      line-height: 0;
+      max-width: 100%;
+    }
+
+    #image {
+      display: block;
+      max-width: 100%;
+      max-height: 70vh;
+      height: auto;
+      width: auto;
+      opacity: 0.92;
+    }
+
+    #caption {
+      margin-top: auto;
+      padding-top: 24px;
+      padding-bottom: 24px;
+      font-size: 14px;
+      letter-spacing: 2px;
+      color: #6a6a6a;
+      text-align: center;
+    }
+
+    #caption a {
+      color: #8a8a8a;
+      text-decoration: none;
+      border-bottom: 1px solid #2a2a2a;
+    }
+
+    #caption a:hover {
+      color: #aaaaaa;
+      border-bottom-color: #4a4a4a;
+    }
+
+    #nav {
+      display: flex;
+      gap: 32px;
+    }
+
+    @media (max-width: 1399px) {
+      #nav {
+        gap: 20px;
+      }
+    }
+
+    #nav button {
+      flex: 1;
+      background: #111111;
+      border: 1px solid #1f1f1f;
+      padding: 14px 12px;
+      font-size: 14px;
+      letter-spacing: 3px;
+      color: #888888;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+      cursor: pointer;
+    }
+
+    #nav button:hover {
+      background: #0e0e0e;
+      color: #aaaaaa;
+      border-color: #333333;
+    }
+
+    #nav button:active {
+      background: #161616;
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <div id="image-area">
+      <a id="link" href="#">
+        <img id="image" alt="">
+      </a>
+    </div>
+    <div id="caption">
+      blackout poetry:
+      <a href="https://blackout.tilde.town/">
+        blackout.tilde.town
+      </a>
+    </div>
+    <div id="nav">
+      <button id="btn-prev">&#8592; back</button>
+      <button id="btn-next">next &#8594;</button>
+    </div>
+  </main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('blackout');
+
+    // List of image filenames in ./images/
+    // Filename (minus extension) is used as the URL anchor.
+    const IMAGES = [
+      '20230803-091529.png',
+      '20230803-091908.png',
+      '20230803-092029.png',
+      '20230803-092143.png',
+      '20230803-092344.png',
+      '20230803-111211.png',
+      '20230803-111326.png',
+      '20230803-111407.png',
+      '20230803-111838.png',
+      '20230803-112202.png',
+      '20230803-112327.png',
+      '20230803-112437.png',
+      '20230803-115435.png',
+      '20230803-115541.png',
+      '20230803-131556.png',
+      '20230803-131747.png',
+      '20230803-131833.png',
+      '20230803-131841.png',
+      '20230803-132157.png',
+      '20230803-132613.png',
+      '20230803-133120.png',
+      '20230803-133248.png',
+      '20230803-133322.png',
+      '20230803-133704.png',
+      '20230803-142110.png',
+      '20230803-152236.png',
+      '20230803-152553.png',
+      '20230803-152759.png',
+      '20230803-152837.png',
+      '20230803-152913.png',
+      '20230803-153606.png',
+      '20230803-153748.png',
+      '20230803-153848.png',
+      '20230803-153939.png',
+      '20230803-154336.png',
+      '20230803-154422.png',
+      '20230803-154640.png',
+      '20230803-155550.png',
+      '20230803-163706.png',
+      '20230803-163831.png',
+      '20230803-164100.png',
+      '20230803-164212.png',
+      '20230803-164254.png',
+      '20230803-164432.png',
+      '20230803-164839.png',
+      '20230803-165022.png',
+      '20230803-165129.png',
+      '20230803-165242.png',
+      '20230803-165717.png',
+      '20230803-165830.png',
+      '20230803-170015.png',
+      '20230803-170139.png',
+      '20230803-170406.png',
+      '20230803-170426.png',
+      '20230803-170702.png',
+      '20230803-171018.png',
+      '20230803-171059.png',
+      '20230803-171154.png',
+      '20230804-125220.png',
+      '20230804-125346.png',
+      '20230804-130616.png',
+      '20230804-130727.png',
+      '20230804-130848.png',
+      '20230804-130931.png',
+      '20230804-131039.png',
+      '20230810-133923.png',
+      '20230810-134025.png',
+      '20230810-134232.png',
+      '20230810-134448.png',
+      '20230810-134729.png',
+      '20230810-134817.png',
+      '20230810-135008.png',
+      '20230810-135203.png',
+      '20230810-135240.png',
+      '20230810-135411.png',
+      '20230810-135621.png',
+      '20230810-140058.png',
+      '20230810-140221.png',
+      '20230810-140411.png',
+      '20230810-140554.png',
+      '20230810-140722.png',
+      '20230810-140825.png',
+      '20230810-155839.png',
+      '20230810-160145.png',
+      '20230810-160349.png',
+      '20230810-160509.png',
+      '20230810-160556.png',
+      '20230810-160659.png',
+      '20230810-160826.png',
+      '20230810-160854.png',
+      '20230810-161114.png',
+      '20230810-161501.png',
+      '20230811-091117.png',
+      '20230811-091250.png',
+      '20230811-091333.png',
+      '20230811-091507.png',
+      '20230811-091614.png',
+      '20230811-091657.png',
+      '20230811-091730.png',
+      '20230811-091906.png',
+      '20230811-091936.png',
+      '20230811-092204.png',
+      '20230811-092328.png',
+      '20230811-092414.png',
+      '20230811-092436.png',
+      '20230811-092516.png',
+      '20230811-092646.png',
+      '20230811-092856.png',
+      '20230811-093037.png',
+      '20230811-093116.png',
+      '20230811-093151.png',
+      '20230811-093416.png',
+      '20230822-142114.png',
+      '20230822-142204.png',
+      '20230822-142922.png',
+      '20230822-143039.png',
+      '20230822-143605.png',
+      '20230822-143804.png',
+      '20230822-143834.png',
+      '20230822-144048.png',
+      '20230822-145631.png',
+      '20230822-145835.png',
+      '20230822-150004.png',
+      '20230822-150521.png',
+      '20230822-150556.png',
+      '20230822-150816.png',
+      '20230822-151002.png',
+      '20230822-151050.png',
+      '20230822-151128.png',
+      '20230822-151346.png',
+      '20231011-145017.png',
+      '20231011-145027.png',
+      '20231011-145308.png',
+      '20231011-145348.png',
+      '20231011-145912.png',
+      '20231011-150015.png',
+      '20240411-152106.png',
+      '20240411-152258.png',
+      '20240411-152524.png',
+      '20240411-152700.png',
+      '20240411-152912.png',
+      '20240411-152921.png',
+      '20240411-153108.png',
+      '20240411-153351.png',
+      '20240411-154107.png',
+      '20240411-154310.png',
+      '20240411-154541.png',
+      '20240411-154713.png',
+      '20240411-154736.png',
+      '20240411-154950.png',
+      '20240506-141837.png',
+      '20240506-141958.png',
+      '20240506-142018.png',
+      '20240506-142226.png',
+      '20240506-142346.png',
+      '20240506-142645.png',
+      '20240506-142810.png',
+      '20240506-142906.png',
+      '20240510-091019.png',
+      '20240603-162239.png',
+      '20240603-162552.png',
+      '20240603-162640.png',
+      '20240603-162746.png',
+      '20240603-163032.png',
+      '20240603-163227.png',
+      '20240603-163710.png',
+      '20240605-130439.png',
+      '20240605-130537.png',
+      '20240605-130741.png',
+      '20240605-131018.png',
+      '20240605-131024.png',
+      '20240605-131235.png',
+      '20240605-131443.png',
+      '20240605-132841.png',
+      '20240605-132949.png',
+      '20240605-133203.png',
+      '20240610-115255.png',
+      '20240610-115505.png',
+      '20240613-111426.png',
+      '20240613-111527.png',
+      '20240613-111638.png',
+      '20240613-111823.png',
+      '20240613-111849.png',
+      '20240613-111900.png',
+      '20240613-111949.png',
+      '20240613-112148.png',
+      '20240613-112310.png',
+      '20240617-090924.png',
+      '20240617-091136.png',
+      '20240617-103313.png',
+      '20240617-103511.png',
+      '20240617-103617.png',
+      '20240619-123036.png',
+      '20240619-123522.png',
+      '20240619-123651.png',
+      '20240619-123741.png',
+      '20240619-124519.png',
+      '20240619-124701.png',
+      '20240619-124847.png',
+      '20240619-124954.png',
+      '20240620-092313.png',
+      '20240620-092540.png',
+      '20240620-092622.png',
+      '20240620-102742.png',
+      '20240620-110804.png',
+      '20240620-110814.png',
+      '20240620-110843.png',
+      '20240620-153240.png',
+      '20240620-153353.png',
+      '20240620-153604.png',
+      '20240620-163217.png',
+      '20240620-163232.png',
+      '20240620-163448.png',
+      '20240710-145440.png',
+      '20240813-144210.png',
+      '20240814-162459.png',
+      '20240814-163034.png',
+      '20240814-163222.png',
+      '20240814-163414.png',
+      '20240814-163526.png',
+      '20240814-163702.png',
+      '20240814-163806.png',
+      '20240814-164230.png',
+      '20240814-164721.png',
+      '20240814-164901.png',
+      '20240814-165201.png',
+      '20240815-164227.png',
+      '20240815-165201.png',
+      '20240815-165320.png',
+      '20240816-090822.png',
+      '20240816-143327.png',
+      '20240816-160251.png',
+      '20240816-160512.png',
+      '20240910-112929.png',
+      '20240910-113057.png',
+      '20240910-113232.png',
+      '20240910-113307.png',
+      '20240910-113600.png',
+      '20240910-114110.png',
+      '20240910-114210.png',
+      '20241001-155946.png',
+      '20241001-162256.png',
+      '20241001-162722.png',
+      '20241203-105633.png',
+      '20241203-145043.png',
+      '20241203-145319.png',
+      '20241203-145349.png',
+      '20250204-133917.png',
+      '20250204-134308.png',
+      '20250204-134641.png',
+      '20250206-164355.png',
+      '20250206-164408.png',
+      '20250206-164504.png',
+      '20250206-164541.png',
+      '20250206-164607.png',
+      '20250207-102134.png',
+      '20250207-102410.png',
+      '20250207-102814.png',
+      '20250219-101445.png',
+      '20250219-101624.png',
+      '20250219-144013.png',
+      '20250219-144156.png',
+      '20250219-144310.png',
+      '20250219-144454.png',
+      '20250219-144636.png',
+      '20250219-144744.png',
+      '20250219-144928.png',
+      '20250219-145056.png',
+      '20250220-090541.png',
+      '20250220-090848.png',
+      '20250220-091212.png',
+      '20250220-091410.png',
+      '20250220-091519.png',
+      '20260518-151728.png',
+      '20260518-151953.png',
+      '20260518-152049.png',
+      '20260518-152523.png',
+      '20260518-152716.png',
+      '20260518-152812.png',
+      '20260518-153025.png',
+      '20260518-153313.png',
+      '20260518-153411.png',
+      '20260518-153617.png',
+      '20260518-153956.png',
+      '20260518-154240.png',
+    ];
+    const imageRandomiser = new LAB.CyclicRandomiser(IMAGES);
+
+    const imageElement = document.getElementById('image');
+    const linkElement = document.getElementById('link');
+
+    // History of shown images
+    // Each entry: { filename: '...', href: '...' }
+    let history = [];
+    let historyIndex = -1;
+
+    // I'm using PNG for now, but it's nice to be flexible
+    function stripExt(filename) {
+      const i = filename.lastIndexOf('.');
+      return i === -1 ? filename : filename.slice(0, i);
+    }
+
+    // If the user passes a dodgy hash, return null
+    function findImageByAnchor(anchor) {
+      if (!anchor) return null;
+      return IMAGES.find(f => stripExt(f) === anchor) || null;
+    }
+
+    function showEntry(entry) {
+      imageElement.src = 'images/' + entry.filename;
+      imageElement.alt = stripExt(entry.filename);
+      linkElement.href = entry.href;
+
+      // Update URL anchor without scrolling/adding browser history
+      const anchor = stripExt(entry.filename);
+      const newUrl = window.location.pathname + window.location.search + '#' + anchor;
+      if (window.history && window.history.replaceState) {
+        window.history.replaceState(null, '', newUrl);
+      } else {
+        window.location.hash = anchor;
+      }
+    }
+
+    function createEntry(filename) {
+      return {
+        filename: filename,
+        href: LAB.pageRandomiser.nextOne(),
+      };
+    }
+
+    function goToNext() {
+      if (historyIndex < history.length - 1) {
+        historyIndex++;
+      } else {
+        history.push(createEntry(imageRandomiser.nextOne()));
+        historyIndex = history.length - 1;
+      }
+      showEntry(history[historyIndex]);
+    }
+
+    function goToPrev() {
+      if (historyIndex > 0) {
+        historyIndex--;
+      } else {
+        history.unshift(createEntry(imageRandomiser.nextOne()));
+        historyIndex = 0;
+      }
+      showEntry(history[historyIndex]);
+    }
+
+    document.getElementById('btn-prev').addEventListener('click', goToPrev);
+    document.getElementById('btn-next').addEventListener('click', goToNext);
+
+    // Click anywhere on the page (except anchors and buttons) to go forward
+    document.body.addEventListener('click', (e) => {
+      if (e.target.closest('a, #btn-prev, #btn-next')) return;
+      goToNext();
+    });
+
+    // Arrow keys, WASD keys, HJKL keys
+    const LEFT_OR_DOWN = new Set(['ArrowLeft', 'ArrowDown', 'h', 'j', 'a', 's']);
+    const RIGHT_OR_UP = new Set(['ArrowRight', 'ArrowUp', 'k', 'l', 'd', 'w']);
+    function keyLeftOrDown(key) { return LEFT_OR_DOWN.has(key); }
+    function keyRightOrUp(key) { return RIGHT_OR_UP.has(key); }
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, () => {
+        if (keyLeftOrDown(e.key)) {
+          e.preventDefault();
+          goToPrev();
+        } else if (keyRightOrUp(e.key)) {
+          e.preventDefault();
+          goToNext();
+        }
+      });
+    });
+
+    // Check URL anchor for a specific image to show first
+    function init() {
+      const rawHash = window.location.hash.replace(/^#/, '');
+      const initialFilename = findImageByAnchor(rawHash) || imageRandomiser.nextOne();
+
+      history.push(createEntry(initialFilename));
+      historyIndex = 0;
+      showEntry(history[historyIndex]);
+    }
+
+    init();
+
+  </script>
+</body>
+
+</html>

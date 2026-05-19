@@ -171,6 +171,7 @@
       drawHair(parseInt(slider.value, 10));
     }
 
+    img.addEventListener('load', init);
     slider.addEventListener('input', init);
     window.addEventListener('resize', init);
 

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="polycentric, polychromic, polymorphic">
+  <title>polygonae</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      background: #efe6d2;
+      overflow: hidden;
+    }
+
+    #grid {
+      position: absolute;
+      display: grid;
+      inset: 0;
+      gap: 0;
+    }
+
+    .tile {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .tile svg {
+      width: 70%;
+      height: 70%;
+    }
+
+    .tile:hover svg {
+      filter: drop-shadow(0 0 6px currentColor);
+    }
+
+    .tile path,
+    .tile polygon,
+    .tile circle,
+    .tile rect {
+      transition: d 0.6s ease, points 0.6s ease, fill 0.6s ease, stroke 0.6s ease;
+      fill: currentColor;
+    }
+  </style>
+</head>
+
+<body>
+  <main id="grid"></main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('polygonae');
+
+    const grid = document.getElementById('grid');
+    const palette = ['#2b2b2b', '#c1574d', '#e0a85e', '#3c5e6e', '#7d4a8a', '#5a8a4f', '#cc6699'];
+    const shapes = ['circle', 'square', 'triangle', 'hex', 'diamond', 'star', 'plus', 'half', 'eye'];
+    const cellSize = 80;
+    const morphDiv = 30;
+
+    const tiles = [];
+    let morphCount = 0;
+
+    // Returns an SVG string with a 100x100 viewBox shape
+    function shapeSVG(kind) {
+      switch (kind) {
+        case 'circle':
+          return `<circle cx="50" cy="50" r="40"/>`;
+        case 'square':
+          return `<rect x="12" y="12" width="76" height="76"/>`;
+        case 'triangle':
+          return `<polygon points="50,10 90,85 10,85"/>`;
+        case 'hex':
+          return `<polygon points="50,8 87,28 87,72 50,92 13,72 13,28"/>`;
+        case 'diamond':
+          return `<polygon points="50,8 92,50 50,92 8,50"/>`;
+        case 'star':
+          return `<polygon points="50,5 61,38 95,38 67,58 78,92 50,72 22,92 33,58 5,38 39,38"/>`;
+        case 'plus':
+          return `<polygon points="38,8 62,8 62,38 92,38 92,62 62,62 62,92 38,92 38,62 8,62 8,38 38,38"/>`;
+        case 'half':
+          return `<path d="M 10 50 A 40 40 0 0 1 90 50 Z"/>`;
+        case 'eye':
+          return `<path d="M 8 50 Q 50 5 92 50 Q 50 95 8 50 Z"/>`;
+      }
+    }
+
+    function init() {
+      grid.innerHTML = '';
+      tiles.length = 0;
+      const cols = Math.floor(window.innerWidth / cellSize);
+      const rows = Math.floor(window.innerHeight / cellSize);
+      grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+      grid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+
+      for (let i = 0; i < cols * rows; i++) {
+        const a = document.createElement('a');
+        a.className = 'tile';
+        a.href = LAB.pageRandomiser.nextOne();
+        const colour = LAB.sample(palette);
+        const kind = LAB.sample(shapes);
+        a.style.color = colour;
+        a.innerHTML = `<svg viewBox="0 0 100 100">${shapeSVG(kind)}</svg>`;
+        grid.appendChild(a);
+        tiles.push(a);
+      }
+
+      // Set this value here, since it only changes on re-init.
+      // This is so that we morph a consistent fraction of shapes, not a hard-coded value.
+      // Because on small screens we don't want to morph loads of them.
+      const gridSize = cols * rows;
+      morphCount = Math.ceil(gridSize / morphDiv);
+    }
+
+    // Periodically morph some tiles
+    setInterval(() => {
+      if (tiles.length === 0) return;
+
+      for (let i = 0; i < morphCount; i++) {
+        const tile = LAB.sample(tiles);
+        const kind = LAB.sample(shapes);
+        const colour = LAB.sample(palette);
+        tile.style.color = colour;
+        tile.innerHTML = `<svg viewBox="0 0 100 100">${shapeSVG(kind)}</svg>`;
+      }
+    }, 1500);
+
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(init, 100);
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    init();
+
+  </script>
+</body>
+
+</html>

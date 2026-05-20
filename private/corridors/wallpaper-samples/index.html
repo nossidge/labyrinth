@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Minor Morris">
+  <title>Wallpaper samples</title>
+  <style>
+    :root {
+      --cols: 1;
+      --rows: 1;
+      --light: #efe6d2;
+      --dark: #1a1a1a;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      background: var(--light);
+      overflow: hidden;
+    }
+
+    #main {
+      width: 100vw;
+      height: 100vh;
+      display: grid;
+      gap: 6px;
+      padding: 6px;
+      grid-template-columns: repeat(var(--cols), 1fr);
+      grid-template-rows: repeat(var(--rows), 1fr);
+    }
+
+    .swatch {
+      display: block;
+      text-decoration: none;
+      border: 2px solid var(--dark);
+      box-shadow: 4px 4px 0 var(--dark);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .swatch:hover {
+      transform: translate(-3px, -3px);
+      box-shadow: 7px 7px 0 var(--dark);
+      z-index: 5;
+    }
+
+    /* Wallpaper patterns are all CSS */
+    .p-stripes-h {
+      background: repeating-linear-gradient(0deg, var(--dark) 0 6px, var(--light) 6px 14px);
+    }
+
+    .p-stripes-v {
+      background: repeating-linear-gradient(90deg, var(--dark) 0 6px, var(--light) 6px 14px);
+    }
+
+    .p-stripes-d {
+      background: repeating-linear-gradient(45deg, var(--dark) 0 6px, var(--light) 6px 14px);
+    }
+
+    .p-dots-sm {
+      background: radial-gradient(var(--dark) 25%, transparent 26%) 0 0 / 16px 16px,
+        var(--light);
+    }
+
+    .p-dots-lg {
+      background: radial-gradient(var(--dark) 30%, transparent 31%) 0 0 / 28px 28px,
+        var(--light);
+    }
+
+    .p-grid-sm {
+      background:
+        linear-gradient(var(--dark) 1px, transparent 1px) 0 0 / 16px 16px,
+        linear-gradient(90deg, var(--dark) 1px, transparent 1px) 0 0 / 16px 16px,
+        var(--light);
+    }
+
+    .p-grid-lg {
+      background: linear-gradient(0deg, var(--dark) 2px, transparent 2px) 0 0 / 14px 14px,
+        linear-gradient(90deg, var(--dark) 2px, transparent 2px) 0 0 / 14px 14px,
+        linear-gradient(45deg, var(--dark) 1px, transparent 1px) 0 0 / 14px 14px,
+        linear-gradient(135deg, var(--dark) 1px, transparent 1px) 0 0 / 14px 14px,
+        var(--light);
+    }
+
+    .p-cheques {
+      background:
+        linear-gradient(45deg, var(--dark) 25%, transparent 25%),
+        linear-gradient(-45deg, var(--dark) 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, var(--dark) 75%),
+        linear-gradient(-45deg, transparent 75%, var(--dark) 75%);
+      background-size: 18px 18px;
+      background-position: 0 0, 0 9px, 9px -9px, -9px 0;
+    }
+
+    .p-zigzag-sm {
+      background:
+        linear-gradient(135deg, var(--dark) 25%, transparent 25%) -8px 0 / 16px 16px,
+        linear-gradient(225deg, var(--dark) 25%, transparent 25%) -8px 0 / 16px 16px,
+        linear-gradient(315deg, var(--dark) 25%, transparent 25%) 0 0 / 16px 16px,
+        linear-gradient(45deg, var(--dark) 25%, transparent 25%) 0 0 / 16px 16px,
+        var(--light);
+    }
+
+    .p-zigzag-lg {
+      background:
+        linear-gradient(335deg, var(--dark) 22.5%, transparent 22.5%) 0 0 / 30px 60px,
+        linear-gradient(155deg, var(--dark) 22.5%, transparent 22.5%) 0 0 / 30px 60px,
+        var(--light);
+    }
+
+    .p-tartan-1 {
+      background:
+        conic-gradient(at 25% 25%, var(--dark) 25%, transparent 0 50%, var(--dark) 0 75%, transparent 0) 0 0 / 30px 30px,
+        var(--light);
+    }
+
+    .p-tartan-2 {
+      background:
+        repeating-linear-gradient(90deg, rgba(26, 26, 26, 0.6) 0 4px, transparent 4px 18px),
+        repeating-linear-gradient(0deg, rgba(26, 26, 26, 0.6) 0 4px, transparent 4px 18px),
+        var(--light);
+    }
+
+    /* https://dev.to/alvaromontoro/drawing-a-houndstooth-pattern-in-css-3ll2 */
+    .p-houndstooth {
+      --size: 24px;
+      background-size: var(--size) var(--size);
+      background-image:
+        conic-gradient(var(--light) 25%, transparent 0 50%, var(--dark) 0 75%, transparent 0),
+        repeating-linear-gradient(135deg,
+          var(--light) 0 12.5%, var(--dark) 0 25%, var(--light) 0 37.5%, var(--dark) 0 62.5%);
+    }
+  </style>
+</head>
+
+<body>
+  <main id="main"></main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('wallpaper-samples');
+
+    const main = document.getElementById('main');
+    const PATTERNS = [
+      'p-stripes-h', 'p-stripes-v', 'p-stripes-d',
+      'p-dots-sm', 'p-dots-lg',
+      'p-grid-sm', 'p-grid-lg',
+      'p-cheques',
+      'p-zigzag-sm', 'p-zigzag-lg',
+      'p-tartan-1', 'p-tartan-2',
+      'p-houndstooth',
+    ];
+
+    const recentPatternsSize = 3;
+    let mostRecentPatters = [];
+    let cells = [];
+
+    // Get a random pattern, but exclude the ones most recently used
+    function randomPattern() {
+      const availablePatterns = PATTERNS.filter(p => !mostRecentPatters.includes(p));
+      const pattern = LAB.sample(availablePatterns);
+      mostRecentPatters.push(pattern);
+      if (mostRecentPatters.length > recentPatternsSize) {
+        mostRecentPatters.shift();
+      }
+      return pattern;
+    }
+
+    function init() {
+      main.innerHTML = '';
+      cells = [];
+      const cellSize = LAB.randInt(100, 180);
+      const cols = Math.max(3, Math.floor(window.innerWidth / cellSize));
+      const rows = Math.max(3, Math.floor(window.innerHeight / cellSize));
+      document.documentElement.style.setProperty('--cols', cols);
+      document.documentElement.style.setProperty('--rows', rows);
+
+      for (let i = 0; i < cols * rows; i++) {
+        const a = document.createElement('a');
+        a.href = LAB.pageRandomiser.nextOne();
+        a.className = 'swatch ' + randomPattern();
+        a.addEventListener('mouseenter', () => {
+          PATTERNS.forEach(p => a.classList.remove(p));
+          a.classList.add(randomPattern());
+        });
+        main.appendChild(a);
+        cells.push(a);
+      }
+    }
+
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(init, 200);
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    init();
+
+  </script>
+</body>
+
+</html>

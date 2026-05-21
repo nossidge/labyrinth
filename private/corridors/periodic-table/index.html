@@ -1,0 +1,2612 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+This page took two weeks to finish.
+But a bad pun is always worth my time.
+And this page has 21 bad puns!
+
+- achromatic:    The periodic table is in black and white
+- acrobatic:     The table container flips around every so often, to simulate a backflip
+- alphabetic:    The elements of the normal periodic table are in alphabetic order
+- automatic:     The hoverover highlight effect happens automatically every so often
+- demographic:   Table of the countries of the world in population count order
+- energetic:     The table container is animated to move erratically
+- enigmatic:     The chemical element HTML tags are hidden, and only visible on hover over
+- episodic:      Each day shows only one chemical element, which changes each day
+- futuristic:    Flashy CSS, and each element has a prefix or suffix like "cyber" or "mega"
+- gastronomic:   Instead of listing the chemical elements, it lists types of food
+- Hellenistic:   The entire periodic table is in Greek
+- hieroglyphic:  The entire periodic table is in Unicode Egyptian Hieroglyphs
+- hyperbolic:    Each element ends in an exclamation mark, and the hoverover is twice as big
+- inauthentic:   The elements are replaced with nonsense ones, such as "Music" and "Wood"
+- microscopic:   The periodic table is 25% of the normal size
+- philharmonic:  The periodic table is replaced by a orchestra concert seating table
+- pianistic:     The elements are coloured white or black as on a keyboard
+- pointillistic: The periodic table is in a pointillistic artistic technique
+- pre-Socratic:  A table containing the four classical elements: earth, water, air, and fire
+- psychedelic:   The periodic table is in animated psychedelic colours
+- realistic:     The periodic table is replaced with a JPEG of a literal wooden table
+
+The "Alphabetic Table" is ordered by chemical symbol, not element name.
+I think this looks better visually, which helps to sell the joke.
+
+The "Demographic Table" uses 2023 population estimates.
+Actual populations have probably changed since then.
+
+The "Episodic Table" uses 1834-02-08 as the epoch.
+Because that's Dmitri Mendeleev's birthday :-)
+
+The "Gastronomic Table" is heavily European, since I am from England.
+I'm sure other cultures would have very different entries.
+Don't read too much into the selections and ordering, it's just a bit of fun.
+
+The "Hellenistic Table" was auto-translated by a foolish machine.
+If any actual Greek person wants me to make changes, please let me know:
+[my user name, hopefully you can figure this out]@gmail.com
+
+Source for the "Inauthentic Table" is Look Around You:
+https://www.bbc.co.uk/comedy/lookaroundyou/series1/periodic.shtml
+https://lookaroundyou.fandom.com/wiki/List_of_chemical_symbols
+https://agaveweb.com/blog/manganesium-and-americum/
+https://agaveweb.com/images/lookaroundyouelementtable.gif
+
+The "Philharmonic Table" is just an example I cobbled together.
+Obviously every orchestra, and every concert, is different.
+
+Source for the "Realistic Table" image:
+https://cane-line.co.uk/cdn/shop/files/50804T_P144COT_8532.png?v=1771838543
+https://cane-line.co.uk/products/aspect-dining-table-dia-144-cm
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="My dear Watson">
+  <title>Elementary</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      min-height: 100%;
+    }
+
+    body {
+      font-family: Georgia, 'Times New Roman', serif;
+      background-color: #f3e9d0;
+      background-size: 200px 200px;
+      color: #3a2a16;
+      padding: 16px;
+      min-height: 100vh;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 28px;
+      letter-spacing: 4px;
+      margin-bottom: 16px;
+      font-variant: small-caps;
+      color: #4a3318;
+    }
+
+    h1::before,
+    h1::after {
+      content: ' ~ ';
+      color: #8a6a3a;
+    }
+
+    .top-bar {
+      width: 100%;
+    }
+
+    /* Side nav panels for moving between table modes */
+    .nav-panel {
+      position: fixed;
+      top: 0;
+      height: 100%;
+      width: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 40;
+      cursor: pointer;
+    }
+
+    #nav-left {
+      left: 0;
+      background: linear-gradient(to right, rgba(58, 42, 22, 0.05), transparent);
+    }
+
+    #nav-left:hover {
+      background: linear-gradient(to right, rgba(58, 42, 22, 0.14), transparent);
+    }
+
+    #nav-right {
+      right: 0;
+      background: linear-gradient(to left, rgba(58, 42, 22, 0.05), transparent);
+    }
+
+    #nav-right:hover {
+      background: linear-gradient(to left, rgba(58, 42, 22, 0.14), transparent);
+    }
+
+    .nav-button {
+      background: transparent;
+      border: none;
+      color: rgba(58, 42, 22, 0.8);
+      font-family: 'Courier New', monospace;
+      font-size: 28px;
+      padding: 12px 16px;
+      cursor: pointer;
+      line-height: 1;
+      pointer-events: none;
+    }
+
+    .nav-panel:hover .nav-button {
+      color: rgba(58, 42, 22, 1);
+    }
+
+    /* Side nav panels become header buttons on mobile/tablet */
+    @media (max-width: 1399px) {
+      .top-bar {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+
+      h1 {
+        flex: 1;
+        margin-bottom: 0;
+      }
+
+      .nav-panel {
+        position: static;
+        top: auto;
+        height: auto;
+        width: auto;
+        display: block;
+        flex: 0 0 auto;
+        z-index: auto;
+        background: none;
+      }
+
+      #nav-left,
+      #nav-left:hover,
+      #nav-right,
+      #nav-right:hover {
+        background: none;
+      }
+
+      .nav-button {
+        border: 1.5px solid #3a2a16;
+        background: rgba(255, 250, 230, 0.35);
+        box-shadow: inset 0 0 0 1px rgba(255, 250, 230, 0.35);
+        color: rgba(58, 42, 22, 0.9);
+        padding: 8px 12px;
+        pointer-events: auto;
+      }
+
+      .nav-panel:hover .nav-button {
+        background: rgba(255, 250, 230, 0.55);
+      }
+    }
+
+    /* Most table modes share the same style */
+    #content {
+      transform-origin: top center;
+      transition: transform 0.4s ease;
+    }
+
+    .table {
+      display: grid;
+      grid-template-columns: repeat(18, minmax(0, 1fr));
+      grid-template-rows: repeat(7, auto);
+      gap: 3px;
+      max-width: 1180px;
+      margin: 0 auto;
+    }
+
+    .lanth-actin {
+      display: grid;
+      grid-template-columns: repeat(18, minmax(0, 1fr));
+      grid-template-rows: repeat(2, auto);
+      gap: 3px;
+      max-width: 1180px;
+      margin: 14px auto 0 auto;
+    }
+
+    .cell {
+      position: relative;
+      aspect-ratio: 1 / 1;
+      border: 1.5px solid #3a2a16;
+      box-shadow: inset 0 0 0 1px rgba(255, 250, 230, 0.35);
+      text-decoration: none;
+      color: #1c1006;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 3px 4px 4px 4px;
+      transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+      overflow: visible;
+      font-family: Georgia, serif;
+    }
+
+    .cell .num {
+      font-size: 9px;
+      font-weight: bold;
+      line-height: 1;
+      text-align: left;
+      opacity: 0.85;
+    }
+
+    .cell .num.num-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 2px;
+    }
+
+    .cell .num.num-row span {
+      white-space: nowrap;
+    }
+
+    .cell .num.num-row span.num-mid {
+      flex: 1;
+      text-align: center;
+    }
+
+    .cell .num.num-row span.num-right {
+      text-align: right;
+    }
+
+    .cell .sym {
+      font-size: 22px;
+      font-weight: 900;
+      text-align: center;
+      line-height: 1;
+      letter-spacing: 0.5px;
+      flex: 0 0 auto;
+      margin: 1px 0;
+    }
+
+    .cell .name {
+      font-size: 8px;
+      text-align: center;
+      line-height: 1;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* Hover lift (also applied when a legend item is hovered) */
+    .cell:hover,
+    .cell.highlight {
+      transform: translate(-2px, -3px);
+      box-shadow:
+        4px 5px 0 rgba(0, 0, 0, 0.35),
+        inset 0 0 0 1px rgba(255, 250, 230, 0.5);
+      filter: brightness(1.08);
+      z-index: 30;
+    }
+
+    /* Tooltip */
+    .cell .tip {
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translate(-50%, -6px);
+      background: #1c1006;
+      color: #f3e9d0;
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      padding: 6px 8px;
+      border: 1px solid #f3e9d0;
+      box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.5);
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s ease;
+      z-index: 100;
+      line-height: 1.4;
+    }
+
+    .cell .tip b {
+      color: #e6c97a;
+    }
+
+    .cell:hover .tip,
+    body.view-automatic .cell.auto-highlight .tip {
+      opacity: 1;
+    }
+
+    /* Edge tooltip flip helpers */
+    .cell.tip-left .tip {
+      left: auto;
+      right: 100%;
+      bottom: 50%;
+      transform: translate(-6px, 50%);
+    }
+
+    .cell.tip-right .tip {
+      left: 100%;
+      right: auto;
+      bottom: 50%;
+      transform: translate(6px, 50%);
+    }
+
+    .cell.tip-below .tip {
+      bottom: auto;
+      top: 100%;
+      transform: translate(-50%, 6px);
+    }
+
+    /* Placeholder cells for the lanthanide/actinide gaps in the main table */
+    .placeholder {
+      aspect-ratio: 1 / 1;
+      border: 1.5px dashed #8a6a3a;
+      background: rgba(255, 250, 230, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-size: 14px;
+      color: #6a4a22;
+      font-style: italic;
+    }
+
+    /* Legend */
+    .legend {
+      max-width: 1180px;
+      margin: 24px auto 12px auto;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 14px;
+      justify-content: center;
+      font-size: 11px;
+      font-family: 'Courier New', monospace;
+      color: #3a2a16;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      padding: 2px 4px;
+      border: 1px solid transparent;
+      transition: border-color 0.15s ease, background-color 0.15s ease;
+    }
+
+    .legend-item:hover {
+      border-color: #3a2a16;
+      background-color: rgba(255, 250, 230, 0.4);
+    }
+
+    .swatch {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 1px solid #3a2a16;
+    }
+
+    /* "Periodic Table" categories */
+    .cat-alkali {
+      background-color: #d28080;
+    }
+
+    .cat-alkaline {
+      background-color: #e0a872;
+    }
+
+    .cat-transition {
+      background-color: #d4b25a;
+    }
+
+    .cat-posttrans {
+      background-color: #a3b89a;
+    }
+
+    .cat-metalloid {
+      background-color: #b9a4c4;
+    }
+
+    .cat-nonmetal {
+      background-color: #8eb5c4;
+    }
+
+    .cat-halogen {
+      background-color: #88b070;
+    }
+
+    .cat-noble {
+      background-color: #a878b8;
+    }
+
+    .cat-lanthanide {
+      background-color: #d99a8b;
+    }
+
+    .cat-actinide {
+      background-color: #c890a8;
+    }
+
+    .cat-unknown {
+      background-color: #9c9a92;
+    }
+
+    /* "Demographic Table" categories (continents) */
+    .cat-africa {
+      background-color: #e0a872;
+    }
+
+    .cat-asia {
+      background-color: #d4b25a;
+    }
+
+    .cat-europe {
+      background-color: #8eb5c4;
+    }
+
+    .cat-namerica {
+      background-color: #d28080;
+    }
+
+    .cat-samerica {
+      background-color: #88b070;
+    }
+
+    .cat-oceania {
+      background-color: #a878b8;
+    }
+
+    /* "Inauthentic Table" categories (use colours as a ref, as there's no names) */
+    .cat-muted_apricot {
+      background-color: #eec490;
+    }
+
+    .cat-heather_purple {
+      background-color: #cb9cd5;
+    }
+
+    .cat-soft_lavender {
+      background-color: #c39bd4;
+    }
+
+    .cat-orchid_pink {
+      background-color: #df9ad5;
+    }
+
+    .cat-washed_lime {
+      background-color: #ccdb91;
+    }
+
+    .cat-mint_wash {
+      background-color: #b5dfbe;
+    }
+
+    .cat-powdered_teal {
+      background-color: #b6d0d6;
+    }
+
+    .cat-grey_lilac {
+      background-color: #b4aad5;
+    }
+
+    .cat-pale_blush {
+      background-color: #f6ded6;
+    }
+
+    .cat-buttercream_yellow {
+      background-color: #fee79b;
+    }
+
+    .cat-bubblegum_rose {
+      background-color: #f39acb;
+    }
+
+    .cat-dusty_coral {
+      background-color: #f49ba2;
+    }
+
+    .cat-peach_clay {
+      background-color: #f2a793;
+    }
+
+    .cat-golden_mango {
+      background-color: #fbc86b;
+    }
+
+    .cat-warm_sandstone {
+      background-color: #e7c5b4;
+    }
+
+    .cat-dusty_mauve {
+      background-color: #b88b9f;
+    }
+
+    /* "Pre-Socratic Table" categories (the four classical qualities) */
+    /* A bit of a weird way of doing this, but it does work. */
+    /* A cell belongs to two of these at once e.g. "Fire" is "hot" and "dry". */
+    /* The legend swatches use the solo colours below, and the cells themselves */
+    /* use compound selectors, so each classical element has its own colour. */
+    .cat-hot {
+      background-color: #D08F7F;
+    }
+
+    .cat-cold {
+      background-color: #858B85;
+    }
+
+    .cat-dry {
+      background-color: #B46242;
+    }
+
+    .cat-wet {
+      background-color: #A1B8C2;
+    }
+
+    .cat-hot.cat-dry {
+      background-color: #c84a3a;
+    }
+
+    .cat-hot.cat-wet {
+      background-color: #d8d4c4;
+    }
+
+    .cat-cold.cat-dry {
+      background-color: #a07a4a;
+    }
+
+    .cat-cold.cat-wet {
+      background-color: #6a9bbf;
+    }
+
+    /* "Philharmonic Table" categories (instrument groups) */
+    .cat-strings {
+      background-color: #c89b6a;
+    }
+
+    .cat-woodwind {
+      background-color: #8eb098;
+    }
+
+    .cat-brass {
+      background-color: #d4a050;
+    }
+
+    .cat-percussion {
+      background-color: #a890b8;
+    }
+
+    .cat-conductor {
+      background-color: #4a3318;
+      color: #f3e9d0;
+    }
+
+    /* "Achromatic Table" view: greyscale */
+    body.view-achromatic {
+      filter: grayscale(1);
+    }
+
+    /* "Acrobatic Table" view: occasional backflips */
+    body.view-acrobatic {
+      perspective: 1400px;
+      overflow: hidden;
+    }
+
+    body.view-acrobatic #content {
+      transform-origin: center center;
+      animation: acrobatic-flip 6s ease-in-out infinite;
+    }
+
+    @keyframes acrobatic-flip {
+
+      0%,
+      15% {
+        transform: rotateX(0deg);
+      }
+
+      50% {
+        transform: rotateX(180deg);
+      }
+
+      50%,
+      100% {
+        transform: rotateX(360deg);
+      }
+    }
+
+    /* "Energetic Table" view: jiggly movement */
+    body.view-energetic #content {
+      animation: energetic-jitter 1.6s steps(1, end) infinite;
+    }
+
+    @keyframes energetic-jitter {
+      0% {
+        transform: translate(0, 0) rotate(0deg);
+      }
+
+      8% {
+        transform: translate(-6px, 4px) rotate(-1.2deg);
+      }
+
+      16% {
+        transform: translate(2px, -6px) rotate(1.2deg);
+      }
+
+      24% {
+        transform: translate(-3px, -2px) rotate(0.6deg);
+      }
+
+      32% {
+        transform: translate(6px, 7px) rotate(-0.2deg);
+      }
+
+      40% {
+        transform: translate(-4px, 2px) rotate(1deg);
+      }
+
+      48% {
+        transform: translate(4px, -4px) rotate(-0.4deg);
+      }
+
+      56% {
+        transform: translate(2px, 5px) rotate(1.1deg);
+      }
+
+      64% {
+        transform: translate(-2px, -3px) rotate(-1.1deg);
+      }
+
+      72% {
+        transform: translate(2px, 8px) rotate(0.9deg);
+      }
+
+      80% {
+        transform: translate(-4px, -5px) rotate(-1.2deg);
+      }
+
+      88% {
+        transform: translate(5px, 3px) rotate(0.8deg);
+      }
+
+      100% {
+        transform: translate(0, 0) rotate(0deg);
+      }
+    }
+
+    /* "Enigmatic Table" view: hide content until hover */
+    body.view-enigmatic .cell .num,
+    body.view-enigmatic .cell .sym,
+    body.view-enigmatic .cell .name {
+      visibility: hidden;
+    }
+
+    body.view-enigmatic .cell:hover .num,
+    body.view-enigmatic .cell:hover .sym,
+    body.view-enigmatic .cell:hover .name,
+    body.view-enigmatic .cell.highlight .num,
+    body.view-enigmatic .cell.highlight .sym,
+    body.view-enigmatic .cell.highlight .name {
+      visibility: visible;
+    }
+
+    body.view-enigmatic .placeholder {
+      color: transparent;
+    }
+
+    body.view-enigmatic .placeholder:hover {
+      color: #6a4a22;
+    }
+
+    body.view-enigmatic .legend-item {
+      color: transparent;
+    }
+
+    body.view-enigmatic .legend-item:hover {
+      color: #3a2a16;
+    }
+
+    /* "Episodic Table" view: one giant card per day */
+    body.view-episodic #table-main {
+      display: grid;
+      grid-template-columns: 1fr;
+      grid-template-rows: 1fr;
+      max-width: 540px;
+      margin: 30px auto;
+    }
+
+    body.view-episodic #table-lanth-actin,
+    body.view-episodic .legend {
+      display: none;
+    }
+
+    body.view-episodic .cell {
+      aspect-ratio: auto;
+      border-width: 4px;
+      padding: 26px 32px 32px 32px;
+      justify-content: flex-start;
+      box-shadow:
+        10px 12px 0 rgba(0, 0, 0, 0.45),
+        inset 0 0 0 2px rgba(255, 250, 230, 0.55);
+    }
+
+    body.view-episodic .cell:hover,
+    body.view-episodic .cell.highlight {
+      transform: none;
+      box-shadow:
+        10px 12px 0 rgba(0, 0, 0, 0.45),
+        inset 0 0 0 2px rgba(255, 250, 230, 0.55);
+      filter: none;
+    }
+
+    body.view-episodic .cell .num {
+      font-size: 38px;
+      opacity: 0.9;
+    }
+
+    body.view-episodic .cell .sym {
+      font-size: 220px;
+      letter-spacing: 2px;
+      margin: 16px 0;
+    }
+
+    body.view-episodic .cell .name {
+      font-size: 32px;
+      letter-spacing: 6px;
+    }
+
+    body.view-episodic .cell .tip {
+      display: block;
+      position: static;
+      transform: none;
+      opacity: 1;
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      color: inherit;
+      white-space: normal;
+      text-align: center;
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: 16px;
+      line-height: 1.5;
+      padding: 0;
+      margin-top: 18px;
+      pointer-events: auto;
+    }
+
+    body.view-episodic .cell .tip b {
+      color: inherit;
+      font-size: 20px;
+    }
+
+    .episodic-header {
+      max-width: 540px;
+      margin: 24px auto 0 auto;
+      text-align: center;
+      color: #3a2a16;
+    }
+
+    .episodic-date {
+      font-size: 22px;
+      letter-spacing: 1px;
+      font-variant: small-caps;
+    }
+
+    .episodic-label {
+      font-size: 16px;
+      font-style: italic;
+      margin-top: 4px;
+      font-family: 'Courier New', monospace;
+    }
+
+    .episodic-footer {
+      max-width: 540px;
+      margin: 32px auto 0 auto;
+      text-align: center;
+      font-size: 18px;
+      font-style: italic;
+      color: #3a2a16;
+      font-family: 'Courier New', monospace;
+    }
+
+    body.view-episodic sup {
+      font-size: 12px;
+    }
+
+    /* "Futuristic Table" view: cyberpunk neon */
+    body.view-futuristic {
+      background-color: #07021a;
+      background-image: linear-gradient(135deg,
+          rgba(255, 0, 170, 0.35),
+          rgba(120, 0, 220, 0.35) 40%,
+          rgba(0, 220, 255, 0.35) 80%,
+          rgba(0, 255, 180, 0.35));
+      background-size: 100% 100%;
+      font-family: 'Courier New', monospace;
+      color: #00ffea;
+    }
+
+    body.view-futuristic h1 {
+      color: #ff00aa;
+      letter-spacing: 8px;
+      text-shadow:
+        0 0 6px #ff00aa,
+        0 0 14px rgba(0, 240, 255, 0.7);
+    }
+
+    body.view-futuristic h1::before,
+    body.view-futuristic h1::after {
+      content: ' // ';
+      color: #00ffea;
+    }
+
+    body.view-futuristic .nav-button {
+      color: rgba(0, 255, 234, 0.8);
+    }
+
+    body.view-futuristic .nav-panel:hover .nav-button {
+      color: rgba(0, 255, 234, 1);
+    }
+
+    body.view-futuristic .cell {
+      border: 1px solid #00ffea;
+      box-shadow:
+        0 0 6px rgba(255, 0, 170, 0.7),
+        0 0 14px rgba(0, 240, 255, 0.4),
+        inset 0 0 6px rgba(255, 255, 255, 0.25);
+      font-family: 'Courier New', monospace;
+      color: #fff;
+    }
+
+    /* Futuristic per-category gradients */
+    /* This applies to both cells and legend swatches */
+    body.view-futuristic .cat-alkali {
+      background-image: linear-gradient(135deg,
+          rgba(255, 0, 102, 0.9),
+          rgba(255, 78, 193, 0.9) 50%,
+          rgba(184, 0, 255, 0.9));
+    }
+
+    body.view-futuristic .cat-alkaline {
+      background-image: linear-gradient(135deg,
+          rgba(0, 245, 255, 0.9),
+          rgba(0, 179, 255, 0.9) 50%,
+          rgba(67, 97, 238, 0.9));
+    }
+
+    body.view-futuristic .cat-transition {
+      background-image: linear-gradient(135deg,
+          rgba(255, 0, 255, 0.9),
+          rgba(138, 43, 226, 0.9) 50%,
+          rgba(0, 245, 255, 0.9));
+    }
+
+    body.view-futuristic .cat-posttrans {
+      background-image: linear-gradient(135deg,
+          rgba(110, 255, 182, 0.9),
+          rgba(0, 212, 255, 0.9) 50%,
+          rgba(95, 61, 196, 0.9));
+    }
+
+    body.view-futuristic .cat-metalloid {
+      background-image: linear-gradient(135deg,
+          rgba(161, 141, 255, 0.9),
+          rgba(255, 122, 217, 0.9) 50%,
+          rgba(111, 66, 193, 0.9));
+    }
+
+    body.view-futuristic .cat-nonmetal {
+      background-image: linear-gradient(135deg,
+          rgba(255, 122, 0, 0.9),
+          rgba(255, 209, 102, 0.9) 50%,
+          rgba(255, 0, 170, 0.9));
+    }
+
+    body.view-futuristic .cat-halogen {
+      background-image: linear-gradient(135deg,
+          rgba(192, 255, 0, 0.9),
+          rgba(110, 255, 182, 0.9) 50%,
+          rgba(0, 179, 255, 0.9));
+    }
+
+    body.view-futuristic .cat-noble {
+      background-image: linear-gradient(135deg,
+          rgba(249, 212, 35, 0.9),
+          rgba(255, 170, 0, 0.9) 50%,
+          rgba(255, 94, 98, 0.9));
+    }
+
+    body.view-futuristic .cat-lanthanide {
+      background-image: linear-gradient(135deg,
+          rgba(255, 153, 102, 0.9),
+          rgba(255, 94, 98, 0.9) 50%,
+          rgba(255, 0, 170, 0.9));
+    }
+
+    body.view-futuristic .cat-actinide {
+      background-image: linear-gradient(135deg,
+          rgba(209, 0, 255, 0.9),
+          rgba(255, 0, 170, 0.9) 50%,
+          rgba(255, 110, 199, 0.9));
+    }
+
+    body.view-futuristic .cat-unknown {
+      background-image: linear-gradient(135deg,
+          rgba(85, 85, 85, 0.9),
+          rgba(136, 136, 136, 0.9) 50%,
+          rgba(204, 204, 204, 0.9));
+    }
+
+    body.view-futuristic .cell .num,
+    body.view-futuristic .cell .sym,
+    body.view-futuristic .cell .name {
+      color: #ffffff;
+      text-shadow:
+        0 0 4px rgba(255, 255, 255, 0.9),
+        1px 0 0 rgba(255, 0, 170, 0.85),
+        -1px 0 0 rgba(0, 240, 255, 0.85);
+    }
+
+    body.view-futuristic .cell .name {
+      font-size: 7px;
+      letter-spacing: 0;
+    }
+
+    body.view-futuristic .legend,
+    body.view-futuristic .legend-item {
+      color: #00ffea;
+    }
+
+    body.view-futuristic .placeholder {
+      font-family: Georgia, serif;
+      border-color: rgba(0, 240, 255, 0.6);
+      color: #00ffea;
+      background-image: linear-gradient(135deg,
+          rgba(255, 0, 170, 0.4),
+          rgba(120, 0, 220, 0.4) 40%,
+          rgba(0, 220, 255, 0.4) 80%,
+          rgba(0, 255, 180, 0.4));
+      background-size: 100% 100%;
+    }
+
+    /* "Hellenistic Table" view: smaller font for the Greek text */
+    body.view-hellenistic .cell .name {
+      font-size: 7px;
+    }
+
+    /* "Hieroglyphic Table" view: bigger glyphs so they don't disappear */
+    body.view-hieroglyphic .cell .sym {
+      font-size: 20px;
+    }
+
+    body.view-hieroglyphic .cell .name {
+      font-size: 11px;
+      letter-spacing: 0;
+    }
+
+    body.view-hieroglyphic .cell .num {
+      font-size: 11px;
+    }
+
+    body.view-hieroglyphic .legend,
+    body.view-hieroglyphic .cell .tip {
+      font-size: 13px;
+    }
+
+    /* "Hyperbolic Table" view: hover makes element square much larger */
+    body.view-hyperbolic .cell:hover,
+    body.view-hyperbolic .cell.highlight {
+      transform: translate(-2px, -3px) scale(2.4);
+      z-index: 50;
+    }
+
+    body.view-hyperbolic .cell .sym {
+      letter-spacing: 0;
+    }
+
+    /* "Inauthentic Table" view: Comic Sans is a good substitute for actual humour */
+    body.view-inauthentic h1::before,
+    body.view-inauthentic h1::after {
+      content: ' ≈ ';
+    }
+
+    body.view-inauthentic,
+    body.view-inauthentic h1,
+    body.view-inauthentic .cell,
+    body.view-inauthentic .legend,
+    body.view-inauthentic .legend-item,
+    body.view-inauthentic .cell .tip {
+      font-family: 'Comic Sans MS', 'Bradley Hand', cursive;
+    }
+
+    body.view-inauthentic .cell .sym {
+      font-size: 19px;
+    }
+
+    body.view-inauthentic .cell .name {
+      letter-spacing: 0;
+    }
+
+    /* "Microscopic Table" view: teeny tiny wee and little */
+    body.view-microscopic #content {
+      transform: scale(0.25);
+    }
+
+    /* "Philharmonic Table" view: orchestra seating, no lanth/actin row */
+    body.view-philharmonic #table-main {
+      grid-template-columns: repeat(13, minmax(0, 1fr));
+      grid-template-rows: repeat(8, auto);
+      max-width: 860px;
+    }
+
+    body.view-philharmonic #table-lanth-actin {
+      display: none;
+    }
+
+    body.view-philharmonic .cell .sym {
+      font-size: 18px;
+    }
+
+    body.view-philharmonic .cell .name {
+      font-size: 7px;
+    }
+
+    /* "Pianistic Table" view: black and white only */
+    .cat-pianoWhite {
+      background-color: #fafafa;
+      color: #1c1006;
+    }
+
+    .cat-pianoBlack {
+      background-color: #1c1006;
+      color: #fafafa;
+    }
+
+    body.view-pianistic .cell {
+      border-color: #1c1006;
+    }
+
+    body.view-pianistic .cell.cat-pianoBlack .num,
+    body.view-pianistic .cell.cat-pianoBlack .sym,
+    body.view-pianistic .cell.cat-pianoBlack .name {
+      color: #fafafa;
+    }
+
+    /* "Psychedelic Table" view: groovy colour animations */
+    /* Use prime number offsets so it's more higgeldy-piggeldy */
+    body.view-psychedelic #content {
+      animation: psych-hue 4s linear infinite;
+    }
+
+    body.view-psychedelic .cell {
+      animation: psych-cell 3s ease-in-out infinite;
+    }
+
+    @keyframes psych-hue {
+      0% {
+        filter: hue-rotate(0deg) saturate(1.6);
+      }
+
+      100% {
+        filter: hue-rotate(360deg) saturate(1.6);
+      }
+    }
+
+    @keyframes psych-cell {
+      0% {
+        background-color: #ff2d95;
+      }
+
+      14% {
+        background-color: #ff7b00;
+      }
+
+      28% {
+        background-color: #ffe600;
+      }
+
+      42% {
+        background-color: #00e676;
+      }
+
+      57% {
+        background-color: #00d4ff;
+      }
+
+      71% {
+        background-color: #6a4cff;
+      }
+
+      85% {
+        background-color: #d500f9;
+      }
+
+      100% {
+        background-color: #ff2d95;
+      }
+    }
+
+    body.view-psychedelic .cell:nth-child(2n) {
+      animation-delay: -0.4s;
+    }
+
+    body.view-psychedelic .cell:nth-child(3n) {
+      animation-delay: -0.9s;
+    }
+
+    body.view-psychedelic .cell:nth-child(5n) {
+      animation-delay: -1.5s;
+    }
+
+    body.view-psychedelic .cell:nth-child(7n) {
+      animation-delay: -2.1s;
+    }
+
+    body.view-psychedelic .cell:nth-child(11n) {
+      animation-delay: -2.7s;
+    }
+
+    body.view-psychedelic .swatch {
+      animation: psych-cell 3s ease-in-out infinite;
+      border-color: rgba(0, 0, 0, 0.55);
+    }
+
+    body.view-psychedelic .legend-item:nth-child(2n) .swatch {
+      animation-delay: -0.4s;
+    }
+
+    body.view-psychedelic .legend-item:nth-child(3n) .swatch {
+      animation-delay: -0.9s;
+    }
+
+    body.view-psychedelic .legend-item:nth-child(5n) .swatch {
+      animation-delay: -1.5s;
+    }
+
+    body.view-psychedelic .legend-item:nth-child(7n) .swatch {
+      animation-delay: -2.1s;
+    }
+
+    body.view-psychedelic .legend-item:nth-child(11n) .swatch {
+      animation-delay: -2.7s;
+    }
+
+    /* "Pointillistic Table" view: dotted overlay across the table */
+    body.view-pointillistic #content {
+      mask-image:
+        radial-gradient(circle at 20% 30%, black 30%, transparent 31%),
+        radial-gradient(circle at 70% 60%, black 30%, transparent 31%);
+      mask-size: 2px 2px, 3px 3px;
+      mask-position: 0 0, 4px 4px;
+    }
+
+    /* "Realistic Table" view: a literal wooden table, ho ho ho */
+    body.view-realistic #table-lanth-actin,
+    body.view-realistic .legend {
+      display: none;
+    }
+
+    body.view-realistic #table-main {
+      display: block;
+      max-width: 1180px;
+      margin: 12px auto;
+      text-align: center;
+    }
+
+    body.view-realistic #table-main a {
+      display: inline-block;
+      max-width: 100%;
+    }
+
+    body.view-realistic #table-main img {
+      display: block;
+      max-width: 100%;
+      max-height: 78vh;
+      border: 2px solid #3a2a16;
+      box-shadow: 6px 8px 0 rgba(0, 0, 0, 0.35);
+    }
+  </style>
+</head>
+
+<body class="view-periodic">
+  <header class="top-bar">
+    <div id="nav-left" class="nav-panel">
+      <button id="prev-btn" class="nav-button">
+        <span>&#9664;</span>
+      </button>
+    </div>
+
+    <h1>Periodic Table</h1>
+
+    <div id="nav-right" class="nav-panel">
+      <button id="next-btn" class="nav-button">
+        <span>&#9654;</span>
+      </button>
+    </div>
+  </header>
+
+  <div id="content">
+    <main id="table-main" class="table"></main>
+    <section id="table-lanth-actin" class="lanth-actin"></section>
+
+    <div id="legend" class="legend"></div>
+  </div>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('periodic-table');
+
+    // [num, symbol, name, mass, electron config, category, period, group]
+    // Display period 8 = lanthanides row
+    // Display period 9 = actinides row
+    const elements = [
+      [1, "H", "Hydrogen", "1.008", "1s¹", "nonmetal", 1, 1],
+      [2, "He", "Helium", "4.0026", "1s²", "noble", 1, 18],
+      [3, "Li", "Lithium", "6.94", "[He] 2s¹", "alkali", 2, 1],
+      [4, "Be", "Beryllium", "9.0122", "[He] 2s²", "alkaline", 2, 2],
+      [5, "B", "Boron", "10.81", "[He] 2s² 2p¹", "metalloid", 2, 13],
+      [6, "C", "Carbon", "12.011", "[He] 2s² 2p²", "nonmetal", 2, 14],
+      [7, "N", "Nitrogen", "14.007", "[He] 2s² 2p³", "nonmetal", 2, 15],
+      [8, "O", "Oxygen", "15.999", "[He] 2s² 2p⁴", "nonmetal", 2, 16],
+      [9, "F", "Fluorine", "18.998", "[He] 2s² 2p⁵", "halogen", 2, 17],
+      [10, "Ne", "Neon", "20.180", "[He] 2s² 2p⁶", "noble", 2, 18],
+      [11, "Na", "Sodium", "22.990", "[Ne] 3s¹", "alkali", 3, 1],
+      [12, "Mg", "Magnesium", "24.305", "[Ne] 3s²", "alkaline", 3, 2],
+      [13, "Al", "Aluminium", "26.982", "[Ne] 3s² 3p¹", "posttrans", 3, 13],
+      [14, "Si", "Silicon", "28.085", "[Ne] 3s² 3p²", "metalloid", 3, 14],
+      [15, "P", "Phosphorus", "30.974", "[Ne] 3s² 3p³", "nonmetal", 3, 15],
+      [16, "S", "Sulphur", "32.06", "[Ne] 3s² 3p⁴", "nonmetal", 3, 16],
+      [17, "Cl", "Chlorine", "35.45", "[Ne] 3s² 3p⁵", "halogen", 3, 17],
+      [18, "Ar", "Argon", "39.948", "[Ne] 3s² 3p⁶", "noble", 3, 18],
+      [19, "K", "Potassium", "39.098", "[Ar] 4s¹", "alkali", 4, 1],
+      [20, "Ca", "Calcium", "40.078", "[Ar] 4s²", "alkaline", 4, 2],
+      [21, "Sc", "Scandium", "44.956", "[Ar] 3d¹ 4s²", "transition", 4, 3],
+      [22, "Ti", "Titanium", "47.867", "[Ar] 3d² 4s²", "transition", 4, 4],
+      [23, "V", "Vanadium", "50.942", "[Ar] 3d³ 4s²", "transition", 4, 5],
+      [24, "Cr", "Chromium", "51.996", "[Ar] 3d⁵ 4s¹", "transition", 4, 6],
+      [25, "Mn", "Manganese", "54.938", "[Ar] 3d⁵ 4s²", "transition", 4, 7],
+      [26, "Fe", "Iron", "55.845", "[Ar] 3d⁶ 4s²", "transition", 4, 8],
+      [27, "Co", "Cobalt", "58.933", "[Ar] 3d⁷ 4s²", "transition", 4, 9],
+      [28, "Ni", "Nickel", "58.693", "[Ar] 3d⁹ 4s¹", "transition", 4, 10],
+      [29, "Cu", "Copper", "63.546", "[Ar] 3d¹⁰ 4s¹", "transition", 4, 11],
+      [30, "Zn", "Zinc", "65.38", "[Ar] 3d¹⁰ 4s²", "transition", 4, 12],
+      [31, "Ga", "Gallium", "69.723", "[Ar] 3d¹⁰ 4s² 4p¹", "posttrans", 4, 13],
+      [32, "Ge", "Germanium", "72.630", "[Ar] 3d¹⁰ 4s² 4p²", "metalloid", 4, 14],
+      [33, "As", "Arsenic", "74.922", "[Ar] 3d¹⁰ 4s² 4p³", "metalloid", 4, 15],
+      [34, "Se", "Selenium", "78.971", "[Ar] 3d¹⁰ 4s² 4p⁴", "nonmetal", 4, 16],
+      [35, "Br", "Bromine", "79.904", "[Ar] 3d¹⁰ 4s² 4p⁵", "halogen", 4, 17],
+      [36, "Kr", "Krypton", "83.798", "[Ar] 3d¹⁰ 4s² 4p⁶", "noble", 4, 18],
+      [37, "Rb", "Rubidium", "85.468", "[Kr] 5s¹", "alkali", 5, 1],
+      [38, "Sr", "Strontium", "87.62", "[Kr] 5s²", "alkaline", 5, 2],
+      [39, "Y", "Yttrium", "88.906", "[Kr] 4d¹ 5s²", "transition", 5, 3],
+      [40, "Zr", "Zirconium", "91.224", "[Kr] 4d² 5s²", "transition", 5, 4],
+      [41, "Nb", "Niobium", "92.906", "[Kr] 4d⁴ 5s¹", "transition", 5, 5],
+      [42, "Mo", "Molybdenum", "95.95", "[Kr] 4d⁵ 5s¹", "transition", 5, 6],
+      [43, "Tc", "Technetium", "(97)", "[Kr] 4d⁵ 5s²", "transition", 5, 7],
+      [44, "Ru", "Ruthenium", "101.07", "[Kr] 4d⁷ 5s¹", "transition", 5, 8],
+      [45, "Rh", "Rhodium", "102.91", "[Kr] 4d⁸ 5s¹", "transition", 5, 9],
+      [46, "Pd", "Palladium", "106.42", "[Kr] 4d¹⁰", "transition", 5, 10],
+      [47, "Ag", "Silver", "107.87", "[Kr] 4d¹⁰ 5s¹", "transition", 5, 11],
+      [48, "Cd", "Cadmium", "112.41", "[Kr] 4d¹⁰ 5s²", "transition", 5, 12],
+      [49, "In", "Indium", "114.82", "[Kr] 4d¹⁰ 5s² 5p¹", "posttrans", 5, 13],
+      [50, "Sn", "Tin", "118.71", "[Kr] 4d¹⁰ 5s² 5p²", "posttrans", 5, 14],
+      [51, "Sb", "Antimony", "121.76", "[Kr] 4d¹⁰ 5s² 5p³", "metalloid", 5, 15],
+      [52, "Te", "Tellurium", "127.60", "[Kr] 4d¹⁰ 5s² 5p⁴", "metalloid", 5, 16],
+      [53, "I", "Iodine", "126.90", "[Kr] 4d¹⁰ 5s² 5p⁵", "halogen", 5, 17],
+      [54, "Xe", "Xenon", "131.29", "[Kr] 4d¹⁰ 5s² 5p⁶", "noble", 5, 18],
+      [55, "Cs", "Caesium", "132.91", "[Xe] 6s¹", "alkali", 6, 1],
+      [56, "Ba", "Barium", "137.33", "[Xe] 6s²", "alkaline", 6, 2],
+      // Lanthanides (period row 8 in our layout, columns 3..17)
+      [57, "La", "Lanthanum", "138.91", "[Xe] 5d¹ 6s²", "lanthanide", 8, 3],
+      [58, "Ce", "Cerium", "140.12", "[Xe] 4f¹ 5d¹ 6s²", "lanthanide", 8, 4],
+      [59, "Pr", "Praseodymium", "140.91", "[Xe] 4f³ 6s²", "lanthanide", 8, 5],
+      [60, "Nd", "Neodymium", "144.24", "[Xe] 4f⁴ 6s²", "lanthanide", 8, 6],
+      [61, "Pm", "Promethium", "(145)", "[Xe] 4f⁵ 6s²", "lanthanide", 8, 7],
+      [62, "Sm", "Samarium", "150.36", "[Xe] 4f⁶ 6s²", "lanthanide", 8, 8],
+      [63, "Eu", "Europium", "151.96", "[Xe] 4f⁷ 6s²", "lanthanide", 8, 9],
+      [64, "Gd", "Gadolinium", "157.25", "[Xe] 4f⁷ 5d¹ 6s²", "lanthanide", 8, 10],
+      [65, "Tb", "Terbium", "158.93", "[Xe] 4f⁹ 6s²", "lanthanide", 8, 11],
+      [66, "Dy", "Dysprosium", "162.50", "[Xe] 4f¹⁰ 6s²", "lanthanide", 8, 12],
+      [67, "Ho", "Holmium", "164.93", "[Xe] 4f¹¹ 6s²", "lanthanide", 8, 13],
+      [68, "Er", "Erbium", "167.26", "[Xe] 4f¹² 6s²", "lanthanide", 8, 14],
+      [69, "Tm", "Thulium", "168.93", "[Xe] 4f¹³ 6s²", "lanthanide", 8, 15],
+      [70, "Yb", "Ytterbium", "173.05", "[Xe] 4f¹⁴ 6s²", "lanthanide", 8, 16],
+      [71, "Lu", "Lutetium", "174.97", "[Xe] 4f¹⁴ 5d¹ 6s²", "lanthanide", 8, 17],
+      // back to main table period 6
+      [72, "Hf", "Hafnium", "178.49", "[Xe] 4f¹⁴ 5d² 6s²", "transition", 6, 4],
+      [73, "Ta", "Tantalum", "180.95", "[Xe] 4f¹⁴ 5d³ 6s²", "transition", 6, 5],
+      [74, "W", "Tungsten", "183.84", "[Xe] 4f¹⁴ 5d⁴ 6s²", "transition", 6, 6],
+      [75, "Re", "Rhenium", "186.21", "[Xe] 4f¹⁴ 5d⁵ 6s²", "transition", 6, 7],
+      [76, "Os", "Osmium", "190.23", "[Xe] 4f¹⁴ 5d⁶ 6s²", "transition", 6, 8],
+      [77, "Ir", "Iridium", "192.22", "[Xe] 4f¹⁴ 5d⁷ 6s²", "transition", 6, 9],
+      [78, "Pt", "Platinum", "195.08", "[Xe] 4f¹⁴ 5d⁹ 6s¹", "transition", 6, 10],
+      [79, "Au", "Gold", "196.97", "[Xe] 4f¹⁴ 5d¹⁰ 6s¹", "transition", 6, 11],
+      [80, "Hg", "Mercury", "200.59", "[Xe] 4f¹⁴ 5d¹⁰ 6s²", "transition", 6, 12],
+      [81, "Tl", "Thallium", "204.38", "[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p¹", "posttrans", 6, 13],
+      [82, "Pb", "Lead", "207.2", "[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p²", "posttrans", 6, 14],
+      [83, "Bi", "Bismuth", "208.98", "[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p³", "posttrans", 6, 15],
+      [84, "Po", "Polonium", "(209)", "[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p⁴", "posttrans", 6, 16],
+      [85, "At", "Astatine", "(210)", "[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p⁵", "halogen", 6, 17],
+      [86, "Rn", "Radon", "(222)", "[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p⁶", "noble", 6, 18],
+      [87, "Fr", "Francium", "(223)", "[Rn] 7s¹", "alkali", 7, 1],
+      [88, "Ra", "Radium", "(226)", "[Rn] 7s²", "alkaline", 7, 2],
+      // Actinides (period row 9, columns 3..17)
+      [89, "Ac", "Actinium", "(227)", "[Rn] 6d¹ 7s²", "actinide", 9, 3],
+      [90, "Th", "Thorium", "232.04", "[Rn] 6d² 7s²", "actinide", 9, 4],
+      [91, "Pa", "Protactinium", "231.04", "[Rn] 5f² 6d¹ 7s²", "actinide", 9, 5],
+      [92, "U", "Uranium", "238.03", "[Rn] 5f³ 6d¹ 7s²", "actinide", 9, 6],
+      [93, "Np", "Neptunium", "(237)", "[Rn] 5f⁴ 6d¹ 7s²", "actinide", 9, 7],
+      [94, "Pu", "Plutonium", "(244)", "[Rn] 5f⁶ 7s²", "actinide", 9, 8],
+      [95, "Am", "Americium", "(243)", "[Rn] 5f⁷ 7s²", "actinide", 9, 9],
+      [96, "Cm", "Curium", "(247)", "[Rn] 5f⁷ 6d¹ 7s²", "actinide", 9, 10],
+      [97, "Bk", "Berkelium", "(247)", "[Rn] 5f⁹ 7s²", "actinide", 9, 11],
+      [98, "Cf", "Californium", "(251)", "[Rn] 5f¹⁰ 7s²", "actinide", 9, 12],
+      [99, "Es", "Einsteinium", "(252)", "[Rn] 5f¹¹ 7s²", "actinide", 9, 13],
+      [100, "Fm", "Fermium", "(257)", "[Rn] 5f¹² 7s²", "actinide", 9, 14],
+      [101, "Md", "Mendelevium", "(258)", "[Rn] 5f¹³ 7s²", "actinide", 9, 15],
+      [102, "No", "Nobelium", "(259)", "[Rn] 5f¹⁴ 7s²", "actinide", 9, 16],
+      [103, "Lr", "Lawrencium", "(266)", "[Rn] 5f¹⁴ 7s² 7p¹", "actinide", 9, 17],
+      // Period 7 transition + heavy elements
+      [104, "Rf", "Rutherfordium", "(267)", "[Rn] 5f¹⁴ 6d² 7s²", "transition", 7, 4],
+      [105, "Db", "Dubnium", "(268)", "[Rn] 5f¹⁴ 6d³ 7s²", "transition", 7, 5],
+      [106, "Sg", "Seaborgium", "(269)", "[Rn] 5f¹⁴ 6d⁴ 7s²", "transition", 7, 6],
+      [107, "Bh", "Bohrium", "(270)", "[Rn] 5f¹⁴ 6d⁵ 7s²", "transition", 7, 7],
+      [108, "Hs", "Hassium", "(270)", "[Rn] 5f¹⁴ 6d⁶ 7s²", "transition", 7, 8],
+      [109, "Mt", "Meitnerium", "(278)", "[Rn] 5f¹⁴ 6d⁷ 7s²", "unknown", 7, 9],
+      [110, "Ds", "Darmstadtium", "(281)", "[Rn] 5f¹⁴ 6d⁹ 7s¹", "unknown", 7, 10],
+      [111, "Rg", "Roentgenium", "(282)", "[Rn] 5f¹⁴ 6d¹⁰ 7s¹", "unknown", 7, 11],
+      [112, "Cn", "Copernicium", "(285)", "[Rn] 5f¹⁴ 6d¹⁰ 7s²", "unknown", 7, 12],
+      [113, "Nh", "Nihonium", "(286)", "[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p¹", "unknown", 7, 13],
+      [114, "Fl", "Flerovium", "(289)", "[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p²", "unknown", 7, 14],
+      [115, "Mc", "Moscovium", "(289)", "[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p³", "unknown", 7, 15],
+      [116, "Lv", "Livermorium", "(293)", "[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p⁴", "unknown", 7, 16],
+      [117, "Ts", "Tennessine", "(294)", "[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p⁵", "unknown", 7, 17],
+      [118, "Og", "Oganesson", "(294)", "[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p⁶", "unknown", 7, 18],
+    ];
+
+    const categoryNames = {
+      alkali: "Alkali metals",
+      alkaline: "Alkaline earth metals",
+      transition: "Transition metals",
+      posttrans: "Post-transition metals",
+      metalloid: "Metalloids",
+      nonmetal: "Reactive nonmetals",
+      halogen: "Halogens",
+      noble: "Noble gases",
+      lanthanide: "Lanthanides",
+      actinide: "Actinides",
+      unknown: "Unknown / predicted",
+    };
+
+    // Hydrate raw rows into objects
+    // Each gets a stable random href that survives re-renders
+    const baseItems = elements.map(([num, sym, name, mass, conf, cat, period, group]) => ({
+      num, sym, name, mass, conf, cat, period, group,
+      href: LAB.pageRandomiser.nextOne()
+    }));
+
+    const baseDataset = { items: baseItems, categoryNames };
+
+    // Layout helpers
+    // The visual table has 9 logical periods (1..7 main + 8 lanth + 9 actin) and 18 groups
+    // Modes that re-flow elements reuse `flowLayout` to fill cells in the standard reading order
+    const mainPositions = [];
+    for (let p = 1; p <= 7; p++) {
+      for (let g = 1; g <= 18; g++) {
+        if (baseItems.some(e => e.period === p && e.group === g)) {
+          mainPositions.push([p, g]);
+        }
+      }
+    }
+    const lanthPositions = [];
+    const actinidePositions = [];
+    for (let g = 3; g <= 17; g++) {
+      lanthPositions.push([8, g]);
+      actinidePositions.push([9, g]);
+    }
+    const allFlowPositions = [...mainPositions, ...lanthPositions, ...actinidePositions];
+
+    // Positions in real periodic-table order (1 => 118), so that flow
+    // modes fill the cells in the same sequence as on the real table:
+    // - 1..56 in the main grid
+    // - 57..71 in the lanthanide row,
+    // - 72..88 back in the main grid
+    // - 89..103 in the actinide row
+    // - 104..118 in the main grid
+    const realFlowPositions = baseItems
+      .slice()
+      .sort((a, b) => a.num - b.num)
+      .map(it => [it.period, it.group]);
+
+    // Default: render each item where its data says (period/group)
+    function defaultLayout({ items }) {
+      return items.map(it => ({ item: it, period: it.period, group: it.group }));
+    }
+
+    // Fill cells following the real periodic-table ordering
+    // Used by alphabetic, demographic, gastronomic
+    function flowLayout({ items }) {
+      return items.slice(0, realFlowPositions.length).map((it, i) => {
+        const [p, g] = realFlowPositions[i];
+        return { item: it, period: p, group: g };
+      });
+    }
+
+    // "Demographic Table" dataset
+    // Most populous 118 countries, ordered by population
+    const countriesRaw = [
+      [1, "IN", "India", "1428.6", "New Delhi", "asia"],
+      [2, "CN", "China", "1425.7", "Beijing", "asia"],
+      [3, "US", "United States", "339.9", "Washington", "namerica"],
+      [4, "ID", "Indonesia", "277.5", "Jakarta", "asia"],
+      [5, "PK", "Pakistan", "240.5", "Islamabad", "asia"],
+      [6, "NG", "Nigeria", "223.8", "Abuja", "africa"],
+      [7, "BR", "Brazil", "216.4", "Brasília", "samerica"],
+      [8, "BD", "Bangladesh", "173.0", "Dhaka", "asia"],
+      [9, "RU", "Russia", "144.4", "Moscow", "europe"],
+      [10, "MX", "Mexico", "128.5", "Mexico City", "namerica"],
+      [11, "ET", "Ethiopia", "126.5", "Addis Ababa", "africa"],
+      [12, "JP", "Japan", "123.3", "Tokyo", "asia"],
+      [13, "PH", "Philippines", "117.3", "Manila", "asia"],
+      [14, "EG", "Egypt", "112.7", "Cairo", "africa"],
+      [15, "CD", "DR Congo", "102.3", "Kinshasa", "africa"],
+      [16, "VN", "Vietnam", "98.9", "Hanoi", "asia"],
+      [17, "IR", "Iran", "89.2", "Tehran", "asia"],
+      [18, "TR", "Turkey", "85.8", "Ankara", "asia"],
+      [19, "DE", "Germany", "83.3", "Berlin", "europe"],
+      [20, "TH", "Thailand", "71.8", "Bangkok", "asia"],
+      [21, "GB", "United Kingdom", "67.7", "London", "europe"],
+      [22, "TZ", "Tanzania", "67.4", "Dodoma", "africa"],
+      [23, "FR", "France", "64.8", "Paris", "europe"],
+      [24, "ZA", "South Africa", "60.4", "Pretoria", "africa"],
+      [25, "IT", "Italy", "58.9", "Rome", "europe"],
+      [26, "KE", "Kenya", "55.1", "Nairobi", "africa"],
+      [27, "MM", "Myanmar", "54.6", "Naypyidaw", "asia"],
+      [28, "CO", "Colombia", "52.1", "Bogotá", "samerica"],
+      [29, "KR", "South Korea", "51.8", "Seoul", "asia"],
+      [30, "UG", "Uganda", "48.6", "Kampala", "africa"],
+      [31, "SD", "Sudan", "48.1", "Khartoum", "africa"],
+      [32, "ES", "Spain", "47.5", "Madrid", "europe"],
+      [33, "AR", "Argentina", "45.8", "Buenos Aires", "samerica"],
+      [34, "DZ", "Algeria", "45.6", "Algiers", "africa"],
+      [35, "IQ", "Iraq", "45.5", "Baghdad", "asia"],
+      [36, "AF", "Afghanistan", "42.2", "Kabul", "asia"],
+      [37, "PL", "Poland", "41.0", "Warsaw", "europe"],
+      [38, "CA", "Canada", "38.8", "Ottawa", "namerica"],
+      [39, "MA", "Morocco", "37.8", "Rabat", "africa"],
+      [40, "SA", "Saudi Arabia", "36.9", "Riyadh", "asia"],
+      [41, "AO", "Angola", "36.7", "Luanda", "africa"],
+      [42, "UA", "Ukraine", "36.7", "Kyiv", "europe"],
+      [43, "UZ", "Uzbekistan", "35.2", "Tashkent", "asia"],
+      [44, "MY", "Malaysia", "34.3", "Kuala Lumpur", "asia"],
+      [45, "YE", "Yemen", "34.4", "Sana'a", "asia"],
+      [46, "PE", "Peru", "34.4", "Lima", "samerica"],
+      [47, "GH", "Ghana", "34.1", "Accra", "africa"],
+      [48, "MZ", "Mozambique", "33.9", "Maputo", "africa"],
+      [49, "NP", "Nepal", "30.9", "Kathmandu", "asia"],
+      [50, "MG", "Madagascar", "30.3", "Antananarivo", "africa"],
+      [51, "CI", "Côte d'Ivoire", "28.9", "Yamoussoukro", "africa"],
+      [52, "VE", "Venezuela", "28.8", "Caracas", "samerica"],
+      [53, "CM", "Cameroon", "28.6", "Yaoundé", "africa"],
+      [54, "NE", "Niger", "27.2", "Niamey", "africa"],
+      [55, "AU", "Australia", "26.4", "Canberra", "oceania"],
+      [56, "KP", "North Korea", "26.2", "Pyongyang", "asia"],
+      [57, "TW", "Taiwan", "23.9", "Taipei", "asia"],
+      [58, "BF", "Burkina Faso", "23.3", "Ouagadougou", "africa"],
+      [59, "ML", "Mali", "23.3", "Bamako", "africa"],
+      [60, "SY", "Syria", "23.2", "Damascus", "asia"],
+      [61, "LK", "Sri Lanka", "21.9", "Colombo", "asia"],
+      [62, "MW", "Malawi", "20.9", "Lilongwe", "africa"],
+      [63, "ZM", "Zambia", "20.6", "Lusaka", "africa"],
+      [64, "KZ", "Kazakhstan", "19.6", "Astana", "asia"],
+      [65, "CL", "Chile", "19.6", "Santiago", "samerica"],
+      [66, "RO", "Romania", "19.0", "Bucharest", "europe"],
+      [67, "EC", "Ecuador", "18.2", "Quito", "samerica"],
+      [68, "TD", "Chad", "18.3", "N'Djamena", "africa"],
+      [69, "SO", "Somalia", "18.1", "Mogadishu", "africa"],
+      [70, "GT", "Guatemala", "18.1", "Guatemala City", "namerica"],
+      [71, "SN", "Senegal", "17.8", "Dakar", "africa"],
+      [72, "NL", "Netherlands", "17.6", "Amsterdam", "europe"],
+      [73, "KH", "Cambodia", "16.9", "Phnom Penh", "asia"],
+      [74, "ZW", "Zimbabwe", "16.7", "Harare", "africa"],
+      [75, "GN", "Guinea", "14.2", "Conakry", "africa"],
+      [76, "RW", "Rwanda", "14.1", "Kigali", "africa"],
+      [77, "BJ", "Benin", "13.7", "Porto-Novo", "africa"],
+      [78, "BI", "Burundi", "13.2", "Gitega", "africa"],
+      [79, "TN", "Tunisia", "12.5", "Tunis", "africa"],
+      [80, "BO", "Bolivia", "12.4", "Sucre", "samerica"],
+      [81, "BE", "Belgium", "11.7", "Brussels", "europe"],
+      [82, "HT", "Haiti", "11.7", "Port-au-Prince", "namerica"],
+      [83, "JO", "Jordan", "11.3", "Amman", "asia"],
+      [84, "DO", "Dominican Republic", "11.3", "Santo Domingo", "namerica"],
+      [85, "CU", "Cuba", "11.2", "Havana", "namerica"],
+      [86, "SS", "South Sudan", "11.1", "Juba", "africa"],
+      [87, "SE", "Sweden", "10.6", "Stockholm", "europe"],
+      [88, "HN", "Honduras", "10.6", "Tegucigalpa", "namerica"],
+      [89, "CZ", "Czech Republic", "10.5", "Prague", "europe"],
+      [90, "GR", "Greece", "10.4", "Athens", "europe"],
+      [91, "AZ", "Azerbaijan", "10.4", "Baku", "asia"],
+      [92, "PT", "Portugal", "10.3", "Lisbon", "europe"],
+      [93, "PG", "Papua New Guinea", "10.3", "Port Moresby", "oceania"],
+      [94, "TJ", "Tajikistan", "10.1", "Dushanbe", "asia"],
+      [95, "HU", "Hungary", "9.7", "Budapest", "europe"],
+      [96, "AE", "UAE", "9.5", "Abu Dhabi", "asia"],
+      [97, "BY", "Belarus", "9.5", "Minsk", "europe"],
+      [98, "IL", "Israel", "9.2", "Jerusalem", "asia"],
+      [99, "AT", "Austria", "8.9", "Vienna", "europe"],
+      [100, "TG", "Togo", "8.9", "Lomé", "africa"],
+      [101, "CH", "Switzerland", "8.8", "Bern", "europe"],
+      [102, "SL", "Sierra Leone", "8.6", "Freetown", "africa"],
+      [103, "LA", "Laos", "7.6", "Vientiane", "asia"],
+      [104, "HK", "Hong Kong", "7.5", "Hong Kong", "asia"],
+      [105, "RS", "Serbia", "7.1", "Belgrade", "europe"],
+      [106, "NI", "Nicaragua", "7.0", "Managua", "namerica"],
+      [107, "LY", "Libya", "6.9", "Tripoli", "africa"],
+      [108, "PY", "Paraguay", "6.9", "Asunción", "samerica"],
+      [109, "BG", "Bulgaria", "6.7", "Sofia", "europe"],
+      [110, "KG", "Kyrgyzstan", "6.7", "Bishkek", "asia"],
+      [111, "TM", "Turkmenistan", "6.5", "Ashgabat", "asia"],
+      [112, "SV", "El Salvador", "6.3", "San Salvador", "namerica"],
+      [113, "CG", "Congo", "6.1", "Brazzaville", "africa"],
+      [114, "SG", "Singapore", "6.0", "Singapore", "asia"],
+      [115, "DK", "Denmark", "5.9", "Copenhagen", "europe"],
+      [116, "FI", "Finland", "5.5", "Helsinki", "europe"],
+      [117, "LB", "Lebanon", "5.4", "Beirut", "asia"],
+      [118, "SK", "Slovakia", "5.4", "Bratislava", "europe"],
+    ];
+
+    const continentNames = {
+      africa: "Africa",
+      asia: "Asia",
+      europe: "Europe",
+      namerica: "North America",
+      samerica: "South America",
+      oceania: "Oceania",
+    };
+
+    // Build country items, parallel to baseItems
+    // Pre-sort by population so flowLayout puts the largest at "Hydrogen"
+    const countryItems = countriesRaw
+      .map(([num, sym, name, pop, capital, cat]) => ({
+        num, sym, name,
+        mass: pop,
+        conf: `Capital: ${capital}`,
+        cat,
+        href: LAB.pageRandomiser.nextOne()
+      }))
+      .sort((a, b) => parseFloat(b.mass) - parseFloat(a.mass))
+      .map((it, i) => ({
+        ...it,
+        num: i + 1,
+        mass: Math.round(parseFloat(it.mass) * 1_000_000).toLocaleString('en-GB'),
+        massLabel: 'Population'
+      }));
+
+    const demographicDataset = {
+      items: countryItems,
+      categoryNames: continentNames
+    };
+
+    // "Pre-Socratic Table" dataset
+    // The four classical elements
+    // Arranged in the hot/cold + wet/dry square
+    const preSocraticItems = [
+      { num: 1, sym: "△", name: "Fire", conf: "hot · dry", cat: ["hot", "dry"], period: 8, group: 9, href: LAB.pageRandomiser.nextOne() },
+      { num: 2, sym: "🜁", name: "Air", conf: "hot · wet", cat: ["hot", "wet"], period: 8, group: 10, href: LAB.pageRandomiser.nextOne() },
+      { num: 3, sym: "🜃", name: "Earth", conf: "cold · dry", cat: ["cold", "dry"], period: 9, group: 9, href: LAB.pageRandomiser.nextOne() },
+      { num: 4, sym: "🜄", name: "Water", conf: "cold · wet", cat: ["cold", "wet"], period: 9, group: 10, href: LAB.pageRandomiser.nextOne() }
+    ];
+
+    const preSocraticDataset = {
+      items: preSocraticItems,
+      categoryNames: {
+        hot: "Hot",
+        dry: "Dry",
+        cold: "Cold",
+        wet: "Wet"
+      }
+    };
+
+    // "Philharmonic Table" dataset
+    // Represents a symphony orchestra in concert seating as if viewed from the audience
+    const philharmonicKey = {
+      C: ["Conductor", "Conductor", null, "directs the ensemble", "conductor"],
+      Vl: ["Leader", "Strings", "C", "also known as Concertmaster, First Chair, First Violinist", "strings"],
+      V1: ["1st violin", "Strings", "C", "soprano strings", "strings"],
+      V2: ["2nd violin", "Strings", "C", "inner strings", "strings"],
+      Va: ["Viola", "Strings", "C", "alto strings", "strings"],
+      Co: ["Cello", "Strings", "C", "tenor strings", "strings"],
+      Db: ["Double Bass", "Strings", "C", "deepest strings", "strings"],
+      Pc: ["Piccolo", "Woodwind", "C", "highest woodwind", "woodwind"],
+      F: ["Flute", "Woodwind", "C", "high woodwind", "woodwind"],
+      Cl: ["Clarinet", "Woodwind", "B♭", "single reed", "woodwind"],
+      O: ["Oboe", "Woodwind", "C", "double reed", "woodwind"],
+      Ba: ["Bassoon", "Woodwind", "C", "low double reed", "woodwind"],
+      Cb: ["Contrabassoon", "Woodwind", "C", "lowest double reed", "woodwind"],
+      Fh: ["French Horn", "Brass", "F", "mellow brass", "brass"],
+      Tu: ["Trumpet", "Brass", "B♭", "bright brass", "brass"],
+      Tr: ["Trombone", "Brass", "C", "slide brass", "brass"],
+      Tb: ["Tuba", "Brass", "C, but variable", "lowest brass", "brass"],
+      H: ["Harp", "Strings", "C♭", "pedal harp", "percussion"],
+      Pf: ["Piano", "Percussion", "C", "keyboard percussion", "percussion"],
+      M: ["Mallets", "Percussion", "C", "tuned percussion, xylophone, glockenspiel, vibraphone, marimba", "percussion"],
+      P: ["Percussion", "Percussion", null, "untuned percussion", "percussion"],
+      Ti: ["Timpani", "Percussion", null, "tuned kettledrums", "percussion"]
+    };
+
+    const philharmonicRows = [
+      ["", "", "", "H", "Pf", "M", "P", "P", "P", "Ti", "", "", ""],
+      ["", "", "V2", "Fh", "Fh", "Fh", "Tu", "Tu", "Tu", "Tr", "Ti", "", ""],
+      ["", "V2", "V2", "V2", "Cl", "Cl", "Cl", "Ba", "Ba", "Cb", "Tr", "Tb", ""],
+      ["V1", "V1", "V2", "V2", "V2", "Pc", "F", "F", "O", "O", "O", "Tr", "Db"],
+      ["V1", "V1", "V1", "V2", "V2", "V2", "Va", "Va", "Va", "Va", "Va", "Co", "Db"],
+      ["V1", "V1", "V1", "V1", "V2", "V2", "Va", "Va", "Va", "Va", "Co", "Co", "Db"],
+      ["V1", "V1", "V1", "V1", "V1", "Vl", "", "Co", "Co", "Co", "Co", "Co", "Db"],
+      ["", "", "", "", "", "", "C", "", "", "", "", "", ""]
+    ];
+
+    const philharmonicRaw = philharmonicRows.flatMap((row, rowIndex) => row.flatMap((sym, colIndex) => {
+      if (!sym) return [];
+
+      const [name, section, transposingKey, conf, cat] = philharmonicKey[sym];
+      return [{
+        num: rowIndex * row.length + colIndex + 1,
+        sym, name,
+        mass: transposingKey,
+        massLabel: "Transposing key",
+        conf: `${section}: ${conf}`,
+        cat,
+        period: rowIndex + 1,
+        group: colIndex + 1,
+        showNum: false
+      }];
+    }));
+
+    const philharmonicDataset = {
+      items: philharmonicRaw.map(item => ({
+        ...item,
+        href: LAB.pageRandomiser.nextOne()
+      })),
+      categoryNames: {
+        conductor: "Conductor",
+        strings: "Strings",
+        woodwind: "Woodwind",
+        brass: "Brass",
+        percussion: "Percussion"
+      }
+    };
+
+    // "Gastronomic Table" dataset
+    // Same layout as the standard periodic table
+    // Categories are mapped onto the standard category palette
+    // (beverages = alkali, dairy = halogen, etc)
+    const gastronomicRaw = [
+      [1, "S", "Salt", "", "", "nonmetal", 1, 1],
+      [2, "Sr", "Sugar", "", "", "noble", 1, 18],
+      [3, "W", "Water", "", "", "alkali", 2, 1],
+      [4, "R", "Rice", "", "", "alkaline", 2, 2],
+      [5, "Mu", "Mustard", "", "", "metalloid", 2, 13],
+      [6, "Pr", "Pepper", "", "", "nonmetal", 2, 14],
+      [7, "V", "Vinegar", "", "", "nonmetal", 2, 15],
+      [8, "O", "Oil", "", "", "nonmetal", 2, 16],
+      [9, "Mi", "Milk", "", "", "halogen", 2, 17],
+      [10, "H", "Honey", "", "", "noble", 2, 18],
+      [11, "T", "Tea", "", "", "alkali", 3, 1],
+      [12, "Wh", "Wheat", "", "", "alkaline", 3, 2],
+      [13, "Pl", "Parsley", "", "", "posttrans", 3, 13],
+      [14, "Gi", "Ginger", "", "", "metalloid", 3, 14],
+      [15, "Bs", "Baking Soda", "", "", "nonmetal", 3, 15],
+      [16, "M", "MSG", "", "", "nonmetal", 3, 16],
+      [17, "Cm", "Cream", "", "", "halogen", 3, 17],
+      [18, "Ck", "Cake", "", "", "noble", 3, 18],
+      [19, "C", "Coffee", "", "", "alkali", 4, 1],
+      [20, "Oa", "Oats", "", "", "alkaline", 4, 2],
+      [21, "Po", "Potato", "", "", "transition", 4, 3],
+      [22, "Ps", "Peas", "", "", "transition", 4, 4],
+      [23, "Ca", "Carrot", "", "", "transition", 4, 5],
+      [24, "Bc", "Broccoli", "", "", "transition", 4, 6],
+      [25, "Cf", "Cauliflower", "", "", "transition", 4, 7],
+      [26, "Cg", "Cabbage", "", "", "transition", 4, 8],
+      [27, "As", "Asparagus", "", "", "transition", 4, 9],
+      [28, "Ce", "Celery", "", "", "transition", 4, 10],
+      [29, "Sp", "Spinach", "", "", "transition", 4, 11],
+      [30, "Ga", "Garlic", "", "", "transition", 4, 12],
+      [31, "Sg", "Sage", "", "", "posttrans", 4, 13],
+      [32, "Ng", "Nutmeg", "", "", "metalloid", 4, 14],
+      [33, "Tm", "Turmeric", "", "", "metalloid", 4, 15],
+      [34, "Y", "Yeast", "", "", "nonmetal", 4, 16],
+      [35, "Bu", "Butter", "", "", "halogen", 4, 17],
+      [36, "Bi", "Biscuits", "", "", "noble", 4, 18],
+      [37, "J", "Juice", "", "", "alkali", 5, 1],
+      [38, "Fl", "Flour", "", "", "alkaline", 5, 2],
+      [39, "Sc", "Sweetcorn", "", "", "transition", 5, 3],
+      [40, "On", "Onion", "", "", "transition", 5, 4],
+      [41, "B", "Bean", "", "", "transition", 5, 5],
+      [42, "Lk", "Leek", "", "", "transition", 5, 6],
+      [43, "Pn", "Parsnip", "", "", "transition", 5, 7],
+      [44, "Pu", "Pumpkin", "", "", "transition", 5, 8],
+      [45, "Lt", "Lettuce", "", "", "transition", 5, 9],
+      [46, "Cu", "Cucumber", "", "", "transition", 5, 10],
+      [47, "Br", "Beetroot", "", "", "transition", 5, 11],
+      [48, "N", "Nuts", "", "", "transition", 5, 12],
+      [49, "Ro", "Rosemary", "", "", "posttrans", 5, 13],
+      [50, "Cr", "Coriander", "", "", "posttrans", 5, 14],
+      [51, "Ci", "Cinnamon", "", "", "metalloid", 5, 15],
+      [52, "Vl", "Vanilla", "", "", "metalloid", 5, 16],
+      [53, "Cs", "Cheese", "", "", "halogen", 5, 17],
+      [54, "Cc", "Chocolate", "", "", "noble", 5, 18],
+      [55, "Wi", "Wine", "", "", "alkali", 6, 1],
+      [56, "Bd", "Bread", "", "", "alkaline", 6, 2],
+      [57, "G", "Gelatin", "", "", "lanthanide", 8, 3],
+      [58, "E", "Egg", "", "", "lanthanide", 8, 4],
+      [59, "Cn", "Chicken", "", "", "lanthanide", 8, 5],
+      [60, "Dk", "Duck", "", "", "lanthanide", 8, 6],
+      [61, "Go", "Goose", "", "", "lanthanide", 8, 7],
+      [62, "Tk", "Turkey", "", "", "lanthanide", 8, 8],
+      [63, "Rb", "Rabbit", "", "", "lanthanide", 8, 9],
+      [64, "Lb", "Lamb", "", "", "lanthanide", 8, 10],
+      [65, "Mt", "Mutton", "", "", "lanthanide", 8, 11],
+      [66, "Pk", "Pork", "", "", "lanthanide", 8, 12],
+      [67, "Hm", "Ham", "", "", "lanthanide", 8, 13],
+      [68, "Bn", "Bacon", "", "", "lanthanide", 8, 14],
+      [69, "Rn", "Reindeer", "", "", "lanthanide", 8, 15],
+      [70, "Vn", "Venison", "", "", "lanthanide", 8, 16],
+      [71, "Bf", "Beef", "", "", "lanthanide", 8, 17],
+      [72, "To", "Tomato", "", "", "transition", 6, 4],
+      [73, "Or", "Orange", "", "", "transition", 6, 5],
+      [74, "L", "Lemon", "", "", "transition", 6, 6],
+      [75, "Sb", "Strawberry", "", "", "transition", 6, 7],
+      [76, "Ra", "Raspberry", "", "", "transition", 6, 8],
+      [77, "Pi", "Pineapple", "", "", "transition", 6, 9],
+      [78, "Ma", "Mango", "", "", "transition", 6, 10],
+      [79, "Du", "Durian", "", "", "transition", 6, 11],
+      [80, "Mr", "Mushrooms", "", "", "transition", 6, 12],
+      [81, "Ty", "Thyme", "", "", "posttrans", 6, 13],
+      [82, "D", "Dill", "", "", "posttrans", 6, 14],
+      [83, "Ch", "Chives", "", "", "posttrans", 6, 15],
+      [84, "Mn", "Mint", "", "", "posttrans", 6, 16],
+      [85, "Yo", "Yogurt", "", "", "halogen", 6, 17],
+      [86, "Ky", "Jelly", "", "", "noble", 6, 18],
+      [87, "Be", "Beer", "", "", "alkali", 7, 1],
+      [88, "Pt", "Pasta", "", "", "alkaline", 7, 2],
+      [89, "F", "Fish Paste", "", "", "actinide", 9, 3],
+      [90, "Cv", "Caviar", "", "", "actinide", 9, 4],
+      [91, "Ms", "Mussel", "", "", "actinide", 9, 5],
+      [92, "Pw", "Prawn", "", "", "actinide", 9, 6],
+      [93, "An", "Anchovy", "", "", "actinide", 9, 7],
+      [94, "Sd", "Sardine", "", "", "actinide", 9, 8],
+      [95, "Hr", "Herring", "", "", "actinide", 9, 9],
+      [96, "Cb", "Crab", "", "", "actinide", 9, 10],
+      [97, "Lo", "Lobster", "", "", "actinide", 9, 11],
+      [98, "Ee", "Eel", "", "", "actinide", 9, 12],
+      [99, "Sq", "Squid", "", "", "actinide", 9, 13],
+      [100, "Oc", "Octopus", "", "", "actinide", 9, 14],
+      [101, "Cd", "Cod", "", "", "actinide", 9, 15],
+      [102, "Sa", "Salmon", "", "", "actinide", 9, 16],
+      [103, "Tn", "Tuna", "", "", "actinide", 9, 17],
+      [104, "A", "Apple", "", "", "transition", 7, 4],
+      [105, "K", "Banana", "", "", "transition", 7, 5],
+      [106, "Pe", "Peach", "", "", "transition", 7, 6],
+      [107, "Pm", "Pomegranate", "", "", "transition", 7, 7],
+      [108, "Gr", "Grape", "", "", "transition", 7, 8],
+      [109, "So", "Soil", "", "", "unknown", 7, 9],
+      [110, "Pa", "Paper", "", "", "unknown", 7, 10],
+      [111, "Wo", "Wool", "", "", "unknown", 7, 11],
+      [112, "P", "Urine", "", "", "unknown", 7, 12],
+      [113, "Sk", "Skin", "", "", "unknown", 7, 13],
+      [114, "Bb", "Baby", "", "", "unknown", 7, 14],
+      [115, "Kd", "Child", "", "", "unknown", 7, 15],
+      [116, "Hu", "Adult", "", "", "unknown", 7, 16],
+      [117, "Et", "Alien", "", "", "unknown", 7, 17],
+      [118, "Un", "Unicorn", "", "", "unknown", 7, 18],
+    ];
+
+    const gastronomicDataset = {
+      items: gastronomicRaw.map(([num, sym, name, mass, conf, cat]) => ({
+        num, sym, name, mass, conf, cat,
+        href: LAB.pageRandomiser.nextOne()
+      })),
+      categoryNames: {
+        alkali: "Beverages",
+        alkaline: "Grains",
+        transition: "Fruits & vegetables",
+        posttrans: "Herbs",
+        metalloid: "Spices",
+        nonmetal: "Fundamentals",
+        halogen: "Dairy",
+        noble: "Sweets",
+        lanthanide: "Meats",
+        actinide: "Seafood",
+        unknown: "Forbidden",
+      }
+    };
+
+    // Hellenistic dataset
+    // Same elements but with Greek names and symbols
+    const greekElements = {
+      1: ["Υδρογόνο", "Υ"], 2: ["Ήλιο", "Ηλ"], 3: ["Λίθιο", "Λι"],
+      4: ["Βηρύλλιο", "Βη"], 5: ["Βόριο", "Βο"], 6: ["Άνθρακας", "Ακ"],
+      7: ["Άζωτο", "Αζ"], 8: ["Οξυγόνο", "Οξ"], 9: ["Φθόριο", "Φθ"],
+      10: ["Νέον", "Νε"], 11: ["Νάτριο", "Να"], 12: ["Μαγνήσιο", "Μγ"],
+      13: ["Αργίλιο", "Αρ"], 14: ["Πυρίτιο", "Πυ"], 15: ["Φωσφόρος", "Φω"],
+      16: ["Θείο", "Θε"], 17: ["Χλώριο", "Χλ"], 18: ["Αργό", "Αο"],
+      19: ["Κάλιο", "Κα"], 20: ["Ασβέστιο", "Ασ"], 21: ["Σκάνδιο", "Σκ"],
+      22: ["Τιτάνιο", "Τι"], 23: ["Βανάδιο", "Βν"], 24: ["Χρώμιο", "Χρ"],
+      25: ["Μαγγάνιο", "Μν"], 26: ["Σίδηρος", "Σδ"], 27: ["Κοβάλτιο", "Κο"],
+      28: ["Νικέλιο", "Νι"], 29: ["Χαλκός", "Χα"], 30: ["Ψευδάργυρος", "Ψ"],
+      31: ["Γάλλιο", "Γα"], 32: ["Γερμάνιο", "Γε"], 33: ["Αρσενικό", "Αν"],
+      34: ["Σελήνιο", "Σε"], 35: ["Βρώμιο", "Βρ"], 36: ["Κρυπτόν", "Κρ"],
+      37: ["Ρουβίδιο", "Ρβ"], 38: ["Στρόντιο", "Στ"], 39: ["Ύττριο", "Υτ"],
+      40: ["Ζιρκόνιο", "Ζρ"], 41: ["Νιόβιο", "Νβ"], 42: ["Μολυβδαίνιο", "Μο"],
+      43: ["Τεχνήτιο", "Τχ"], 44: ["Ρουθήνιο", "Ρθ"], 45: ["Ρόδιο", "Ρδ"],
+      46: ["Παλλάδιο", "Πδ"], 47: ["Άργυρος", "Αγ"], 48: ["Κάδμιο", "Κδ"],
+      49: ["Ίνδιο", "Ιν"], 50: ["Κασσίτερος", "Κσ"], 51: ["Αντιμόνιο", "Ατ"],
+      52: ["Τελλούριο", "Τε"], 53: ["Ιώδιο", "Ιω"], 54: ["Ξένον", "Ξε"],
+      55: ["Καίσιο", "Κσ"], 56: ["Βάριο", "Βα"], 57: ["Λανθάνιο", "Λν"],
+      58: ["Δημήτριο", "Δη"], 59: ["Πρασεοδύμιο", "Πρ"], 60: ["Νεοδύμιο", "Νδ"],
+      61: ["Προμήθειο", "Πμ"], 62: ["Σαμάριο", "Σμ"], 63: ["Ευρώπιο", "Ευ"],
+      64: ["Γαδολίνιο", "Γδ"], 65: ["Τέρβιο", "Τβ"], 66: ["Δυσπρόσιο", "Δυ"],
+      67: ["Όλμιο", "Ολ"], 68: ["Έρβιο", "Ερ"], 69: ["Θούλιο", "Θλ"],
+      70: ["Υττέρβιο", "Υβ"], 71: ["Λουτήσιο", "Λτ"], 72: ["Άφνιο", "Αφ"],
+      73: ["Ταντάλιο", "Τα"], 74: ["Βολφράμιο", "Βφ"], 75: ["Ρήνιο", "Ρη"],
+      76: ["Όσμιο", "Οσ"], 77: ["Ιρίδιο", "Ιρ"], 78: ["Λευκόχρυσος", "Λχ"],
+      79: ["Χρυσός", "Χσ"], 80: ["Υδράργυρος", "Υδ"], 81: ["Θάλλιο", "Θα"],
+      82: ["Μόλυβδος", "Μλ"], 83: ["Βισμούθιο", "Βι"], 84: ["Πολώνιο", "Πο"],
+      85: ["Άστατο", "Άσ"], 86: ["Ραδόνιο", "Ρν"], 87: ["Φράγκιο", "Φρ"],
+      88: ["Ράδιο", "Ρα"], 89: ["Ακτίνιο", "Ακ"], 90: ["Θόριο", "Θο"],
+      91: ["Πρωτακτίνιο", "Πα"], 92: ["Ουράνιο", "Ου"], 93: ["Ποσειδώνιο", "Πσ"],
+      94: ["Πλουτώνιο", "Πλ"], 95: ["Αμερίκιο", "Αμ"], 96: ["Κιούριο", "Κι"],
+      97: ["Μπερκέλιο", "Μκ"], 98: ["Καλιφόρνιο", "Κφ"], 99: ["Αϊνστάνιο", "Αϊ"],
+      100: ["Φέρμιο", "Φε"], 101: ["Μεντελέβιο", "Με"], 102: ["Νομπέλιο", "Νμ"],
+      103: ["Λαυρένσιο", "Λρ"], 104: ["Ραδερφόρντιο", "Ρφ"], 105: ["Ντούμπνιο", "Ντ"],
+      106: ["Σιμπόργκιο", "Σγ"], 107: ["Μπόριο", "Μπ"], 108: ["Χάσσιο", "Χσ"],
+      109: ["Μαϊτνέριο", "Μϊ"], 110: ["Νταρμστάντιο", "Δσ"], 111: ["Ραιντγένιο", "Ργ"],
+      112: ["Κοπερνίκιο", "Κπ"], 113: ["Νιχόνιο", "Νχ"], 114: ["Φλερόβιο", "Φλ"],
+      115: ["Μοσκόβιο", "Μσ"], 116: ["Λιβερμόριο", "Λβ"], 117: ["Τενέσσιο", "Τσ"],
+      118: ["Ογκανέσιο", "Ογ"]
+    };
+
+    const hellenisticDataset = {
+      items: baseItems.map(it => ({
+        ...it,
+        name: greekElements[it.num][0],
+        sym: greekElements[it.num][1],
+        massLabel: 'Μάζα'
+      })),
+      categoryNames: {
+        alkali: "Αλκαλικά μέταλλα",
+        alkaline: "Αλκαλικές γαίες",
+        transition: "Μέταλλα μεταπτώσεως",
+        posttrans: "Μετά τα μεταβατικά",
+        metalloid: "Μεταλλοειδή",
+        nonmetal: "Δραστικά αμέταλλα",
+        halogen: "Αλογόνα",
+        noble: "Ευγενή αέρια",
+        lanthanide: "Λανθανίδες",
+        actinide: "Ακτινίδες",
+        unknown: "Άγνωστα"
+      }
+    };
+
+    // "Hieroglyphic Table" dataset
+    // Each Latin letter and digit is mapped to a Unicode Egyptian hieroglyph
+    // Just decorative gibberish, because a real translation does not exist
+    const hieroMap = {
+      a: "𓄿", b: "𓃀", c: "𓎡", d: "𓂧", e: "𓇋", f: "𓆑", g: "𓎼",
+      h: "𓉔", i: "𓇌", j: "𓆓", k: "𓂓", l: "𓃭", m: "𓅓", n: "𓈖",
+      o: "𓁹", p: "𓊪", q: "𓈎", r: "𓂋", s: "𓋴", t: "𓏏", u: "𓅱",
+      v: "𓆗", w: "𓆼", x: "𓋹", y: "𓏤", z: "𓊃",
+      "0": "𓍢", "1": "𓏺", "2": "𓏻", "3": "𓏼", "4": "𓏽",
+      "5": "𓏾", "6": "𓏿", "7": "𓐀", "8": "𓐁", "9": "𓐂"
+    };
+
+    function hierofy(s) {
+      return Array.from(String(s)).map(ch => {
+        const lower = ch.toLowerCase();
+        return hieroMap[lower] || ch;
+      }).join('');
+    }
+
+    const hieroglyphicDataset = {
+      items: baseItems.map(it => ({
+        ...it,
+        name: hierofy(it.name),
+        sym: hierofy(it.sym),
+        mass: hierofy(it.mass),
+        conf: hierofy(it.conf),
+        massLabel: hierofy('Mass')
+      })),
+      categoryNames: Object.fromEntries(
+        Object.entries(categoryNames).map(([k, v]) => [k, hierofy(v)])
+      )
+    };
+
+    // "Inauthentic Table" dataset
+    // Fake elements, from the BBC2 show "Look Around You"
+    const inauthenticRaw = [
+      ["H", "Hydrogen", "1", "", "0", "muted_apricot", 1, 4],
+      ["He", "Helium", "44", "", "12", "heather_purple", 1, 18],
+      ["Li", "Lithium", "7", "", "4", "soft_lavender", 2, 1],
+      ["Wd", "Wood", "9", "", "9", "orchid_pink", 2, 2],
+      ["B", "Boron", "11", "", "6", "washed_lime", 2, 13],
+      ["C", "Carbon", "14", "", "7", "mint_wash", 2, 14],
+      ["N", "Nitrogen", "12", "", "6", "powdered_teal", 2, 15],
+      ["O", "Oxygen", "18", "", "9", "powdered_teal", 2, 16],
+      ["Dn", "Doreen", "61", "", "7", "powdered_teal", 2, 17],
+      ["Ne", "Neon", "11", "", "9", "grey_lilac", 2, 18],
+      ["Na", "Sodium", "23", "11", "67", "soft_lavender", 3, 1],
+      ["Mg", "Magnesium", "12", "", "24", "orchid_pink", 3, 2],
+      ["Al", "Aluminium", "12", "", "16", "pale_blush", 3, 13],
+      ["Si", "Silicon", "19", "", "12", "washed_lime", 3, 14],
+      ["P", "Phosphorus", "21", "", "16", "mint_wash", 3, 15],
+      ["S", "Sulphur", "16", "", "32", "buttercream_yellow", 3, 16],
+      ["Cl", "Chlorine", "35.5", "", "11", "powdered_teal", 3, 17],
+      ["Ar", "Argon", "40", "", "9", "grey_lilac", 3, 18],
+      ["K", "Potassium", "10", "7", "72", "soft_lavender", 4, 1],
+      ["Ca", "Calcium", "44", "", "20", "orchid_pink", 4, 2],
+      ["Mr", "Man", "41", "", "12", "bubblegum_rose", 4, 3],
+      ["Ti", "Titanium", "15", "", "29", "pale_blush", 4, 4],
+      ["Ng", "Nothing", "0", "", "0", "dusty_coral", 4, 5],
+      ["Cr", "Chromium", "5", "", "8", "dusty_coral", 4, 6],
+      ["Mn", "Manganese", "25", "", "50", "peach_clay", 4, 7],
+      ["Fe", "Iron de Havilland", "4077", "", "898", "peach_clay", 4, 8],
+      ["Co", "Cobalt", "17", "", "6", "muted_apricot", 4, 9],
+      ["Ni", "Nickle", "59", "", "59", "muted_apricot", 4, 10],
+      ["Ag", "Silver", "109", "", "52", "pale_blush", 4, 11],
+      ["Zn", "Zinc", "60", "", "22", "buttercream_yellow", 4, 12],
+      ["Cu", "Copper", "999", "", "911", "peach_clay", 4, 13],
+      ["Xm", "Christmas", "25", "", "12", "washed_lime", 4, 14],
+      ["As", "Arsenic", "70", "", "32", "washed_lime", 4, 15],
+      ["Hi", "Hello", "70", "", "32", "mint_wash", 4, 16],
+      ["Br", "Bromine", "8", "", "11", "peach_clay", 4, 17],
+      ["Kr", "Kryptonite", "36", "", "83", "washed_lime", 4, 18],
+      ["Fo", "Foramyinstance", "13", "11", "70", "soft_lavender", 5, 1],
+      ["Sr", "Strontium", "8", "", "19", "orchid_pink", 5, 2],
+      ["Y", "Yttrium", "84", "", "13", "bubblegum_rose", 5, 3],
+      ["Zr", "Zirconium", "91", "", "41", "dusty_coral", 5, 4],
+      ["To", "Toronto", "108", "", "4", "dusty_coral", 5, 5],
+      ["Mo", "Molybdenum", "97", "", "4", "dusty_coral", 5, 6],
+      ["Mngm", "Manganesium", "2", "", "29", "peach_clay", 5, 7],
+      ["Mz", "Marzipan", "20", "", "40", "peach_clay", 5, 8],
+      ["Rh", "Rhodium", "102", "", "16", "muted_apricot", 5, 9],
+      ["I-Ca", "I-Calcium", "41", "", "21(i)", "buttercream_yellow", 5, 10],
+      ["Au", "Gold", "243", "", "19", "golden_mango", 5, 11],
+      ["Cd", "Cadmium", "111", "", "16", "buttercream_yellow", 5, 12],
+      ["In", "Indium", "114", "", "17", "washed_lime", 5, 13],
+      ["Sn", "Tin", "109", "", "15", "pale_blush", 5, 14],
+      ["Rd", "Red", "3", "", "11", "peach_clay", 5, 15],
+      ["H20", "Water", "1", "", "1", "mint_wash", 5, 16],
+      ["I", "Iodine", "126", "", "44", "mint_wash", 5, 17],
+      ["Xe", "Xenon", "104", "", "15", "grey_lilac", 5, 18],
+      ["Cs", "Caesium", "224", "", "86", "soft_lavender", 6, 1],
+      ["Ba", "Barium", "141", "", "17", "orchid_pink", 6, 2],
+      ["La", "Lanthanum", "147", "", "57", "bubblegum_rose", 6, 3],
+      ["Mu", "Music", "4", "", "4", "bubblegum_rose", 6, 4],
+      ["Dy", "Dysprosium", "11", "", "6", "dusty_coral", 6, 5],
+      ["W", "Tungsten", "104", "", "89", "dusty_coral", 6, 6],
+      ["Sg", "Segnomin (Thomason's Oil)", "312", "", "6", "peach_clay", 6, 7],
+      ["W", "Tungsten", "104", "", "89", "peach_clay", 6, 8],
+      ["Wx", "Wax", "11", "", "27", "muted_apricot", 6, 9],
+      ["Pt", "Platinum", "19", "", "78", "pale_blush", 6, 10],
+      ["fAu", "Fools Gold", "243!", "", "19!", "golden_mango", 6, 11],
+      ["Hg", "Mercury", "101", "", "91", "buttercream_yellow", 6, 12],
+      ["Po", "Podium", "23", "", "12", "buttercream_yellow", 6, 13],
+      ["Pb", "Lead", "17", "", "6", "muted_apricot", 6, 14],
+      ["Bi", "Bismuth", "207", "", "82", "washed_lime", 6, 15],
+      ["Hj", "Henhamjamib", "207", "", "82", "washed_lime", 6, 16],
+      ["G", "Goo", "109", "", "17", "washed_lime", 6, 17],
+      ["Rn", "Radon", "304", "", "1", "heather_purple", 6, 18],
+      ["Fr", "France", "7", "", "77", "grey_lilac", 7, 1],
+      ["Ra", "Radium", "22", "", "9", "orchid_pink", 7, 2],
+      ["Lt", "Light", "60", "", "40", "orchid_pink", 7, 3],
+      ["La", "Lambert", "6", "", "7", "muted_apricot", 8, 4],
+      ["Pr", "Prae-Sodium", "97", "", "4", "muted_apricot", 8, 5],
+      ["Mt", "Malt", "304", "", "7", "muted_apricot", 8, 6],
+      ["Pm", "Promethium", "148", "", "17", "muted_apricot", 8, 7],
+      ["Bu", "Business", "40", "", "19", "muted_apricot", 8, 8],
+      ["Rb", "Rhubarb", "16", "", "21", "dusty_coral", 8, 9],
+      ["Cd", "Custard", "108", "", "63", "buttercream_yellow", 8, 10],
+      ["F", "Fluorine", "19", "", "8", "washed_lime", 8, 11],
+      ["Od", "Odmium", "4", "", "9", "muted_apricot", 8, 12],
+      ["Do", "Docherty", "52", "", "16", "muted_apricot", 8, 13],
+      ["Er", "Erbium", "176", "", "84", "muted_apricot", 8, 14],
+      ["Ro", "Rodeo", "17", "", "76", "muted_apricot", 8, 15],
+      ["Ty", "Thankium", "24", "", "19", "muted_apricot", 8, 16],
+      ["Eu", "Europium", "104", "", "63", "pale_blush", 8, 17],
+      ["Jz", "Jazz", "5", "", "4", "muted_apricot", 9, 4],
+      ["A", "Atom", "0.01", "", "0.001", "pale_blush", 9, 5],
+      ["U", "Uranium", "28", "", "119", "pale_blush", 9, 6],
+      ["Np", "Neptunium", "241", "", "17", "pale_blush", 9, 7],
+      ["Pu", "Plutonium", "231", "", "16", "pale_blush", 9, 8],
+      ["Gu", "Goofinium", "304", "", "30", "muted_apricot", 9, 9],
+      ["Am", "Americium", "20", "", "91", "muted_apricot", 9, 10],
+      ["Cm", "Curium", "246", "", "94", "muted_apricot", 9, 11],
+      ["Te", "Tedium", "5", "", "10", "warm_sandstone", 9, 12],
+      ["Es", "Einsteinium", "21", "", "60", "muted_apricot", 9, 13],
+      ["Wi", "Wine", "19", "", "6", "dusty_mauve", 9, 14],
+      ["Tc", "Technetium", "97", "", "42", "muted_apricot", 9, 15],
+      ["Lu", "Lavender", "104", "", "7", "heather_purple", 9, 16],
+      ["Bf", "Beef", "20", "", "10", "dusty_coral", 9, 17],
+    ];
+
+    const inauthenticDataset = {
+      items: inauthenticRaw.map(([sym, name, n1, n2, n3, cat, period, group]) => ({
+        sym, name, cat, period, group,
+        num: n1,
+        numLeft: n1,
+        numMid: n2,
+        numRight: n3,
+        href: LAB.pageRandomiser.nextOne()
+      })),
+
+      // On the show, categories don't have names.
+      // So let's just use numbers instead.
+      categoryNames: {
+        muted_apricot: "Category 1",
+        heather_purple: "Category 2",
+        soft_lavender: "Category 3",
+        orchid_pink: "Category 4",
+        washed_lime: "Category 5",
+        mint_wash: "Category 6",
+        powdered_teal: "Category 7",
+        grey_lilac: "Category 8",
+        pale_blush: "Category 9",
+        buttercream_yellow: "Category 10",
+        bubblegum_rose: "Category 11",
+        dusty_coral: "Category 12",
+        peach_clay: "Category 13",
+        golden_mango: "Category 14",
+        warm_sandstone: "Category 15",
+        dusty_mauve: "Category 16",
+      }
+    };
+
+    // "Pianistic Table" dataset
+    // Same elements, but each cell is recoloured as a black or white piano key
+    const pianoBlackKeys = new Set([
+      4, 6, 8, 12, 14, 16, 20, 22, 25, 27, 29, 32, 34, 38,
+      40, 43, 45, 47, 50, 52, 56, 72, 75, 77, 79, 82, 84
+    ]);
+
+    const pianisticDataset = {
+      items: baseItems.map(it => ({
+        ...it,
+        cat: pianoBlackKeys.has(it.num) ? 'pianoBlack' : 'pianoWhite'
+      })),
+      categoryNames: {
+        pianoWhite: "White keys",
+        pianoBlack: "Black keys"
+      }
+    };
+
+    // "Futuristic Table" prefixes
+    // Fixed array of 118, indexed by element number, so Hydrogen always becomes "CyberHydrogen"
+    // Most are standard "futuristic" type words, but I can't resist a silly pun every so often
+    const futuristicPrefixes = [
+      "Cyber", "Hyper", "Mega", "Neo", "Pneumatic", "SelfDriving", "Saturday", "Quantum", "Astro",
+      "Demon", "Prae-", "Chrono", "CallMe", "Bionic", "Copyleft", "Pyro", "Nano", "Photonic",
+      "Techno", "I-", "Photo", "Stellar", "Ludwig", "Zeta", "Anime", "Curling", "Sebastian",
+      "Diamond", "Robo", "Zwimmor", "Absolute", "Clement", "Smart", "Gomez", "TrustMe", "Crypto",
+      "Barbed", "Mark", "FiveChildrenAnd", "Nega", "Omni", "Paraceta", "Ini", "Babe", "Rainbow",
+      "London", "Hiho", "Golf", "Auroric", "Digital", "Servo", "PennAnd", "Blind", "Paul",
+      "Julius", "Paddington", "Lunar", "Proxima", "Penta", "Neuro", "Crystal", "Proto", "Trans",
+      "Hypersonic", "Turbo", "Tetra", "Octa", "Dank", "Polymer", "Iso", "Retro", "Holo",
+      "LaPlumeDeMa", "Geographic", "Solar", "Frank", "Electro", "Pentium", "Santi", "Frederic",
+      "Meta", "Cosmic", "Nunayah", "Polar", "Aero", "Dawn", "ViveLa", "Air", "Cracked", "Mecha",
+      "Proactive", "Ura", "Vector", "Phantom", "Middle", "Curious", "Busby", "Robert", "DreiZwei",
+      "Terra", "Epony", "Gobblers", "Friar", "Margaret", "SubOr", "Phanta", "Wild", "Hoverboard",
+      "Astra", "Cryo", "Thermo", "Magneto", "Voltaic", "Plasmic", "Disco", "Beef", "EightNine",
+      "Sensory",
+    ];
+
+    // "Episodic Table" helpers
+    // Compute "today's element" index (with offset for tomorrow)
+    function episodicIndex(offset) {
+      const epoch = Date.UTC(1834, 1, 8);
+      const day = Math.floor((Date.now() - epoch) / 86400000) + (offset || 0);
+      return ((day % 118) + 118) % 118; // Coz there's 118 elements total
+    }
+
+    // Format the date as e.g. "Monday, 4th of May, 2026"
+    function formatEpisodicDate(d) {
+      const days = [
+        'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
+      ];
+      const months = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+      ];
+      const now = d.getDate();
+      const ord = (now % 100 >= 11 && now % 100 <= 13)
+        ? 'th'
+        : ['th', 'st', 'nd', 'rd', 'th', 'th', 'th', 'th', 'th', 'th'][now % 10];
+      const day = days[d.getDay()];
+      const month = months[d.getMonth()];
+      const year = d.getFullYear();
+      return `${day}, ${now}<sup>${ord}</sup> of ${month}, ${year}`;
+    }
+
+    // Modes are declared as one entry here. A mode may define any of:
+    //   title             - text shown in the H1 and page title
+    //   dataset()         - return { items, categoryNames } to swap the whole data source
+    //                       (e.g. demographic, gastronomic, philharmonic, preSocratic)
+    //   transformItem(it) - per-item tweak applied after dataset()
+    //                       (e.g. futuristic adds prefixes, hyperbolic adds "!")
+    //   layout({items})   - return [{item, period, group}, ...] to reposition cells
+    //                       (e.g. alphabetic, demographic, episodic, gastronomic)
+    //   enter() / exit()  - function fired when mode is entered/exited
+    //                       used to make and clear up large changes to the layout
+    //                       (e.g. alphabetic, episodic, preSocratic, realistic)
+    //   placeholders      - set to false to suppress the dashed lanthanide / actinide gap markers
+    //                       (e.g. episodic, inauthentic, philharmonic, preSocratic, realistic)
+    //
+    // For every mode the body gets the class `view-<key>` while it is active.
+    // So pure-CSS modes (achromatic, psychedelic, etc.) need no JS at all.
+    // We can just add CSS rules scoped to that class.
+    //
+    // If adding a new mode here, make sure to add to `MODE_ORDER` too.
+    const MODES = {
+      periodic: {
+        title: 'Periodic Table'
+      },
+
+      achromatic: {
+        title: 'Achromatic Table'
+      },
+
+      acrobatic: {
+        title: 'Acrobatic Table'
+      },
+
+      alphabetic: {
+        title: 'Alphabetic Table',
+        dataset: () => ({
+          items: baseDataset.items,
+          categoryNames: Object.fromEntries(
+            Object.entries(baseDataset.categoryNames)
+              .sort((a, b) => a[1].localeCompare(b[1]))
+          )
+        }),
+        layout: ({ items }) => {
+          const sorted = items.slice().sort((a, b) => a.sym.localeCompare(b.sym));
+          return flowLayout({ items: sorted });
+        }
+      },
+
+      automatic: {
+        title: 'Automatic Table',
+        enter() {
+          const cells = Array.from(document.querySelectorAll('.cell'))
+            .sort((a, b) => Number(a.dataset.num) - Number(b.dataset.num));
+          if (!cells.length) return;
+          let i = 0;
+          let prev = null;
+          const step = () => {
+            if (prev) prev.classList.remove('highlight', 'auto-highlight');
+            const c = cells[i % cells.length];
+            c.classList.add('highlight', 'auto-highlight');
+            prev = c;
+            i++;
+          };
+          step();
+          this._timer = setInterval(step, 1000);
+          this._prev = () => prev;
+        },
+        exit() {
+          clearInterval(this._timer);
+          document.querySelectorAll('.cell.highlight, .cell.auto-highlight').forEach(c =>
+            c.classList.remove('highlight', 'auto-highlight')
+          );
+        }
+      },
+
+      demographic: {
+        title: 'Demographic Table',
+        dataset: () => demographicDataset,
+        layout: flowLayout
+      },
+
+      energetic: {
+        title: 'Energetic Table'
+      },
+
+      enigmatic: {
+        title: 'Enigmatic Table'
+      },
+
+      episodic: {
+        title: 'Episodic Table',
+        placeholders: false,
+        dataset: () => {
+          const item = baseItems[episodicIndex(0)];
+          return {
+            items: [item],
+            categoryNames: { [item.cat]: categoryNames[item.cat] }
+          };
+        },
+        layout: ({ items }) => items.map(it => ({ item: it, period: 1, group: 1 })),
+        enter() {
+          const today = new Date();
+          const tomorrowItem = baseItems[episodicIndex(1)];
+
+          const header = document.createElement('div');
+          header.className = 'episodic-header';
+          header.innerHTML =
+            `<div class="episodic-date">${formatEpisodicDate(today)}</div>` +
+            `<div class="episodic-label">Element of the day</div>`;
+
+          const footer = document.createElement('div');
+          footer.className = 'episodic-footer';
+          footer.textContent =
+            `Stay tuned for tomorrow's element of the day: ${tomorrowItem.name}!`;
+
+          const content = document.getElementById('content');
+          content.insertBefore(header, tableMain);
+          tableMain.parentNode.insertBefore(footer, tableMain.nextSibling);
+        },
+        exit() {
+          document.querySelectorAll('.episodic-header, .episodic-footer')
+            .forEach(el => el.remove());
+        }
+      },
+
+      futuristic: {
+        title: 'Futuristic Table',
+        transformItem: (it) => ({
+          ...it,
+          name: futuristicPrefixes[(it.num - 1) % futuristicPrefixes.length] + it.name
+        })
+      },
+
+      gastronomic: {
+        title: 'Gastronomic Table',
+        dataset: () => gastronomicDataset,
+        layout: flowLayout
+      },
+
+      hellenistic: {
+        title: 'Hellenistic Table',
+        dataset: () => hellenisticDataset
+      },
+
+      hieroglyphic: {
+        title: 'Hieroglyphic Table',
+        dataset: () => hieroglyphicDataset
+      },
+
+      hyperbolic: {
+        title: 'Hyperbolic Table',
+        transformItem: (it) => ({ ...it, sym: it.sym + '!' })
+      },
+
+      inauthentic: {
+        title: 'Inauthentic Table',
+        placeholders: false,
+        dataset: () => inauthenticDataset
+      },
+
+      microscopic: {
+        title: 'Microscopic Table'
+      },
+
+      philharmonic: {
+        title: 'Philharmonic Table',
+        placeholders: false,
+        mainPeriods: 8,
+        columns: 13,
+        dataset: () => philharmonicDataset
+      },
+
+      pianistic: {
+        title: 'Pianistic Table',
+        dataset: () => pianisticDataset
+      },
+
+      pointillistic: {
+        title: 'Pointillistic Table'
+      },
+
+      preSocratic: {
+        title: 'Pre-Socratic Table',
+        dataset: () => preSocraticDataset,
+        placeholders: false,
+        enter() {
+          // Override the default edge-based tooltip placement
+          // Fire/Earth (left column) push the tip leftward
+          // Air/Water (right column) push the tip rightward
+          document.querySelectorAll('.cell').forEach(cell => {
+            cell.classList.remove('tip-right', 'tip-left', 'tip-below');
+            const name = cell.dataset.name;
+            if (name === 'Fire' || name === 'Earth') {
+              cell.classList.add('tip-left');
+            } else if (name === 'Air' || name === 'Water') {
+              cell.classList.add('tip-right');
+            }
+          });
+        }
+      },
+
+      psychedelic: {
+        title: 'Psychedelic Table'
+      },
+
+      realistic: {
+        title: 'Realistic Table',
+        placeholders: false,
+        dataset: () => ({ items: [], categoryNames: {} }),
+        enter() {
+          const a = document.createElement('a');
+          a.href = LAB.pageRandomiser.nextOne();
+          const img = document.createElement('img');
+          img.src = 'table.png';
+          img.alt = 'a literal table, made of wood';
+          a.appendChild(img);
+          tableMain.innerHTML = '';
+          tableLA.innerHTML = '';
+          tableMain.appendChild(a);
+        }
+      },
+    };
+
+    // Order in which the H1 cycles through modes.
+    // These are alphabetic, except for the default 'periodic' which always appears first.
+    const MODE_ORDER = [
+      'periodic',
+      'achromatic',
+      'acrobatic',
+      'alphabetic',
+      'automatic',
+      'demographic',
+      'energetic',
+      'enigmatic',
+      'episodic',
+      'futuristic',
+      'gastronomic',
+      'hellenistic',
+      'hieroglyphic',
+      'hyperbolic',
+      'inauthentic',
+      'microscopic',
+      'philharmonic',
+      'pianistic',
+      'pointillistic',
+      'preSocratic',
+      'psychedelic',
+      'realistic',
+    ];
+
+    // DOM refs
+    const tableMain = document.getElementById('table-main');
+    const tableLA = document.getElementById('table-lanth-actin');
+    const legend = document.getElementById('legend');
+    const h1 = document.querySelector('h1');
+    const navLeft = document.getElementById('nav-left');
+    const navRight = document.getElementById('nav-right');
+
+    // Cell / placeholder / legend builders
+    function makePlaceholder(row, text) {
+      const div = document.createElement('div');
+      div.className = 'placeholder';
+      div.style.gridRow = row;
+      div.style.gridColumn = 3;
+      div.textContent = text;
+      return div;
+    }
+
+    // Create an anchor tag cell for an element
+    function makeCell(el, period, group, mainPeriods = 7, columns = 18) {
+      const a = document.createElement('a');
+      a.dataset.name = el.name;
+
+      // `cat` may be a single string or an array of strings, so a cell can belong to several
+      // categories at once. e.g. Pre-Socratic "Fire" is both "hot" and "dry".
+      // Each category becomes a `cat-X` class and is also stored space-separated in `data-cats`,
+      // so the legend hover handler can match cells by any of their categories.
+      // Only used in the pre-Socratic view at the moment, but I might add more table modes later.
+      const cats = Array.isArray(el.cat) ? el.cat : [el.cat];
+      a.className = 'cell ' + cats.map(c => `cat-${c}`).join(' ');
+      a.dataset.cats = cats.join(' ');
+      a.dataset.num = el.num;
+      a.href = el.href;
+
+      const hasMultiNum = el.numMid !== undefined || el.numRight !== undefined;
+      const showNum = el.showNum !== false;
+      const midSpan = (el.numMid !== undefined && el.numMid !== '')
+        ? `<span class="num-mid">${el.numMid}</span>`
+        : '';
+      const numHtml = !showNum
+        ? '<div class="num"></div>'
+        : hasMultiNum
+          ? `<div class="num num-row">
+             <span class="num-left">${el.numLeft || ''}</span>
+             ${midSpan}
+             <span class="num-right">${el.numRight || ''}</span>
+           </div>`
+          : `<div class="num">${el.num}</div>`;
+      const tipNumLines = hasMultiNum
+        ? [el.numLeft, el.numMid, el.numRight]
+          .filter(n => n !== '' && n !== undefined && n !== null)
+          .map(n => `<div>${n}</div>`)
+          .join('')
+        : '';
+      const massHtml = (el.mass) ? `${el.massLabel || 'Mass'}: ${el.mass}<br>` : '';
+      const tipHtml = hasMultiNum
+        ? `<b>${el.name}</b> &middot; ${el.sym}${tipNumLines}`
+        : `<b>${el.name}</b> &middot; ${el.sym}${showNum ? ` &middot; ${el.num}` : ''}<br>
+           ${massHtml}
+           ${el.conf}`;
+
+      a.innerHTML = `
+        ${numHtml}
+        <div class="sym">${el.sym}</div>
+        <div class="name">${el.name}</div>
+        <div class="tip">
+          ${tipHtml}
+        </div>
+      `;
+
+      // Tooltip edge handling based on rendered position
+      if (group <= 2) {
+        a.classList.add('tip-right');
+      } else if (group >= columns - 1) {
+        a.classList.add('tip-left')
+      } else if (period <= 3) {
+        a.classList.add('tip-below');
+      };
+
+      a.style.gridRow = period <= mainPeriods ? period : period - mainPeriods;
+      a.style.gridColumn = group;
+      return a;
+    }
+
+    function clearTables(showPlaceholders) {
+      tableMain.innerHTML = '';
+      tableLA.innerHTML = '';
+      if (showPlaceholders) {
+        tableMain.appendChild(makePlaceholder(6, '57 - 71'));
+        tableMain.appendChild(makePlaceholder(7, '89 - 103'));
+      }
+    }
+
+    function renderLegend(cats) {
+      legend.innerHTML = '';
+      Object.entries(cats).forEach(([key, label]) => {
+        const item = document.createElement('div');
+        item.className = 'legend-item';
+        item.dataset.cat = key;
+        item.innerHTML = `<span class="swatch cat-${key}"></span>${label}`;
+        legend.appendChild(item);
+      });
+    }
+
+    // Mode pipeline: dataset => per-item transform => layout => DOM
+    function renderMode(mode) {
+      const source = mode.dataset ? mode.dataset() : baseDataset;
+      const items = mode.transformItem
+        ? source.items.map(mode.transformItem)
+        : source.items;
+      const placed = (mode.layout || defaultLayout)({ items });
+
+      clearTables(mode.placeholders !== false);
+      const mainPeriods = mode.mainPeriods || 7;
+      const columns = mode.columns || 18;
+      placed.forEach(({ item, period, group }) => {
+        const cell = makeCell(item, period, group, mainPeriods, columns);
+        if (period <= mainPeriods) tableMain.appendChild(cell);
+        else tableLA.appendChild(cell);
+      });
+      renderLegend(source.categoryNames);
+    }
+
+    // When a legend item is hovered, highlight all cells of that category.
+    // Delegated on the legend container so it survives re-renders.
+    function setHighlight(cat, on) {
+      // `~=` matches whitespace-separated tokens, so a cell with
+      // `data-cats="hot dry"` is highlighted by either "hot" or "dry"
+      document.querySelectorAll(`.cell[data-cats~="${cat}"]`).forEach(c => {
+        c.classList.toggle('highlight', on);
+      });
+    }
+    legend.addEventListener('mouseover', e => {
+      const item = e.target.closest('.legend-item');
+      if (item) setHighlight(item.dataset.cat, true);
+    });
+    legend.addEventListener('mouseout', e => {
+      const item = e.target.closest('.legend-item');
+      if (item) setHighlight(item.dataset.cat, false);
+    });
+
+    // Mode switching
+    let activeKey = null;
+    let modeIdx = 0;
+
+    function setMode(key) {
+      const mode = MODES[key];
+      if (!mode) return;
+
+      if (activeKey) {
+        MODES[activeKey].exit && MODES[activeKey].exit();
+        document.body.classList.remove(`view-${activeKey}`);
+      }
+      activeKey = key;
+      modeIdx = MODE_ORDER.indexOf(key);
+      document.body.classList.add(`view-${key}`);
+      h1.textContent = mode.title;
+      document.title = mode.title;
+      renderMode(mode);
+      mode.enter && mode.enter();
+
+      const newHash = '#' + modeToHash(key);
+      if (location.hash !== newHash) {
+        history.replaceState(null, '', newHash);
+      }
+    }
+
+    // Arrow keys, WASD keys, HJKL keys
+    const LEFT_OR_DOWN = new Set(['ArrowLeft', 'ArrowDown', 'h', 'j', 'a', 's']);
+    const RIGHT_OR_UP = new Set(['ArrowRight', 'ArrowUp', 'k', 'l', 'd', 'w']);
+    function keyLeftOrDown(key) { return LEFT_OR_DOWN.has(key); }
+    function keyRightOrUp(key) { return RIGHT_OR_UP.has(key); }
+
+    function goToPrevMode() {
+      modeIdx = (modeIdx - 1 + MODE_ORDER.length) % MODE_ORDER.length;
+      setMode(MODE_ORDER[modeIdx]);
+    }
+
+    function goToNextMode() {
+      modeIdx = (modeIdx + 1) % MODE_ORDER.length;
+      setMode(MODE_ORDER[modeIdx]);
+    }
+
+    navLeft.addEventListener('click', goToPrevMode);
+    navRight.addEventListener('click', goToNextMode);
+
+    document.addEventListener('keydown', (e) => {
+      if (keyLeftOrDown(e.key)) {
+        e.preventDefault();
+        goToPrevMode();
+
+      } else if (keyRightOrUp(e.key)) {
+        e.preventDefault();
+        goToNextMode();
+      }
+    });
+
+    // Hash routing, accepts kebab-case or concatenated lowercase.
+    // e.g. `MODES['preSocratic']` can be accessed by "#pre-socratic" or "#presocratic"
+    function modeToHash(key) {
+      return key.replace(/([A-Z])/g, '-$1').toLowerCase();
+    }
+
+    function hashToModeKey(hash) {
+      const h = (hash || '').replace(/^#/, '').toLowerCase();
+      if (!h) return null;
+      return MODE_ORDER.find(k =>
+        modeToHash(k) === h || k.toLowerCase() === h
+      );
+    }
+
+    window.addEventListener('hashchange', () => {
+      const key = hashToModeKey(location.hash);
+      if (key && key !== activeKey) setMode(key);
+    });
+
+    // Initial render, honour the URL hash if it names a known mode
+    const initialKey = hashToModeKey(location.hash) || MODE_ORDER[0];
+    setMode(initialKey);
+
+  </script>
+</body>
+
+</html>

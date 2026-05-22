@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Blend Difference">
+  <title>Blend Difference</title>
+  <style>
+    body {
+      background: #000000;
+      margin: 0;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    main {
+      overflow: hidden;
+      position: fixed;
+      inset: 0;
+    }
+
+    .shape {
+      position: absolute;
+      mix-blend-mode: difference;
+      border: 2px solid #ffffff;
+      cursor: pointer;
+      text-decoration: none;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: transform 0.3s;
+    }
+
+    .shape:hover {
+      border-width: 40px;
+      z-index: 100;
+    }
+  </style>
+</head>
+
+<body>
+  <main id="main"></main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('blend-difference');
+
+    const main = document.getElementById('main');
+    const colours = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'];
+
+    // This looks good on my big wide laptop.
+    // But it needs to also look good on small sizes.
+    const H = window.visualViewport.height;
+    const W = window.visualViewport.width;
+    const BASE_VIEWPORT_WIDTH = 2400;
+    const BASE_VIEWPORT_HEIGHT = 960;
+    const BASE_INITIAL_SHAPE_SPAWN_COUNT = 1500;
+    const INITIAL_SHAPE_SPAWN_COUNT = Math.max(
+      1,
+      Math.round(
+        BASE_INITIAL_SHAPE_SPAWN_COUNT *
+        ((W * H) / (BASE_VIEWPORT_WIDTH * BASE_VIEWPORT_HEIGHT))
+      )
+    );
+
+    function init(count) {
+      for (let i = 0; i < count; i++) {
+        const shape = document.createElement('a');
+        shape.className = 'shape';
+        shape.href = LAB.pageRandomiser.nextOne();
+
+        const size = LAB.randInt(100, 300);
+        shape.style.width = size + 'px';
+        shape.style.height = size + 'px';
+
+        const top = LAB.randInt(-size, H);
+        const left = LAB.randInt(-size, W);
+        shape.style.top = top + 'px';
+        shape.style.left = left + 'px';
+
+        // Some are circles, some are squares
+        if (LAB.chance(0.5)) {
+          shape.style.borderRadius = '50%';
+        }
+
+        const rotation = LAB.randInt(0, 360);
+        shape.style.transform = `rotate(${rotation}deg)`;
+        shape.style.backgroundColor = LAB.sample(colours);
+
+        main.appendChild(shape);
+      }
+    }
+
+    // Spawn extra shapes on click or keydown
+    const EXTRA_SHAPE_SPAWN_COUNT = 50;
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init(EXTRA_SHAPE_SPAWN_COUNT);
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, () => {
+        init(EXTRA_SHAPE_SPAWN_COUNT);
+      });
+    });
+
+    init(INITIAL_SHAPE_SPAWN_COUNT);
+
+  </script>
+</body>
+
+</html>

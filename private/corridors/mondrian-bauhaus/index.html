@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+Design inspiration from Piet Mondrian, and the Bauhaus, who were inspired by him.
+It recursively subdivides itself into a sort of a patterned quilt thing.
+Lots of basic colours and standard shapes.
+Pretty simple, but the effect is good!
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Less is more, more or less">
+  <title>Mondrian Bauhaus</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #ece6d6;
+    }
+
+    #main {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .fragment {
+      position: absolute;
+      display: block;
+      text-decoration: none;
+      border: 4px solid #111111;
+      transition: filter 0.15s ease;
+      overflow: hidden;
+    }
+
+    .fragment:hover {
+      filter: brightness(1.15) saturate(1.2);
+    }
+
+    .shape-dot,
+    .shape-quarter {
+      position: absolute;
+      pointer-events: none;
+    }
+
+    .shape-dot {
+      background: #111111;
+      border-radius: 50%;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .shape-quarter {
+      left: 0;
+      bottom: 0;
+      background: var(--accent);
+      border-top-right-radius: 100%;
+    }
+
+    .fragment.bar::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(90deg, transparent 40%, #111111 40%, #111111 60%, transparent 60%);
+    }
+
+    .fragment.diag::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(45deg, transparent 48%, #111111 48%, #111111 52%, transparent 52%);
+    }
+  </style>
+</head>
+
+<body>
+  <main id="main"></main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('mondrian-bauhaus');
+
+    const main = document.getElementById('main');
+
+    const INITIAL_DEPTH = 6;
+    const MIN_FRAGMENT_SIZE = 80;
+    const EARLY_STOP_CHANCE = 0.18;
+    const HORIZONTAL_SPLIT_CHANCE_WIDE = 0.7;
+    const HORIZONTAL_SPLIT_CHANCE_TALL = 0.3;
+    const SPLIT_RATIO_MIN = 0.3;
+    const SPLIT_RATIO_MAX = 0.7;
+
+    // Avoid quilts that are visually too sparse (just one or two big blocks)
+    const MIN_SEGMENTS = 12;
+    const MAX_BUILD_ATTEMPTS = 25;
+
+    // Crisp circular shape sizing (proportion of min(width, height))
+    const DOT_DIAMETER_RATIO = 0.22;
+    const QUARTER_RADIUS_RATIO = 0.7;
+
+    // Some repeated colours, so that they appear more frequently
+    const PALETTE = [
+      '#1c5dcf', '#1c5dcf',
+      '#3da35d',
+      '#d93b3b',
+      '#f08c20',
+      '#f4f1e6', '#f4f1e6', '#f4f1e6', '#f4f1e6',
+      '#ffd23f', '#ffd23f',
+    ];
+    const ACCENTS = ['#1c5dcf', '#3da35d', '#d93b3b', '#f08c20', '#ffd23f'];
+    const PATTERNS = ['', '', '', 'dot', 'bar', 'quarter', 'diag'];
+
+    // Recursively split the rect into smaller fragments
+    function split(rect, depth) {
+      if (depth <= 0 || rect.w < MIN_FRAGMENT_SIZE || rect.h < MIN_FRAGMENT_SIZE || LAB.chance(EARLY_STOP_CHANCE)) {
+        place(rect);
+        return;
+      }
+
+      const horiz = (rect.w >= rect.h) ? LAB.chance(HORIZONTAL_SPLIT_CHANCE_WIDE) : LAB.chance(HORIZONTAL_SPLIT_CHANCE_TALL);
+      const t = LAB.rand(SPLIT_RATIO_MIN, SPLIT_RATIO_MAX);
+
+      if (horiz) {
+        const cut = Math.round(rect.w * t);
+        split({ x: rect.x, y: rect.y, w: cut, h: rect.h }, depth - 1);
+        split({ x: rect.x + cut, y: rect.y, w: rect.w - cut, h: rect.h }, depth - 1);
+      } else {
+        const cut = Math.round(rect.h * t);
+        split({ x: rect.x, y: rect.y, w: rect.w, h: cut }, depth - 1);
+        split({ x: rect.x, y: rect.y + cut, w: rect.w, h: rect.h - cut }, depth - 1);
+      }
+    }
+
+    function place(rect) {
+      const a = document.createElement('a');
+      a.className = 'fragment';
+      const pat = LAB.sample(PATTERNS);
+      if (pat) a.classList.add(pat);
+      a.style.left = rect.x + 'px';
+      a.style.top = rect.y + 'px';
+      a.style.width = rect.w + 'px';
+      a.style.height = rect.h + 'px';
+      a.style.background = LAB.sample(PALETTE);
+      a.style.setProperty('--accent', LAB.sample(ACCENTS));
+
+      // Use real DOM elements for circles so their edges stay crisp at large sizes
+      // Previously I was using CSS radial-gradients, which get very blurry when big
+      const minSide = Math.min(rect.w, rect.h);
+      if (pat === 'dot') {
+        const dot = document.createElement('span');
+        dot.className = 'shape-dot';
+        const d = Math.round(minSide * DOT_DIAMETER_RATIO);
+        dot.style.width = d + 'px';
+        dot.style.height = d + 'px';
+        a.appendChild(dot);
+      } else if (pat === 'quarter') {
+        const q = document.createElement('span');
+        q.className = 'shape-quarter';
+        const r = Math.round(minSide * QUARTER_RADIUS_RATIO);
+        q.style.width = r + 'px';
+        q.style.height = r + 'px';
+        a.appendChild(q);
+      }
+
+      a.href = LAB.pageRandomiser.nextOne();
+      main.appendChild(a);
+    }
+
+    function build() {
+      let attempts = 0;
+      do {
+        main.innerHTML = '';
+        split({ x: 0, y: 0, w: window.innerWidth, h: window.innerHeight }, INITIAL_DEPTH);
+        attempts++;
+      } while (main.children.length < MIN_SEGMENTS && attempts < MAX_BUILD_ATTEMPTS);
+    }
+
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(build, 200);
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, build);
+    });
+
+    build();
+
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Edmund Capillary">
+  <title>Capillary Clinton</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      background-color: #06060a;
+      overflow: hidden;
+      font-family: monospace;
+      cursor: crosshair;
+    }
+
+    canvas {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    #anchors {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .leaf {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      pointer-events: auto;
+      transform: translate(-50%, -50%);
+      background: radial-gradient(circle, #ffffff 0%, #ffffff 25%, transparent 65%);
+      box-shadow: 0 0 14px currentColor;
+      opacity: 0;
+      animation: bloom 0.6s forwards;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.5s ease-out;
+    }
+
+    @keyframes bloom {
+      from {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.2);
+      }
+
+      to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+      }
+    }
+
+    .leaf:hover {
+      transform: translate(-50%, -50%) scale(2.2);
+      box-shadow: 0 0 30px currentColor, 0 0 60px currentColor;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="canvas"></canvas>
+  <div id="anchors"></div>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('capillary-blooms');
+
+    const anchors = document.getElementById('anchors');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    let W, H, SCALE;
+    const PALETTES = [
+      ['#ff6ec7', '#ff2a88', '#dddddd'],
+      ['#77ccff', '#00aaff', '#dddddd'],
+      ['#ffaa44', '#ff5500', '#dddddd'],
+      ['#aaffaa', '#22dd22', '#dddddd'],
+      ['#cc99ff', '#7733ff', '#dddddd'],
+      ['#dddddd', '#888888', '#555555'],
+    ];
+
+    // Clear and reset the canvas, reset the anchor leaves
+    function init() {
+      anchors.innerHTML = '';
+      W = canvas.width = window.innerWidth;
+      H = canvas.height = window.innerHeight;
+      ctx.fillStyle = '#06060a';
+      ctx.fillRect(0, 0, W, H);
+
+      // Scale tendril sizes relative to a reference viewport of 960px
+      // Use the smaller of width/height so it works on mobile too
+      SCALE = Math.min(W, H) / 960;
+    }
+
+    // Make a bloom at the given coordinates
+    function bloom(cx, cy) {
+      fadeLeaves();
+      const palette = LAB.sample(PALETTES);
+      const armCount = LAB.randInt(4, 7);
+      ctx.save();
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.shadowBlur = 14;
+      for (let a = 0; a < armCount; a++) {
+        const baseAngle = (a / armCount) * Math.PI * 2 + LAB.rand(-0.2, 0.2);
+        drawTendril(cx, cy, baseAngle, 0, palette);
+      }
+      ctx.restore();
+    }
+
+    function drawTendril(x, y, angle, depth, palette) {
+      if (depth > 6) return;
+      const length = LAB.rand(40, 90) * SCALE * (1 - depth * 0.1);
+      const nx = x + Math.cos(angle) * length;
+      const ny = y + Math.sin(angle) * length;
+      const colour = palette[depth % palette.length];
+
+      ctx.strokeStyle = colour;
+      ctx.shadowColor = colour;
+      ctx.lineWidth = Math.max(0.6, 3.5 - depth * 0.5);
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      const cpx = (x + nx) / 2 + LAB.rand(-30, 30) * SCALE;
+      const cpy = (y + ny) / 2 + LAB.rand(-30, 30) * SCALE;
+      ctx.quadraticCurveTo(cpx, cpy, nx, ny);
+      ctx.stroke();
+
+      // Branch
+      if (LAB.chance(0.85)) {
+        drawTendril(nx, ny, angle + LAB.rand(0.2, 0.7), depth + 1, palette);
+      }
+      if (LAB.chance(0.85)) {
+        drawTendril(nx, ny, angle - LAB.rand(0.2, 0.7), depth + 1, palette);
+      }
+
+      // Leaf at endpoint occasionally
+      if (depth >= 6 && LAB.chance(0.35)) {
+        placeLeaf(nx, ny, colour);
+      }
+    }
+
+    // The "leaves" are the links that the user can click on
+    // They are actually just white circles
+    function placeLeaf(x, y, colour) {
+      const a = document.createElement('a');
+      a.className = 'leaf';
+      a.href = LAB.pageRandomiser.nextOne();
+      a.style.left = x + 'px';
+      a.style.top = y + 'px';
+      a.style.color = colour;
+      anchors.appendChild(a);
+    }
+
+    // Make the leaves fade out over 500 ms, then remove them
+    function fadeLeaves() {
+      anchors.querySelectorAll('.leaf').forEach((leaf) => {
+        const comp = getComputedStyle(leaf);
+        leaf.style.opacity = comp.opacity;
+        leaf.style.transform = comp.transform;
+        leaf.style.animation = 'none';
+
+        // Force reflow
+        void leaf.offsetWidth;
+
+        leaf.style.transition = 'opacity 0.5s ease-out';
+        leaf.style.opacity = '0';
+        setTimeout(() => leaf.remove(), 500);
+      });
+    }
+
+    // Bloom in the centre of the page
+    function centralBloom() {
+      bloom(W / 2, H / 2);
+    }
+
+    window.addEventListener('resize', init);
+
+    document.addEventListener('click', (e) => {
+      if (e.target.closest('a')) return;
+      bloom(e.clientX, e.clientY);
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, centralBloom);
+    });
+
+    init();
+    centralBloom();
+
+  </script>
+</body>
+
+</html>

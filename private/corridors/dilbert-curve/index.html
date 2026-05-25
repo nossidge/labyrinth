@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+In case you have no idea what's going on here:
+https://en.wikipedia.org/wiki/Hilbert_curve
+https://en.wikipedia.org/wiki/Dilbert
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="posted by plannedchaos at 11:09 AM on April 15, 2011">
+  <title>Hilbert Curve / Dilbert Scourge</title>
+  <style>
+    :root {
+      --bg: #c63025;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      background-color: var(--bg);
+      overflow: hidden;
+      font-family: serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    main {
+      position: relative;
+      width: min(90vw, 90vh);
+      height: min(90vw, 90vh);
+    }
+
+    #dilbert {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      user-select: none;
+      -webkit-user-drag: none;
+      pointer-events: none;
+    }
+
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <main id="main">
+    <img id="dilbert" src="dilbert.jpg" alt="Dilbert, the dork from the comic strip">
+    <a href="../index.html">
+      <canvas id="path"></canvas>
+    </a>
+  </main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('dilbert-curve');
+
+    const main = document.getElementById('main');
+    const canvas = document.getElementById('path');
+    const ctx = canvas.getContext('2d');
+
+    const CANVAS_BG = getComputedStyle(document.documentElement).getPropertyValue('--bg');
+    const SEGMENTS_PER_FRAME = 1;
+
+    // The line width needs to look good on all screen widths.
+    // Linearly interpolate the line width between two reference points:
+    //   screen width 960 (canvas ~864) -> lineWidth 22
+    //   screen width 360 (canvas ~324) -> lineWidth  6
+    let lineWidth = 22;
+    function computeLineWidth() {
+      const minCanvas = 324, maxCanvas = 864;
+      const minLine = 6, maxLine = 22;
+      const t = Math.max(0, Math.min(1,
+        (canvas.width - minCanvas) / (maxCanvas - minCanvas)));
+      lineWidth = minLine + t * (maxLine - minLine);
+    }
+
+    function fillOverlay() {
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.fillStyle = CANVAS_BG;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    let points = [];
+
+    function hilbert(order) {
+      const n = 1 << order;
+      const total = n * n;
+      const pts = [];
+      for (let d = 0; d < total; d++) {
+        let rx, ry, t = d;
+        let x = 0, y = 0;
+        for (let s = 1; s < n; s <<= 1) {
+          rx = 1 & (t >> 1);
+          ry = 1 & (t ^ rx);
+          if (ry === 0) {
+            if (rx === 1) {
+              x = s - 1 - x;
+              y = s - 1 - y;
+            }
+            [x, y] = [y, x];
+          }
+          x += s * rx;
+          y += s * ry;
+          t >>= 2;
+        }
+        pts.push([x, y]);
+      }
+      return { pts, n };
+    }
+
+    function generate() {
+      const order = 5;
+      const { pts, n } = hilbert(order);
+      const margin = 30;
+      const cell = (canvas.width - margin * 2) / (n - 1);
+      points = pts.map(([x, y]) => [margin + x * cell, margin + y * cell]);
+      drawing = 0;
+      fillOverlay();
+    }
+
+    let drawing = 0;
+    function draw() {
+      if (drawing < points.length - 1) {
+        const target = Math.min(points.length - 1, drawing + SEGMENTS_PER_FRAME);
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.lineWidth = lineWidth;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.strokeStyle = 'rgba(0, 0, 0, 1)';
+        for (let i = drawing; i < target; i++) {
+          ctx.beginPath();
+          ctx.moveTo(points[i][0], points[i][1]);
+          ctx.lineTo(points[i + 1][0], points[i + 1][1]);
+          ctx.stroke();
+        }
+        drawing = target;
+      }
+
+      // I was tempted to put this line within the above conditional. But that messes
+      // up if the user resizes. So even though there's no work to do on most animation
+      // frames after Dilbert is fully drawn, I'm going to keep this here.
+      requestAnimationFrame(draw);
+    }
+
+    function resize() {
+      const s = main.clientWidth;
+      canvas.width = s;
+      canvas.height = s;
+      computeLineWidth();
+      generate();
+    }
+
+    window.addEventListener('resize', resize);
+    resize();
+    draw();
+
+  </script>
+</body>
+
+</html>

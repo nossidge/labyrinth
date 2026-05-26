@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+https://twitter.com/Callicutt5John/status/2054076360394482153
+Nancy comic strip 1952-01-17 by Ernie Bushmiller
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Sluggo Is Lit">
+  <title>Sluggo tie</title>
+  <style>
+    :root {
+      --cell-w: 181;
+      --cell-h: 220;
+      --cols: 1;
+      --rows: 1;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+      background-color: white;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #image-grid {
+      display: grid;
+      grid-template-columns: repeat(var(--cols), var(--cell-w));
+      grid-template-rows: repeat(var(--rows), var(--cell-h));
+      margin: 0 auto;
+    }
+
+    #image-grid img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    a:hover img {
+      filter: invert(1);
+    }
+  </style>
+</head>
+
+<body>
+  <div id="image-grid">
+    <a href="../index.html">
+      <img src="sluggo-tie.jpg">
+    </a>
+  </div>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('sluggo-tie');
+
+    const imageGrid = document.getElementById('image-grid');
+
+    const zoom = 0.8;
+    const cellSizeW = 181 * zoom;
+    const cellSizeH = 220 * zoom;
+    const maxPaddingW = 340;
+    const maxPaddingH = 140;
+
+    // Reference values for screen size 2460x960
+    // At mobile portrait dimensions, shrink to 1/10 of these
+    const refW = 2460;
+    const refH = 960;
+    const mobileW = 480;
+    const mobileH = 480;
+
+    function lerpPadding(size, mobileSize, refSize, maxPadding) {
+      const k = Math.max(0, Math.min(1, (size - mobileSize) / (refSize - mobileSize)));
+      return maxPadding / 10 + (maxPadding * 9 / 10) * k;
+    }
+
+    function init() {
+      imageGrid.innerHTML = '';
+
+      const paddingW = lerpPadding(window.innerWidth, mobileW, refW, maxPaddingW);
+      const paddingH = lerpPadding(window.innerHeight, mobileH, refH, maxPaddingH);
+
+      const cols = Math.max(1, Math.floor((window.innerWidth - paddingW * 2) / cellSizeW));
+      const rows = Math.max(1, Math.floor((window.innerHeight - paddingH * 2) / cellSizeH));
+
+      document.documentElement.style.setProperty('--cell-w', cellSizeW + 'px');
+      document.documentElement.style.setProperty('--cell-h', cellSizeH + 'px');
+      document.documentElement.style.setProperty('--cols', cols);
+      document.documentElement.style.setProperty('--rows', rows);
+
+      for (let i = 0; i < cols * rows; i++) {
+        const a = document.createElement('a');
+        a.href = LAB.pageRandomiser.nextOne();
+
+        const img = document.createElement('img');
+        img.src = 'sluggo-tie.jpg';
+
+        a.appendChild(img);
+        imageGrid.appendChild(a);
+      }
+    }
+
+    window.addEventListener('resize', init);
+    init();
+
+  </script>
+</body>
+
+</html>

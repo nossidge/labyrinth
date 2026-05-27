@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+I was initially trying to build cathedral spires.
+But I settled on a dome shape and quite liked it.
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="There are domes everywhere for those with the eyes to see">
+  <title>Vespers</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body,
+    html {
+      width: 100%;
+      height: 100%;
+      background-color: #07070b;
+      color: #c8c0a8;
+      font-family: "Courier New", Courier, monospace;
+      overflow: hidden;
+    }
+
+    #cathedral {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      gap: 6px;
+      padding-bottom: 0;
+    }
+
+    .pillar {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      line-height: 1.0;
+      font-size: 18px;
+      letter-spacing: 1px;
+      color: #5a5440;
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+
+    .pillar:hover {
+      color: #fff2b8;
+      text-shadow: 0 0 6px #ffe69a, 0 0 14px #ffb347;
+    }
+
+    .pillar .cap {
+      color: #c8c0a8;
+      margin-bottom: 4px;
+    }
+
+    .pillar .window {
+      color: #ff77a0;
+      background-color: rgba(255, 119, 160, 0.08);
+      padding: 1px 2px;
+      margin: 2px 0;
+      text-shadow: 0 0 8px #ff77a0;
+    }
+
+    .pillar:hover .window {
+      color: #ffffff;
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1000;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.28) 50%);
+      background-size: 100% 3px;
+    }
+
+    #vignette {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 999;
+      background: radial-gradient(ellipse at center, transparent 30%, rgba(0, 0, 0, 0.85) 100%);
+    }
+  </style>
+</head>
+
+<body>
+  <div id="cathedral"></div>
+  <div id="vignette"></div>
+  <div id="crt-scanlines"></div>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('cathedral-dome');
+    const cathedral = document.getElementById('cathedral');
+
+    const SHAFT_CHARS = '|│║▌▐▕▏┃┊┋';
+    const CAP_CHARS = '╳✦✧✛✠✜✟†‡✚';
+    const WIN_CHARS = '◇◈◊✦◉◎❖';
+
+    function init() {
+      cathedral.innerHTML = '';
+      const w = window.innerWidth;
+      const pillarCount = Math.max(13, Math.floor(w / 36));
+      const mid = (pillarCount - 1) / 2;
+
+      for (let i = 0; i < pillarCount; i++) {
+        // Arched like a dome, so tallest in the middle
+        const dist = Math.abs(i - mid) / mid;
+        const arch = Math.cos(dist * Math.PI / 2);
+        const height = Math.floor(arch * (window.innerHeight - 60)) + 60;
+        const rows = Math.floor(height / 20);
+
+        const pillar = document.createElement('a');
+        pillar.className = 'pillar';
+        pillar.href = LAB.pageRandomiser.nextOne();
+
+        const shaftCh = LAB.sample(SHAFT_CHARS.split(''));
+        const cap = document.createElement('span');
+        cap.className = 'cap';
+        cap.innerText = LAB.sample(CAP_CHARS.split(''));
+        pillar.appendChild(cap);
+
+        // Add windows at random rows
+        for (let r = 0; r < rows; r++) {
+          const span = document.createElement('span');
+          if (LAB.chance(0.08) && r > 0 && r < rows - 1) {
+            span.className = 'window';
+            span.innerText = LAB.sample(WIN_CHARS.split(''));
+          } else {
+            span.innerText = shaftCh;
+          }
+          pillar.appendChild(span);
+        }
+
+        cathedral.appendChild(pillar);
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    window.addEventListener('resize', init);
+
+    init();
+
+  </script>
+</body>
+
+</html>

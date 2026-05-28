@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="bones are the skeletons' money">
+  <title>don't ever let me go</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 30px;
+      background: #f4ecd8;
+      color: #1a1a1a;
+      font-family: serif;
+      min-height: 100vh;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow-x: hidden;
+    }
+
+    #main {
+      font-size: 36px;
+      line-height: 1.05;
+      text-align: justify;
+      text-justify: inter-character;
+      width: 100%;
+      max-width: 900px;
+      margin: 0 auto;
+      word-spacing: 2px;
+    }
+
+    .tile {
+      display: inline-block;
+      color: #1a1a1a;
+      transition: color .25s, transform .25s;
+    }
+
+    a.tile {
+      color: #aa0a0a;
+      text-decoration: none;
+    }
+
+    a.tile:hover {
+      color: #f4ecd8;
+      background: #aa0a0a;
+    }
+  </style>
+</head>
+
+<body>
+  <main id="main"></main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('dominoes');
+
+    // Unicode domino tiles run from U+1F031 to U+1F093
+    // 0x1F062 looks bad though (too dark) so skip it
+    const dominoes = [];
+    for (let cp = 0x1F031; cp <= 0x1F093; cp++) {
+      if (cp == 0x1F062) continue;
+      dominoes.push(String.fromCodePoint(cp));
+    }
+
+    const main = document.getElementById('main');
+    const total = 350;
+    for (let i = 0; i < total; i++) {
+      const char = LAB.sample(dominoes);
+      let tile;
+      if (LAB.chance(0.18)) {
+        tile = document.createElement('a');
+        tile.href = LAB.pageRandomiser.nextOne();
+      } else {
+        tile = document.createElement('span');
+      }
+      tile.className = 'tile';
+      tile.textContent = char;
+      main.appendChild(tile);
+    }
+
+  </script>
+</body>
+
+</html>

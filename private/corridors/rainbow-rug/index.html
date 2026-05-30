@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="colourful rug pull">
+  <title>Rainbow rug</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #111111;
+    }
+
+    #main {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: grid;
+    }
+
+    .cell {
+      display: block;
+      text-decoration: none;
+      width: var(--cell-size);
+      height: var(--cell-size);
+      transition: background-color 0.15s ease;
+    }
+
+    .cell:hover {
+      background-color: #ffffff !important;
+      z-index: 10;
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 100;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 255, 0, 0.03));
+      background-size: 100% 2px, 3px 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+  <main id="main"></main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('rainbow-rug');
+
+    const main = document.getElementById('main');
+    const COLS = 16;
+    const ROWS = Math.ceil(COLS * 0.75);
+    const cells = [];
+
+    for (let row = 0; row < ROWS; row++) {
+      for (let col = 0; col < COLS; col++) {
+        const a = document.createElement('a');
+        a.href = LAB.pageRandomiser.nextOne();
+        a.className = 'cell';
+        cells.push({ el: a, row: row, col: col });
+        main.appendChild(a);
+      }
+    }
+
+    function updateGridSize() {
+      const maxW = window.innerWidth * 0.8;
+      const maxH = window.innerHeight * 0.8;
+      const cellSize = Math.floor(Math.min(maxW / COLS, maxH / ROWS));
+      document.documentElement.style.setProperty('--cell-size', cellSize + 'px');
+      main.style.gridTemplateColumns = 'repeat(' + COLS + ', ' + cellSize + 'px)';
+      main.style.gridTemplateRows = 'repeat(' + ROWS + ', ' + cellSize + 'px)';
+    }
+
+    updateGridSize();
+    window.addEventListener('resize', updateGridSize);
+
+    function animate(time) {
+      const t = time * 0.001;
+
+      for (let i = 0; i < cells.length; i++) {
+        const c = cells[i];
+        const angle = Math.sin(c.col * 0.5 + c.row * 0.3 + t * 0.8) * 45;
+        const hue = (c.row * 30 + c.col * 15 + t * 20) % 360;
+        c.el.style.transform = 'rotate(' + angle + 'deg)';
+        c.el.style.backgroundColor = 'hsl(' + hue + ', 85%, 50%)';
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    requestAnimationFrame(animate);
+
+  </script>
+</body>
+
+</html>

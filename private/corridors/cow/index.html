@@ -36,7 +36,7 @@ https://www.istockphoto.com/illustrations/cow-print-background
       color: inherit;
     }
 
-    #central-cow {
+    #cow {
       position: absolute;
       top: 50%;
       left: 50%;
@@ -48,17 +48,15 @@ https://www.istockphoto.com/illustrations/cow-print-background
       user-select: none;
     }
 
-    #central-cow:hover {
+    #cow:hover {
       transform: translate(-50%, -50%) scale(1.15);
     }
   </style>
 </head>
 
 <body>
-  <a href="../index.html">
-    <div id="central-cow" aria-label="Cow emoji">
-      🐄
-    </div>
+  <a id="cow" href="../index.html">
+    🐄
   </a>
 
   <script src="../../common/labyrinth.js"></script>
@@ -68,11 +66,14 @@ https://www.istockphoto.com/illustrations/cow-print-background
     const bgs = ['bg1.jpg', 'bg2.jpg', 'bg3.jpg', 'bg4.jpg', 'bg5.jpg', 'bg6.jpg'];
     const bgRandomiser = new LAB.CyclicRandomiser(bgs);
 
+    // Preload background images
+    bgs.forEach(bg => (new Image()).src = bg);
+
     function changeBackground() {
       document.documentElement.style.setProperty('--bg', "url('" + bgRandomiser.nextOne() + "')");
     }
 
-    document.getElementById('central-cow').addEventListener('mouseenter', changeBackground);
+    document.getElementById('cow').addEventListener('mouseenter', changeBackground);
 
     changeBackground();
 

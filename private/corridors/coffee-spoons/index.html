@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 
+<!--
+S’io credesse che mia risposta fosse
+A persona che mai tornasse al mondo,
+Questa fiamma staria senza piu scosse.
+Ma percioche giammai di questo fondo
+Non torno vivo alcun, s’i’odo il vero,
+Senza tema d’infamia ti rispondo.
+-->
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -38,23 +47,6 @@
       overflow: visible;
     }
 
-    /* Spoon counter */
-    #counter {
-      display: none;
-      position: fixed;
-      top: 8px;
-      left: 8px;
-      font-size: 14px;
-      color: #6b4226;
-      font-style: italic;
-      z-index: 10;
-      letter-spacing: 1px;
-    }
-
-    #counter.visible {
-      display: block;
-    }
-
     /* Poem lines */
     #poem-line {
       position: fixed;
@@ -64,10 +56,10 @@
       font-size: 24px;
       font-style: italic;
       color: #7c4b25;
+      text-decoration: none;
       opacity: 0;
-      transition: opacity 0.5s ease;
+      transition: opacity 0.5s ease, color 0.2s ease, text-shadow 0.2s ease;
       text-align: center;
-      pointer-events: none;
       z-index: 5;
     }
 
@@ -75,14 +67,20 @@
       opacity: 1;
     }
 
+    #poem-line:hover {
+      color: #c4956a;
+      text-shadow: 0 0 6px rgba(212, 175, 100, 0.5);
+    }
+
     /* Fallen spoon links */
     .spoon-link {
       position: absolute;
       display: block;
       text-decoration: none;
+      transition: filter 0.2s ease;
     }
 
-    .spoon-link:hover svg {
+    .spoon-link:hover {
       filter: brightness(1.6) drop-shadow(0 0 6px rgba(212, 175, 100, 0.5));
     }
 
@@ -152,8 +150,7 @@
   <div id="scene">
     <div id="pile"></div>
   </div>
-  <div id="counter"></div>
-  <div id="poem-line"></div>
+  <a id="poem-line"></a>
 
   <script src="../../common/labyrinth.js"></script>
   <script>
@@ -161,7 +158,6 @@
 
     const scene = document.getElementById('scene');
     const pile = document.getElementById('pile');
-    const counter = document.getElementById('counter');
     const poemEl = document.getElementById('poem-line');
 
     const poemLines = [
@@ -333,7 +329,6 @@
       svg.style.transform = `rotate(${rotation}deg)`;
       svg.style.animation = `gleam ${LAB.rand(3, 5)}s ease-in-out -${gleamDelay}s infinite`;
 
-      // Handle
       const line = document.createElementNS("http://www.w3.org/2000/svg", "rect");
       line.setAttribute("x", "0");
       line.setAttribute("y", "5");
@@ -342,7 +337,6 @@
       line.setAttribute("rx", "2");
       line.setAttribute("fill", colour);
 
-      // Bowl
       const bowl = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
       bowl.setAttribute("cx", "41");
       bowl.setAttribute("cy", "7");
@@ -350,7 +344,6 @@
       bowl.setAttribute("ry", "7");
       bowl.setAttribute("fill", colour);
 
-      // Gleam highlight
       const highlight = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
       highlight.setAttribute("cx", "41");
       highlight.setAttribute("cy", "5");
@@ -421,17 +414,13 @@
       }
 
       requestAnimationFrame(animateFall);
-
-      // Update counter
-      const label = spoonCount === 1 ? 'spoon' : 'spoons';
-      counter.textContent = `${spoonCount} ${label}...`;
-
       showPoemLine();
     }
 
     function showPoemLine() {
       if (poemIndex >= poemLines.length) return;
       poemEl.textContent = poemLines[poemIndex];
+      poemEl.href = LAB.pageRandomiser.nextOne();
       poemEl.classList.add('visible');
       poemIndex++;
 
@@ -452,11 +441,6 @@
     // Start dropping spoons on page load
     dropSpoon();
     scheduleNextSpoon();
-
-    // Dev mode for those who know the secret key
-    document.addEventListener('keydown', (e) => {
-      if (e.key === '`') counter.classList.toggle('visible');
-    });
 
   </script>
 </body>

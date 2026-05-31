@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+Source for the background image:
+https://cyber.dabamos.de/mirrors/tau/Std/triangle.gif
+https://cyber.dabamos.de/mirrors/tau/Std/Images.html
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="You must wager; it is not optional">
+  <title>Blaise of glory</title>
+  <style>
+    :root {
+      --bg-colour: #f900fe;
+      --link-hover: #fc9cff;
+      --link-colour: #fed9ff;
+    }
+
+    /* When the text is small it's hard to read, so let's make it pure white */
+    @media (orientation: portrait) {
+      :root {
+        --link-colour: #ffffff;
+      }
+    }
+
+    body {
+      background-image: url('triangle.gif');
+      background-color: var(--bg-colour);
+      text-shadow: 0px 0px 16px var(--bg-colour);
+      font-family: 'Courier New', monospace;
+      font-size: min(4.5vw, 8vh, 3rem);
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    a {
+      text-decoration: none;
+      color: var(--link-colour);
+    }
+
+    a:hover {
+      color: var(--link-hover);
+    }
+
+    pre {
+      margin: 0;
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <pre>
+                <a href="../index.html">1</a>
+              <a href="../index.html">1</a>   <a href="../index.html">1</a>
+            <a href="../index.html">1</a>   <a href="../index.html">2</a>   <a href="../index.html">1</a>
+          <a href="../index.html">1</a>   <a href="../index.html">3</a>   <a href="../index.html">3</a>   <a href="../index.html">1</a>
+        <a href="../index.html">1</a>   <a href="../index.html">4</a>   <a href="../index.html">6</a>   <a href="../index.html">4</a>   <a href="../index.html">1</a>
+      <a href="../index.html">1</a>   <a href="../index.html">5</a>  <a href="../index.html">10</a>  <a href="../index.html">10</a>   <a href="../index.html">5</a>   <a href="../index.html">1</a>
+    <a href="../index.html">1</a>   <a href="../index.html">6</a>  <a href="../index.html">15</a>  <a href="../index.html">20</a>  <a href="../index.html">15</a>   <a href="../index.html">6</a>   <a href="../index.html">1</a>
+  <a href="../index.html">1</a>   <a href="../index.html">7</a>  <a href="../index.html">21</a>  <a href="../index.html">35</a>  <a href="../index.html">35</a>  <a href="../index.html">21</a>   <a href="../index.html">7</a>   <a href="../index.html">1</a>
+<a href="../index.html">1</a>   <a href="../index.html">8</a>  <a href="../index.html">28</a>  <a href="../index.html">56</a>  <a href="../index.html">70</a>  <a href="../index.html">56</a>  <a href="../index.html">28</a>   <a href="../index.html">8</a>   <a href="../index.html">1</a></pre>
+  </main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('pascals-triangle');
+  </script>
+</body>
+
+</html>

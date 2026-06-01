@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+Source for the Ezra Pound photo:
+https://www.theparisreview.org/interviews/4598/the-art-of-poetry-no-5-ezra-pound
+https://www.theparisreview.org/il/c9e981da63/large/Ezra-Pound-young.jpg
+
+Source for the Jake Gyllenhaal photo:
+https://www.broadwayworld.com/people/Jake-Gyllenhaal/
+https://cloudimages2.broadwayworld.com/headshots/1739874951.jpg
+
+Source for the Better Than Ezra live photo:
+https://en.wikipedia.org/wiki/Better_Than_Ezra
+https://commons.wikimedia.org/wiki/File:BTEHoBNOLA.jpg
+
+Source for the Less Than Jake live photo:
+https://en.wikipedia.org/wiki/Less_Than_Jake
+https://commons.wikimedia.org/wiki/File:BftA_Less_Than_Jake_20220710_022810826_(52215383579)_(cropped).jpg
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="It was good, living in Gainesville Rock City">
+  <title>Ezra &lt; ? &lt; Jake</title>
+  <style>
+    :root {
+      --bg-image-left: none;
+      --bg-image-right: none;
+      --bg-colour: #f900fe;
+      --link-colour: #ffffff;
+    }
+
+    body {
+      background-image: var(--bg-image-left), var(--bg-image-right);
+      background-size: 50% 100%, 50% 100%;
+      background-position: left top, right top;
+      background-repeat: no-repeat, no-repeat;
+      background-attachment: fixed;
+      background-color: var(--bg-colour);
+      text-shadow: 0px 0px 16px var(--bg-colour);
+      font-family: 'Courier New', monospace;
+      font-size: min(28em, 16vw, 60vh);
+      color: var(--link-colour);
+      margin: 0;
+      padding: 0 min(30px, 2vw);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    a {
+      text-decoration: none;
+      color: var(--link-colour);
+    }
+
+    hr {
+      border: none;
+    }
+
+    img {
+      display: block;
+      height: min(340px, 22vw, 50vh);
+      width: auto;
+    }
+  </style>
+</head>
+
+<body>
+  <a id="ezra" href="../index.html">
+    <img src="ezra.jpg" alt="Ezra Pound">
+  </a>
+  <hr>
+  &lt;
+  <hr>
+  <a id="both" href="../index.html">?</a>
+  <hr>
+  &lt;
+  <hr>
+  <a id="jake" href="../index.html">
+    <img src="jake.jpg" alt="Jake Gyllenhaal">
+  </a>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('less-than-better');
+
+    (new Image()).src = 'bte.jpg';
+    (new Image()).src = 'ltj.jpg';
+
+    function setCssVariable(key, value) { document.documentElement.style.setProperty(key, value); }
+
+    function bgEzraOn() { setCssVariable('--bg-image-right', 'url("bte.jpg")'); }
+    function bgJakeOn() { setCssVariable('--bg-image-left', 'url("ltj.jpg")'); }
+    function bgBothOn() { bgEzraOn(); bgJakeOn(); }
+    function bgEzraOff() { setCssVariable('--bg-image-right', 'none'); }
+    function bgJakeOff() { setCssVariable('--bg-image-left', 'none'); }
+    function bgBothOff() { bgEzraOff(); bgJakeOff(); }
+
+    document.getElementById('ezra').addEventListener('mouseenter', bgEzraOn);
+    document.getElementById('jake').addEventListener('mouseenter', bgJakeOn);
+    document.getElementById('both').addEventListener('mouseenter', bgBothOn);
+    document.getElementById('ezra').addEventListener('mouseleave', bgEzraOff);
+    document.getElementById('jake').addEventListener('mouseleave', bgJakeOff);
+    document.getElementById('both').addEventListener('mouseleave', bgBothOff);
+
+  </script>
+</body>
+
+</html>

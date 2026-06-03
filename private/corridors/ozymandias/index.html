@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+We wonder - and some Hunter may express
+Wonder like ours, when thro' the wilderness
+Where London stood, holding the Wolf in chace,
+He meets some fragment huge, and stops to guess
+What powerful but unrecorded race
+Once dwelt in that annihilated place.
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Lover of dormice">
+  <title>lone and level sands</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: monospace;
+    }
+
+    body {
+      background: linear-gradient(180deg, #e8d5a3 0%, #c4956a 60%, #b07840 100%);
+      position: relative;
+    }
+
+    #grain {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 100;
+      opacity: 0.25;
+      mix-blend-mode: multiply;
+    }
+
+    #horizon {
+      position: absolute;
+      bottom: 30%;
+      left: 0;
+      width: 100%;
+      height: 1px;
+      background: rgba(80, 50, 20, 0.3);
+      z-index: 1;
+    }
+
+    #ground {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 30%;
+      background: linear-gradient(180deg, #c4956a 0%, #a87040 100%);
+      z-index: 2;
+    }
+
+    #ruins {
+      position: absolute;
+      bottom: 10%;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 5;
+    }
+
+    #pedestal {
+      position: relative;
+      width: 320px;
+      height: 130px;
+      margin: 0 auto;
+    }
+
+    .leg {
+      position: absolute;
+      bottom: 120px;
+      display: block;
+      text-decoration: none;
+      transition: filter 0.3s ease;
+    }
+
+    .leg:hover {
+      filter: brightness(1.1);
+    }
+
+    .leg-left {
+      left: 60px;
+    }
+
+    .leg-right {
+      right: 60px;
+    }
+
+    #head,
+    #head-sand {
+      position: absolute;
+      bottom: 3%;
+      left: 50%;
+      display: block;
+      text-decoration: none;
+      z-index: 6;
+      transition: filter 0.3s ease;
+      /* On wide screens stay at +180px from pedestal */
+      /* On thin screens move towards centre of pedestal */
+      margin-left: clamp(0px, calc(100vw - 100vh + 460px), 180px);
+    }
+
+    #head:hover {
+      filter: brightness(1.1);
+    }
+
+    #head-sand {
+      pointer-events: none;
+    }
+
+    #inscription {
+      position: absolute;
+      top: 22px;
+      left: 0;
+      width: 100%;
+      text-align: center;
+      font-family: "Times New Roman", "Georgia", serif;
+      font-size: 13px;
+      letter-spacing: 3px;
+      line-height: 1.6;
+      color: #4a3520;
+      z-index: 6;
+      user-select: none;
+    }
+
+    #inscription a {
+      color: #4a3520;
+      text-decoration: none;
+      display: inline-block;
+      transition: opacity 0.3s ease;
+    }
+
+    #inscription a:hover {
+      color: #2a1a0a;
+    }
+
+    #inscription a:hover span {
+      opacity: 1 !important;
+    }
+
+    .sand-particle {
+      position: fixed;
+      width: 2px;
+      height: 2px;
+      background: #d4b896;
+      border-radius: 90%;
+      pointer-events: none;
+      z-index: 50;
+      opacity: 0;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="grain" width="256" height="256"></canvas>
+  <div id="horizon"></div>
+  <div id="ground"></div>
+
+  <div id="ruins">
+    <!-- Left leg -->
+    <a href="../index.html" class="leg leg-left" id="leg-left">
+      <svg width="80" height="240" viewBox="0 0 40 120">
+        <polygon points="5,120 35,120 32,0 12,0" fill="#8a8078" />
+        <polygon points="12,0 32,0 30,3 14,3" fill="#7a706a" />
+        <line x1="15" y1="30" x2="30" y2="32" stroke="#79706a" stroke-width="1" />
+        <line x1="13" y1="60" x2="33" y2="58" stroke="#79706a" stroke-width="1" />
+        <line x1="14" y1="90" x2="34" y2="91" stroke="#79706a" stroke-width="1" />
+      </svg>
+    </a>
+
+    <!-- Right leg -->
+    <a href="../index.html" class="leg leg-right" id="leg-right">
+      <svg width="80" height="200" viewBox="0 0 40 100">
+        <polygon points="8,100 38,100 33,0 10,0" fill="#908880" />
+        <polygon points="10,0 33,0 31,4 13,3" fill="#7a706a" />
+        <line x1="12" y1="25" x2="32" y2="27" stroke="#79706a" stroke-width="1" />
+        <line x1="11" y1="55" x2="34" y2="53" stroke="#79706a" stroke-width="1" />
+        <line x1="9" y1="80" x2="36" y2="82" stroke="#79706a" stroke-width="1" />
+      </svg>
+    </a>
+
+    <!-- Pedestal -->
+    <div id="pedestal">
+      <svg width="320" height="130" viewBox="0 0 320 130">
+        <polygon points="10,0 310,0 320,130 0,130" fill="#9a9088" />
+        <line x1="20" y1="10" x2="300" y2="10" stroke="#8a8078" stroke-width="1" />
+        <line x1="10" y1="115" x2="310" y2="115" stroke="#8a8078" stroke-width="1" />
+        <rect x="30" y="3" width="4" height="4" fill="#807870" opacity="0.5" />
+        <rect x="280" y="5" width="6" height="3" fill="#807870" opacity="0.4" />
+      </svg>
+      <div id="inscription"></div>
+    </div>
+  </div>
+
+  <!-- Fallen head -->
+  <a href="../index.html" id="head">
+    <svg width="160" height="120" viewBox="0 0 80 60">
+      <g transform="rotate(-75, 40, 30)">
+        <!-- Face shape -->
+        <ellipse cx="40" cy="28" rx="22" ry="28" fill="#8a8078" />
+        <!-- Eyebrows -->
+        <line x1="25" y1="18" x2="40" y2="16" stroke="#6a6058" stroke-width="2" />
+        <line x1="42" y1="16" x2="55" y2="19" stroke="#6a6058" stroke-width="2" />
+        <!-- Brow ridges -->
+        <line x1="36" y1="5" x2="38" y2="14" stroke="#6a6058" stroke-width="1" />
+        <line x1="48" y1="6" x2="44" y2="14" stroke="#6a6058" stroke-width="1" />
+        <!-- Eye sockets -->
+        <ellipse cx="33" cy="23" rx="4" ry="3" fill="#6a6058" />
+        <ellipse cx="48" cy="23" rx="4" ry="3" fill="#6a6058" />
+        <!-- Nose -->
+        <line x1="40" y1="22" x2="38" y2="32" stroke="#6a6058" stroke-width="2" />
+        <!-- Mouth (the sneer!) -->
+        <path d="M 30 38 Q 35 35 40 37 Q 45 35 50 38" stroke="#6a6058" stroke-width="2"
+          fill="none" />
+        <!-- Wrinkled lip -->
+        <path d="M 32 40 Q 40 42 48 40" stroke="#7a7068" stroke-width="1" fill="none" />
+      </g>
+    </svg>
+  </a>
+
+  <!-- Sand covering bottom of head -->
+  <div id="head-sand">
+    <svg width="160" height="120" viewBox="0 0 80 60">
+      <ellipse cx="40" cy="50" rx="42" ry="10" fill="#ae7849" />
+    </svg>
+  </div>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('ozymandias');
+
+    const poem = [
+      'MY NAME IS OZYMANDIAS,',
+      'KING OF KINGS:',
+      'LOOK ON MY WORKS,',
+      'YE MIGHTY, AND DESPAIR!',
+    ];
+    const inscriptionEl = document.getElementById('inscription');
+    const letterSpans = [];
+
+    poem.forEach((line, lineIndex) => {
+      const lineWords = line.split(' ');
+
+      // Each word is a link
+      lineWords.forEach((word, wordIndex) => {
+        const a = document.createElement('a');
+        a.href = LAB.pageRandomiser.nextOne();
+
+        for (let j = 0; j < word.length; j++) {
+          const span = document.createElement('span');
+          span.textContent = word[j];
+          span.style.display = 'inline-block';
+          a.appendChild(span);
+
+          // Random opacity for each letter to simulate erosion
+          const fade = LAB.rand(0.3, 0.9);
+          span.style.opacity = fade;
+
+          letterSpans.push(span);
+        }
+
+        inscriptionEl.appendChild(a);
+
+        if (wordIndex < lineWords.length - 1) {
+          inscriptionEl.appendChild(document.createTextNode(' '));
+        }
+      });
+
+      if (lineIndex < poem.length - 1) {
+        inscriptionEl.appendChild(document.createElement('br'));
+      }
+    });
+
+    // Sand particles blowing right to left
+    const particles = [];
+    const maxParticles = 60;
+
+    function spawnParticle() {
+      if (particles.length >= maxParticles) return;
+
+      const p = document.createElement('div');
+      p.className = 'sand-particle';
+
+      const startX = window.innerWidth + LAB.rand(0, 100);
+      const startY = LAB.rand(window.innerHeight / 2, window.innerHeight);
+      const speed = LAB.rand(1.5, 4.5);
+      const drift = LAB.rand(-0.3, 0.7) * 0.8;
+      const size = LAB.rand(2, 8);
+
+      p.style.width = size + 'px';
+      p.style.height = size + 'px';
+      p.style.left = startX + 'px';
+      p.style.top = startY + 'px';
+      p.style.opacity = LAB.rand(0.3, 0.8);
+      p.style.background = LAB.chance(0.5) ? '#d4b896' : '#c4a070';
+
+      document.body.appendChild(p);
+
+      const particle = { el: p, x: startX, y: startY, speed: speed, drift: drift };
+      particles.push(particle);
+    }
+
+    function updateParticles() {
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x -= p.speed;
+        p.y += p.drift;
+
+        // Nice little gust effect every so often
+        if (LAB.chance(0.02)) {
+          p.speed += LAB.rand(0, 2);
+        }
+
+        p.el.style.left = p.x + 'px';
+        p.el.style.top = p.y + 'px';
+
+        if (p.x < -20) {
+          p.el.remove();
+          particles.splice(i, 1);
+        }
+      }
+      requestAnimationFrame(updateParticles);
+    }
+
+    // Spawn in bursts for even more gusty effect
+    function gustSpawn() {
+      const burstCount = 3 + LAB.randInt(0, 7);
+      for (let i = 0; i < burstCount; i++) {
+        setTimeout(spawnParticle, i * 50);
+      }
+    }
+
+    setInterval(gustSpawn, LAB.rand(400, 1000));
+    requestAnimationFrame(updateParticles);
+
+    // Grain overlay to kinda look like sand blowing
+    const grainCanvas = document.getElementById('grain');
+    const grainCtx = grainCanvas.getContext('2d');
+
+    function drawGrain() {
+      const w = grainCanvas.width;
+      const h = grainCanvas.height;
+      const imageData = grainCtx.createImageData(w, h);
+      const data = imageData.data;
+
+      // Colour should be sort of beige to make it look sandy
+      for (let i = 0; i < data.length; i += 4) {
+        const v = LAB.rand(100, 255);
+        data[i] = v;
+        data[i + 1] = v * 0.85;
+        data[i + 2] = v * 0.6;
+        data[i + 3] = 255;
+      }
+
+      grainCtx.putImageData(imageData, 0, 0);
+      grainCanvas.style.width = '100%';
+      grainCanvas.style.height = '100%';
+    }
+
+    drawGrain();
+    setInterval(drawGrain, 100);
+
+  </script>
+</body>
+
+</html>

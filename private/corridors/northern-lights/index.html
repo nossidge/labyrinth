@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Localised entirely within your browser">
+  <title>Aurora Gory Alice</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      background: #050510;
+      position: relative;
+    }
+
+    canvas {
+      display: block;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .star {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: #ffffff;
+      z-index: 1;
+      pointer-events: none;
+      animation: twinkle var(--twinkle-duration, 3s) ease-in-out infinite;
+      animation-delay: -var(--twinkle-delay, 0s);
+    }
+
+    @keyframes twinkle {
+
+      0%,
+      100% {
+        opacity: var(--twinkle-min, 0.2);
+      }
+
+      50% {
+        opacity: var(--twinkle-max, 0.9);
+      }
+    }
+
+    #aurora {
+      z-index: 2;
+    }
+
+    #landscape {
+      z-index: 3;
+    }
+
+    /* Aurora-band links live above everything in the sky so they are easy to click. */
+    /* They are otherwise invisible, since they are drawn on the canvas not the DOM. */
+    .band {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      text-decoration: none;
+      background: transparent;
+      z-index: 4;
+    }
+
+    #noise {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48ZmlsdGVyIGlkPSJuIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iMC44NSIgbnVtT2N0YXZlcz0iMyIgc3RpdGNoVGlsZXM9InN0aXRjaCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbHRlcj0idXJsKCNuKSIvPjwvc3ZnPg==');
+      opacity: 0.07;
+      z-index: 100;
+      pointer-events: none;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="aurora"></canvas>
+  <canvas id="landscape"></canvas>
+  <div id="bands"></div>
+  <div id="noise"></div>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('northern-lights');
+
+    // Stars
+    const NUM_STARS = 25;
+    for (let i = 0; i < NUM_STARS; i++) {
+      const star = document.createElement('span');
+      star.className = 'star';
+      star.style.left = LAB.rand(2, 98) + '%';
+      star.style.top = LAB.rand(2, 60) + '%';
+
+      const size = LAB.rand(2, 5);
+      star.style.width = size + 'px';
+      star.style.height = size + 'px';
+
+      star.style.setProperty('--twinkle-duration', LAB.rand(2, 6) + 's');
+      star.style.setProperty('--twinkle-delay', LAB.rand(0, 5) + 's');
+      star.style.setProperty('--twinkle-min', LAB.rand(0.1, 0.3).toFixed(2));
+      star.style.setProperty('--twinkle-max', LAB.rand(0.6, 1.0).toFixed(2));
+
+      document.body.appendChild(star);
+    }
+
+    // Canvases
+    const auroraCanvas = document.getElementById('aurora');
+    const ctx = auroraCanvas.getContext('2d');
+    const landscapeCanvas = document.getElementById('landscape');
+    const landCtx = landscapeCanvas.getContext('2d');
+    const bandsContainer = document.getElementById('bands');
+
+    // Cached background-stars layer (rendered once)
+    const bgStarsCanvas = document.createElement('canvas');
+    const bgStarsCtx = bgStarsCanvas.getContext('2d');
+
+    function init() {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      auroraCanvas.width = w;
+      auroraCanvas.height = h;
+      landscapeCanvas.width = w;
+      landscapeCanvas.height = h;
+      bgStarsCanvas.width = w;
+      bgStarsCanvas.height = h;
+      drawBackgroundStars();
+      drawLandscape();
+      placeBandLinks();
+      cachedW = 0; // force gradient cache rebuild
+    }
+
+    // Background stars (rendered once to an offscreen canvas)
+    function drawBackgroundStars() {
+      const w = bgStarsCanvas.width;
+      const h = bgStarsCanvas.height;
+      bgStarsCtx.clearRect(0, 0, w, h);
+      const count = 120;
+      for (let i = 0; i < count; i++) {
+        const x = LAB.rand(0, 1) * w;
+        const y = LAB.rand(0, 1) * h * 0.7; // no point drawing below the landscape
+        const r = LAB.rand(0.3, 1.5);
+        const opacity = LAB.rand(0.25, 0.75);
+        bgStarsCtx.fillStyle = `rgba(255, 255, 255, ${opacity.toFixed(3)})`;
+        bgStarsCtx.beginPath();
+        bgStarsCtx.arc(x, y, r, 0, Math.PI * 2);
+        bgStarsCtx.fill();
+      }
+    }
+
+    // Draw a procgen arctic landscape
+    function drawLandscape() {
+      const w = landscapeCanvas.width;
+      const h = landscapeCanvas.height;
+      landCtx.clearRect(0, 0, w, h);
+
+      // Build a jagged ridge polygon with fbm-ish noise
+      function buildRidge(baseY, amplitude, roughness, segments) {
+        const points = [];
+        const step = w / segments;
+        const harmonics = [];
+        const numHarm = LAB.randInt(3, 5);
+        for (let i = 0; i < numHarm; i++) {
+          harmonics.push({
+            freq: LAB.rand(0.3, 2.0) * (i + 1),
+            amp: amplitude * Math.pow(0.55, i),
+            phase: LAB.rand(0, Math.PI * 2)
+          });
+        }
+        for (let i = 0; i <= segments; i++) {
+          const x = i * step;
+          let y = baseY;
+          for (const harm of harmonics) {
+            y += Math.cos((i / segments) * Math.PI * 2 * harm.freq + harm.phase) * harm.amp;
+          }
+          y += LAB.rand(-roughness, roughness);
+          points.push({ x, y });
+        }
+        return points;
+      }
+
+      function fillRidgeShape(points, fillStyle) {
+        landCtx.beginPath();
+        landCtx.moveTo(0, h);
+        landCtx.lineTo(points[0].x, points[0].y);
+        for (let i = 1; i < points.length; i++) {
+          landCtx.lineTo(points[i].x, points[i].y);
+        }
+        landCtx.lineTo(w, h);
+        landCtx.closePath();
+        landCtx.fillStyle = fillStyle;
+        landCtx.fill();
+      }
+
+      // Really just a white line, at the top of the ridges
+      function drawSnowcap(points, thickness, alpha) {
+        landCtx.beginPath();
+        for (let i = 0; i < points.length; i++) {
+          const p = points[i];
+          if (i === 0) landCtx.moveTo(p.x, p.y);
+          else landCtx.lineTo(p.x, p.y);
+        }
+        landCtx.lineWidth = thickness;
+        landCtx.lineCap = 'round';
+        landCtx.lineJoin = 'round';
+        landCtx.strokeStyle = `rgba(230, 240, 255, ${alpha})`;
+        landCtx.stroke();
+      }
+
+      // Linearly interpolate the ridge Y at a given X.
+      // Ridge points are generated at uniform x-steps across the canvas,
+      // so we can pick the segment by index and lerp within it.
+      // Use this so that we have a max Y to draw the trees and rocks.
+      function ridgeYAt(points, x) {
+        const last = points.length - 1;
+        if (x <= points[0].x) return points[0].y;
+        if (x >= points[last].x) return points[last].y;
+        const step = points[1].x - points[0].x;
+        const idx = Math.min(last - 1, Math.floor(x / step));
+        const p0 = points[idx];
+        const p1 = points[idx + 1];
+        const t = (x - p0.x) / (p1.x - p0.x);
+        return p0.y + t * (p1.y - p0.y);
+      }
+
+      // Draw scattered rocks/boulders on a given layer.
+      // `lowerYFn` is a callback that returns the maximum Y for the rock's centre
+      // (e.g. the next layer's ridge, or the bottom of the canvas for the foreground).
+      function drawRocks(layerPoints, scale, lowerYFn) {
+        const rockCount = LAB.randInt(3, 8);
+        for (let i = 0; i < rockCount; i++) {
+          const cx = LAB.rand(0, w);
+          const size = LAB.rand(6, 18) * scale;
+          const ridgeY = ridgeYAt(layerPoints, cx);
+          const lowerY = lowerYFn(cx);
+
+          // Rock body extends roughly size*0.63 above its centre, snowcap
+          // peaks at size*0.6 above centre; keep both safely below ridge.
+          const minCy = ridgeY + size * 0.7;
+          const maxCy = lowerY - size * 0.55;
+          if (minCy >= maxCy) continue;
+          const cy = LAB.rand(minCy, maxCy);
+
+          landCtx.beginPath();
+          const sides = LAB.randInt(5, 8);
+          for (let s = 0; s <= sides; s++) {
+            const a = (s / sides) * Math.PI * 2;
+            const r = size * LAB.rand(0.7, 1.15);
+            const x = cx + Math.cos(a) * r;
+            const y = cy + Math.sin(a) * r * 0.55;
+            if (s === 0) landCtx.moveTo(x, y);
+            else landCtx.lineTo(x, y);
+          }
+          landCtx.closePath();
+          landCtx.fillStyle = `rgba(${LAB.randInt(20, 40)}, ${LAB.randInt(25, 45)}, ${LAB.randInt(40, 60)}, 0.95)`;
+          landCtx.fill();
+          landCtx.beginPath();
+          landCtx.ellipse(cx, cy - size * 0.35, size * 0.85, size * 0.25, 0, Math.PI, 0, true);
+          landCtx.fillStyle = 'rgba(230, 240, 255, 0.85)';
+          landCtx.fill();
+        }
+      }
+
+      // Draw a silhouette of pine trees on a given layer
+      function drawTrees(layerPoints, scale, lowerYFn) {
+        if (!LAB.chance(0.7)) return;
+
+        const treeCount = LAB.randInt(3, 9);
+        for (let i = 0; i < treeCount; i++) {
+          const tx = LAB.rand(0, w);
+          const treeH = LAB.rand(14, 28) * scale;
+          const treeW = treeH * LAB.rand(0.35, 0.55);
+          const ridgeY = ridgeYAt(layerPoints, tx);
+          const lowerY = lowerYFn(tx);
+
+          // ty is the base of the tree; tip is at ty - treeH.
+          // Keep the tip safely below the ridge curve.
+          const minTy = ridgeY + treeH + 2;
+          const maxTy = lowerY - 2;
+          if (minTy >= maxTy) continue;
+
+          const ty = LAB.rand(minTy, maxTy);
+
+          landCtx.beginPath();
+          landCtx.moveTo(tx, ty - treeH);
+          landCtx.lineTo(tx - treeW / 2, ty);
+          landCtx.lineTo(tx + treeW / 2, ty);
+          landCtx.closePath();
+          landCtx.fillStyle = `rgba(${LAB.randInt(10, 20)}, ${LAB.randInt(20, 30)}, ${LAB.randInt(20, 35)}, 0.95)`;
+          landCtx.fill();
+        }
+      }
+
+      // Pre-build all three ridges first, but don't actually draw them yet.
+      // So that each layer's nature objects can be clipped against the next layer's curve.
+      const distantBaseY = h * LAB.rand(0.64, 0.70);
+      const distantPoints = buildRidge(distantBaseY, h * LAB.rand(0.035, 0.055), 1.0, 60);
+
+      const midBaseY = h * LAB.rand(0.76, 0.81);
+      const midPoints = buildRidge(midBaseY, h * LAB.rand(0.022, 0.038), 0.8, 80);
+
+      const fgBaseY = h * LAB.rand(0.87, 0.90);
+      const fgPoints = buildRidge(fgBaseY, h * LAB.rand(0.012, 0.020), 0.5, 100);
+
+      // Distant mountains (silhouette)
+      fillRidgeShape(distantPoints, 'rgb(35, 45, 75)');
+      drawSnowcap(distantPoints, 1.2, 0.35);
+      drawRocks(distantPoints, 0.6, (x) => ridgeYAt(midPoints, x));
+      drawTrees(distantPoints, 0.7, (x) => ridgeYAt(midPoints, x));
+
+      // Mid-ground mountains/hills
+      fillRidgeShape(midPoints, 'rgb(20, 28, 50)');
+      drawSnowcap(midPoints, 1.6, 0.55);
+      drawRocks(midPoints, 0.8, (x) => ridgeYAt(fgPoints, x));
+      drawTrees(midPoints, 0.9, (x) => ridgeYAt(fgPoints, x));
+
+      // Foreground snow plain
+      const fgGrad = landCtx.createLinearGradient(0, fgBaseY - 30, 0, h);
+      fgGrad.addColorStop(0, 'rgb(220, 230, 245)');
+      fgGrad.addColorStop(0.4, 'rgb(190, 205, 230)');
+      fgGrad.addColorStop(1.0, 'rgb(120, 140, 170)');
+      fillRidgeShape(fgPoints, fgGrad);
+      drawSnowcap(fgPoints, 2.0, 0.6);
+
+      // Ice floes / snow drifts in the foreground snow level only
+      const driftCount = LAB.randInt(4, 8);
+      for (let i = 0; i < driftCount; i++) {
+        const cx = LAB.rand(0, w);
+        const rx = LAB.rand(40, 140);
+        const ry = LAB.rand(6, 14);
+        const ridgeY = ridgeYAt(fgPoints, cx);
+        const minCy = ridgeY + ry + 4;
+        const maxCy = h - 10;
+        if (minCy >= maxCy) continue;
+        const cy = LAB.rand(minCy, maxCy);
+        landCtx.beginPath();
+        landCtx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+        landCtx.fillStyle = `rgba(240, 248, 255, ${LAB.rand(0.10, 0.25).toFixed(2)})`;
+        landCtx.fill();
+      }
+
+      drawRocks(fgPoints, 1.6, () => h - 10);
+      drawTrees(fgPoints, 1.8, () => h - 10);
+    }
+
+    // Aurora bands
+    const bands = [
+      { colour: [30, 200, 120], y: 0.09, amplitude: 40, frequency: 0.003, speed: 0.0004, thickness: 90 },
+      { colour: [0, 220, 200], y: 0.15, amplitude: 50, frequency: 0.002, speed: 0.0003, thickness: 80 },
+      { colour: [140, 80, 220], y: 0.21, amplitude: 35, frequency: 0.004, speed: 0.0005, thickness: 100 },
+      { colour: [220, 50, 180], y: 0.27, amplitude: 45, frequency: 0.0025, speed: 0.00035, thickness: 85 },
+      { colour: [240, 100, 160], y: 0.33, amplitude: 30, frequency: 0.0035, speed: 0.00045, thickness: 70 },
+    ];
+
+    // Per-band animated hover highlight values (0..1)
+    const bandHighlights = bands.map(() => 0);
+    let hoveredBandIndex = -1;
+
+    // Aurora-band link strips. These are the clickable anchor elements
+    function placeBandLinks() {
+      bandsContainer.innerHTML = '';
+      const h = window.innerHeight;
+      const stripH = 0.06 * h;
+      bands.forEach((band, i) => {
+        const a = document.createElement('a');
+        a.className = 'band';
+        a.href = LAB.pageRandomiser.nextOne();
+        a.style.top = (band.y * h - stripH / 2) + 'px';
+        a.style.height = stripH + 'px';
+        a.addEventListener('mouseenter', () => { hoveredBandIndex = i; });
+        a.addEventListener('mouseleave', () => { hoveredBandIndex = -1; });
+        bandsContainer.appendChild(a);
+      });
+    }
+
+    // Cache one gradient per band; rebuilt on resize
+    const bandGradients = bands.map(() => null);
+    let cachedW = 0, cachedH = 0;
+
+    function ensureBandGradients() {
+      const w = auroraCanvas.width;
+      const h = auroraCanvas.height;
+      if (w === cachedW && h === cachedH && bandGradients[0]) return;
+      cachedW = w;
+      cachedH = h;
+      bands.forEach((band, i) => {
+        const baseY = band.y * h;
+        const [r, g, b] = band.colour;
+        const grad = ctx.createLinearGradient(0, baseY - band.amplitude, 0, baseY + band.thickness + band.amplitude);
+        grad.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0)`);
+        grad.addColorStop(0.3, `rgba(${r}, ${g}, ${b}, 0.12)`);
+        grad.addColorStop(0.5, `rgba(${r}, ${g}, ${b}, 0.18)`);
+        grad.addColorStop(0.7, `rgba(${r}, ${g}, ${b}, 0.12)`);
+        grad.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+        bandGradients[i] = grad;
+      });
+    }
+
+    function drawAurora(t) {
+      const w = auroraCanvas.width;
+      const h = auroraCanvas.height;
+
+      ctx.clearRect(0, 0, w, h);
+
+      // Pre-rendered background stars
+      ctx.drawImage(bgStarsCanvas, 0, 0);
+
+      ensureBandGradients();
+
+      const steps = Math.max(40, Math.ceil(w / 8));
+
+      for (let bi = 0; bi < bands.length; bi++) {
+        const band = bands[bi];
+        const baseY = band.y * h;
+        const [r, g, b] = band.colour;
+        const freq = band.frequency;
+        const speed = band.speed;
+        const amp = band.amplitude;
+        const phaseTop = t * speed;
+        const phaseBot = t * speed * 1.2 + 2.0;
+        const phaseTop2 = t * speed * 0.6 + 1.3;
+        const phaseBot2 = t * speed * 0.4 + 0.7;
+
+        // Smoothly animate hover highlight (lerp toward target)
+        const target = (bi === hoveredBandIndex) ? 1 : 0;
+        bandHighlights[bi] += (target - bandHighlights[bi]) * 0.15;
+        const hl = bandHighlights[bi];
+
+        // Start to draw the aurora band
+        ctx.beginPath();
+
+        // Top wave of the aurora band
+        for (let i = 0; i <= steps; i++) {
+          const x = (i / steps) * w;
+          const wave1 = Math.sin(x * freq + phaseTop) * amp;
+          const wave2 = Math.sin(x * freq * 1.7 + phaseTop2) * amp * 0.4;
+          const y = baseY + wave1 + wave2;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+
+        // Bottom wave of the aurora band
+        for (let i = steps; i >= 0; i--) {
+          const x = (i / steps) * w;
+          const wave1 = Math.sin(x * freq * 0.8 + phaseBot) * amp * 0.7;
+          const wave2 = Math.sin(x * freq * 2.1 + phaseBot2) * amp * 0.3;
+          const y = baseY + band.thickness + wave1 + wave2;
+          ctx.lineTo(x, y);
+        }
+
+        // Stop drawing the aurora band
+        ctx.closePath();
+
+        // Fill the cached gradient
+        ctx.fillStyle = bandGradients[bi];
+        ctx.fill();
+
+        // Brighten on hover to indicate it is clickable
+        if (hl > 0.01) {
+          ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${(0.18 * hl).toFixed(3)})`;
+          ctx.fill();
+        }
+      }
+    }
+
+    const FPS = 20;
+    const FRAME_INTERVAL = 1000 / FPS;
+    let lastFrame = 0;
+    let running = true;
+
+    function animate(timestamp) {
+      if (running && timestamp - lastFrame >= FRAME_INTERVAL) {
+        lastFrame = timestamp;
+        drawAurora(timestamp);
+      }
+      requestAnimationFrame(animate);
+    }
+
+    // Pause animation when the tab is not visible
+    document.addEventListener('visibilitychange', () => {
+      running = !document.hidden;
+    });
+
+    window.addEventListener('resize', init);
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    init();
+    requestAnimationFrame(animate);
+
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+https://en.wikipedia.org/wiki/A_Trip_to_the_Moon
+
+Code used to download the video and grab the correct frames:
+$ yt-dlp -o voyage.webm https://www.youtube.com/watch?v=qcyZ70tO9-Q
+$ mkdir frames
+$ ffmpeg -i voyage.webm -ss 00:06:12 -t 1 frames/frame_%04d.png
+$ mv ./frames/frame_0003.png before-orig.png
+$ mv ./frames/frame_0005.png after-orig.png
+$ rm -rf ./frames
+$ convert before-orig.png -shave 265x0 before-crop.png
+$ convert after-orig.png -shave 265x0 after-crop.png
+$ convert before-crop.png -resize 50% -colors 16 -define png:compression-level=9 PNG8:before.png
+$ convert after-crop.png -resize 50% -colors 16 -define png:compression-level=9 PNG8:after.png
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="if you'll be my baby">
+  <title>Lunatic Ride</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #000000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    main {
+      position: relative;
+      aspect-ratio: 695 / 540;
+      width: 100vw;
+      height: auto;
+      max-height: 100vh;
+      max-width: calc(100vh * 695 / 540);
+    }
+
+    #frame {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    #moon {
+      position: absolute;
+      left: 30%;
+      top: 26.8%;
+      width: 32.2%;
+      height: 42%;
+      border-radius: 50%;
+      /* background: rgba(255, 0, 0, 0.3); */
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <a id="moon" href="../index.html"></a>
+    <img id="frame" src="before.png"
+      alt="A frame from the 1902 silent film 'Le Voyage dans la Lune', with the Man in the Moon appearing as a white face in the sky. When the mouse hovers over the moon, the frame changes to the next in the reel: the moon's face with a spacecraft stuck in its right eye!">
+  </main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('dans-la-lune');
+
+    (new Image()).src = 'after.png';
+
+    const frame = document.getElementById('frame');
+    const moon = document.getElementById('moon');
+
+    moon.addEventListener('mouseenter', () => { frame.src = 'after.png'; });
+    moon.addEventListener('mouseleave', () => { frame.src = 'before.png'; });
+
+    // Dev mode, use backtick to toggle moon background colour.
+    // Used to tweak the shape of the clickable region.
+    document.addEventListener('keydown', (e) => {
+      if (e.key === '`') {
+        moon.style.background = (moon.style.background === '') ? 'rgba(255, 0, 0, 0.3)' : '';
+      }
+    });
+
+  </script>
+</body>
+
+</html>

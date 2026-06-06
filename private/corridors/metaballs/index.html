@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+I was looking at `rorschach`, and realised it sort of looked like a lava lamp.
+So this page is just moving those metaballs around and giving them pretty colours.
+Rorschach used SVG, but the goo magic in CSS is: `filter: blur(22px) contrast(100);`
+Blur it and whack the contrast right up.
+
+https://en.wikipedia.org/wiki/Metaballs
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="That's a spicy metaball!">
+  <title>Kai's SuperGOO</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: radial-gradient(ellipse at center, #2a0a1a 0%, #050008 80%);
+    }
+
+    #main {
+      position: absolute;
+      inset: 0;
+      filter: blur(22px) contrast(100);
+      background: #000000;
+    }
+
+    .ball {
+      position: absolute;
+      border-radius: 50%;
+      display: block;
+      text-decoration: none;
+      will-change: transform;
+      cursor: pointer;
+      transition: filter 0.2s;
+    }
+
+    .ball.white.red {
+      background: radial-gradient(circle at 35% 30%, #ffeebb, #ff5577 55%, #aa0044 100%);
+    }
+
+    .ball.white.green {
+      background: radial-gradient(circle at 35% 30%, #eeffbb, #55ff77 55%, #00aa44 100%);
+    }
+
+    .ball.white.blue {
+      background: radial-gradient(circle at 35% 30%, #bbeeff, #5577ff 55%, #4400aa 100%);
+    }
+
+    .ball.black.red {
+      background: radial-gradient(circle at 35% 30%, #666666, #ff5577 55%, #aa0044 100%);
+    }
+
+    .ball.black.green {
+      background: radial-gradient(circle at 35% 30%, #666666, #55ff77 55%, #00aa44 100%);
+    }
+
+    .ball.black.blue {
+      background: radial-gradient(circle at 35% 30%, #666666, #5577ff 55%, #4400aa 100%);
+    }
+
+    .ball:hover {
+      filter: brightness(1.1);
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 100;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.22) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+      background-size: 100% 2px, 3px 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <main id="main"></main>
+  <div id="crt-scanlines"></div>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('metaballs');
+
+    const main = document.getElementById('main');
+    const colours = ['red', 'green', 'blue'];
+
+    // I'm not sure which version I prefer, so let's use both!
+    let palette = LAB.chance(0.5) ? 'black' : 'white';
+
+    const balls = [];
+    let W, H;
+
+    function init() {
+      main.innerHTML = '';
+      balls.length = 0;
+      W = window.innerWidth;
+      H = window.innerHeight;
+      const area = W * H;
+
+      // Reference points for ball count calculation:
+      // - 2400 x 960 (area: 2304000) -> 140 balls
+      // - 360 x 760 (area: 273600) -> 20 balls
+      const m = (140 - 20) / ((2400 * 960) - (360 * 760));
+      const c = 140 - m * (2400 * 960);
+      const ballCount = Math.max(5, Math.floor(m * area + c));
+
+      for (let i = 0; i < ballCount; i++) {
+        const r = LAB.rand(50, 110);
+        const visual = document.createElement('a');
+        visual.className = `ball ${palette} ${LAB.sample(colours)}`;
+        visual.style.width = visual.style.height = (r * 2) + 'px';
+        visual.href = LAB.pageRandomiser.nextOne();
+        main.appendChild(visual);
+
+        balls.push({
+          x: LAB.rand(r, W - r),
+          y: LAB.rand(r, H - r),
+          vx: LAB.rand(-0.6, 0.6),
+          vy: LAB.rand(-0.6, 0.6),
+          r,
+          visual,
+        });
+      }
+    }
+
+    // Move the balls every tick.
+    // They don't bounce off each other, but they do bounce off the screen edges.
+    function tick() {
+      for (const b of balls) {
+        b.x += b.vx;
+        b.y += b.vy;
+        if (b.x < b.r) { b.x = b.r; b.vx *= -1; }
+        if (b.x > W - b.r) { b.x = W - b.r; b.vx *= -1; }
+        if (b.y < b.r) { b.y = b.r; b.vy *= -1; }
+        if (b.y > H - b.r) { b.y = H - b.r; b.vy *= -1; }
+        b.visual.style.transform = `translate(${b.x - b.r}px, ${b.y - b.r}px)`;
+      }
+      requestAnimationFrame(tick);
+    }
+
+    function swapPalette() {
+      const oldPalette = palette;
+      palette = (oldPalette === 'black') ? 'white' : 'black';
+      for (const b of balls) {
+        b.visual.classList.toggle(oldPalette);
+        b.visual.classList.toggle(palette);
+      }
+    }
+
+    window.addEventListener('resize', init);
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, swapPalette);
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) swapPalette();
+    });
+
+    init();
+    tick();
+
+  </script>
+</body>
+
+</html>

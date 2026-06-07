@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+Source for the arrow images:
+https://www.spriters-resource.com/arcade/dancedancerevolution/asset/213499/
+https://www.spriters-resource.com/media/assets/210/213499.png
+
+Source for the mat images:
+https://www.s-config.com/a-better-dance-dance-revolutionstepmania-mat-controller-with-i-pac/
+https://www.s-config.com/core/wp-content/uploads/2013/02/Soft-Mat.jpg
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="We're falling apart to halftime">
+  <title>Vive la révolution</title>
+  <style>
+    :root {
+      /* Position of the grey target arrows, near the top of the screen */
+      --target-top: 6vh;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      overflow: hidden;
+      transition: background-color 0.1s;
+    }
+
+    #grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      width: 100vmin;
+      height: 100vmin;
+      max-width: 700px;
+      max-height: 700px;
+    }
+
+    #grid a {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    #grid img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* Just a fun name for the game elements container */
+    #arcade-cabinet {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      display: none;
+      justify-content: center;
+      align-items: stretch;
+      pointer-events: none;
+      z-index: 10;
+      /* Gap between lanes */
+      gap: 5vmin;
+    }
+
+    body.game #arcade-cabinet {
+      display: flex;
+    }
+
+    .lane {
+      position: relative;
+      width: 10vmin;
+      max-width: 80px;
+      height: 100%;
+    }
+
+    /* Static grey arrows marking where the moving arrows should land */
+    .target-arrow {
+      position: absolute;
+      top: var(--target-top);
+      width: 100%;
+      display: flex;
+      justify-content: center;
+    }
+
+    .target-arrow img {
+      transform: scale(3);
+      image-rendering: pixelated;
+      filter: grayscale(100%) brightness(0.6);
+      opacity: 0.5;
+    }
+
+    .arrow-container {
+      position: absolute;
+      top: 100vh;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      animation: arrow-rise linear forwards;
+    }
+
+    .arrow-container img {
+      transform: scale(3);
+      image-rendering: pixelated;
+    }
+
+    @media (max-width: 600px) {
+
+      .arrow-container img,
+      .target-arrow img {
+        transform: scale(1.5);
+      }
+    }
+
+    /* Rise up from the bottom to the grey target arrows, then expand and fade */
+    @keyframes arrow-rise {
+      0% {
+        top: 100vh;
+        transform: scale(1);
+        opacity: 1;
+      }
+
+      85% {
+        top: var(--target-top);
+        transform: scale(1);
+        opacity: 1;
+      }
+
+      100% {
+        top: var(--target-top);
+        transform: scale(2.2);
+        opacity: 0;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="arcade-cabinet">
+    <div class="lane" id="lane-left">
+      <div class="target-arrow"><img src="arrow-left.png"></div>
+    </div>
+    <div class="lane" id="lane-down">
+      <div class="target-arrow"><img src="arrow-down.png"></div>
+    </div>
+    <div class="lane" id="lane-up">
+      <div class="target-arrow"><img src="arrow-up.png"></div>
+    </div>
+    <div class="lane" id="lane-right">
+      <div class="target-arrow"><img src="arrow-right.png"></div>
+    </div>
+  </div>
+
+  <div id="grid">
+    <a id="mat-0" href="../index.html"><img src="mat-0.jpg"></a>
+    <a id="mat-1" href="../index.html"><img src="mat-1.jpg"></a>
+    <a id="mat-2" href="../index.html"><img src="mat-2.jpg"></a>
+    <a id="mat-3" href="../index.html"><img src="mat-3.jpg"></a>
+    <a id="mat-4" href="../index.html"><img src="mat-4.jpg"></a>
+    <a id="mat-5" href="../index.html"><img src="mat-5.jpg"></a>
+    <a id="mat-6" href="../index.html"><img src="mat-6.jpg"></a>
+    <a id="mat-7" href="../index.html"><img src="mat-7.jpg"></a>
+    <a id="mat-8" href="../index.html"><img src="mat-8.jpg"></a>
+  </div>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('dance-dance');
+
+    const images = [
+      'mat-0.jpg', 'mat-1.jpg', 'mat-2.jpg',
+      'mat-3.jpg', 'mat-4.jpg', 'mat-5.jpg',
+      'mat-6.jpg', 'mat-7.jpg', 'mat-8.jpg',
+    ];
+    const imagesRandomiser = new LAB.CyclicRandomiser(images);
+
+    const cells = document.querySelectorAll('#grid a');
+
+    const BEAT_DURATION = 420;
+
+    let gameInterval = null;
+    let forceGame = false;
+    let hueRotate = 0;
+
+    const ARROWS = [
+      { name: 'left', src: 'arrow-left.png', lane: 'lane-left' },
+      { name: 'down', src: 'arrow-down.png', lane: 'lane-down' },
+      { name: 'up', src: 'arrow-up.png', lane: 'lane-up' },
+      { name: 'right', src: 'arrow-right.png', lane: 'lane-right' }
+    ];
+
+    function spawnArrow(arrowDef) {
+      const lane = document.getElementById(arrowDef.lane);
+      if (!lane) return;
+
+      const container = document.createElement('div');
+      container.className = 'arrow-container';
+
+      // 4 beats to drop to bottom
+      container.style.animationDuration = `${BEAT_DURATION * 4}ms`;
+
+      const img = document.createElement('img');
+      img.src = arrowDef.src;
+
+      img.style.filter = `sepia(100%) saturate(400%) hue-rotate(${hueRotate}deg)`;
+      hueRotate = hueRotate + 30;
+
+      container.appendChild(img);
+      lane.appendChild(container);
+
+      container.addEventListener('animationend', () => container.remove());
+    }
+
+    function doBeat() {
+      if (!gameInterval) return;
+
+      // Decide if 1 or 2 arrows
+      const numArrows = LAB.chance(0.2) ? 2 : 1;
+      const selectedArrows = [];
+
+      while (selectedArrows.length < numArrows) {
+        const arr = LAB.sample(ARROWS);
+        if (!selectedArrows.includes(arr)) {
+          selectedArrows.push(arr);
+        }
+      }
+
+      selectedArrows.forEach(arr => spawnArrow(arr));
+
+      // Follow up pattern (up to 3 more of the first arrow in 1/4 beats)
+      if (LAB.chance(0.3)) {
+        const followUps = LAB.randInt(1, 3);
+        const arr = selectedArrows[0];
+        for (let i = 1; i <= followUps; i++) {
+          setTimeout(() => {
+            if (gameInterval) spawnArrow(arr);
+          }, i * (BEAT_DURATION / 4));
+        }
+      }
+    }
+
+    function checkGame() {
+      let isGame = true;
+      cells.forEach((cell, index) => {
+        const img = cell.querySelector('img');
+        const src = img.getAttribute('src');
+        if (src !== images[index]) {
+          isGame = false;
+        }
+      });
+
+      if (isGame || forceGame) {
+        if (!gameInterval) {
+          document.getElementById('mat-4').href = LAB.goto();
+          document.body.classList.add('game');
+          if (!gameInterval) {
+            gameInterval = setInterval(doBeat, BEAT_DURATION);
+            doBeat(); // Trigger immediate first beat
+          }
+        }
+      } else {
+        document.body.classList.remove('game');
+        if (gameInterval) {
+          clearInterval(gameInterval);
+          gameInterval = null;
+        }
+      }
+    }
+
+    cells.forEach((cell, index) => {
+      const img = cell.querySelector('img');
+
+      // Initially randomise to random images
+      img.setAttribute('src', imagesRandomiser.nextOne());
+
+      cell.addEventListener('mouseenter', () => {
+        if (gameInterval) return;
+
+        const currentSrc = img.getAttribute('src');
+        let newSrc;
+        do {
+          newSrc = imagesRandomiser.nextOne();
+        } while (newSrc === currentSrc);
+
+        img.setAttribute('src', newSrc);
+        checkGame();
+      });
+    });
+
+    // Dev mode for those who know the secret key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === '`') {
+        forceGame = true;
+        checkGame();
+      }
+    });
+
+    // Unlikely to initially spawn in the correct positions, but possible...
+    checkGame();
+
+  </script>
+</body>
+
+</html>

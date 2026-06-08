@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Toe to toe, back to back, let's go">
+  <title>Till morning comes</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      background-color: #0a0a08;
+      color: #f4ecd8;
+      font-family: serif;
+      overflow: hidden;
+    }
+
+    #svg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 1;
+    }
+
+    .tile {
+      stroke: #0a0a08;
+      stroke-width: 1.5;
+      transition: filter 0.2s ease, transform 0.2s ease;
+      cursor: pointer;
+      transform-origin: center;
+    }
+
+    .tile:hover {
+      filter: brightness(1.6);
+    }
+
+    #grain {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: radial-gradient(rgba(0, 0, 0, 0.4) 1px, transparent 1px);
+      background-size: 4px 4px;
+      pointer-events: none;
+      opacity: 0.5;
+      z-index: 4;
+    }
+  </style>
+</head>
+
+<body>
+  <svg id="svg"></svg>
+  <div id="grain"></div>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('triangular-tesserae');
+
+    const svg = document.getElementById('svg');
+    const ns = 'http://www.w3.org/2000/svg';
+
+    const PALETTES = [
+      ['#ffd07a', '#cc8833', '#8a4f17', '#3a2410', '#f4ecd8'],
+      ['#1c4a8a', '#3a78c4', '#0f2554', '#88aadd', '#ffd07a'],
+      ['#aa1133', '#dd4466', '#770022', '#ffaa88', '#f4ecd8'],
+      ['#226644', '#44aa66', '#11442a', '#aaeeb6', '#ffd07a'],
+      ['#552288', '#8844cc', '#330055', '#dd99ff', '#ffd07a']
+    ];
+    const paletteRandomiser = new LAB.CyclicRandomiser(PALETTES);
+
+    function init() {
+      svg.innerHTML = '';
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+
+      const palette = paletteRandomiser.nextOne();
+
+      // Make a grid of randomly jittered points
+      const cell = 56;
+      const cols = Math.ceil(w / cell) + 2;
+      const rows = Math.ceil(h / cell) + 2;
+      const pts = [];
+      for (let r = 0; r < rows; r++) {
+        const row = [];
+        for (let c = 0; c < cols; c++) {
+          row.push({
+            x: (c - 1) * cell + LAB.rand(-cell * 0.35, cell * 0.35),
+            y: (r - 1) * cell + LAB.rand(-cell * 0.35, cell * 0.35)
+          });
+        }
+        pts.push(row);
+      }
+
+      // Build triangles from grid quads, two triangles per quad
+      for (let r = 0; r < rows - 1; r++) {
+        for (let c = 0; c < cols - 1; c++) {
+          const a = pts[r][c];
+          const b = pts[r][c + 1];
+          const d = pts[r + 1][c];
+          const e = pts[r + 1][c + 1];
+
+          // Randomise which diagonal we cut on to break the grid look
+          const tris = LAB.chance(0.5)
+            ? [[a, b, e], [a, e, d]]
+            : [[a, b, d], [b, e, d]];
+
+          tris.forEach(tri => {
+            const link = document.createElementNS(ns, 'a');
+            link.setAttribute('href', LAB.pageRandomiser.nextOne());
+            const poly = document.createElementNS(ns, 'polygon');
+            poly.setAttribute('points', tri.map(p => `${p.x},${p.y}`).join(' '));
+            poly.setAttribute('fill', LAB.sample(palette));
+            poly.setAttribute('class', 'tile');
+            link.appendChild(poly);
+            svg.appendChild(link);
+          });
+        }
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    window.addEventListener('resize', init);
+
+    init();
+
+  </script>
+</body>
+
+</html>

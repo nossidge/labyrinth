@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+Similar to the existing `panopticon` page, but with animation.
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="All Eyez on Me">
+  <title>Argus Panoptes</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      background: #000;
+      overflow: hidden;
+      font-family: serif;
+    }
+
+    #main {
+      position: fixed;
+      inset: 0;
+    }
+
+    .eye {
+      position: absolute;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 60px;
+      height: 30px;
+      background: radial-gradient(ellipse at center, #fff 0%, #fff 30%, #ddd 60%, #888 100%);
+      border-radius: 50% / 80%;
+      box-shadow: 0 0 12px rgba(255, 255, 255, 0.4);
+      transition: clip-path 0.4s ease, transform 0.3s ease, box-shadow 0.3s ease;
+      clip-path: polygon(0% 50%, 50% 50%, 100% 50%, 50% 50%);
+      transform-origin: top left;
+      cursor: pointer;
+    }
+
+    .eye.open {
+      clip-path: polygon(0% 50%, 50% 0%, 100% 50%, 50% 100%);
+    }
+
+    .pupil {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #000;
+      transition: transform 0.2s ease;
+      position: relative;
+    }
+
+    .pupil::after {
+      content: "";
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 4px;
+      height: 4px;
+      background: #fff;
+      border-radius: 50%;
+    }
+
+    .eye .pupil[data-colour] {
+      background: radial-gradient(circle,
+          var(--pupil-colour),
+          color-mix(in srgb, var(--pupil-colour) 30%, black));
+    }
+  </style>
+</head>
+
+<body>
+  <main id="main"></main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('argus');
+
+    const main = document.getElementById('main');
+    let eyes = [];
+
+    // Natural eye dimensions (before scale).
+    const EYE_W = 60;
+    const EYE_H = 30;
+
+    // Minimum gap between eye bounding boxes, in pixels.
+    const MARGIN = 4;
+
+    // Responsive count: ~70 eyes at 2400x960.
+    const REF_AREA = 2400 * 960;
+    const REF_COUNT = 70;
+
+    // The original plan was to cycle through the colours of the rainbow.
+    // But I prefer how it looks with just black and red.
+    const PALETTE = [
+      'black',
+      '#e81416',
+      // '#ffa500',
+      // '#faeb36',
+      // '#79c314',
+      // '#487de7',
+      // '#4b369d',
+      // '#70369d',
+    ];
+
+    let tickIndex = 0;
+    let blinkTimer = null;
+    let currentTickColour = PALETTE[tickIndex % PALETTE.length];
+
+    // Apply the current tick colour to a newly opening eye.
+    // The colour is stored on the pupil via a data attribute.
+    // Also uses a CSS --pupil-colour custom property.
+    function openEye(el) {
+      if (!el.classList.contains('open')) {
+        el.dataset.colour = currentTickColour;
+        const pupil = el.querySelector('.pupil');
+        pupil.dataset.colour = currentTickColour;
+        pupil.style.setProperty('--pupil-colour', currentTickColour);
+        el.classList.add('open');
+      }
+    }
+
+    // Blink behaviour.
+    // The "tick colour" alternates between black and red on every tick.
+    function blinkRandom() {
+      currentTickColour = PALETTE[tickIndex % PALETTE.length];
+
+      for (const e of eyes) {
+        const isHovered = e.el.matches(':hover');
+        if (isHovered) {
+          openEye(e.el);
+          continue;
+        }
+        const wasOpen = e.el.classList.contains('open');
+        if (LAB.chance(0.25)) {
+          if (!wasOpen) openEye(e.el);
+        } else {
+          e.el.classList.remove('open');
+        }
+      }
+      tickIndex++;
+    }
+
+    function init() {
+      if (blinkTimer !== null) {
+        clearInterval(blinkTimer);
+        blinkTimer = null;
+      }
+      main.innerHTML = '';
+      eyes = [];
+      tickIndex = 0;
+
+      const viewW = window.innerWidth;
+      const viewH = window.innerHeight;
+      const area = viewW * viewH;
+      const count = Math.max(20, Math.round(REF_COUNT * area / REF_AREA));
+
+      // Place eyes without visual overlap.
+      // Each placement records its visual bounding box.
+      // Reject candidates that intersect any existing box.
+      const placed = [];
+      const maxAttempts = count * 80;
+      let attempts = 0;
+
+      while (placed.length < count && attempts < maxAttempts) {
+        attempts++;
+        const scale = LAB.rand(1.5, 3.6);
+        const w = EYE_W * scale;
+        const h = EYE_H * scale;
+        const maxX = viewW - w;
+        const maxY = viewH - h;
+        if (maxX <= 0 || maxY <= 0) break;
+        const x = LAB.rand(0, maxX);
+        const y = LAB.rand(0, maxY);
+        const overlaps = placed.some(p =>
+          !(x + w + MARGIN <= p.x ||
+            p.x + p.w + MARGIN <= x ||
+            y + h + MARGIN <= p.y ||
+            p.y + p.h + MARGIN <= y)
+        );
+        if (overlaps) continue;
+        placed.push({ x, y, w, h, scale });
+      }
+
+      for (const p of placed) {
+        const el = document.createElement('a');
+        el.className = 'eye';
+        const pupil = document.createElement('div');
+        pupil.className = 'pupil';
+        el.appendChild(pupil);
+        el.href = LAB.pageRandomiser.nextOne();
+        el.style.left = p.x + 'px';
+        el.style.top = p.y + 'px';
+        el.style.transform = `scale(${p.scale})`;
+        el.dataset.scale = p.scale;
+
+        // Hovering an eye locks it open until the cursor leaves
+        el.addEventListener('mouseenter', () => openEye(el));
+
+        main.appendChild(el);
+        eyes.push({ el, pupil, scale: p.scale });
+      }
+
+      blinkRandom();
+      blinkTimer = setInterval(blinkRandom, 1100);
+    }
+
+    // Pupils track mouse
+    document.addEventListener('mousemove', evt => {
+      for (const e of eyes) {
+        const rect = e.el.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        const dx = evt.clientX - cx;
+        const dy = evt.clientY - cy;
+        const dist = Math.hypot(dx, dy) || 1;
+        const offsetX = (dx / dist) * 6;
+        const offsetY = (dy / dist) * 4;
+        e.pupil.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+      }
+    });
+
+    // Rebuild the field on resize to recalculate the eye count
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(init, 100);
+    });
+
+    init();
+
+  </script>
+</body>
+
+</html>

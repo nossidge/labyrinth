@@ -477,6 +477,12 @@ This game isn't very fun!
             if (p === lastFlickedPlayer) {
               // Only the flicked player can kick the ball
               resolveCollision(p, ball, 5);
+              // Limit player rebound so they don't drift too far
+              const reboundSpeed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+              if (reboundSpeed > 0) {
+                p.vx = (p.vx / reboundSpeed) * 0.4;
+                p.vy = (p.vy / reboundSpeed) * 0.4;
+              }
             } else {
               // Go through other teammates
             }

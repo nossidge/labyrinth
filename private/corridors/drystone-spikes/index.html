@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+This page is exactly the same as `drystone-wall`, except instead of creating a full
+convex hull for each shape, we just leave the points as they are, all spiky-like.
+I think this is interesting enough to serve as a separate page.
+I do like playing about with values like this, and it's also an excuse for me to be lazy!
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Fog on the Tine">
+  <title>Drystone spikes</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000000;
+    }
+
+    #stage {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .stone {
+      stroke: #000000;
+      stroke-width: 1.2;
+      stroke-linejoin: round;
+      transition: filter 0.18s ease, transform 0.4s ease;
+      transform-origin: center;
+      transform-box: fill-box;
+      cursor: pointer;
+    }
+
+    .stone:hover {
+      filter: brightness(1.6) drop-shadow(0 0 14px #ffffffaa);
+    }
+
+    .stone.flying {
+      transform: translate(var(--dx), var(--dy)) rotate(var(--rot));
+      opacity: 0;
+      transition: transform 0.7s ease-out, opacity 0.7s ease-out;
+    }
+  </style>
+</head>
+
+<body>
+  <svg id="stage" preserveAspectRatio="none"></svg>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('drystone-spikes');
+
+    const SHATTER_DURATION_MS = 700;
+    const SHATTER_COOLDOWN_MS = SHATTER_DURATION_MS + 100;
+
+    const svg = document.getElementById('stage');
+    let W, H;
+    let isShattering = false;
+
+    // Approximate Voronoi by point/seed nearest-neighbour over a grid
+    function voronoi(seeds, w, h, step) {
+      const cells = new Map();
+      seeds.forEach((_, i) => cells.set(i, []));
+
+      for (let y = 0; y < h; y += step) {
+        for (let x = 0; x < w; x += step) {
+          let best = 0, bestD = Infinity;
+          for (let i = 0; i < seeds.length; i++) {
+            const dx = seeds[i][0] - x;
+            const dy = seeds[i][1] - y;
+            const d = dx * dx + dy * dy;
+            if (d < bestD) { bestD = d; best = i; }
+          }
+          cells.get(best).push([x, y]);
+        }
+      }
+      return cells;
+    }
+
+    function cross(a, b, o) {
+      return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
+    }
+
+    // Cool greys/blues like stones you might find in the Dales
+    function stoneColour() {
+      const h = LAB.rand(190, 230);
+      const s = LAB.rand(8, 30);
+      const l = LAB.rand(38, 76);
+      return `hsl(${h}, ${s}%, ${l}%)`;
+    }
+
+    function build(originX, originY) {
+      W = window.innerWidth;
+      H = window.innerHeight;
+      svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+      svg.innerHTML = '';
+
+      const seeds = [];
+      const count = 70;
+
+      // Half the seeds clustered around the impact point (radial cracks)
+      for (let i = 0; i < count / 2; i++) {
+        const angle = LAB.rand(0, Math.PI * 2);
+        const dist = Math.pow(LAB.rand(0, 1), 0.5) * Math.max(W, H) * 0.7;
+        seeds.push([
+          Math.max(0, Math.min(W, originX + Math.cos(angle) * dist)),
+          Math.max(0, Math.min(H, originY + Math.sin(angle) * dist)),
+        ]);
+      }
+
+      // Half the seeds scattered freely
+      for (let i = 0; i < count / 2; i++) {
+        seeds.push([LAB.rand(0, W), LAB.rand(0, H)]);
+      }
+
+      const cells = voronoi(seeds, W, H, 14);
+
+      cells.forEach((hull) => {
+        if (hull.length < 3) return;
+
+        const a = document.createElementNS('http://www.w3.org/2000/svg', 'a');
+        a.setAttribute('href', LAB.pageRandomiser.nextOne());
+
+        const poly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+        poly.setAttribute('points', hull.map(p => p.join(',')).join(' '));
+        poly.setAttribute('fill', stoneColour());
+        poly.classList.add('stone');
+
+        a.appendChild(poly);
+        svg.appendChild(a);
+      });
+    }
+
+    // Animate existing stones flying outward, then rebuild from impact point
+    function shatter(x, y) {
+      if (isShattering) return;
+      isShattering = true;
+
+      const stones = svg.querySelectorAll('.stone');
+      stones.forEach(s => {
+        const bbox = s.getBBox();
+        const cx = bbox.x + bbox.width / 2;
+        const cy = bbox.y + bbox.height / 2;
+        const dx = (cx - x) * 1.2 + LAB.rand(-30, 30);
+        const dy = (cy - y) * 1.2 + LAB.rand(-30, 30);
+        const rot = LAB.rand(-45, 45);
+        s.style.setProperty('--dx', dx + 'px');
+        s.style.setProperty('--dy', dy + 'px');
+        s.style.setProperty('--rot', rot + 'deg');
+        s.classList.add('flying');
+      });
+      setTimeout(() => build(x, y), SHATTER_DURATION_MS);
+      setTimeout(() => { isShattering = false; }, SHATTER_COOLDOWN_MS);
+    }
+
+    // Clicking anywhere will break the wall apart at that point
+    svg.addEventListener('click', (e) => {
+      if (e.target === svg) shatter(e.clientX, e.clientY);
+    });
+
+    // Pressing a key will break the wall apart at a random point
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, () => {
+        shatter(LAB.rand(0, window.innerWidth), LAB.rand(0, window.innerHeight));
+      });
+    });
+
+    build(window.innerWidth / 2, window.innerHeight / 2);
+
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => build(window.innerWidth / 2, window.innerHeight / 2), 200);
+    });
+
+  </script>
+</body>
+
+</html>

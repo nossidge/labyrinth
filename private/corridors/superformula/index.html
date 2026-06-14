@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+https://en.wikipedia.org/wiki/Superformula
+Johan Gielis' single equation that morphs between starfish, flowers,
+snowflakes and polygons as you nudge a handful of numbers.
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="when I am formulated, sprawling on a pin">
+  <title>A formula, a phrase remains</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #020006;
+    }
+
+    main {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 100;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.18) 50%);
+      background-size: 100% 2px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+  <main>
+    <a href="../index.html">
+      <canvas id="shape"></canvas>
+    </a>
+  </main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('superformula');
+
+    const canvas = document.getElementById('shape');
+    const ctx = canvas.getContext('2d');
+    let cx, cy, baseR;
+
+    function resize() {
+      baseR = Math.min(window.innerWidth, window.innerHeight) * 0.38;
+      const size = Math.ceil(2 * baseR);
+      canvas.width = size;
+      canvas.height = size;
+      cx = size / 2;
+      cy = size / 2;
+    }
+
+    function randParams() {
+      return {
+        m: LAB.randInt(3, 16),
+        n1: LAB.rand(0.3, 6),
+        n2: LAB.rand(0.3, 12),
+        n3: LAB.rand(0.3, 12),
+      };
+    }
+
+    let cur = randParams();
+    let target = randParams();
+    let hue = LAB.rand(0, 360);
+
+    function superR(phi, p) {
+      const t1 = Math.pow(Math.abs(Math.cos(p.m * phi / 4)), p.n2);
+      const t2 = Math.pow(Math.abs(Math.sin(p.m * phi / 4)), p.n3);
+      return Math.pow(t1 + t2, -1 / p.n1);
+    }
+
+    function lerp(a, b, f) {
+      return a + (b - a) * f;
+    }
+
+    function morph() {
+      cur.m = lerp(cur.m, target.m, 0.02);
+      cur.n1 = lerp(cur.n1, target.n1, 0.02);
+      cur.n2 = lerp(cur.n2, target.n2, 0.02);
+      cur.n3 = lerp(cur.n3, target.n3, 0.02);
+      if (Math.abs(cur.m - target.m) < 0.05) target = randParams();
+    }
+
+    function drawShape(p, scale, rot, colour) {
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(rot);
+      ctx.beginPath();
+      let maxR = 0;
+      const pts = [];
+      for (let phi = 0; phi <= Math.PI * 2 + 0.01; phi += 0.01) {
+        const r = superR(phi, p);
+        if (isFinite(r)) {
+          maxR = Math.max(maxR, r);
+          pts.push([phi, r]);
+        }
+      }
+      const norm = (baseR * scale) / (maxR || 1);
+      pts.forEach(([phi, r], i) => {
+        const x = Math.cos(phi) * r * norm;
+        const y = Math.sin(phi) * r * norm;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.closePath();
+      ctx.strokeStyle = colour;
+      ctx.lineWidth = 1.6;
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function draw(time) {
+      ctx.fillStyle = 'rgba(5, 3, 10, 0.14)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      morph();
+      hue = (hue + 0.3) % 360;
+      const spin = time * 0.0002;
+
+      for (let layer = 0; layer < 5; layer++) {
+        const scale = 1 - layer * 0.18;
+        const colour = `hsla(${(hue + layer * 30) % 360}, 90%, 62%, 0.8)`;
+        drawShape(cur, scale, spin * (layer % 2 === 0 ? 1 : -1), colour);
+      }
+
+      requestAnimationFrame(draw);
+    }
+
+    window.addEventListener('resize', resize);
+
+    resize();
+    requestAnimationFrame(draw);
+
+  </script>
+</body>
+
+</html>

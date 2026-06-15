@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+Clifford strange attractor
+https://en.wikipedia.org/wiki/Attractor
+https://en.wikipedia.org/wiki/List_of_chaotic_maps
+https://en.wikipedia.org/wiki/Clifford_A._Pickover
+https://blbadger.github.io/clifford-attractor.html
+https://examples.holoviz.org/gallery/attractors/clifford_panel.html
+https://sequelaencollection.home.blog/2d-chaotic-attractors/
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Clifford the Big Red Attractor">
+  <title>Strangely attractive</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000000;
+    }
+
+    main {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      height: 100%;
+    }
+
+    canvas {
+      display: block;
+    }
+
+    .nav-panel {
+      position: fixed;
+      top: 0;
+      height: 100%;
+      width: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 5;
+      cursor: pointer;
+    }
+
+    #nav-left {
+      left: 0;
+      background: linear-gradient(to right, rgba(255, 255, 255, 0.02), transparent);
+    }
+
+    #nav-left:hover {
+      background: linear-gradient(to right, rgba(255, 255, 255, 0.06), transparent);
+    }
+
+    #nav-right {
+      right: 0;
+      background: linear-gradient(to left, rgba(255, 255, 255, 0.02), transparent);
+    }
+
+    #nav-right:hover {
+      background: linear-gradient(to left, rgba(255, 255, 255, 0.06), transparent);
+    }
+
+    @media (max-width: 600px) {
+      .nav-panel {
+        top: auto;
+        bottom: 0;
+        height: 60px;
+        width: 50%;
+        background: none;
+      }
+
+      .nav-button {
+        width: 100%;
+        height: 100%;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    }
+
+    .nav-button {
+      background: none;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: rgba(255, 255, 255, 0.25);
+      font-size: 28px;
+      padding: 12px 16px;
+      cursor: pointer;
+      line-height: 1;
+      pointer-events: none;
+    }
+
+    .nav-panel:hover .nav-button {
+      border-color: rgba(255, 255, 255, 0.5);
+      color: rgba(255, 255, 255, 0.8);
+    }
+  </style>
+</head>
+
+<body>
+  <div id="nav-left" class="nav-panel">
+    <button id="prev-btn" class="nav-button">&larr;</button>
+  </div>
+
+  <main>
+    <a id="link" href="../index.html">
+      <canvas id="plot"></canvas>
+    </a>
+  </main>
+
+  <div id="nav-right" class="nav-panel">
+    <button id="next-btn" class="nav-button">&rarr;</button>
+  </div>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('clifford-attractor');
+
+    const link = document.getElementById('link');
+    const canvas = document.getElementById('plot');
+    const ctx = canvas.getContext('2d');
+
+    let x, y, hue;
+
+    // History of generated attractors
+    // Each entry: { a, b, c, d, hue, href }
+    let history = [];
+    let historyIndex = -1;
+
+    function updateUrl(entry) {
+      const params = new URLSearchParams();
+      params.set('a', entry.a);
+      params.set('b', entry.b);
+      params.set('c', entry.c);
+      params.set('d', entry.d);
+      params.set('hue', entry.hue);
+      const newUrl = window.location.pathname + '?' + params.toString();
+      if (window.history && window.history.replaceState) {
+        window.history.replaceState(null, '', newUrl);
+      }
+    }
+
+    function parseUrlParams() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.has('a') && params.has('b') && params.has('c') && params.has('d') && params.has('hue')) {
+        return {
+          a: parseFloat(params.get('a')),
+          b: parseFloat(params.get('b')),
+          c: parseFloat(params.get('c')),
+          d: parseFloat(params.get('d')),
+          hue: parseFloat(params.get('hue')),
+          href: LAB.pageRandomiser.nextOne(),
+        };
+      }
+      return null;
+    }
+
+    function resize() {
+      canvas.width = Math.min(window.innerWidth, window.innerHeight);
+      canvas.height = canvas.width;
+    }
+
+    // Some of the results are boring, just points or small lines.
+    // So let's simulate a bit before deciding on a good one.
+    // Good attractors are ones which have a large area and a high number of occupied cells.
+    function scoreAttractor(a, b, c, d) {
+      let x = 0.1;
+      let y = 0.1;
+
+      // Skip transient behaviour
+      for (let i = 0; i < 1000; i++) {
+        const nx = Math.sin(a * y) + c * Math.cos(a * x);
+        const ny = Math.sin(b * x) + d * Math.cos(b * y);
+        x = nx;
+        y = ny;
+      }
+
+      let minX = Infinity;
+      let maxX = -Infinity;
+      let minY = Infinity;
+      let maxY = -Infinity;
+
+      const cells = new Set();
+
+      for (let i = 0; i < 5000; i++) {
+        const nx = Math.sin(a * y) + c * Math.cos(a * x);
+        const ny = Math.sin(b * x) + d * Math.cos(b * y);
+        x = nx;
+        y = ny;
+
+        minX = Math.min(minX, x);
+        maxX = Math.max(maxX, x);
+        minY = Math.min(minY, y);
+        maxY = Math.max(maxY, y);
+
+        // Quantise position
+        const gx = Math.floor(x * 50);
+        const gy = Math.floor(y * 50);
+
+        cells.add(`${gx},${gy}`);
+      }
+
+      const width = maxX - minX;
+      const height = maxY - minY;
+
+      return {
+        area: width * height,
+        occupiedCells: cells.size
+      };
+    }
+
+    function generateParams() {
+      while (true) {
+        const ta = LAB.rand(-2.2, 2.2);
+        const tb = LAB.rand(-2.2, 2.2);
+        const tc = LAB.rand(-1.5, 1.5);
+        const td = LAB.rand(-1.5, 1.5);
+
+        const score = scoreAttractor(ta, tb, tc, td);
+
+        if (
+          score.area > 0.5 &&
+          score.occupiedCells > 500
+        ) {
+          return {
+            a: Math.round(ta * 1000) / 1000,
+            b: Math.round(tb * 1000) / 1000,
+            c: Math.round(tc * 1000) / 1000,
+            d: Math.round(td * 1000) / 1000,
+            hue: LAB.randInt(0, 360),
+            href: LAB.pageRandomiser.nextOne(),
+          };
+        }
+      }
+    }
+
+    function applyParams(entry) {
+      x = 0.1;
+      y = 0.1;
+      hue = entry.hue;
+
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      link.href = entry.href;
+    }
+
+    function reseed() {
+      const entry = generateParams();
+      applyParams(entry);
+    }
+
+    function drawFromEntry(entry) {
+      applyParams(entry);
+      updateUrl(entry);
+    }
+
+    function createNewEntry() {
+      return generateParams();
+    }
+
+    function goToNext() {
+      if (historyIndex < history.length - 1) {
+        historyIndex++;
+      } else {
+        history.push(createNewEntry());
+        historyIndex = history.length - 1;
+      }
+      drawFromEntry(history[historyIndex]);
+    }
+
+    function goToPrev() {
+      if (historyIndex > 0) {
+        historyIndex--;
+      } else {
+        history.unshift(createNewEntry());
+        historyIndex = 0;
+      }
+      drawFromEntry(history[historyIndex]);
+    }
+
+    function draw() {
+      const entry = history[historyIndex];
+      if (!entry) return;
+
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.02)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+      const scale = Math.min(canvas.width, canvas.height) / 5;
+
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.fillStyle = 'hsla(' + hue + ', 90%, 60%, 0.35)';
+      for (let i = 0; i < 3000; i++) {
+        const nx = Math.sin(entry.a * y) + entry.c * Math.cos(entry.a * x);
+        const ny = Math.sin(entry.b * x) + entry.d * Math.cos(entry.b * y);
+        x = nx;
+        y = ny;
+        ctx.fillRect(cx + x * scale, cy + y * scale, 1, 1);
+      }
+      ctx.globalCompositeOperation = 'source-over';
+      hue = (hue + 0.15) % 360;
+
+      requestAnimationFrame(draw);
+    }
+
+    window.addEventListener('resize', () => {
+      resize();
+      if (historyIndex >= 0 && history[historyIndex]) {
+        drawFromEntry(history[historyIndex]);
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      if (e.target.closest('a') || e.target.closest('.nav-panel')) return;
+      goToNext();
+    });
+
+    // Arrow keys, WASD keys, HJKL keys
+    const LEFT_OR_DOWN = new Set(['ArrowLeft', 'ArrowDown', 'h', 'j', 'a', 's']);
+    const RIGHT_OR_UP = new Set(['ArrowRight', 'ArrowUp', 'k', 'l', 'd', 'w']);
+    function keyLeftOrDown(key) { return LEFT_OR_DOWN.has(key); }
+    function keyRightOrUp(key) { return RIGHT_OR_UP.has(key); }
+
+    document.addEventListener('keydown', (e) => {
+      if (keyLeftOrDown(e.key)) {
+        e.preventDefault();
+        goToPrev();
+      } else if (keyRightOrUp(e.key)) {
+        e.preventDefault();
+        goToNext();
+      }
+    });
+
+    document.getElementById('nav-left').addEventListener('click', goToPrev);
+    document.getElementById('nav-right').addEventListener('click', goToNext);
+
+    resize();
+    const first = parseUrlParams() || createNewEntry();
+    history.push(first);
+    historyIndex = 0;
+    drawFromEntry(first);
+    draw();
+
+  </script>
+</body>
+
+</html>

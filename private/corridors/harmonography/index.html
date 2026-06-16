@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+https://en.wikipedia.org/wiki/Harmonograph
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Watch it fly by as the pendulum swings">
+  <title>Harmonography</title>
+  <style>
+    :root {
+      --cell-size: 220px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #050507;
+      display: grid;
+      place-items: center;
+      min-height: 100vh;
+      padding: 16px;
+      font-family: monospace;
+    }
+
+    #main {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .square {
+      width: var(--cell-size);
+      height: var(--cell-size);
+      background: #0c0c0c;
+      border: 1px solid #1f1f2a;
+      text-decoration: none;
+      display: block;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .square:hover {
+      border-color: #ffcc66;
+      box-shadow: 0 0 20px rgba(255, 204, 102, 0.4);
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* On narrow screens, hide the 3rd column: cells 3, 6, 9 */
+    @media (max-width: 760px) {
+      #main {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .square:nth-child(3n) {
+        display: none;
+      }
+    }
+
+    /* On very narrow screens, hide the 2nd column: cells 2, 5, 8 */
+    @media (max-width: 520px) {
+      #main {
+        grid-template-columns: 1fr;
+      }
+
+      .square:nth-child(3n - 1) {
+        display: none;
+      }
+    }
+
+    /* On short screens, hide the 3rd row: cells 7, 8, 9 */
+    @media (max-height: 760px) {
+      .square:nth-child(n + 7) {
+        display: none;
+      }
+    }
+
+    /* On very short screens, also hide the 2nd row: cells 4, 5, 6 */
+    @media (max-height: 520px) {
+      .square:nth-child(n + 4) {
+        display: none;
+      }
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 100;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%);
+      background-size: 100% 2px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+  <main id="main"></main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('harmonography');
+
+    const main = document.getElementById('main');
+
+    const PALETTE = [
+      '#ff66cc', '#66ffcc', '#ffcc66',
+      '#cc66ff', '#66ccff', '#ff8866',
+      '#aaff66', '#66ff88', '#ffaaff',
+    ];
+    const paletteRandomiser = new LAB.CyclicRandomiser(PALETTE);
+
+    const NUMBERS = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+    const numbersRandomiser = new LAB.CyclicRandomiser(NUMBERS);
+
+    const SIZE = parseInt(
+      getComputedStyle(document.documentElement).getPropertyValue('--cell-size')
+    );
+
+    const cx = SIZE / 2, cy = SIZE / 2;
+    const step = 0.05;
+    const limit = 600;
+    const lineWidth = 0.7;
+    const globalAlpha = 0.85;
+
+    // Each amplitude can be set to a different value, if you want.
+    // But I think uniform values produce the prettiest results.
+    // It's always best to set them no more than quarter of the size of the cell.
+    const quarter = SIZE / 4;
+    const A = [quarter, quarter, quarter, quarter];
+
+    // Build a single cell (anchor + canvas) once and return a controller
+    // that can blank and redraw a fresh harmonograph onto the same canvas.
+    function createCell() {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = SIZE;
+      canvas.height = SIZE;
+
+      const a = document.createElement('a');
+      a.href = LAB.pageRandomiser.nextOne();
+      a.className = 'square';
+      a.appendChild(canvas);
+      main.appendChild(a);
+
+      let rafId = null;
+      let t = 0;
+
+      function draw() {
+        // Stop any in-progress animation so we never run two loops on one canvas.
+        cancelAnimationFrame(rafId);
+        t = 0;
+
+        const f = [
+          LAB.randInt(1, 4) + LAB.rand(-0.02, 0.02),
+          LAB.randInt(1, 4) + LAB.rand(-0.02, 0.02),
+          LAB.randInt(1, 4) + LAB.rand(-0.02, 0.02),
+          LAB.randInt(1, 4) + LAB.rand(-0.02, 0.02),
+        ];
+        const p = [
+          LAB.rand(0, Math.PI * 2),
+          LAB.rand(0, Math.PI * 2),
+          LAB.rand(0, Math.PI * 2),
+          LAB.rand(0, Math.PI * 2),
+        ];
+        const d = [
+          LAB.rand(0.002, 0.008),
+          LAB.rand(0.002, 0.008),
+          LAB.rand(0.002, 0.008),
+          LAB.rand(0.002, 0.008),
+        ];
+
+        ctx.clearRect(0, 0, SIZE, SIZE);
+        ctx.strokeStyle = paletteRandomiser.nextOne();
+        ctx.lineWidth = lineWidth;
+        ctx.globalAlpha = globalAlpha;
+
+        // Track the last plotted point so each animation frame continues the
+        // line from exactly where the previous frame left off. Without this,
+        // each frame began a new sub-path one step ahead, leaving tiny gaps.
+        let prevX = null, prevY = null;
+
+        function pointAt(tt) {
+          const x = cx
+            + A[0] * Math.sin(f[0] * tt + p[0]) * Math.exp(-d[0] * tt)
+            + A[1] * Math.sin(f[1] * tt + p[1]) * Math.exp(-d[1] * tt);
+          const y = cy
+            + A[2] * Math.sin(f[2] * tt + p[2]) * Math.exp(-d[2] * tt)
+            + A[3] * Math.sin(f[3] * tt + p[3]) * Math.exp(-d[3] * tt);
+          return [x, y];
+        }
+
+        function frame() {
+          ctx.beginPath();
+          if (prevX === null) {
+            const [x, y] = pointAt(t);
+            ctx.moveTo(x, y);
+            prevX = x; prevY = y;
+            t += step;
+          } else {
+            ctx.moveTo(prevX, prevY);
+          }
+          for (let i = 0; i < 60; i++) {
+            const [x, y] = pointAt(t);
+            ctx.lineTo(x, y);
+            prevX = x; prevY = y;
+            t += step;
+          }
+          ctx.stroke();
+          if (t < limit) rafId = requestAnimationFrame(frame);
+        }
+        frame();
+      }
+
+      // Hovering a canvas redraws it as a new harmonograph.
+      canvas.addEventListener('mouseenter', draw);
+
+      return { draw };
+    }
+
+    const cells = [];
+    for (let i = 0; i < 9; i++) cells.push(createCell());
+    cells.forEach(cell => cell.draw());
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, () => {
+        // Pressing 1-9 redraws that particular cell.
+        const n = parseInt(e.key, 10);
+        if (n >= 1 && n <= 9) cells[n - 1].draw();
+
+        // Else, pick a random cell and redraw it.
+        else cells[numbersRandomiser.nextOne()].draw();
+      });
+    });
+
+  </script>
+</body>
+
+</html>

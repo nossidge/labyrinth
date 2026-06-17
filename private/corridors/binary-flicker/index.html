@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="bi bi nary">
+  <title>00000001</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      background: #000000;
+      color: #444444;
+      font-family: 'Courier New', monospace;
+      overflow: hidden;
+    }
+
+    #grid {
+      display: grid;
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+    }
+
+    .bit {
+      text-align: center;
+      line-height: 22px;
+      font-size: 14px;
+      font-weight: bold;
+      color: #555555;
+      user-select: none;
+    }
+
+    a.bit {
+      color: #ff2299;
+      text-decoration: none;
+      animation: anomaly 0.6s infinite alternate;
+    }
+
+    @keyframes anomaly {
+      from {
+        color: #ff2299;
+        text-shadow: 0 0 4px #ff2299;
+      }
+
+      to {
+        color: #99ffff;
+        text-shadow: 0 0 8px #99ffff;
+      }
+    }
+
+    a.bit:hover {
+      background: #ffffff;
+      color: #000000 !important;
+      text-shadow: none !important;
+      animation: none;
+      transform: scale(1.6);
+      z-index: 10;
+      position: relative;
+    }
+
+    .bright {
+      color: #dddddd !important;
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 100;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+      background-size: 100% 2px;
+    }
+  </style>
+</head>
+
+<body>
+  <main id="grid"></main>
+  <div id="crt-scanlines"></div>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('binary-flicker');
+
+    const grid = document.getElementById('grid');
+    const cellSize = 22;
+    const TICK_MS = 100;
+    const FLIPS_PER_TICK = 40;
+    const LINK_DENSITY = 0.025;
+    const LINK_MIN = 0;
+    const BRIGHT_CHANCE = 0.05;
+
+    const expiryQueue = [];
+    let cols = 0, rows = 0, cells = [];
+
+    function init() {
+      cols = Math.ceil(window.innerWidth / cellSize);
+      rows = Math.ceil(window.innerHeight / cellSize);
+      grid.style.gridTemplateColumns = `repeat(${cols}, ${cellSize}px)`;
+      grid.style.gridTemplateRows = `repeat(${rows}, ${cellSize}px)`;
+      grid.innerHTML = '';
+      cells = [];
+      expiryQueue.length = 0;
+
+      const total = cols * rows;
+      const linkCount = Math.max(LINK_MIN, Math.floor(total * LINK_DENSITY));
+      const linkSlots = new Set();
+      while (linkSlots.size < linkCount) {
+        linkSlots.add(LAB.randInt(0, total - 1));
+      }
+
+      const frag = document.createDocumentFragment();
+      for (let i = 0; i < total; i++) {
+        const isLink = linkSlots.has(i);
+        const el = document.createElement(isLink ? 'a' : 'span');
+        el.className = 'bit';
+        el.textContent = LAB.chance(0.5) ? '0' : '1';
+        if (isLink) el.href = LAB.pageRandomiser.nextOne();
+        cells.push(el);
+        frag.appendChild(el);
+      }
+      grid.appendChild(frag);
+    }
+
+    // Flip a batch of random bits and intermittently brighten one
+    function tick() {
+      for (let n = 0; n < FLIPS_PER_TICK; n++) {
+        const c = LAB.sample(cells);
+        if (c.tagName === 'A') continue;
+        c.textContent = LAB.chance(0.5) ? '0' : '1';
+        if (LAB.chance(BRIGHT_CHANCE)) {
+          c.classList.add('bright');
+          expiryQueue.push({
+            el: c,
+            cls: 'bright',
+            expires: performance.now() + 80 + LAB.randInt(0, 199)
+          });
+        }
+      }
+      drainExpiryQueue();
+    }
+
+    // Drain expired timed classes in one pass (avoids per-cell setTimeouts)
+    function drainExpiryQueue() {
+      const now = performance.now();
+      while (expiryQueue.length && expiryQueue[0].expires <= now) {
+        const e = expiryQueue.shift();
+        e.el.classList.remove(e.cls);
+      }
+    }
+
+    let tickTimer = null;
+    function startTicking() {
+      if (tickTimer === null) tickTimer = setInterval(tick, TICK_MS);
+    }
+    function stopTicking() {
+      if (tickTimer !== null) {
+        clearInterval(tickTimer);
+        tickTimer = null;
+      }
+    }
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) stopTicking(); else startTicking();
+    });
+
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(init, 100);
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    init();
+    startTicking();
+
+  </script>
+</body>
+
+</html>

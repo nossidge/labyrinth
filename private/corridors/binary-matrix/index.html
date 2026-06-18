@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="remember you're my nary">
+  <title>00000010</title>
+  <style>
+    :root {
+      --bg: #000;
+      --on: #00ff7f;
+      --on-shadow: #00ff7fcc;
+      --off: #0a3a1d;
+      --link: #ff00aa;
+      --link-hover: #ffffff;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      background: var(--bg);
+      color: var(--on);
+      overflow: hidden;
+      font-family: 'Courier New', monospace;
+    }
+
+
+    #grid {
+      display: grid;
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+    }
+
+    .bit {
+      font-size: 18px;
+      line-height: 20px;
+      text-align: center;
+      color: var(--off);
+      text-decoration: none;
+      user-select: none;
+    }
+
+    .bit.on {
+      color: var(--on);
+      text-shadow: 0 0 4px var(--on-shadow);
+    }
+
+    a.bit.link {
+      color: var(--link);
+      font-weight: bold;
+      transition: background 0.12s linear, color 0.12s linear, transform 0.12s linear;
+    }
+
+    a.bit.link:hover {
+      background: var(--link);
+      color: var(--link-hover);
+      transform: scale(1.6);
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 100;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+      background-size: 100% 2px;
+    }
+  </style>
+</head>
+
+<body>
+  <main id="grid"></main>
+  <div id="crt-scanlines"></div>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('binary-matrix');
+
+    const grid = document.getElementById('grid');
+    const CELL_SIZE = 20;
+    const TICK_MS = 60;
+    const FLIPS_PER_TICK = 50;
+    const LINK_DENSITY = 0.006;
+    const LINK_MIN = 6;
+    const INITIAL_ON_CHANCE = 0.4;
+    const TOGGLE_ON_CHANCE = 0.5;
+
+    let cols = 0, rows = 0, cells = [];
+
+    function init() {
+      cols = Math.floor(window.innerWidth / CELL_SIZE);
+      rows = Math.floor(window.innerHeight / CELL_SIZE);
+      grid.style.gridTemplateColumns = `repeat(${cols}, ${CELL_SIZE}px)`;
+      grid.style.gridTemplateRows = `repeat(${rows}, ${CELL_SIZE}px)`;
+      grid.innerHTML = '';
+      cells = [];
+
+      const total = cols * rows;
+      const linkCount = Math.max(LINK_MIN, Math.floor(total * LINK_DENSITY));
+      const linkSlots = new Set();
+      while (linkSlots.size < linkCount) {
+        linkSlots.add(LAB.randInt(0, total - 1));
+      }
+
+      const frag = document.createDocumentFragment();
+      for (let i = 0; i < total; i++) {
+        const isLink = linkSlots.has(i);
+        const el = document.createElement(isLink ? 'a' : 'div');
+        el.className = isLink ? 'bit link' : 'bit';
+        el.textContent = LAB.chance(0.5) ? '1' : '0';
+        if (isLink) {
+          el.href = LAB.pageRandomiser.nextOne();
+        } else if (LAB.chance(INITIAL_ON_CHANCE)) {
+          el.classList.add('on');
+        }
+        cells.push(el);
+        frag.appendChild(el);
+      }
+      grid.appendChild(frag);
+    }
+
+    // Flip a batch of random bits and toggle their on/off glow
+    function tick() {
+      for (let n = 0; n < FLIPS_PER_TICK; n++) {
+        const c = LAB.sample(cells);
+        if (c.tagName === 'A') continue;
+        c.textContent = LAB.chance(0.5) ? '1' : '0';
+        if (LAB.chance(TOGGLE_ON_CHANCE)) c.classList.toggle('on');
+      }
+    }
+
+    let tickTimer = null;
+    function startTicking() {
+      if (tickTimer === null) tickTimer = setInterval(tick, TICK_MS);
+    }
+    function stopTicking() {
+      if (tickTimer !== null) {
+        clearInterval(tickTimer);
+        tickTimer = null;
+      }
+    }
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) stopTicking(); else startTicking();
+    });
+
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(init, 100);
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    init();
+    startTicking();
+
+  </script>
+</body>
+
+</html>

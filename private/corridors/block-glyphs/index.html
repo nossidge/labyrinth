@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Glyph Rhys Jones">
+  <title>block glyphs</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #000000;
+      color: #efefef;
+      font-family: "Courier New", monospace;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    #main {
+      width: 100vw;
+      height: 100vh;
+      font-size: 22px;
+      line-height: 1;
+      letter-spacing: 0;
+      white-space: pre-wrap;
+      word-break: break-all;
+      padding: 6px;
+      box-sizing: border-box;
+    }
+
+    #main span {
+      display: inline-block;
+      width: 14px;
+      text-align: center;
+    }
+
+    #main a {
+      display: inline-block;
+      width: 14px;
+      text-align: center;
+      color: #ff00aa;
+      text-decoration: none;
+      text-shadow: 0 0 4px #ff00aa;
+      transition: all .15s;
+    }
+
+    #main a:hover {
+      color: #000000;
+      background: #00ffaa;
+      text-shadow: none;
+      transform: scale(2);
+      z-index: 10;
+      position: relative;
+    }
+
+    .crt-scanlines {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0 1px, transparent 1px 3px),
+        linear-gradient(rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+      background-size: 100% 3px, 100% 3px;
+      z-index: 100;
+    }
+  </style>
+</head>
+
+<body>
+  <main id="main"></main>
+  <div class="crt-scanlines"></div>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('block-glyphs');
+
+    const main = document.getElementById('main');
+    const blocks = '░▒▓█▄▀▌▐■□▪▫▬▭▮▯▱▰◧◨◩◪◫'.split('');
+    const colours = ['#444', '#666', '#888', '#999', '#aaa', '#ccc', '#fff'];
+    const cellW = 14, cellH = 22;
+
+    function init() {
+      const cols = Math.ceil(window.innerWidth / cellW);
+      const rows = Math.ceil(window.innerHeight / cellH);
+
+      main.innerHTML = '';
+      const total = cols * rows;
+      for (let i = 0; i < total; i++) {
+        const ch = LAB.sample(blocks);
+        let el;
+        if (LAB.chance(0.1)) {
+          el = document.createElement('a');
+          el.href = LAB.pageRandomiser.nextOne();
+        } else {
+          el = document.createElement('span');
+          el.style.color = LAB.sample(colours);
+        }
+        el.textContent = ch;
+        main.appendChild(el);
+      }
+    }
+
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(init, 100);
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    init();
+
+  </script>
+</body>
+
+</html>

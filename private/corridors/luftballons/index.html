@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Auf dem Weg zum Horizont">
+  <title>Neunundneunzig</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: monospace;
+      overscroll-behavior: none;
+      touch-action: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+    }
+
+    body {
+      background: linear-gradient(180deg, #4a90d9 0%, #87ceeb 40%, #b0e0f0 70%, #dceefb 100%);
+      overflow: hidden;
+    }
+
+    .balloon {
+      position: absolute;
+      display: block;
+      text-decoration: none;
+      will-change: transform;
+    }
+
+    .balloon svg {
+      display: block;
+      overflow: visible;
+    }
+
+    .balloon:hover svg {
+      filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.9)) brightness(1.1);
+    }
+  </style>
+</head>
+
+<body>
+  <main id="sky"></main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('luftballons');
+
+    const sky = document.getElementById('sky');
+    const balloons = [];
+    const COUNT = 99;
+
+    const BALLOON_SVG = `
+      <svg width="60" height="150" viewBox="0 0 60 150" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="radialGradient" cx="0.35" cy="0.3">
+            <stop offset="0%" stop-color="#ff595e"/>
+            <stop offset="100%" stop-color="#c1121f"/>
+          </radialGradient>
+        </defs>
+        <path d="M30 78 Q36 110 30 150" stroke="rgba(40,40,40,0.5)" stroke-width="1" fill="none"/>
+        <ellipse cx="30" cy="38" rx="26" ry="34" fill="url(#radialGradient)"/>
+        <path d="M26 72 L34 72 L30 80 Z" fill="#c1121f"/>
+        <ellipse cx="21" cy="26" rx="6" ry="10" fill="rgba(255,255,255,0.45)"/>
+      </svg>
+    `;
+
+    function makeBalloonEl() {
+      const a = document.createElement('a');
+      a.className = 'balloon';
+      a.href = LAB.pageRandomiser.nextOne();
+      a.innerHTML = BALLOON_SVG;
+      sky.appendChild(a);
+      return a;
+    }
+
+    function spawn(b, atBottom) {
+      b.x = LAB.rand(0, window.innerWidth);
+      b.y = atBottom ? window.innerHeight + 80 : LAB.rand(0, window.innerHeight + 200);
+      b.vy = LAB.rand(0.5, 1.4);
+      b.swayAmp = LAB.rand(15, 45);
+      b.swaySpeed = LAB.rand(0.4, 0.9);
+      b.phase = LAB.rand(0, Math.PI * 2);
+      b.scale = LAB.rand(0.55, 1.1);
+      b.el.style.zIndex = Math.round((b.scale - 0.55) / (1.1 - 0.55) * 99) + 1;
+    }
+
+    function init() {
+      sky.innerHTML = '';
+      for (let i = 0; i < COUNT; i++) {
+        const b = { el: makeBalloonEl() };
+        spawn(b, false);
+        balloons.push(b);
+      }
+    }
+
+    function tick() {
+      const t = performance.now() * 0.001;
+      for (const b of balloons) {
+        b.y -= b.vy;
+        const x = b.x + Math.sin(t * b.swaySpeed + b.phase) * b.swayAmp;
+        const tilt = Math.sin(t * b.swaySpeed + b.phase) * 6;
+        b.el.style.transform = `translate(${x}px, ${b.y}px) rotate(${tilt}deg) scale(${b.scale})`;
+        if (b.y < -170) {
+          spawn(b, true);
+          b.el.href = LAB.pageRandomiser.nextOne();
+        }
+      }
+      requestAnimationFrame(tick);
+    }
+
+    init();
+    tick();
+
+  </script>
+</body>
+
+</html>

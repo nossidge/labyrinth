@@ -1,0 +1,1353 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Sirius business">
+  <title>Every dog has its day</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      background: #f9f1d8;
+      background-image:
+        radial-gradient(circle at 20% 30%, #ffd6e0 0%, transparent 35%),
+        radial-gradient(circle at 80% 70%, #c9d3f0 0%, transparent 40%),
+        radial-gradient(circle at 50% 90%, #ffe9b0 0%, transparent 50%);
+      font-family: "Comic Sans MS", "Chalkboard SE", cursive, sans-serif;
+      color: #5a3e1b;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100%;
+      padding: 12px 8px 20px;
+    }
+
+    h1 {
+      font-size: 24px;
+      text-align: center;
+      text-shadow: 1px 1px 0 #d4b896;
+      letter-spacing: 2px;
+      margin-bottom: 12px;
+    }
+
+    /* Month controls */
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .controls button {
+      background: #c9a96e;
+      border: 2px solid #8a6d3b;
+      color: #fff;
+      font-size: 18px;
+      font-family: inherit;
+      padding: 4px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .controls button:hover {
+      background: #8a6d3b;
+    }
+
+    #month-label {
+      font-size: 18px;
+      font-weight: bold;
+      min-width: 170px;
+      text-align: center;
+      color: #6b4226;
+    }
+
+    /* Calendar grid */
+    .calendar {
+      width: 100%;
+      max-width: 770px;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    .calendar th {
+      font-size: 12px;
+      color: #8a6d3b;
+      padding: 4px 0;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    .calendar td {
+      border: 2px solid #d4b896;
+      background: #fffcf5;
+      vertical-align: top;
+      text-align: center;
+      padding: 3px 2px;
+      height: 110px;
+      cursor: pointer;
+    }
+
+    .calendar td:hover {
+      background: #fff3dc;
+    }
+
+    .calendar td.empty {
+      background: transparent;
+      border: 2px dashed #e0d5c0;
+      cursor: default;
+    }
+
+    .calendar td.future-locked {
+      background: #F5EFE6;
+      color: #b0a08a;
+      cursor: not-allowed;
+    }
+
+    .future-cell {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: calc(100% - 18px);
+      font-size: 20px;
+    }
+
+    .day-num {
+      font-size: 11px;
+      color: #8a6d3b;
+      margin-bottom: 2px;
+    }
+
+    .day-dog-name {
+      font-size: 10px;
+      color: #6b4226;
+      font-weight: bold;
+      margin-top: 2px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .day-cell svg {
+      display: block;
+      margin: 0 auto;
+    }
+
+    /* Modal overlay */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-overlay.open {
+      display: flex;
+    }
+
+    .modal {
+      background: #fdf8ee;
+      border: 3px solid #c9a96e;
+      border-radius: 14px;
+      padding: 16px 20px 12px;
+      max-width: 460px;
+      width: 92vw;
+      max-height: 92vh;
+      overflow-y: auto;
+      text-align: center;
+      position: relative;
+      box-shadow: 4px 4px 0 #c9a96e;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 8px;
+      right: 12px;
+      background: none;
+      border: none;
+      font-size: 22px;
+      color: #8a6d3b;
+      cursor: pointer;
+      font-family: inherit;
+      line-height: 1;
+    }
+
+    .modal-close:hover {
+      color: #5a3e1b;
+    }
+
+    #modal-date {
+      font-size: 18px;
+      color: #7a5a2e;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    #modal-dog-container {
+      width: 280px;
+      height: 280px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #modal-dog-container a {
+      display: block;
+      line-height: 0;
+    }
+
+    #modal-dog-name {
+      font-size: 24px;
+      color: #6b4226;
+      font-weight: bold;
+      margin-top: 8px;
+    }
+
+    #modal-dog-bio {
+      margin-top: 6px;
+      font-size: 13px;
+      color: #7a5a2e;
+      line-height: 1.5;
+    }
+
+    #modal-dog-bio span {
+      font-weight: bold;
+    }
+
+    .modal-nav {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 10px;
+    }
+
+    .nav-btn {
+      background: #c9a96e;
+      border: 2px solid #8a6d3b;
+      color: #fff;
+      font-size: 22px;
+      font-family: inherit;
+      padding: 6px 18px;
+      border-radius: 6px;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .nav-btn:hover:not(:disabled) {
+      background: #8a6d3b;
+    }
+
+    .nav-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      body {
+        padding: 8px 4px 16px;
+      }
+
+      h1 {
+        font-size: 18px;
+        margin-bottom: 6px;
+      }
+
+      .controls button {
+        font-size: 14px;
+        padding: 4px 10px;
+      }
+
+      #month-label {
+        font-size: 15px;
+        min-width: 140px;
+      }
+
+      .calendar th {
+        font-size: 10px;
+      }
+
+      .calendar td {
+        height: 80px;
+        padding: 2px 1px;
+      }
+
+      .day-num {
+        font-size: 9px;
+      }
+
+      .day-dog-name {
+        font-size: 8px;
+      }
+
+      .modal {
+        padding: 14px 12px 10px;
+      }
+
+      #modal-dog-container {
+        width: 220px;
+        height: 220px;
+      }
+
+      #modal-dog-name {
+        font-size: 20px;
+      }
+
+      #modal-dog-bio {
+        font-size: 12px;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .calendar td {
+        height: 65px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Every dog has its day</h1>
+
+  <div class="controls">
+    <button id="prev-year">&laquo;</button>
+    <button id="prev-month">&lsaquo;</button>
+    <div id="month-label"></div>
+    <button id="next-month">&rsaquo;</button>
+    <button id="next-year">&raquo;</button>
+  </div>
+
+  <table class="calendar">
+    <thead>
+      <tr>
+        <th>Mon</th>
+        <th>Tue</th>
+        <th>Wed</th>
+        <th>Thu</th>
+        <th>Fri</th>
+        <th>Sat</th>
+        <th>Sun</th>
+      </tr>
+    </thead>
+    <tbody id="cal-body"></tbody>
+  </table>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal">
+      <button class="modal-close" id="modal-close">&times;</button>
+      <div id="modal-date"></div>
+      <div id="modal-dog-container">
+        <a id="modal-dog-link" href="#">
+          <svg id="modal-dog-svg" width="280" height="280" viewBox="0 0 280 280"></svg>
+        </a>
+      </div>
+      <div id="modal-dog-name"></div>
+      <div id="modal-dog-bio"></div>
+      <div class="modal-nav">
+        <button id="modal-prev" class="nav-btn">&larr;</button>
+        <button id="modal-next" class="nav-btn">&rarr;</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('dog-days');
+
+    // mulberry32 algorithm for deterministic RNG
+    // Original: https://gist.github.com/tommyettinger/46a874533244883189143505d203312c
+    // JavaScript: https://github.com/cprosche/mulberry32
+    function mulberry32(seed) {
+      return function () {
+        seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+        let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+        t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+      };
+    }
+
+    function dateToSeed(str) {
+      let h = 0;
+      for (let i = 0; i < str.length; i++) {
+        h = Math.imul(31, h) + str.charCodeAt(i) | 0;
+      }
+      return h;
+    }
+
+    class Dog {
+      static NAMES = [
+        "Ace",
+        "Alfie",
+        "Amber",
+        "Archie",
+        "Bailey",
+        "Bandit",
+        "Barney",
+        "Basil",
+        "Baxter",
+        "Bear",
+        "Bella",
+        "Belle",
+        "Benji",
+        "Bentley",
+        "Bertie",
+        "Betsy",
+        "Billy",
+        "Biscuit",
+        "Bobby",
+        "Bonnie",
+        "Bruce",
+        "Bruno",
+        "Buddy",
+        "Buster",
+        "Casper",
+        "Charlie",
+        "Chase",
+        "Chloe",
+        "Chrissie",
+        "Coco",
+        "Cooper",
+        "Daisy",
+        "Dave",
+        "Dexter",
+        "Diesel",
+        "Dixie",
+        "Dolly",
+        "Duke",
+        "Echo",
+        "Ellie",
+        "Fenton",
+        "Fido",
+        "Finn",
+        "Frankie",
+        "Freddie",
+        "Fudge",
+        "George",
+        "Gerbil",
+        "Ginger",
+        "Gracie",
+        "Gus",
+        "Guy",
+        "Hank",
+        "Harley",
+        "Harry",
+        "Harvey",
+        "Hazel",
+        "Henry",
+        "Holly",
+        "Honey",
+        "Hugo",
+        "Jack",
+        "Jake",
+        "Jasper",
+        "Jess",
+        "Jessie",
+        "Jimmy",
+        "Lady",
+        "Leo",
+        "Lexi",
+        "Lilly",
+        "Lily",
+        "Loki",
+        "Lola",
+        "Lottie",
+        "Louie",
+        "Lucky",
+        "Lucy",
+        "Lulu",
+        "Luna",
+        "Mabel",
+        "Maggie",
+        "Maisy",
+        "Maple",
+        "Marley",
+        "Max",
+        "Meg",
+        "Millie",
+        "Milly",
+        "Milo",
+        "Minnie",
+        "Missy",
+        "Molly",
+        "Monty",
+        "Murphy",
+        "Nala",
+        "Nova",
+        "Olive",
+        "Oliver",
+        "Ollie",
+        "Oscar",
+        "Otis",
+        "Otto",
+        "Ozzy",
+        "Patch",
+        "Peanut",
+        "Pearl",
+        "Penny",
+        "Pepper",
+        "Pip",
+        "Piper",
+        "Pippa",
+        "Polly",
+        "Poppy",
+        "Prince",
+        "Ralph",
+        "Reggie",
+        "Rex",
+        "Ringo",
+        "Rocky",
+        "Rolo",
+        "Rosie",
+        "Rover",
+        "Roxy",
+        "Ruby",
+        "Rufus",
+        "Sadie",
+        "Sally",
+        "Sam",
+        "Sasha",
+        "Scout",
+        "Shadow",
+        "Simba",
+        "Sky",
+        "Skye",
+        "Stella",
+        "Storm",
+        "Suzy",
+        "Teddy",
+        "Tess",
+        "Tia",
+        "Tilly",
+        "Toby",
+        "Tommy",
+        "Trigger",
+        "Trixie",
+        "Tucker",
+        "Tyson",
+        "Wilfred",
+        "Willow",
+        "Winnie",
+        "Winston",
+        "Zeus",
+        "Ziggy",
+        "Zoey",
+      ];
+      static BIO_BREEDS = [
+        "Abyssinian Wire-Haired Tripe Hound",
+        "Affenpinscher",
+        "Afghan Hound",
+        "Airedale Terrier",
+        "Akita",
+        "Alaskan Malamute",
+        "Anatolian Shepherd Dog",
+        "Australian Cattle Dog",
+        "Australian Shepherd",
+        "Australian Silky Terrier",
+        "Australian Terrier",
+        "Barbet",
+        "Basset Bleu De Gascogne",
+        "Basset Fauve De Bretagne",
+        "Basset Griffon Vendeen",
+        "Basset Hound",
+        "Bavarian Mountain Hound",
+        "Beagle",
+        "Bearded Collie",
+        "Beauceron",
+        "Bedlington Terrier",
+        "Belgian Shepherd Dog",
+        "Bergamasco",
+        "Bernese Mountain Dog",
+        "Bichon Frise",
+        "Black & Tan Coonhound",
+        "Bloodhound",
+        "Bolognese",
+        "Border Collie",
+        "Border Terrier",
+        "Borzoi",
+        "Boston Terrier",
+        "Bouvier Des Flandres",
+        "Boxer",
+        "Bracco Italiano",
+        "Braque D'Auvergne",
+        "Briard",
+        "Brittany",
+        "Bull Terrier",
+        "Bulldog",
+        "Bullmastiff",
+        "Cairn Terrier",
+        "Canaan Dog",
+        "Canadian Eskimo Dog",
+        "Catalan Sheepdog",
+        "Cavalier King Charles Spaniel",
+        "Cesky Terrier",
+        "Chesapeake Bay Retriever",
+        "Chihuahua",
+        "Chinese Crested",
+        "Chow Chow",
+        "Cirneco Dell'Etna",
+        "Cocker Spaniel",
+        "Collie",
+        "Coton De Tulear",
+        "Curly Coated Retriever",
+        "Dachshund",
+        "Dalmatian",
+        "Dandie Dinmont Terrier",
+        "Deerhound",
+        "Dobermann",
+        "Dogue de Bordeaux",
+        "English Setter",
+        "English Springer Spaniel",
+        "English Toy Terrier",
+        "Entlebucher Mountain Dog",
+        "Estrela Mountain Dog",
+        "Eurasier",
+        "Field Spaniel",
+        "Finnish Lapphund",
+        "Finnish Spitz",
+        "Flat Coated Retriever",
+        "Fox Terrier",
+        "Foxhound",
+        "French Bulldog",
+        "German Longhaired Pointer",
+        "German Pinscher",
+        "German Shepherd Dog",
+        "German Shorthaired Pointer",
+        "German Spitz",
+        "German Wirehaired Pointer",
+        "Giant Schnauzer",
+        "Glen Of Imaal Terrier",
+        "Golden Retriever",
+        "Gordon Setter",
+        "Grand Bleu De Gascogne",
+        "Great Dane",
+        "Great Swiss Mountain Dog",
+        "Greenland Dog",
+        "Greyhound",
+        "Griffon Bruxellois",
+        "Griffon Fauve De Bretagne",
+        "Hamiltonstovare",
+        "Harrier",
+        "Havanese",
+        "Hovawart",
+        "Hungarian Kuvasz",
+        "Hungarian Mudi",
+        "Hungarian Puli",
+        "Hungarian Pumi",
+        "Hungarian Vizsla",
+        "Hungarian Wirehaired Vizsla",
+        "Ibizan Hound",
+        "Icelandic Sheepdog",
+        "Irish Setter",
+        "Irish Terrier",
+        "Irish Water Spaniel",
+        "Irish Wolfhound",
+        "Italian Greyhound",
+        "Italian Spinone",
+        "Jack Russell Terrier",
+        "Japanese Akita Inu",
+        "Japanese Chin",
+        "Japanese Shiba Inu",
+        "Japanese Spitz",
+        "Keeshond",
+        "Kerry Blue Terrier",
+        "King Charles Spaniel",
+        "Korean Jindo",
+        "Korthals Griffon",
+        "Labrador Retriever",
+        "Lagotto Romagnolo",
+        "Lakeland Terrier",
+        "Lancashire Heeler",
+        "Large Munsterlander",
+        "Leonberger",
+        "Lhasa Apso",
+        "Maltese",
+        "Manchester Terrier",
+        "Maremma Sheepdog",
+        "Mastiff",
+        "Miniature Bull Terrier",
+        "Miniature Pinscher",
+        "Miniature Poodle",
+        "Miniature Schnauzer",
+        "Neapolitan Mastiff",
+        "Newfoundland",
+        "Norfolk Terrier",
+        "Norwegian Buhund",
+        "Norwegian Elkhound",
+        "Norwich Terrier",
+        "Old English Sheepdog",
+        "Otterhound",
+        "Papillon",
+        "Parson Russell Terrier",
+        "Pekingese",
+        "Pharaoh Hound",
+        "Picardy Sheepdog",
+        "Pointer",
+        "Polish Hunting Dog",
+        "Polish Lowland Sheepdog",
+        "Pomeranian",
+        "Portuguese Podengo",
+        "Portuguese Pointer",
+        "Portuguese Water Dog",
+        "Pug",
+        "Pyrenean Mastiff",
+        "Pyrenean Mountain Dog",
+        "Pyrenean Sheepdog",
+        "Rhodesian Ridgeback",
+        "Rottweiler",
+        "Russian Black Terrier",
+        "Russian Toy",
+        "Saluki",
+        "Samoyed",
+        "Schipperke",
+        "Schnauzer",
+        "Scottish Terrier",
+        "Sealyham Terrier",
+        "Shar Pei",
+        "Shetland Sheepdog",
+        "Shih Tzu",
+        "Siberian Husky",
+        "Skye Terrier",
+        "Sloughi",
+        "Slovakian Rough Haired Pointer",
+        "Soft Coated Wheaten Terrier",
+        "Spanish Water Dog",
+        "St. Bernard",
+        "Staffordshire Bull Terrier",
+        "Standard Poodle",
+        "Sussex Spaniel",
+        "Swedish Lapphund",
+        "Swedish Vallhund",
+        "Tibetan Mastiff",
+        "Tibetan Spaniel",
+        "Tibetan Terrier",
+        "Toy Poodle",
+        "Turkish Kangal Dog",
+        "Welsh Corgi",
+        "Welsh Springer Spaniel",
+        "Welsh Terrier",
+        "West Highland White Terrier",
+        "Whippet",
+        "White Swiss Shepherd Dog",
+        "Yorkshire Terrier",
+      ];
+      static BIO_PLACES = [
+        "Aberdeen",
+        "Armagh",
+        "Bangor",
+        "Bangor",
+        "Bath",
+        "Belfast",
+        "Birmingham",
+        "Bradford",
+        "Brighton and Hove",
+        "Bristol",
+        "Cambridge",
+        "Canterbury",
+        "Cardiff",
+        "Carlisle",
+        "Chelmsford",
+        "Chester",
+        "Chichester",
+        "Colchester",
+        "Coventry",
+        "Derby",
+        "Derry",
+        "Doncaster",
+        "Dundee",
+        "Dunfermline",
+        "Durham",
+        "Edinburgh",
+        "Ely",
+        "Exeter",
+        "Glasgow",
+        "Gloucester",
+        "Hereford",
+        "Inverness",
+        "Kingston upon Hull",
+        "Lancaster",
+        "Leeds",
+        "Leicester",
+        "Lichfield",
+        "Lincoln",
+        "Lisburn",
+        "Liverpool",
+        "London",
+        "Manchester",
+        "Milton Keynes",
+        "Newcastle upon Tyne",
+        "Newport",
+        "Newry",
+        "Norwich",
+        "Nottingham",
+        "Oxford",
+        "Perth",
+        "Peterborough",
+        "Plymouth",
+        "Portsmouth",
+        "Preston",
+        "Ripon",
+        "Salford",
+        "Salisbury",
+        "Sheffield",
+        "Southampton",
+        "Southend-on-Sea",
+        "St Albans",
+        "St Asaph",
+        "St Davids",
+        "Stirling",
+        "Stoke-on-Trent",
+        "Sunderland",
+        "Swansea",
+        "Truro",
+        "Wakefield",
+        "Wells",
+        "Westminster",
+        "Winchester",
+        "Wolverhampton",
+        "Worcester",
+        "Wrexham",
+        "York",
+      ];
+      static BIO_LIKES = [
+        "ball games",
+        "barking at the postman",
+        "being called a good boy",
+        "being called a good girl",
+        "being towel-dried",
+        "belly rubs",
+        "car rides with the window down",
+        "chasing own tail",
+        "chasing squirrels",
+        "chewing sticks",
+        "digging holes",
+        "fetch",
+        "going to the pub",
+        "greeting visitors",
+        "head scratches",
+        "hiding under blankets",
+        "jumping in puddles",
+        "long walks on the beach",
+        "meeting other dogs",
+        "paddling in streams",
+        "playing in leaves",
+        "rolling in mud",
+        "sitting on laps",
+        "sleeping on the sofa",
+        "sniffing everything",
+        "snow days",
+        "stealing socks",
+        "sunbathing in the garden",
+        "treats",
+        "tug of war",
+        "walkies",
+        "watching telly",
+      ];
+      static BIO_DISLIKES = [
+        "bath time",
+        "being left alone",
+        "being told no",
+        "being woken up",
+        "cats",
+        "cyclists",
+        "doorbells on telly",
+        "fireworks",
+        "getting out of bed",
+        "having paws wiped",
+        "loud noises",
+        "nail clipping",
+        "plastic bags",
+        "rainy walks",
+        "sharing food",
+        "stairs",
+        "the hoover",
+        "the vet",
+        "thunder",
+        "umbrellas",
+        "uncarpeted floors",
+        "wearing jumpers",
+      ];
+      static BIO_FOODS = [
+        "Marmite toast",
+        "Sunday roast",
+        "a nice bit of steak",
+        "bacon",
+        "banana slices",
+        "buttered crumpets",
+        "carrot sticks",
+        "cheese",
+        "chips",
+        "digestive biscuits",
+        "fish and chips",
+        "gravy",
+        "ice cream",
+        "leftover shepherd's pie",
+        "peanut butter",
+        "rice pudding",
+        "roast chicken",
+        "sausages",
+        "scrambled eggs",
+        "toast crusts",
+      ];
+      static BIO_HOBBIES = [
+        "advanced sock theft",
+        "barking at nothing",
+        "bath time avoidance",
+        "begging for scraps",
+        "collecting sticks",
+        "competitive napping",
+        "door-to-door tail wagging",
+        "doorbell overreaction",
+        "dramatic sighing",
+        "escaping",
+        "garden patrol",
+        "guarding the fridge",
+        "howling",
+        "investigating bins",
+        "lawn excavation",
+        "leaf chasing",
+        "leash tangling",
+        "making friends",
+        "mud track distribution",
+        "postman intimidation",
+        "puddle inspection",
+        "selective hearing",
+        "shadow chasing",
+        "slipper rearrangement",
+        "smelling bottoms",
+        "sofa cushion excavation",
+        "squirrel surveillance",
+        "staring at the wall",
+        "staring out of windows",
+        "toy squeaking marathons",
+        "unsolicited face licking",
+      ];
+
+      constructor(dateStr) {
+        this.date = dateStr;
+        const rng = mulberry32(dateToSeed(dateStr));
+        this.r = () => rng();
+        this.ri = (min, max) => Math.floor(this.r() * (max - min + 1)) + min;
+        this.pick = (arr) => arr[this.ri(0, arr.length - 1)];
+
+        this.name = this.pick(Dog.NAMES);
+        this.svg = this._buildSvg();
+        this.bioHtml = this._buildBio();
+
+        const hrefRng = mulberry32(dateToSeed(dateStr + '-href'));
+        const hrefIndex = Math.floor(hrefRng() * LAB.otherPages.length);
+        this.href = LAB.otherPages[hrefIndex];
+      }
+
+      _buildBio() {
+        const bioRng = mulberry32(dateToSeed(this.date + '-bio'));
+        const r = () => bioRng();
+        const ri = (min, max) => Math.floor(r() * (max - min + 1)) + min;
+        const pick = (arr) => arr[ri(0, arr.length - 1)];
+        const pickTwo = (arr) => {
+          const a = pick(arr);
+          let b = pick(arr);
+          while (b === a) b = pick(arr);
+          return [a, b];
+        };
+
+        const age = ri(1, 15);
+        const ageStr = age === 1 ? '1 year old' : `${age} years old`;
+        const breed = pick(Dog.BIO_BREEDS);
+        const from = pick(Dog.BIO_PLACES);
+        const likes = pickTwo(Dog.BIO_LIKES);
+        const dislikes = pickTwo(Dog.BIO_DISLIKES);
+        const food = pick(Dog.BIO_FOODS);
+        const hobby = pick(Dog.BIO_HOBBIES);
+
+        return `<span>Age:</span> ${ageStr}<br>`
+          + `<span>From:</span> ${from}<br>`
+          + `<span>Breed:</span> ${breed}<br>`
+          + `<span>Likes:</span> ${likes[0]} and ${likes[1]}<br>`
+          + `<span>Dislikes:</span> ${dislikes[0]} and ${dislikes[1]}<br>`
+          + `<span>Favourite food:</span> ${food}<br>`
+          + `<span>Hobby:</span> ${hobby}`;
+      }
+
+      _buildSvg() {
+        const { r, ri, pick } = this;
+        const bodyColors = [
+          '#c8923f', '#a0724a', '#deb887', '#8b6914', '#d2a679',
+          '#4a3728', '#2e1e0f', '#e5e5e5', '#e0d5c0', '#888888',
+          '#b5651d', '#f4a460', '#cd853f', '#d2691e', '#c4a882',
+          '#704214', '#3b2006', '#1a1a1a', '#eae0e6', '#a9a9a9',
+        ];
+
+        const bodyColor = pick(bodyColors);
+        const earColor = r() > 0.4 ? bodyColor : pick(bodyColors);
+        const bellyColor = pick(['#f5e6d0', '#ffe4c9', '#fdf5e6', '#e8d5b7', '#fff8ee']);
+        const noseColor = pick(['#1a1a1a', '#333', '#2a1506', '#4a2f1a']);
+        const eyeColor = pick(['#1a1a1a', '#3b2006', '#2a1506']);
+        const tongueColor = pick(['#e75480', '#ff6b8a', '#d4456a', '#f08080']);
+
+        const bodyW = ri(100, 140);
+        const bodyH = ri(60, 90);
+        const bodyX = 140;
+        const bodyY = ri(155, 175);
+
+        const headSize = ri(38, 50);
+        const headX = bodyX + ri(-10, 10);
+        const headY = bodyY - bodyH / 2 - headSize / 2 + ri(-5, 10);
+
+        const earStyle = ri(0, 3);
+        const earW = ri(14, 24);
+        const earH = ri(22, 42);
+
+        const tailStyle = ri(0, 3);
+        const tailSide = pick([-1, 1]);
+
+        const legW = ri(10, 16);
+        const legH = ri(35, 55);
+        const legSpread = bodyW * 0.3 + ri(0, 10);
+
+        const tongueOut = r() > 0.55;
+
+        let svg = '';
+
+        // Tail
+        const tailBaseX = bodyX + tailSide * (bodyW * 0.15);
+        const tailBaseY = bodyY;
+        const tailX = bodyX + tailSide * (bodyW / 2 + 5);
+        const tailY = bodyY - bodyH * 0.3;
+        if (tailStyle === 0) {
+          const tipX = tailX + tailSide * 20;
+          const tipY = tailY - 40;
+          const cx1 = tailX + tailSide * 25;
+          const cy1 = tailY - 30;
+          const cx2 = tailX + tailSide * 10;
+          const cy2 = tailY - 50;
+          svg += `<path d="M${tailBaseX},${tailBaseY} L${tailX},${tailY} C${cx1},${cy1} ${cx2},${cy2} ${tipX},${tipY}" stroke="${bodyColor}" stroke-width="6" fill="none" stroke-linecap="round"/>`;
+        } else if (tailStyle === 1) {
+          const tipX = tailX + tailSide * 8;
+          const tipY = tailY - 45;
+          svg += `<path d="M${tailBaseX},${tailBaseY} L${tailX},${tailY} L${tipX},${tipY}" stroke="${bodyColor}" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+        } else if (tailStyle === 2) {
+          const tipX = tailX + tailSide * 15;
+          const tipY = tailY - 45;
+          const cx = tailX + tailSide * 35;
+          const cy = tailY - 20;
+          svg += `<path d="M${tailBaseX},${tailBaseY} L${tailX},${tailY} Q${cx},${cy} ${tipX},${tipY}" stroke="${bodyColor}" stroke-width="6" fill="none" stroke-linecap="round"/>`;
+        } else {
+          const tipX = tailX + tailSide * 12;
+          const tipY = tailY - 15;
+          svg += `<path d="M${tailBaseX},${tailBaseY} L${tailX},${tailY} L${tipX},${tipY}" stroke="${bodyColor}" stroke-width="8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+        }
+
+        // Legs
+        const legOffset = 18;
+        const legY = bodyY + bodyH / 2 - legOffset;
+        svg += `<rect x="${bodyX - legSpread - legW / 2}" y="${legY - 4}" width="${legW}" height="${legH}" rx="4" fill="${bodyColor}"/>`;
+        svg += `<rect x="${bodyX + legSpread - legW / 2}" y="${legY - 4}" width="${legW}" height="${legH}" rx="4" fill="${bodyColor}"/>`;
+        const frontLegSpread = legSpread * 0.6;
+        svg += `<rect x="${bodyX - frontLegSpread - legW / 2}" y="${legY - 4}" width="${legW}" height="${legH + 4}" rx="4" fill="${bodyColor}"/>`;
+        svg += `<rect x="${bodyX + frontLegSpread - legW / 2}" y="${legY - 4}" width="${legW}" height="${legH + 4}" rx="4" fill="${bodyColor}"/>`;
+        const pawY = legY + legH - 2;
+        const pawW = legW + 4;
+        svg += `<ellipse cx="${bodyX - legSpread}" cy="${pawY}" rx="${pawW / 2}" ry="5" fill="${bodyColor}"/>`;
+        svg += `<ellipse cx="${bodyX + legSpread}" cy="${pawY}" rx="${pawW / 2}" ry="5" fill="${bodyColor}"/>`;
+        svg += `<ellipse cx="${bodyX - frontLegSpread}" cy="${pawY + 4}" rx="${pawW / 2}" ry="5" fill="${bodyColor}"/>`;
+        svg += `<ellipse cx="${bodyX + frontLegSpread}" cy="${pawY + 4}" rx="${pawW / 2}" ry="5" fill="${bodyColor}"/>`;
+
+        // Body
+        svg += `<ellipse cx="${bodyX}" cy="${bodyY}" rx="${bodyW / 2}" ry="${bodyH / 2}" fill="${bodyColor}"/>`;
+        svg += `<ellipse cx="${bodyX}" cy="${bodyY + bodyH * 0.15}" rx="${bodyW * 0.35}" ry="${bodyH * 0.3}" fill="${bellyColor}" opacity="0.6"/>`;
+
+        // Head
+        svg += `<circle cx="${headX}" cy="${headY}" r="${headSize}" fill="${bodyColor}"/>`;
+
+        // Collar
+        const collarColors = ["#e74c3c", "#3498db", "#2ecc71", "#9b59b6", "#e67e22", "#1abc9c", "#f1c40f", "#e84393"];
+        const collarColor = pick(collarColors);
+        const collarY = headY + headSize - 4;
+        svg += `<ellipse cx="${headX}" cy="${collarY}" rx="${headSize * 0.7}" ry="6" fill="${collarColor}"/>`;
+        const tagColor = pick(["#f1c40f", "#ecf0f1", "#bdc3c7"]);
+        svg += `<circle cx="${headX}" cy="${collarY + 8}" r="5" fill="${tagColor}" stroke="#888" stroke-width="0.5"/>`;
+
+        // Ears
+        const earAnchorY = headY - headSize * 0.55;
+        const earLAnchorX = headX - headSize * 0.7;
+        const earRAnchorX = headX + headSize * 0.7;
+        if (earStyle === 0) {
+          const flopLen = earH * 0.8;
+          svg += `<ellipse cx="${earLAnchorX - earW * 0.3}" cy="${earAnchorY + flopLen / 2 + 5}" rx="${earW / 2}" ry="${flopLen / 2}" fill="${earColor}" transform="rotate(-10,${earLAnchorX},${earAnchorY})"/>`;
+          svg += `<ellipse cx="${earRAnchorX + earW * 0.3}" cy="${earAnchorY + flopLen / 2 + 5}" rx="${earW / 2}" ry="${flopLen / 2}" fill="${earColor}" transform="rotate(10,${earRAnchorX},${earAnchorY})"/>`;
+        } else if (earStyle === 1) {
+          const tipH = earH * 0.7;
+          svg += `<polygon points="${earLAnchorX - earW / 2},${earAnchorY + 4} ${earLAnchorX + earW / 2 - 2},${earAnchorY + 4} ${earLAnchorX},${earAnchorY - tipH}" fill="${earColor}"/>`;
+          svg += `<polygon points="${earRAnchorX - earW / 2 + 2},${earAnchorY + 4} ${earRAnchorX + earW / 2},${earAnchorY + 4} ${earRAnchorX},${earAnchorY - tipH}" fill="${earColor}"/>`;
+          svg += `<polygon points="${earLAnchorX - earW / 4},${earAnchorY + 2} ${earLAnchorX + earW / 4 - 1},${earAnchorY + 2} ${earLAnchorX},${earAnchorY - tipH + 8}" fill="${tongueColor}" opacity="0.3"/>`;
+          svg += `<polygon points="${earRAnchorX - earW / 4 + 1},${earAnchorY + 2} ${earRAnchorX + earW / 4},${earAnchorY + 2} ${earRAnchorX},${earAnchorY - tipH + 8}" fill="${tongueColor}" opacity="0.3"/>`;
+        } else if (earStyle === 2) {
+          const earR = earW * 0.55;
+          svg += `<circle cx="${earLAnchorX}" cy="${earAnchorY - earR * 0.3}" r="${earR}" fill="${earColor}"/>`;
+          svg += `<circle cx="${earRAnchorX}" cy="${earAnchorY - earR * 0.3}" r="${earR}" fill="${earColor}"/>`;
+          svg += `<circle cx="${earLAnchorX}" cy="${earAnchorY - earR * 0.3}" r="${earR * 0.5}" fill="${tongueColor}" opacity="0.25"/>`;
+          svg += `<circle cx="${earRAnchorX}" cy="${earAnchorY - earR * 0.3}" r="${earR * 0.5}" fill="${tongueColor}" opacity="0.25"/>`;
+        } else {
+          const foldH = earH * 0.45;
+          svg += `<polygon points="${earLAnchorX},${earAnchorY} ${earLAnchorX - earW},${earAnchorY + foldH * 0.4} ${earLAnchorX - earW * 0.3},${earAnchorY + foldH}" fill="${earColor}"/>`;
+          svg += `<polygon points="${earRAnchorX},${earAnchorY} ${earRAnchorX + earW},${earAnchorY + foldH * 0.4} ${earRAnchorX + earW * 0.3},${earAnchorY + foldH}" fill="${earColor}"/>`;
+        }
+
+        // Snout
+        const snoutW = ri(18, 30);
+        const snoutH = ri(14, 22);
+        const snoutY = headY + headSize * 0.25;
+        svg += `<ellipse cx="${headX}" cy="${snoutY}" rx="${snoutW}" ry="${snoutH}" fill="${bellyColor}" opacity="0.85"/>`;
+
+        // Nose
+        const noseY = snoutY - snoutH * 0.2;
+        svg += `<ellipse cx="${headX}" cy="${noseY}" rx="7" ry="5" fill="${noseColor}"/>`;
+        svg += `<ellipse cx="${headX - 2}" cy="${noseY - 2}" rx="2.5" ry="1.5" fill="#fff" opacity="0.4"/>`;
+
+        // Mouth
+        const mouthY = noseY + 8;
+        svg += `<path d="M${headX - 8},${mouthY} Q${headX},${mouthY + 6} ${headX + 8},${mouthY}" stroke="${noseColor}" stroke-width="1.5" fill="none"/>`;
+
+        // Tongue
+        if (tongueOut) {
+          svg += `<ellipse cx="${headX + ri(-4, 4)}" cy="${mouthY + 10}" rx="5" ry="9" fill="${tongueColor}"/>`;
+        }
+
+        // Eyes
+        const eyeSpread = ri(12, 20);
+        const eyeY = headY - headSize * 0.15;
+        const eyeSize = ri(5, 8);
+        svg += `<circle cx="${headX - eyeSpread}" cy="${eyeY}" r="${eyeSize + 2}" fill="#fff"/>`;
+        svg += `<circle cx="${headX + eyeSpread}" cy="${eyeY}" r="${eyeSize + 2}" fill="#fff"/>`;
+        svg += `<circle cx="${headX - eyeSpread}" cy="${eyeY}" r="${eyeSize}" fill="${eyeColor}"/>`;
+        svg += `<circle cx="${headX + eyeSpread}" cy="${eyeY}" r="${eyeSize}" fill="${eyeColor}"/>`;
+        svg += `<circle cx="${headX - eyeSpread + 2}" cy="${eyeY - 2}" r="2" fill="#fff" opacity="0.7"/>`;
+        svg += `<circle cx="${headX + eyeSpread + 2}" cy="${eyeY - 2}" r="2" fill="#fff" opacity="0.7"/>`;
+
+        // Eyebrows (only on some dogs)
+        if (r() > 0.5) {
+          const browY = eyeY - eyeSize - 5;
+          svg += `<line x1="${headX - eyeSpread - 5}" y1="${browY + 2}" x2="${headX - eyeSpread + 5}" y2="${browY}" stroke="${noseColor}" stroke-width="2" stroke-linecap="round"/>`;
+          svg += `<line x1="${headX + eyeSpread - 5}" y1="${browY}" x2="${headX + eyeSpread + 5}" y2="${browY + 2}" stroke="${noseColor}" stroke-width="2" stroke-linecap="round"/>`;
+        }
+
+        return svg;
+      }
+    }
+
+    // Date helpers
+    function dateYYYYMMDD(date) {
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    }
+
+    function todayStr() {
+      return dateYYYYMMDD(new Date());
+    }
+
+    function addDays(dateStr, n) {
+      const date = new Date(dateStr + 'T00:00:00');
+      date.setDate(date.getDate() + n);
+      return dateYYYYMMDD(date);
+    }
+
+    function formatDateHuman(dateStr) {
+      const d = new Date(dateStr + 'T00:00:00');
+      const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const months = ['January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'];
+      return `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+    }
+
+    function daysDiff(dateStr1, dateStr2) {
+      const d1 = new Date(dateStr1 + 'T00:00:00');
+      const d2 = new Date(dateStr2 + 'T00:00:00');
+      return Math.round((d2 - d1) / 86400000);
+    }
+
+    const MAX_DATE = todayStr();
+    const MONTHS = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+
+    // Dog cache (so we don't regenerate every time)
+    const dogCache = {};
+    function getDog(dateStr) {
+      if (!dogCache[dateStr]) {
+        dogCache[dateStr] = new Dog(dateStr);
+      }
+      return dogCache[dateStr];
+    }
+
+    // Calendar rendering
+    let viewYear, viewMonth;
+    const today = new Date();
+    viewYear = today.getFullYear();
+    viewMonth = today.getMonth();
+
+    function renderCalendar() {
+      document.getElementById('month-label').textContent = `${MONTHS[viewMonth]} ${viewYear}`;
+
+      const firstDay = (new Date(viewYear, viewMonth, 1).getDay() + 6) % 7;
+      const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+      const tbody = document.getElementById('cal-body');
+      tbody.innerHTML = '';
+
+      const isMobile = window.innerWidth <= 600;
+      const svgSize = isMobile ? 40 : 60;
+
+      let day = 1;
+      for (let row = 0; row < 6; row++) {
+        if (day > daysInMonth) break;
+        const tr = document.createElement('tr');
+        for (let col = 0; col < 7; col++) {
+          const td = document.createElement('td');
+          const idx = row * 7 + col;
+          if (idx < firstDay || day > daysInMonth) {
+            td.className = 'empty';
+            tr.appendChild(td);
+            continue;
+          }
+
+          const dateStr = `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+          const isFutureLocked = daysDiff(dateStr, MAX_DATE) < 0;
+
+          if (isFutureLocked) {
+            td.className = 'future-locked';
+            td.innerHTML = `<div class="day-num">${day}</div><div class="day-cell future-cell"></div>`;
+          } else {
+            const dog = getDog(dateStr);
+            td.innerHTML = `<div class="day-num">${day}</div>`
+              + `<div class="day-cell"><svg width="${svgSize}" height="${svgSize}" viewBox="0 0 280 280">${dog.svg}</svg></div>`
+              + `<div class="day-dog-name">${dog.name}</div>`;
+            td.addEventListener('click', () => openModal(dateStr));
+          }
+
+          tr.appendChild(td);
+          day++;
+        }
+        tbody.appendChild(tr);
+      }
+    }
+
+    function changeMonth(delta) {
+      viewMonth += delta;
+      if (viewMonth > 11) { viewMonth = 0; viewYear++; }
+      if (viewMonth < 0) { viewMonth = 11; viewYear--; }
+      renderCalendar();
+    }
+
+    function changeYear(delta) {
+      viewYear += delta;
+      renderCalendar();
+    }
+
+    document.getElementById('prev-month').addEventListener('click', () => changeMonth(-1));
+    document.getElementById('next-month').addEventListener('click', () => changeMonth(1));
+    document.getElementById('prev-year').addEventListener('click', () => changeYear(-1));
+    document.getElementById('next-year').addEventListener('click', () => changeYear(1));
+
+    // Modal
+    let modalDate = null;
+
+    function openModal(dateStr) {
+      modalDate = dateStr;
+      renderModal();
+      document.getElementById('modal-overlay').classList.add('open');
+    }
+
+    function closeModal() {
+      modalDate = null;
+      document.getElementById('modal-overlay').classList.remove('open');
+    }
+
+    function renderModal() {
+      const dog = getDog(modalDate);
+      document.getElementById('modal-date').textContent = formatDateHuman(modalDate);
+      document.getElementById('modal-dog-svg').innerHTML = dog.svg;
+      document.getElementById('modal-dog-name').textContent = dog.name;
+      document.getElementById('modal-dog-bio').innerHTML = dog.bioHtml;
+      document.getElementById('modal-dog-link').href = dog.href;
+
+      const nextDate = addDays(modalDate, 1);
+      document.getElementById('modal-next').disabled = daysDiff(nextDate, MAX_DATE) < 0;
+      document.getElementById('modal-prev').disabled = false;
+    }
+
+    function modalPrev() {
+      if (!modalDate) return;
+      modalDate = addDays(modalDate, -1);
+      renderModal();
+    }
+
+    function modalNext() {
+      if (!modalDate) return;
+      const nextDate = addDays(modalDate, 1);
+      if (daysDiff(nextDate, MAX_DATE) < 0) return;
+      modalDate = nextDate;
+      renderModal();
+    }
+
+    document.getElementById('modal-close').addEventListener('click', closeModal);
+    document.getElementById('modal-prev').addEventListener('click', modalPrev);
+    document.getElementById('modal-next').addEventListener('click', modalNext);
+
+    document.getElementById('modal-overlay').addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) closeModal();
+    });
+
+    // Keyboard navigation
+    const KEY_LEFT = new Set(['ArrowLeft', 'h', 'a']);
+    const KEY_RIGHT = new Set(['ArrowRight', 'l', 'd']);
+    const KEY_UP = new Set(['ArrowUp', 'k', 'w']);
+    const KEY_DOWN = new Set(['ArrowDown', 'j', 's']);
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeModal();
+        return;
+      }
+      LAB.handleKeydown(e, () => {
+        if (modalDate) {
+          if (KEY_LEFT.has(e.key)) { e.preventDefault(); modalPrev(); }
+          else if (KEY_RIGHT.has(e.key)) { e.preventDefault(); modalNext(); }
+        } else {
+          if (KEY_LEFT.has(e.key)) { e.preventDefault(); changeMonth(-1); }
+          else if (KEY_RIGHT.has(e.key)) { e.preventDefault(); changeMonth(1); }
+          else if (KEY_UP.has(e.key)) { e.preventDefault(); changeYear(1); }
+          else if (KEY_DOWN.has(e.key)) { e.preventDefault(); changeYear(-1); }
+        }
+      });
+    });
+
+    // Resize handler for SVG sizes
+    window.addEventListener('resize', renderCalendar);
+
+    // Init
+    renderCalendar();
+
+  </script>
+</body>
+
+</html>

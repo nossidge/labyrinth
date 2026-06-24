@@ -273,6 +273,21 @@
 
     renderCalendar();
 
+    // Keyboard navigation
+    const KEY_LEFT = new Set(['ArrowLeft', 'h', 'a']);
+    const KEY_RIGHT = new Set(['ArrowRight', 'l', 'd']);
+    const KEY_UP = new Set(['ArrowUp', 'k', 'w']);
+    const KEY_DOWN = new Set(['ArrowDown', 'j', 's']);
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, () => {
+        if (KEY_LEFT.has(e.key)) { e.preventDefault(); changeMonth(-1); }
+        else if (KEY_RIGHT.has(e.key)) { e.preventDefault(); changeMonth(1); }
+        else if (KEY_UP.has(e.key)) { e.preventDefault(); changeYear(1); }
+        else if (KEY_DOWN.has(e.key)) { e.preventDefault(); changeYear(-1); }
+      });
+    });
+
   </script>
 </body>
 

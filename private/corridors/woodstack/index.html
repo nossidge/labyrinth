@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+Inspired by the cut timber in my grandad's old workshop
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="carp entry">
+  <title>🐟 🚪</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      overscroll-behavior: none;
+      background: #1a1410;
+      touch-action: none;
+    }
+
+    #viewport {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+    }
+
+    #main {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+    }
+
+    .layer {
+      position: absolute;
+      inset: 0;
+      transition: transform 0.1s ease-out;
+    }
+
+    .strip {
+      position: absolute;
+      height: 30px;
+      transition: all 0.3s ease;
+    }
+
+    .strip:hover {
+      filter: brightness(1.3);
+      box-shadow: 0 0 15px rgba(255, 200, 100, 0.3);
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 1000;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%);
+      background-size: 100% 2px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="viewport">
+    <div id="crt-scanlines"></div>
+    <main id="main"></main>
+  </div>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('woodstack');
+
+    const main = document.getElementById('main');
+    const stripsPerLayer = 12;
+    const numLayers = 6;
+    const layers = [];
+
+    const colours = [
+      '#8b4513', '#a0522d', '#cd853f', '#d2691e', '#b8860b', '#daa520',
+      '#f4a460', '#deb887', '#d2b48c', '#bc8f8f', '#f5deb3', '#ffe4c4',
+    ];
+
+    function init() {
+      main.innerHTML = '';
+      layers.length = 0;
+
+      for (let l = 0; l < numLayers; l++) {
+        const layer = document.createElement('div');
+        layer.className = 'layer';
+        layer.style.zIndex = l;
+
+        for (let s = 0; s < stripsPerLayer; s++) {
+          const strip = document.createElement('a');
+          strip.className = 'strip';
+          strip.href = LAB.pageRandomiser.nextOne();
+          strip.style.top = (s * (100 / stripsPerLayer)) + '%';
+          strip.style.height = (100 / stripsPerLayer) + '%';
+          strip.style.left = LAB.rand(0, 30) + '%';
+          strip.style.width = LAB.rand(40, 90) + '%';
+          strip.style.backgroundColor = colours[LAB.randIndex(colours)];
+          strip.style.opacity = 0.4 + (l / numLayers) * 0.5;
+          strip.style.transform = `rotate(${LAB.rand(-2, 2)}deg)`;
+          layer.appendChild(strip);
+        }
+
+        main.appendChild(layer);
+        layers.push({ el: layer, depth: l / numLayers });
+      }
+    }
+
+    document.addEventListener('mousemove', (e) => {
+      const mx = (e.clientX / window.innerWidth - 0.5) * 2;
+      const my = (e.clientY / window.innerHeight - 0.5) * 2;
+
+      layers.forEach(layer => {
+        const factor = layer.depth * 20;
+        layer.el.style.transform = `translate(${mx * factor}px, ${my * factor}px)`;
+      });
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    init();
+
+  </script>
+</body>
+
+</html>

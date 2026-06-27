@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+https://en.wikipedia.org/wiki/Ernst_Chladni#Chladni_figures
+https://en.wikipedia.org/wiki/Chladni%27s_law
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Handbags and Chladrags">
+  <title>excitations</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #060608;
+      cursor: pointer;
+    }
+
+    #plate {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="plate"></canvas>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('chladni-figures');
+
+    const canvas = document.getElementById('plate');
+    const ctx = canvas.getContext('2d');
+
+    let W, H, particles, m, n, a, b, hue;
+
+    const minWalk = 0.0008;
+    const vibration = 0.04;
+
+    // The standing-wave displacement of a square plate at (x, y) in 0..1
+    function chladni(x, y) {
+      return a * Math.sin(Math.PI * n * x) * Math.sin(Math.PI * m * y) +
+        b * Math.sin(Math.PI * m * x) * Math.sin(Math.PI * n * y);
+    }
+
+    // Pick two distinct mode numbers and a fresh colour
+    function init() {
+      m = LAB.randInt(1, 8);
+      do { n = LAB.randInt(1, 8); } while (n === m);
+      a = LAB.chance(0.5) ? 1 : -1;
+      b = LAB.rand(0.6, 1.4);
+      hue = LAB.randInt(0, 359);
+
+      ctx.fillStyle = '#060608';
+      ctx.fillRect(0, 0, W, H);
+    }
+
+    function spawnParticles() {
+      const area = W * H;
+      const count = Math.min(3500, Math.max(900, Math.floor(area / 640)));
+      particles = [];
+      for (let i = 0; i < count; i++) {
+        particles.push({ x: LAB.rand(0, W), y: LAB.rand(0, H) });
+      }
+    }
+
+    function resize() {
+      W = canvas.width = window.innerWidth;
+      H = canvas.height = window.innerHeight;
+      spawnParticles();
+    }
+
+    function tick() {
+      ctx.fillStyle = 'rgba(6, 6, 8, 0.18)';
+      ctx.fillRect(0, 0, W, H);
+
+      const reach = Math.min(W, H);
+
+      // Update positions and bucket particles by amplitude bin
+      const bins = new Array(20);
+      for (let b = 0; b < 20; b++) bins[b] = [];
+
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+        const nx = p.x / W;
+        const ny = p.y / H;
+        const amp = Math.abs(chladni(nx, ny));
+
+        // Grains jitter hard where the plate vibrates, settle on the nodes
+        const step = (minWalk + amp * vibration) * reach;
+        p.x += (Math.random() * 2 - 1) * step;
+        p.y += (Math.random() * 2 - 1) * step;
+
+        if (p.x < 0) p.x = 0;
+        if (p.x > W) p.x = W;
+        if (p.y < 0) p.y = 0;
+        if (p.y > H) p.y = H;
+
+        const bin = Math.min(19, Math.floor(amp * 20));
+        bins[bin].push(p);
+      }
+
+      // Batch draw by amplitude bin so fillStyle is set once per bin
+      for (let b = 0; b < 20; b++) {
+        const binAmp = b / 20;
+        const light = 55 + (1 - Math.min(binAmp, 1)) * 35;
+        ctx.fillStyle = 'hsl(' + ((hue + binAmp * 40) % 360) + ', 80%, ' + light + '%)';
+        const group = bins[b];
+        for (let j = 0; j < group.length; j++) {
+          ctx.fillRect(group[j].x, group[j].y, 1.4, 1.4);
+        }
+      }
+
+      requestAnimationFrame(tick);
+    }
+
+    init();
+    resize();
+    window.addEventListener('resize', resize);
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, () => {
+        init();
+        spawnParticles();
+      });
+    });
+
+    document.addEventListener('click', () => {
+      window.location.href = LAB.pageRandomiser.nextOne();
+    });
+
+    requestAnimationFrame(tick);
+
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+https://en.wikipedia.org/wiki/Hypotrochoid
+A small gear rolling inside a big gear, with a pen poked through a hole.
+https://en.wikipedia.org/wiki/Spirograph
+A classic toy that makes use of this.
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Like a record, baby">
+  <title>Roundabout</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #060606;
+    }
+
+    main {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 2;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%);
+      background-size: 100% 2px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+  <main>
+    <a id="link" href="../index.html">
+      <canvas id="shape"></canvas>
+    </a>
+  </main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('spirograph');
+
+    const link = document.getElementById('link');
+    const canvas = document.getElementById('shape');
+    const ctx = canvas.getContext('2d');
+
+    let R, r, d, t, tMax, scale, baseHue, prev, holdUntil;
+
+    // Greatest common divisor
+    function gcd(a, b) {
+      return b === 0 ? a : gcd(b, a % b);
+    }
+
+    function resize() {
+      baseR = Math.min(window.innerWidth, window.innerHeight) * 0.38;
+      const size = Math.ceil(2 * baseR);
+      canvas.width = size;
+      canvas.height = size;
+      cx = size / 2;
+      cy = size / 2;
+    }
+
+    // Pick a fresh hypotrochoid: fixed wheel R, rolling wheel r, pen offset d
+    function init() {
+      resize();
+      link.href = LAB.pageRandomiser.nextOne();
+
+      ctx.fillStyle = '#060606';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      R = LAB.randInt(60, 130);
+      r = LAB.randInt(20, R - 10);
+      d = LAB.randInt(20, 90);
+      baseHue = LAB.randInt(0, 360);
+
+      // One full closed pattern repeats after this many radians
+      tMax = Math.PI * 2 * (r / gcd(R, r));
+      const reach = (R - r) + d;
+      scale = Math.min(canvas.width, canvas.height) * 0.45 / reach;
+      t = 0;
+      prev = null;
+      holdUntil = 0;
+    }
+
+    function point(angle) {
+      const k = (R - r) / r;
+      const x = (R - r) * Math.cos(angle) + d * Math.cos(k * angle);
+      const y = (R - r) * Math.sin(angle) - d * Math.sin(k * angle);
+      return [canvas.width / 2 + x * scale, canvas.height / 2 + y * scale];
+    }
+
+    function draw(now) {
+      if (holdUntil) {
+        if (now >= holdUntil) init();
+        requestAnimationFrame(draw);
+        return;
+      }
+
+      const stepsPerFrame = 30;
+      const dt = tMax / 1400;
+      for (let i = 0; i < stepsPerFrame && t <= tMax; i++) {
+        const p = point(t);
+        if (prev) {
+          const hue = (baseHue + (t / tMax) * 300) % 360;
+          ctx.strokeStyle = `hsl(${hue}, 90%, 60%)`;
+          ctx.lineWidth = 1.8;
+          ctx.shadowColor = `hsl(${hue}, 90%, 60%)`;
+          ctx.shadowBlur = 8;
+          ctx.beginPath();
+          ctx.moveTo(prev[0], prev[1]);
+          ctx.lineTo(p[0], p[1]);
+          ctx.stroke();
+        }
+        prev = p;
+        t += dt;
+      }
+
+      if (t > tMax) {
+        holdUntil = now + 1600;
+      }
+      requestAnimationFrame(draw);
+    }
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    init();
+    requestAnimationFrame(draw);
+
+  </script>
+</body>
+
+</html>

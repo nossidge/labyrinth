@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Captain Hammock">
+  <title>highly strung</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #060010;
+    }
+
+    #main {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      display: block;
+    }
+
+    line {
+      stroke-width: 2;
+      transition: stroke-width 0.15s ease;
+    }
+
+    a:hover line {
+      stroke-width: 4;
+      filter: drop-shadow(0 0 6px currentColor);
+    }
+  </style>
+</head>
+
+<body>
+  <svg id="main"></svg>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('highly-strung');
+
+    const svg = document.getElementById('main');
+    const SVGNS = 'http://www.w3.org/2000/svg';
+    let W, H, lines = [], baseHue = 0;
+
+    function addLine(x1, y1, x2, y2, hueOffset) {
+      const a = document.createElementNS(SVGNS, 'a');
+      a.setAttributeNS(null, 'href', LAB.pageRandomiser.nextOne());
+      const l = document.createElementNS(SVGNS, 'line');
+      l.setAttribute('x1', x1.toFixed(1));
+      l.setAttribute('y1', y1.toFixed(1));
+      l.setAttribute('x2', x2.toFixed(1));
+      l.setAttribute('y2', y2.toFixed(1));
+      a.appendChild(l);
+      svg.appendChild(a);
+      lines.push({ el: l, off: hueOffset });
+    }
+
+    function addLineToGroup(group, x1, y1, x2, y2, hueOffset) {
+      const l = document.createElementNS(SVGNS, 'line');
+      l.setAttribute('x1', x1.toFixed(1));
+      l.setAttribute('y1', y1.toFixed(1));
+      l.setAttribute('x2', x2.toFixed(1));
+      l.setAttribute('y2', y2.toFixed(1));
+      group.appendChild(l);
+      lines.push({ el: l, off: hueOffset });
+    }
+
+    // A curve-stitch panel between two pin-rails meeting at a corner
+    function panel(ox, oy, ax, ay, bx, by, n, hueOffset) {
+      for (let i = 0; i <= n; i++) {
+        const t = i / n;
+        const p1x = ox + (ax - ox) * t;
+        const p1y = oy + (ay - oy) * t;
+        const p2x = ox + (bx - ox) * (1 - t);
+        const p2y = oy + (by - oy) * (1 - t);
+        addLine(p1x, p1y, p2x, p2y, hueOffset);
+      }
+    }
+
+    // A rosette of chords around a circle
+    function rosette(group, cx, cy, rad, pins, skip, hueOffset) {
+      for (let i = 0; i < pins; i++) {
+        const a1 = (i / pins) * Math.PI * 2;
+        const a2 = ((i * skip) % pins / pins) * Math.PI * 2;
+        addLineToGroup(
+          group,
+          cx + Math.cos(a1) * rad, cy + Math.sin(a1) * rad,
+          cx + Math.cos(a2) * rad, cy + Math.sin(a2) * rad,
+          hueOffset
+        );
+      }
+    }
+
+    function init() {
+      W = window.innerWidth;
+      H = window.innerHeight;
+      svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+
+      svg.innerHTML = '';
+      lines = [];
+      baseHue = LAB.randInt(0, 359);
+      const n = LAB.randInt(18, 28);
+      const m = Math.min(W, H);
+
+      // Four curve-stitches in each corner
+      panel(0, 0, W, 0, 0, H, n, 0);
+      panel(W, 0, 0, 0, W, H, n, 90);
+      panel(0, H, 0, 0, W, H, n, 180);
+      panel(W, H, W, 0, 0, H, n, 270);
+
+      // The line links are annoying to click individually
+      // So make a central rosette with just one anchor
+      const pins = LAB.randInt(24, 48);
+      const skip = LAB.randInt(2, Math.max(3, Math.floor(pins / 2)));
+      const rosetteRad = m * 0.32;
+      const rosetteA = document.createElementNS(SVGNS, 'a');
+      rosetteA.setAttributeNS(null, 'href', LAB.pageRandomiser.nextOne());
+      const hitCircle = document.createElementNS(SVGNS, 'circle');
+      hitCircle.setAttribute('cx', W / 2);
+      hitCircle.setAttribute('cy', H / 2);
+      hitCircle.setAttribute('r', rosetteRad);
+      hitCircle.setAttribute('fill', 'transparent');
+      rosetteA.appendChild(hitCircle);
+      const rosetteG = document.createElementNS(SVGNS, 'g');
+      rosetteA.appendChild(rosetteG);
+      svg.appendChild(rosetteA);
+      rosette(rosetteG, W / 2, H / 2, rosetteRad, pins, skip, 140);
+    }
+
+    // Make the colours change slowly over time
+    let t = 0;
+    function draw() {
+      t += 0.4;
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const hue = (baseHue + line.off + i * 1.5 + t) % 360;
+        const colour = `hsl(${hue}, 90%, 60%)`;
+        line.el.setAttribute('stroke', colour);
+        line.el.style.color = colour;
+      }
+      requestAnimationFrame(draw);
+    }
+
+    window.addEventListener('resize', init);
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    init();
+    draw();
+
+  </script>
+</body>
+
+</html>

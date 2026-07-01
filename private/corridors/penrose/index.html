@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+I finally figured out how to do penrose tiling!
+See my previous failed attempts: `penfell` and `penwilt`
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Penrose tiling">
+  <title>Aperiodic</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #05040a;
+    }
+
+    #main {
+      width: 100vw;
+      height: 100vh;
+      display: block;
+    }
+
+    #tiling {
+      animation: drift 45s linear infinite;
+    }
+
+    @keyframes drift {
+      from {
+        filter: hue-rotate(0deg);
+      }
+
+      to {
+        filter: hue-rotate(360deg);
+      }
+    }
+
+    .tile {
+      stroke: rgba(0, 0, 0, 0.55);
+      stroke-width: 1.2;
+      stroke-linejoin: round;
+      cursor: pointer;
+      transition: fill 0.15s ease;
+    }
+
+    .tile:hover {
+      fill: #ffffff !important;
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 100;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 255, 0, 0.03));
+      background-size: 100% 2px, 3px 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <svg id="main" viewBox="-500 -500 1000 1000" preserveAspectRatio="xMidYMid slice">
+    <g id="tiling"></g>
+  </svg>
+  <div id="crt-scanlines"></div>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('penrose');
+
+    const tilingG = document.getElementById('tiling');
+    const SVGNS = 'http://www.w3.org/2000/svg';
+    const PHI = (1 + Math.sqrt(5)) / 2;
+    const INV = 1 / PHI;
+
+    const WHEEL = 10;
+    const SUBDIV = 6;
+    const R = 720;
+
+    const lerp = (a, b, f) => ({ x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f });
+
+    // Robinson-triangle deflation
+    function subdivide(triangles) {
+      const out = [];
+      for (const tri of triangles) {
+        const { colour, a, b, c } = tri;
+        if (colour === 0) {
+          const p = lerp(a, b, INV);
+          out.push({ colour: 0, a: c, b: p, c: b });
+          out.push({ colour: 1, a: p, b: c, c: a });
+        } else {
+          const q = lerp(b, a, INV);
+          const r = lerp(b, c, INV);
+          out.push({ colour: 1, a: r, b: c, c: a });
+          out.push({ colour: 1, a: q, b: r, c: b });
+          out.push({ colour: 0, a: r, b: q, c: a });
+        }
+      }
+      return out;
+    }
+
+    // Start with a wheel of ten triangles around the origin
+    let triangles = [];
+    for (let i = 0; i < WHEEL; i++) {
+      let b = { x: R * Math.cos((2 * i - 1) * Math.PI / WHEEL), y: R * Math.sin((2 * i - 1) * Math.PI / WHEEL) };
+      let c = { x: R * Math.cos((2 * i + 1) * Math.PI / WHEEL), y: R * Math.sin((2 * i + 1) * Math.PI / WHEEL) };
+      if (i % 2 === 0) { const tmp = b; b = c; c = tmp; }
+      triangles.push({ colour: 0, a: { x: 0, y: 0 }, b, c });
+    }
+
+    for (let i = 0; i < SUBDIV; i++) {
+      triangles = subdivide(triangles);
+    }
+
+    // Two palettes for the two half-rhombus types
+    for (const tri of triangles) {
+      const link = document.createElementNS(SVGNS, 'a');
+      const url = LAB.pageRandomiser.nextOne();
+
+      link.setAttribute('href', url);
+      link.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', url);
+
+      const poly = document.createElementNS(SVGNS, 'polygon');
+      poly.setAttribute('class', 'tile');
+
+      const cx = (tri.a.x + tri.b.x + tri.c.x) / 3;
+      const cy = (tri.a.y + tri.b.y + tri.c.y) / 3;
+      const dist = Math.hypot(cx, cy);
+      const hue = tri.colour === 0 ? 200 + dist * 0.12 : 330 + dist * 0.12;
+      const light = tri.colour === 0 ? 55 : 42;
+
+      poly.setAttribute('fill', `hsl(${hue % 360}, 80%, ${light}%)`);
+      poly.setAttribute('points',
+        `${tri.a.x.toFixed(1)},${tri.a.y.toFixed(1)} ` +
+        `${tri.b.x.toFixed(1)},${tri.b.y.toFixed(1)} ` +
+        `${tri.c.x.toFixed(1)},${tri.c.y.toFixed(1)}`);
+
+      link.appendChild(poly);
+      tilingG.appendChild(link);
+    }
+
+  </script>
+</body>
+
+</html>

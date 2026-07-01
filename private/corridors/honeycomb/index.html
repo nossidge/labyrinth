@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Let's Bee Friends">
+  <title>comb over</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      overscroll-behavior: none;
+      background: #ffdc78;
+      touch-action: none;
+    }
+
+    #viewport {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+    }
+
+    #main {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+    }
+
+    .hex {
+      position: absolute;
+      display: block;
+      text-decoration: none;
+      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+      transition: transform 0.2s ease, filter 0.2s ease;
+    }
+
+    .hex:hover {
+      transform: scale(1.18);
+      filter: brightness(1.8) drop-shadow(0 0 8px rgba(255, 220, 120, 0.9));
+      z-index: 50;
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 100;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 255, 0, 0.03));
+      background-size: 100% 2px, 3px 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="viewport">
+    <div id="crt-scanlines"></div>
+    <main id="main"></main>
+  </div>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('honeycomb');
+
+    const main = document.getElementById('main');
+
+    const FRAME_MS = 1000 / 20;
+    const BAND_SIZE = 6;
+    const HEX_W = 58;
+    const HEX_H = 64;
+
+    const bands = new Map();
+    let lastFrame = 0;
+    let cx, cy;
+
+    function init() {
+      main.innerHTML = '';
+      bands.clear();
+
+      const vStep = HEX_H * 0.75;
+
+      cx = window.innerWidth / 2;
+      cy = window.innerHeight / 2;
+
+      const cols = Math.ceil(window.innerWidth / HEX_W) + 6;
+      const rows = Math.ceil(window.innerHeight / vStep) + 6;
+
+      const centerCol = Math.floor(cols / 2);
+      const centerRow = Math.floor(rows / 2);
+
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const x = cx - HEX_W / 2 + (c - centerCol) * HEX_W + (r % 2 ? HEX_W / 2 : 0);
+          const y = cy - HEX_H / 2 + (r - centerRow) * vStep;
+
+          const a = document.createElement('a');
+          a.className = 'hex';
+          a.href = LAB.pageRandomiser.nextOne();
+          a.style.width = HEX_W + 'px';
+          a.style.height = HEX_H + 'px';
+          a.style.left = x + 'px';
+          a.style.top = y + 'px';
+
+          const dist = Math.hypot(x + HEX_W / 2 - cx, y + HEX_H / 2 - cy);
+
+          // Group cells into distance bands.
+          // Cells in the same band share a colour,
+          // so we only compute and write to the DOM once per band.
+          const band = Math.round(dist / BAND_SIZE);
+
+          let bucket = bands.get(band);
+          if (!bucket) {
+            bucket = {
+              dist: band * BAND_SIZE,
+              els: [],
+              last: ''
+            };
+            bands.set(band, bucket);
+          }
+
+          bucket.els.push(a);
+          main.appendChild(a);
+        }
+      }
+    }
+
+    function animate(time) {
+      requestAnimationFrame(animate);
+      if (time - lastFrame < FRAME_MS) return;
+      lastFrame = time;
+
+      const t = time * 0.002;
+      for (const bucket of bands.values()) {
+        const wave = Math.sin(bucket.dist * 0.02 - t);
+        const hue = (38 + wave * 18).toFixed(0);
+        const light = (26 + (wave + 1) * 24).toFixed(0);
+        const colour = `hsl(${hue}, 95%, ${light}%)`;
+
+        // Skip the DOM repaint write when nothing changed
+        if (colour === bucket.last) continue;
+        bucket.last = colour;
+        for (const el of bucket.els) {
+          el.style.backgroundColor = colour;
+        }
+      }
+    }
+
+    init();
+    requestAnimationFrame(animate);
+
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(init, 200);
+    });
+
+  </script>
+</body>
+
+</html>

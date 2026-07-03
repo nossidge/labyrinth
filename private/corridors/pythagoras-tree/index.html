@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+https://en.wikipedia.org/wiki/Pythagoras_tree_(fractal)
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="hypotenuse it or hypotenlose it">
+  <title>Square Roots</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #100805;
+    }
+
+    #link {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+    }
+
+    canvas {
+      display: block;
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 100;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.18) 50%);
+      background-size: 100% 2px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+
+  <a id="link" href="../index.html">
+    <canvas id="canvas"></canvas>
+  </a>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('pythagoras-tree');
+
+    const link = document.getElementById('link');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    const maxDepth = 10;
+    const zoom = 0.16;
+
+    let W, H, hue, baseLean, baseSway;
+    let t = 0;
+
+    function resize() {
+      W = canvas.width = window.innerWidth;
+      H = canvas.height = window.innerHeight;
+    }
+
+    function reset() {
+      hue = LAB.randInt(0, 360);
+      baseLean = LAB.randNegToPos(0.5);
+      baseSway = LAB.randNegToPos(0.05, 0.01);
+      link.href = LAB.pageRandomiser.nextOne();
+    }
+
+    function rot(vx, vy, th) {
+      const c = Math.cos(th);
+      const s = Math.sin(th);
+      return { x: vx * c - vy * s, y: vx * s + vy * c };
+    }
+
+    function branch(ax, ay, bx, by, depth, sway) {
+      if (depth > maxDepth) return;
+
+      const vx = bx - ax, vy = by - ay;
+      const size = Math.hypot(vx, vy);
+      if (size < 1) return;
+
+      const px = vy, py = -vx;
+      const D = { x: ax + px, y: ay + py };
+      const C = { x: bx + px, y: by + py };
+
+      const light = 28 + (depth / maxDepth) * 48;
+      const h = (hue + depth * 12) % 360;
+      ctx.fillStyle = `hsl(${h}, 70%, ${light}%)`;
+      ctx.strokeStyle = 'rgba(0, 0, 0, 0.35)';
+      ctx.lineWidth = 0.6;
+      ctx.beginPath();
+      ctx.moveTo(ax, ay);
+      ctx.lineTo(bx, by);
+      ctx.lineTo(C.x, C.y);
+      ctx.lineTo(D.x, D.y);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      const lean = baseLean + Math.sin(t + depth * 0.4) * sway;
+      const alpha = Math.PI / 4 + lean;
+
+      const leg = rot(C.x - D.x, C.y - D.y, -alpha);
+      const legLen = size * Math.cos(alpha);
+      const E = {
+        x: D.x + (leg.x / size) * legLen,
+        y: D.y + (leg.y / size) * legLen,
+      };
+
+      branch(D.x, D.y, E.x, E.y, depth + 1, sway);
+      branch(E.x, E.y, C.x, C.y, depth + 1, sway);
+    }
+
+    function draw() {
+      ctx.fillStyle = '#100805';
+      ctx.fillRect(0, 0, W, H);
+
+      const base = Math.min(W, H) * zoom;
+      const sway = baseSway * Math.sin(t * 0.5);
+      branch(W / 2 - base / 2, H - 30, W / 2 + base / 2, H - 30, 0, sway);
+
+      t += 0.02;
+      requestAnimationFrame(draw);
+    }
+
+    window.addEventListener('resize', resize);
+    document.addEventListener('keydown', (e) => LAB.handleKeydown(e, reset));
+
+    resize();
+    reset();
+    draw();
+
+  </script>
+</body>
+
+</html>

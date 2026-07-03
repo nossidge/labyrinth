@@ -87,6 +87,13 @@ class Labyrinth {
     return this.rand(0, 1) < probability;
   }
 
+  // Pick a number between negative and positive, but avoid values near zero
+  // e.g. "randNegToPos(10, 2)" will return values between -10..-2 and 2..10
+  randNegToPos(absolute, exclude = 0) {
+    const value = this.rand(exclude, absolute);
+    return this.chance(0.5) ? -value : value;
+  }
+
   goto() {
     const items = this.corridorsData, parts = items[0].url.split('/'), heart = 'heart-of-hearts';
     const birth = ((c => c[11] + c[15] + c[12] + c[3])(items.find(c => c.id == heart).created));

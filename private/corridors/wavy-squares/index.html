@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="yo dawg, i herd you like squares">
+  <title>box-in-the-box-in-the-box</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      background-color: #101216;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    #main {
+      display: grid;
+      width: 100vw;
+      height: 100vh;
+      place-items: center;
+      gap: 0px;
+    }
+
+    .cell {
+      display: block;
+      text-decoration: none;
+    }
+
+    .cell svg {
+      display: block;
+    }
+
+    .cell svg rect {
+      fill: none;
+      stroke: #6fd0c4;
+      stroke-width: 3;
+      transition: stroke 0.3s ease;
+    }
+
+    .cell:hover svg rect {
+      stroke: #b8fff4;
+      filter: drop-shadow(0 0 4px rgba(150, 255, 240, 0.8));
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 100;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.18) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+      background-size: 100% 2px, 3px 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+  <main id="main"></main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('wavy-squares');
+
+    const main = document.getElementById('main');
+
+    let groups = [];
+    let cols = 0;
+    let svgSize, cellSize, rings;
+
+    const svgSizeRandomiser = new LAB.CyclicRandomiser(LAB.integerRange(50, 60));
+    const cellSizeOffsetRandomiser = new LAB.CyclicRandomiser(LAB.integerRange(0, 12));
+    const ringsRandomiser = new LAB.CyclicRandomiser(LAB.integerRange(2, 6));
+
+    function init() {
+      svgSize = svgSizeRandomiser.nextOne();
+      cellSize = svgSize + cellSizeOffsetRandomiser.nextOne();
+      rings = ringsRandomiser.nextOne();
+
+      cols = Math.floor(window.innerWidth / cellSize);
+      const rows = Math.floor(window.innerHeight / cellSize);
+      main.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+      main.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+      main.innerHTML = '';
+      groups = [];
+
+      for (let i = 0; i < cols * rows; i++) {
+        const a = document.createElement('a');
+        a.href = LAB.pageRandomiser.nextOne();
+        a.className = 'cell';
+
+        let rects = '';
+        for (let k = 0; k < rings; k++) {
+          const inset = (svgSize / 2) * (k / rings);
+          const side = svgSize - inset * 2;
+          rects += `<rect x="${inset}" y="${inset}" width="${side}" height="${side}"/>`;
+        }
+        a.innerHTML = `
+          <svg viewBox="0 0 ${svgSize} ${svgSize}" width="${svgSize}" height="${svgSize}">
+            <g>
+              ${rects}
+            </g>
+          </svg>
+        `;
+        main.appendChild(a);
+        groups.push(a.querySelector('g'));
+      }
+    }
+
+    function draw(now) {
+      const t = now / 1000;
+      for (let i = 0; i < groups.length; i++) {
+        const r = Math.floor(i / cols);
+        const c = i % cols;
+        const angle = 45 * Math.sin(t * 0.6 + (r + c) * 0.4);
+        groups[i].setAttribute('transform', `rotate(${angle} ${svgSize / 2} ${svgSize / 2})`);
+      }
+      requestAnimationFrame(draw);
+    }
+
+    let resizeTimeout = null;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(init, 200);
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    init();
+    requestAnimationFrame(draw);
+
+  </script>
+</body>
+
+</html>

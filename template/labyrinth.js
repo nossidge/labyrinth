@@ -94,6 +94,10 @@ class Labyrinth {
     return this.chance(0.5) ? -value : value;
   }
 
+  integerRange(start, end) {
+    return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+  }
+
   goto() {
     const items = this.corridorsData, parts = items[0].url.split('/'), heart = 'heart-of-hearts';
     const birth = ((c => c[11] + c[15] + c[12] + c[3])(items.find(c => c.id == heart).created));

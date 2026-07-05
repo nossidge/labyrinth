@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="The Stars, Like Dust">
+  <title>Punch it</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000005;
+    }
+
+    a {
+      display: block;
+      line-height: 0;
+    }
+
+    canvas {
+      display: block;
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 100;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.18) 50%);
+      background-size: 100% 2px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+  <a id="link" href="../index.html">
+    <canvas id="warp"></canvas>
+  </a>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('starfield');
+
+    const link = document.getElementById('link');
+    const canvas = document.getElementById('warp');
+    const ctx = canvas.getContext('2d');
+    link.href = LAB.pageRandomiser.nextOne();
+
+    const NUM = 4000;
+    const SPEED = 0.007;
+
+    let stars = [];
+    let W, H, cx, cy, hue;
+
+    function resize() {
+      W = canvas.width = window.innerWidth;
+      H = canvas.height = window.innerHeight;
+      cx = W / 2;
+      cy = H / 2;
+    }
+
+    function makeStar() {
+      return {
+        x: LAB.rand(-1, 1),
+        y: LAB.rand(-1, 1),
+        z: LAB.rand(0.05, 1),
+        pz: null,
+      };
+    }
+
+    function init() {
+      stars = [];
+      for (let i = 0; i < NUM; i++) stars.push(makeStar());
+      hue = LAB.randInt(0, 360);
+    }
+
+    function draw() {
+      ctx.globalCompositeOperation = 'multiply';
+      ctx.fillStyle = 'rgba(0, 0, 5, 0.35)';
+      ctx.fillRect(0, 0, W, H);
+      ctx.globalCompositeOperation = 'source-over';
+
+      const scale = Math.min(W, H) * 0.9;
+      for (const s of stars) {
+        s.pz = s.z;
+        s.z -= SPEED;
+        if (s.z <= 0.02) {
+          s.x = LAB.rand(-1, 1);
+          s.y = LAB.rand(-1, 1);
+          s.z = 1;
+          s.pz = 1;
+        }
+
+        const sx = cx + (s.x / s.z) * scale;
+        const sy = cy + (s.y / s.z) * scale;
+        const px = cx + (s.x / s.pz) * scale;
+        const py = cy + (s.y / s.pz) * scale;
+
+        const depth = 1 - s.z;
+        const size = depth * 2.4;
+        const h = (hue + depth * 80) % 360;
+        ctx.strokeStyle = `hsl(${h}, 85%, ${40 + depth * 45}%)`;
+        ctx.lineWidth = Math.max(0.4, size);
+        ctx.beginPath();
+        ctx.moveTo(px, py);
+        ctx.lineTo(sx, sy);
+        ctx.stroke();
+      }
+
+      hue = (hue + 0.15) % 360;
+      requestAnimationFrame(draw);
+    }
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    window.addEventListener('resize', resize);
+
+    resize();
+    init();
+    draw();
+
+  </script>
+</body>
+
+</html>

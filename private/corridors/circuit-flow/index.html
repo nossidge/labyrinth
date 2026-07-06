@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+A lame attempt at drawing a randomised circuit board.
+I might come back to this idea later because I think it's a good one.
+But this looks fine; it'll do in the meantime.
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="circuitous route">
+  <title>Soldering on</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #001a0e;
+      background-image: radial-gradient(ellipse at center, #002a18 0%, #001008 80%);
+    }
+
+    svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .trace {
+      stroke: #2da664;
+      stroke-width: 2;
+      fill: none;
+      opacity: 0.5;
+    }
+
+    .pad {
+      cursor: pointer;
+      transition: filter 0.2s ease;
+    }
+
+    .pad-ring {
+      fill: none;
+      stroke: #2da664;
+      stroke-width: 2;
+    }
+
+    .pad-dot {
+      fill: #ffcc44;
+      stroke: #886600;
+      stroke-width: 1;
+    }
+
+    .pad:hover .pad-ring {
+      stroke: #ffeeaa;
+      stroke-width: 3;
+      filter: drop-shadow(0 0 8px #ffee44);
+    }
+
+    .pad:hover .pad-dot {
+      fill: #ffffff;
+    }
+
+    .pulse {
+      fill: #aaffcc;
+      filter: drop-shadow(0 0 4px #66ffaa);
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 100;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%),
+        linear-gradient(90deg, rgba(0, 255, 0, 0.04), transparent 50%, rgba(0, 255, 0, 0.04));
+      background-size: 100% 2px, 100% 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+  <svg id="board" preserveAspectRatio="xMidYMid slice"></svg>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('circuit-flow');
+
+    const svg = document.getElementById('board');
+    const SVG_NS = 'http://www.w3.org/2000/svg';
+
+    let W, H;
+    let nodes = [];
+    let traces = [];
+
+    function init() {
+      W = window.innerWidth;
+      H = window.innerHeight;
+      svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+      svg.innerHTML = '';
+      nodes = [];
+      traces = [];
+
+      const GRID = 20;
+      const margin = 20;
+      const cols = Math.floor((W - margin * 2) / GRID);
+      const rows = Math.floor((H - margin * 2) / GRID);
+      const offsetX = (W - cols * GRID) / 2;
+      const offsetY = (H - rows * GRID) / 2;
+
+      // Place pads
+      const padCount = Math.floor(cols * rows * 0.06);
+      const used = new Set();
+      while (nodes.length < padCount) {
+        const c = LAB.randInt(1, cols - 2);
+        const r = LAB.randInt(1, rows - 2);
+        const key = r * cols + c;
+        if (used.has(key)) continue;
+        used.add(key);
+        const x = offsetX + c * GRID;
+        const y = offsetY + r * GRID;
+        nodes.push({ x, y, c, r });
+      }
+
+      // Connect each node to its 1-2 nearest neighbours with orthogonal traces
+      for (let i = 0; i < nodes.length; i++) {
+        const a = nodes[i];
+        const sorted = nodes
+          .map((b, j) => ({ b, j, d: Math.hypot(a.x - b.x, a.y - b.y) }))
+          .filter(o => o.j !== i)
+          .sort((x, y) => x.d - y.d);
+        const connectTo = sorted.slice(0, LAB.randInt(1, 2));
+        for (const o of connectTo) {
+          drawTrace(a, o.b);
+        }
+      }
+
+      // Pads on top of traces
+      for (const n of nodes) {
+        const g = document.createElementNS(SVG_NS, 'a');
+        g.setAttribute('href', LAB.pageRandomiser.nextOne());
+        g.setAttribute('class', 'pad');
+        const hit = document.createElementNS(SVG_NS, 'circle');
+        hit.setAttribute('cx', n.x);
+        hit.setAttribute('cy', n.y);
+        hit.setAttribute('r', 21);
+        hit.setAttribute('fill', 'transparent');
+        const ring = document.createElementNS(SVG_NS, 'circle');
+        ring.setAttribute('cx', n.x);
+        ring.setAttribute('cy', n.y);
+        ring.setAttribute('r', 9);
+        ring.setAttribute('class', 'pad-ring');
+        const dot = document.createElementNS(SVG_NS, 'circle');
+        dot.setAttribute('cx', n.x);
+        dot.setAttribute('cy', n.y);
+        dot.setAttribute('r', 4);
+        dot.setAttribute('class', 'pad-dot');
+        g.appendChild(hit);
+        g.appendChild(ring);
+        g.appendChild(dot);
+        svg.appendChild(g);
+      }
+    }
+
+    // L-shaped trace
+    function drawTrace(a, b) {
+      const midX = LAB.chance(0.5) ? a.x : b.x;
+      const midY = midX === a.x ? b.y : a.y;
+      const pathD = `M ${a.x} ${a.y} L ${midX} ${midY} L ${b.x} ${b.y}`;
+      const path = document.createElementNS(SVG_NS, 'path');
+      path.setAttribute('d', pathD);
+      path.setAttribute('class', 'trace');
+      svg.appendChild(path);
+      traces.push({ a, b, midX, midY, path });
+    }
+
+    // Little electron-type sparks
+    function spawnPulse() {
+      if (traces.length === 0) return;
+      const t = LAB.sample(traces);
+      const pulse = document.createElementNS(SVG_NS, 'circle');
+      pulse.setAttribute('r', 3);
+      pulse.setAttribute('class', 'pulse');
+      svg.appendChild(pulse);
+
+      const totalLen = Math.hypot(t.midX - t.a.x, t.midY - t.a.y) + Math.hypot(t.b.x - t.midX, t.b.y - t.midY);
+      const seg1 = Math.hypot(t.midX - t.a.x, t.midY - t.a.y);
+      const ratio = seg1 / totalLen;
+      const duration = totalLen * 4;
+      const start = performance.now();
+
+      function step(now) {
+        const p = Math.min(1, (now - start) / duration);
+        let x, y;
+        if (p < ratio || ratio >= 1) {
+          const q = ratio > 0 ? p / ratio : 1;
+          x = t.a.x + (t.midX - t.a.x) * q;
+          y = t.a.y + (t.midY - t.a.y) * q;
+        } else {
+          const q = (p - ratio) / (1 - ratio);
+          x = t.midX + (t.b.x - t.midX) * q;
+          y = t.midY + (t.b.y - t.midY) * q;
+        }
+        pulse.setAttribute('cx', x);
+        pulse.setAttribute('cy', y);
+        if (p < 1) {
+          requestAnimationFrame(step);
+        } else {
+          pulse.remove();
+        }
+      }
+      requestAnimationFrame(step);
+    }
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    window.addEventListener('resize', init);
+
+    init();
+    setInterval(spawnPulse, 80);
+
+  </script>
+</body>
+
+</html>

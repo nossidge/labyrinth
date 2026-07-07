@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+Contour lines drawn across a value-noise field.
+The idea was to resemble a topographic map.
+This was very boring until I made it slowly animate.
+
+A tiny grid of random numbers is created (`stakes` array, 4×4 cells).
+Think of this as placing random "stakes" in the ground at regular intervals.
+
+To find the height at any point between stakes, the four nearest stake-values are blended.
+This uses bilinear interpolation; a weighted average that favours whichever stakes are closer.
+The smooth() function makes the blending curve gentle at the edges so you don't get harsh creases.
+
+Two layers ("layers") of noise are combined:
+one at normal scale and one at double frequency (smaller bumps).
+The first layer contributes 65% and the second 35%.
+Result is a landscape that has broad rolling hills with some finer texture on top.
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="top to bottomography">
+  <title>The Lay of the Land</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000000;
+    }
+
+    a {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    canvas {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+      image-rendering: pixelated;
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 100;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.16) 50%);
+      background-size: 100% 2px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+  <a href="../index.html">
+    <canvas id="canvas"></canvas>
+  </a>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('neon-topography');
+
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const ZOOM = 4;
+    const BANDS = 9;
+    const SPEED = 0.005;
+
+    let cols, rows, img, field;
+    let hue = LAB.rand(0, 360);
+    let z = 0;
+
+    // A small hashed value-noise grid with bilinear interpolation.
+    const GRID = 4;
+    const stakes = new Float32Array((GRID + 2) * (GRID + 2));
+
+    // Fill the tiny stake-grid with fresh random values.
+    function reseed() {
+      for (let i = 0; i < stakes.length; i++) stakes[i] = Math.random();
+    }
+
+    // Look up the random "height" stored at a particular grid stake.
+    // The modulo wrapping means the grid tiles seamlessly.
+    // So the right edge loops back to the left.
+    function gridVal(ix, iy) {
+      ix = ((ix % GRID) + GRID) % GRID;
+      iy = ((iy % GRID) + GRID) % GRID;
+      return stakes[iy * (GRID + 2) + ix];
+    }
+
+    // Smoothstep / Hermite interpolation.
+    // Soften a 0-to-1 value so blending between stakes is curvy, not angular.
+    function smooth(t) {
+      return t * t * (3 - 2 * t);
+    }
+
+    // Bilinear interpolation to return the blended height at any point (x, y).
+    // Looks up the four surrounding grid stakes and averages them based on distance.
+    // Closer stakes have more influence.
+    function noise(x, y) {
+      const x0 = Math.floor(x), y0 = Math.floor(y);
+      const fx = smooth(x - x0), fy = smooth(y - y0);
+      const v00 = gridVal(x0, y0), v10 = gridVal(x0 + 1, y0);
+      const v01 = gridVal(x0, y0 + 1), v11 = gridVal(x0 + 1, y0 + 1);
+      const a = v00 + (v10 - v00) * fx;
+      const b = v01 + (v11 - v01) * fx;
+      return a + (b - a) * fy;
+    }
+
+    // Recalculate canvas dimensions when the window size changes.
+    // Draw at a reduced resolution (screen size / ZOOM) to make it pixelated.
+    function resize() {
+      cols = Math.max(60, Math.ceil(window.innerWidth / ZOOM));
+      rows = Math.max(60, Math.ceil(window.innerHeight / ZOOM));
+      canvas.width = cols;
+      canvas.height = rows;
+      img = ctx.createImageData(cols, rows);
+      field = new Float32Array(cols * rows);
+    }
+
+    // Convert an HSL colour into an [R, G, B] array.
+    function hslToRgbArray(h, s, l) {
+      s /= 100;
+      l /= 100;
+      const k = n => (n + h / 30) % 12;
+      const a = s * Math.min(l, 1 - l);
+      const f = n => l - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));
+      return [Math.round(f(0) * 255), Math.round(f(8) * 255), Math.round(f(4) * 255)];
+    }
+
+    // Main animation frame.
+    // 1. Advance the noise offset (z) so the hills drift sideways.
+    // 2. Alter the base hue so colours cycle through the rainbow.
+    // 3. Compute two layers of noise for every pixel to build a height field
+    //    (broad hills + finer texture).
+    // 4. Detect contour edges: if a pixel's elevation band differs from its right
+    //    or bottom neighbour, it's a contour line and gets a bright neon colour.
+    //    Otherwise it's drawn as black.
+    // 5. Write the finished image to the canvas.
+    function draw() {
+      z += SPEED;
+      hue = (hue + 0.2) % 360;
+      const sx = GRID / cols * 2.2;
+      const sy = GRID / rows * 2.2;
+
+      for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+          const n1 = noise(x * sx + z, y * sy);
+          const n2 = noise(x * sx * 2 + z * 1.7, y * sy * 2 + 10);
+          field[y * cols + x] = (n1 * 0.65 + n2 * 0.35);
+        }
+      }
+
+      const data = img.data;
+      for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+          const i = y * cols + x;
+          const v = field[i];
+          const band = Math.floor(v * BANDS);
+          const rightDiff = x < cols - 1 && Math.floor(field[i + 1] * BANDS) !== band;
+          const downDiff = y < rows - 1 && Math.floor(field[i + cols] * BANDS) !== band;
+          const p = i * 4;
+          if (rightDiff || downDiff) {
+            const [r, g, b] = hslToRgbArray((hue + band * 26) % 360, 90, 62);
+            data[p] = r;
+            data[p + 1] = g;
+            data[p + 2] = b;
+          } else {
+            const shade = 6 + band * 2;
+            data[p] = shade * 0.4;
+            data[p + 1] = shade * 0.7;
+            data[p + 2] = shade;
+          }
+          data[p + 3] = 255;
+        }
+      }
+      ctx.putImageData(img, 0, 0);
+
+      requestAnimationFrame(draw);
+    }
+
+    window.addEventListener('resize', resize);
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, () => {
+        reseed();
+        hue = LAB.rand(0, 360);
+      });
+    });
+
+    reseed();
+    resize();
+    requestAnimationFrame(draw);
+
+  </script>
+</body>
+
+</html>

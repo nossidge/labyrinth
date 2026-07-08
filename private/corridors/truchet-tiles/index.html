@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+https://en.wikipedia.org/wiki/Truchet_tiling#Quarter-circles
+See also `10-print` for an ASCII version of this concept
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Truchet is gonna be the day">
+  <title>Mémoire sur les combinaisons</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      background-color: #1a1c22;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    #main {
+      display: grid;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    .tile {
+      display: block;
+      text-decoration: none;
+      width: 100%;
+      height: 100%;
+      transform: scale(1.02);
+    }
+
+    .tile svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .tile svg path {
+      fill: none;
+      stroke: #d8c48a;
+      stroke-width: 9;
+      transition: stroke 0.3s ease;
+    }
+
+    .tile:hover svg path {
+      stroke: #fff3cf;
+      filter: drop-shadow(0 0 4px rgba(255, 240, 190, 0.8));
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 100;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.04), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.04));
+      background-size: 100% 2px, 3px 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+  <main id="main"></main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('truchet-tiles');
+
+    const main = document.getElementById('main');
+    const tileSize = 64;
+    let tiles = [];
+
+    function init() {
+      const cols = Math.ceil(window.innerWidth / tileSize);
+      const rows = Math.ceil(window.innerHeight / tileSize);
+      main.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+      main.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+      main.innerHTML = '';
+      tiles = [];
+
+      for (let i = 0; i < cols * rows; i++) {
+        const a = document.createElement('a');
+        a.href = LAB.pageRandomiser.nextOne();
+        a.className = 'tile';
+        a.dataset.rotation = LAB.chance(0.5) ? 90 : 0;
+        a.innerHTML = `
+          <svg viewBox="0 0 100 100">
+            <path d="M50,0 A50,50 0 0 1 0,50"/>
+            <path d="M100,50 A50,50 0 0 0 50,100"/>
+          </svg>
+        `;
+        a.querySelector('svg').style.transform = `rotate(${a.dataset.rotation}deg)`;
+        a.addEventListener('mouseenter', () => {
+          a.dataset.rotation = parseInt(a.dataset.rotation) + 90;
+          a.querySelector('svg').style.transform = `rotate(${a.dataset.rotation}deg)`;
+        });
+        main.appendChild(a);
+        tiles.push(a);
+      }
+    }
+
+    function shuffleSome() {
+      const count = Math.max(1, Math.floor(tiles.length * 0.06));
+      for (let i = 0; i < count; i++) {
+        const t = LAB.sample(tiles);
+        t.dataset.rotation = parseInt(t.dataset.rotation) + 90;
+        t.querySelector('svg').style.transform = `rotate(${t.dataset.rotation}deg)`;
+      }
+    }
+
+    let resizeTimeout = null;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(init, 200);
+    });
+
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, shuffleSome);
+    });
+
+    init();
+
+  </script>
+</body>
+
+</html>

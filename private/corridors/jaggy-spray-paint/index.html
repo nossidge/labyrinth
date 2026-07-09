@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Moves like Jagger">
+  <title>Gettin' Jaggy wit It</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      background-color: #000000;
+      overflow: hidden;
+      overscroll-behavior: none;
+      touch-action: none;
+    }
+
+    canvas {
+      display: block;
+      touch-action: none;
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 100;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+      background-size: 100% 2px, 3px 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+  <a href="../index.html">
+    <canvas id="canvas"></canvas>
+  </a>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('jaggy-spray-paint');
+
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    // I didn't end up using this, but let's keep it around anyway
+    const maxStrokes = Infinity;
+
+    let w, h, mouseX, mouseY;
+    const strokes = [];
+
+    function resize() {
+      w = canvas.width = window.innerWidth;
+      h = canvas.height = window.innerHeight;
+    }
+
+    class GlitchStroke {
+      constructor(x, y) {
+        this.segments = [];
+        this.x = x;
+        this.y = y;
+        this.hue = LAB.randInt(0, 360);
+        this.life = 1;
+        this.decay = LAB.rand(0.001, 0.005);
+        this.width = LAB.rand(1, 6);
+
+        const numSegments = LAB.randInt(5, 30);
+        let cx = x, cy = y;
+        for (let i = 0; i < numSegments; i++) {
+          cx += LAB.rand(-30, 30);
+          cy += LAB.rand(-30, 30);
+          this.segments.push({ x: cx, y: cy });
+        }
+      }
+
+      update() {
+        this.life -= this.decay;
+        return this.life > 0;
+      }
+
+      draw(glitchAmount) {
+        if (this.segments.length < 2) return;
+
+        ctx.beginPath();
+        ctx.moveTo(this.segments[0].x + (Math.random() - 0.5) * glitchAmount, this.segments[0].y);
+
+        for (let i = 1; i < this.segments.length; i++) {
+          const seg = this.segments[i];
+          const gx = seg.x + (Math.random() - 0.5) * glitchAmount;
+          const gy = seg.y + (Math.random() - 0.5) * glitchAmount * 0.3;
+          ctx.lineTo(gx, gy);
+        }
+
+        ctx.strokeStyle = 'hsla(' + this.hue + ', 90%, 60%, ' + this.life + ')';
+        ctx.lineWidth = this.width;
+        ctx.stroke();
+
+        if (Math.random() > 0.95) {
+          const randSeg = this.segments[LAB.randInt(0, this.segments.length - 1)];
+          ctx.fillStyle = 'hsla(' + this.hue + ', 100%, 80%, ' + this.life * 0.5 + ')';
+          ctx.fillRect(randSeg.x - 5, randSeg.y - 5, 10, 10);
+        }
+      }
+    }
+
+    function addStroke(x, y) {
+      if (strokes.length < maxStrokes) {
+        strokes.push(new GlitchStroke(x, y));
+      }
+    }
+
+    function animate(time) {
+      ctx.globalCompositeOperation = 'multiply';
+      ctx.fillStyle = 'rgb(0,0,0)';
+      ctx.fillRect(0, 0, w, h);
+      ctx.globalCompositeOperation = 'source-over';
+
+      const glitchAmount = Math.random() > 0.97 ? LAB.rand(20, 80) : 0;
+
+      if (glitchAmount > 0) {
+        const sliceY = LAB.rand(0, h);
+        const sliceH = LAB.rand(5, 50);
+        const sliceData = ctx.getImageData(0, sliceY, w, sliceH);
+        ctx.putImageData(sliceData, (Math.random() - 0.5) * glitchAmount * 3, sliceY);
+      }
+
+      for (let i = strokes.length - 1; i >= 0; i--) {
+        if (!strokes[i].update()) {
+          strokes.splice(i, 1);
+        } else {
+          strokes[i].draw(glitchAmount);
+        }
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    document.addEventListener('mousemove', (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+      addStroke(mouseX, mouseY);
+    });
+
+    // Touch stuff for mobile
+    // Drag a finger to draw, single tap to navigate
+    const link = document.querySelector('a');
+    let touchMoved = false;
+
+    canvas.addEventListener('touchstart', (e) => {
+      touchMoved = false;
+      const t = e.touches[0];
+      mouseX = t.clientX;
+      mouseY = t.clientY;
+    }, { passive: true });
+
+    canvas.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      touchMoved = true;
+      const t = e.touches[0];
+      mouseX = t.clientX;
+      mouseY = t.clientY;
+      addStroke(mouseX, mouseY);
+    }, { passive: false });
+
+    // If the finger was dragged, treat it as drawing, not navigation
+    link.addEventListener('click', (e) => {
+      if (touchMoved) {
+        e.preventDefault();
+        touchMoved = false;
+      }
+    });
+
+    // Pressing a key draws a jaggy at a random point
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, () => {
+        addStroke(LAB.rand(0, w), LAB.rand(0, h));
+      });
+    });
+
+    window.addEventListener('resize', resize);
+
+    resize();
+
+    requestAnimationFrame(animate);
+
+  </script>
+</body>
+
+</html>

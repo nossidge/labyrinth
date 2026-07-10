@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+Turing pattern reaction-diffusion system (Gray-Scott model)
+https://en.wikipedia.org/wiki/Turing_pattern
+https://en.wikipedia.org/wiki/Reaction%E2%80%93diffusion_system
+https://www.karlsims.com/rd.html
+https://groups.csail.mit.edu/mac/projects/amorphous/GrayScott/
+https://mrob.com/pub/comp/xmorphia/
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="by Puccini">
+  <title>Turingdot</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000000;
+    }
+
+    main {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      height: 100%;
+    }
+
+    a#link {
+      display: block;
+      line-height: 0;
+    }
+
+    canvas {
+      display: block;
+      width: min(100vw, 100vh);
+      height: min(100vw, 100vh);
+      image-rendering: pixelated;
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 100;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 255, 0, 0.03));
+      background-size: 100% 2px, 3px 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+  <main>
+    <a id="link" href="../index.html">
+      <canvas id="canvas"></canvas>
+    </a>
+  </main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('turing-patterns');
+
+    const link = document.getElementById('link');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    const W = 200;
+    const H = 200;
+    const image = ctx.createImageData(W, H);
+    canvas.width = W;
+    canvas.height = H;
+
+    const SPEED = 10;
+    const dA = 1.0;
+    const dB = 0.5;
+
+    let a, b, feed, kill, hue;
+
+    // Nice feed/kill combos
+    const PRESETS_POOL = [
+      { feed: 0.0180, kill: 0.0510 },
+      { feed: 0.0220, kill: 0.0510 },
+      { feed: 0.0260, kill: 0.0550 },
+      { feed: 0.0290, kill: 0.0570 },
+      { feed: 0.0367, kill: 0.0649 },
+      { feed: 0.0400, kill: 0.0600 },
+      { feed: 0.0545, kill: 0.0620 },
+      { feed: 0.0620, kill: 0.0610 },
+    ];
+    const presetsRandomiser = new LAB.CyclicRandomiser(PRESETS_POOL);
+
+    function init() {
+      const p = presetsRandomiser.nextOne();
+      feed = p.feed;
+      kill = p.kill;
+      hue = LAB.randInt(0, 360);
+      link.href = LAB.pageRandomiser.nextOne();
+
+      a = new Float32Array(W * H);
+      b = new Float32Array(W * H);
+      for (let i = 0; i < W * H; i++) {
+        a[i] = 1;
+        b[i] = 0;
+      }
+
+      // Seed a handful of random blobs of chemical B
+      const blobs = LAB.randInt(6, 14);
+      for (let n = 0; n < blobs; n++) {
+        const cx = LAB.randInt(8, W - 8);
+        const cy = LAB.randInt(8, H - 8);
+        const r = LAB.randInt(3, 8);
+        for (let y = -r; y <= r; y++) {
+          for (let x = -r; x <= r; x++) {
+            if (x * x + y * y <= r * r) {
+              const idx = (cy + y) * W + (cx + x);
+              b[idx] = 1;
+            }
+          }
+        }
+      }
+    }
+
+    function step() {
+      const na = new Float32Array(W * H);
+      const nb = new Float32Array(W * H);
+      for (let y = 1; y < H - 1; y++) {
+        for (let x = 1; x < W - 1; x++) {
+          const i = y * W + x;
+          // Laplacian via 3x3 convolution
+          const lapA =
+            a[i] * -1 +
+            (a[i - 1] + a[i + 1] + a[i - W] + a[i + W]) * 0.2 +
+            (a[i - W - 1] + a[i - W + 1] + a[i + W - 1] + a[i + W + 1]) * 0.05;
+          const lapB =
+            b[i] * -1 +
+            (b[i - 1] + b[i + 1] + b[i - W] + b[i + W]) * 0.2 +
+            (b[i - W - 1] + b[i - W + 1] + b[i + W - 1] + b[i + W + 1]) * 0.05;
+          const abb = a[i] * b[i] * b[i];
+          na[i] = Math.max(0, Math.min(1, a[i] + (dA * lapA - abb + feed * (1 - a[i]))));
+          nb[i] = Math.max(0, Math.min(1, b[i] + (dB * lapB + abb - (kill + feed) * b[i])));
+        }
+      }
+      a = na;
+      b = nb;
+    }
+
+    function render() {
+      const data = image.data;
+      for (let i = 0; i < W * H; i++) {
+        // Map the chemical difference onto a two-tone ramp
+        const v = Math.max(0, Math.min(1, a[i] - b[i]));
+        const t = 1 - v;
+        const light = 6 + t * 62;
+        const [r, g, bl] = hsl2rgb((hue + t * 80) % 360, 85, light);
+        const p = i * 4;
+        data[p] = r;
+        data[p + 1] = g;
+        data[p + 2] = bl;
+        data[p + 3] = 255;
+      }
+      ctx.putImageData(image, 0, 0);
+    }
+
+    function hsl2rgb(h, s, l) {
+      s /= 100;
+      l /= 100;
+      const k = n => (n + h / 30) % 12;
+      const aa = s * Math.min(l, 1 - l);
+      const f = n => l - aa * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+      return [Math.round(f(0) * 255), Math.round(f(8) * 255), Math.round(f(4) * 255)];
+    }
+
+    function draw() {
+      for (let s = 0; s < SPEED; s++) step();
+      hue = (hue + 0.2) % 360;
+      render();
+      requestAnimationFrame(draw);
+    }
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    init();
+    draw();
+
+  </script>
+</body>
+
+</html>

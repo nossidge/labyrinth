@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Homer's Odyssey">
+  <title>Glazed and confused</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      background-color: #000000;
+      overflow: hidden;
+      overscroll-behavior: none;
+      touch-action: none;
+    }
+
+    canvas {
+      display: block;
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 100;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+      background-size: 100% 2px, 3px 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+  <canvas id="canvas"></canvas>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('space-torus');
+
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    let W, H;
+    const R = 1.0;
+    const r = 0.42;
+
+    const torusPoints = [];
+    const nU = 90, nV = 34;
+    for (let i = 0; i < nU; i++) {
+      const u = (i / nU) * Math.PI * 2;
+      for (let j = 0; j < nV; j++) {
+        const v = (j / nV) * Math.PI * 2;
+        torusPoints.push({ u, v });
+      }
+    }
+
+    let angX = 0.5, angY = 0;
+    let velX = 0, velY = 0.006;
+    let dragging = false, lastX = 0, lastY = 0;
+
+    const palette = { a: [255, 61, 240], b: [61, 220, 255] };
+
+    const layers = [];
+    const layerConfigs = [
+      { count: 200, size: 0.8, colour: '180,180,200' },
+      { count: 100, size: 1.2, colour: '200,200,255' },
+      { count: 50, size: 1.8, colour: '61,220,255' },
+      { count: 25, size: 2.5, colour: '255,61,240' },
+    ];
+
+    let mouseX = window.innerWidth / 2;
+    let mouseY = window.innerHeight / 2;
+    let targetMouseX = mouseX;
+    let targetMouseY = mouseY;
+
+    function init() {
+      W = canvas.width = window.innerWidth;
+      H = canvas.height = window.innerHeight;
+
+      targetMouseX = W / 2;
+      targetMouseY = H / 2;
+      mouseX = W / 2;
+      mouseY = H / 2;
+
+      layers.length = 0;
+      layerConfigs.forEach(config => {
+        const stars = [];
+        for (let i = 0; i < config.count; i++) {
+          stars.push({
+            x: LAB.rand(0, W),
+            y: LAB.rand(0, H),
+            twinkle: LAB.rand(0, Math.PI * 2),
+            twinkleSpeed: LAB.rand(0.01, 0.05)
+          });
+        }
+        layers.push({ stars, ...config });
+      });
+    }
+
+    function draw() {
+      ctx.globalCompositeOperation = 'multiply';
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+      ctx.fillRect(0, 0, W, H);
+      ctx.globalCompositeOperation = 'source-over';
+
+      mouseX += (targetMouseX - mouseX) * 0.05;
+      mouseY += (targetMouseY - mouseY) * 0.05;
+
+      const dx = (mouseX - W / 2) / W;
+      const dy = (mouseY - H / 2) / H;
+
+      layers.forEach((layer, layerIdx) => {
+        const parallaxStrength = (layerIdx + 1) * 8;
+
+        layer.stars.forEach(star => {
+          star.twinkle += star.twinkleSpeed;
+          const twinkleAlpha = 0.4 + 0.6 * Math.abs(Math.sin(star.twinkle));
+
+          const px = star.x + dx * parallaxStrength;
+          const py = star.y + dy * parallaxStrength;
+
+          ctx.beginPath();
+          ctx.arc(px, py, layer.size, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${layer.colour}, ${twinkleAlpha})`;
+          ctx.fill();
+
+          if (layer.size > 1.5) {
+            ctx.beginPath();
+            ctx.arc(px, py, layer.size * 3, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(${layer.colour}, ${twinkleAlpha * 0.08})`;
+            ctx.fill();
+          }
+        });
+      });
+
+      if (!dragging) {
+        angX += velX;
+        angY += velY;
+      }
+
+      const cosX = Math.cos(angX), sinX = Math.sin(angX);
+      const cosY = Math.cos(angY), sinY = Math.sin(angY);
+      const projScale = Math.min(W, H) * 0.75;
+      const dist = 4;
+
+      const torusParallaxStrength = 50;
+      const torusPx = W / 2 + dx * torusParallaxStrength;
+      const torusPy = H / 2 + dy * torusParallaxStrength;
+
+      const drawn = [];
+      for (const pt of torusPoints) {
+        const cu = Math.cos(pt.u), su = Math.sin(pt.u);
+        const cv = Math.cos(pt.v), sv = Math.sin(pt.v);
+
+        let x = (R + r * cv) * cu;
+        let y = (R + r * cv) * su;
+        let z = r * sv;
+
+        let y1 = y * cosX - z * sinX;
+        let z1 = y * sinX + z * cosX;
+        let x1 = x * cosY + z1 * sinY;
+        let z2 = -x * sinY + z1 * cosY;
+
+        const depth = dist - z2;
+        const p = projScale / depth;
+        const sx = torusPx + x1 * p;
+        const sy = torusPy + y1 * p;
+        drawn.push({ sx, sy, z2, p });
+      }
+
+      drawn.sort((a, b) => a.z2 - b.z2);
+
+      for (const d of drawn) {
+        const shade = Math.max(0, Math.min(1, (d.z2 + 1.6) / 3.2));
+        const c = [
+          palette.a[0] + (palette.b[0] - palette.a[0]) * shade,
+          palette.a[1] + (palette.b[1] - palette.a[1]) * shade,
+          palette.a[2] + (palette.b[2] - palette.a[2]) * shade,
+        ];
+        const size = Math.max(0.6, d.p * 0.03);
+        ctx.fillStyle = 'rgba(' + (c[0] | 0) + ',' + (c[1] | 0) + ',' + (c[2] | 0) + ',' + (0.35 + shade * 0.65) + ')';
+        ctx.beginPath();
+        ctx.arc(d.sx, d.sy, size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      requestAnimationFrame(draw);
+    }
+
+    let downTime = 0, downX = 0, downY = 0;
+
+    function pointerDown(x, y) {
+      dragging = true;
+      canvas.style.cursor = 'grabbing';
+      lastX = x;
+      lastY = y;
+      downX = x;
+      downY = y;
+      downTime = Date.now();
+    }
+
+    function pointerMove(x, y) {
+      if (dragging) {
+        velY = (x - lastX) * 0.0008;
+        velX = (y - lastY) * 0.0008;
+        angY += (x - lastX) * 0.006;
+        angX += (y - lastY) * 0.006;
+        lastX = x;
+        lastY = y;
+      } else {
+        const dCenter = Math.hypot(x - W / 2, y - H / 2);
+        if (dCenter < Math.min(W, H) * 0.28) {
+          canvas.style.cursor = 'pointer';
+        } else {
+          canvas.style.cursor = 'grab';
+        }
+      }
+      targetMouseX = x;
+      targetMouseY = y;
+    }
+
+    function pointerUp() {
+      dragging = false;
+      canvas.style.cursor = 'grab';
+      if (Date.now() - downTime < 300) {
+        const dist = Math.hypot(targetMouseX - downX, targetMouseY - downY);
+        if (dist < 10) {
+          const dCenter = Math.hypot(downX - W / 2, downY - H / 2);
+          if (dCenter < Math.min(W, H) * 0.4) {
+            window.location.href = LAB.pageRandomiser.nextOne();
+          }
+        }
+      }
+    }
+
+    canvas.addEventListener('mousedown', (e) => {
+      pointerDown(e.clientX, e.clientY)
+    });
+    window.addEventListener('mousemove', (e) => {
+      pointerMove(e.clientX, e.clientY)
+    });
+    window.addEventListener('mouseup', pointerUp);
+
+    canvas.addEventListener('touchstart', (e) => {
+      const t = e.touches[0];
+      pointerDown(t.clientX, t.clientY);
+    }, { passive: true });
+    canvas.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      const t = e.touches[0];
+      pointerMove(t.clientX, t.clientY);
+    }, { passive: false });
+    canvas.addEventListener('touchend', pointerUp);
+
+    window.addEventListener('resize', init);
+
+    init();
+    draw();
+
+  </script>
+</body>
+
+</html>

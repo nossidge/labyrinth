@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="It's fun to stay at the CMYK">
+  <title>◙</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #ece8dc;
+    }
+
+    #main {
+      width: 100vw;
+      height: 100vh;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(64px, 1fr));
+      grid-auto-rows: minmax(58px, 1fr);
+      border-left: 1px solid #171717;
+      border-top: 1px solid #171717;
+    }
+
+    .tile {
+      position: relative;
+      overflow: hidden;
+      border-right: 1px solid #171717;
+      border-bottom: 1px solid #171717;
+      background: #ece8dc;
+      text-decoration: none;
+      isolation: isolate;
+      transition: background 90ms;
+    }
+
+    .echo {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: var(--shape-size);
+      height: var(--shape-size);
+      border-radius: var(--rounding);
+      mix-blend-mode: multiply;
+      transition: border-radius 500ms, width 500ms, height 500ms;
+    }
+
+    .cyan {
+      background: #00bed1;
+      transform: translate(-50%, -50%) translate(var(--neg-x), var(--neg-y)) rotate(var(--turn));
+    }
+
+    .magenta {
+      background: #f40084;
+      transform: translate(-50%, -50%) translate(var(--x), var(--small-neg-y)) rotate(var(--neg-turn));
+    }
+
+    .yellow {
+      background: #ffe100;
+      transform: translate(-50%, -50%) translate(var(--small-x), var(--y)) rotate(var(--half-turn));
+    }
+
+    .tile:hover {
+      background: #101010;
+      z-index: 3;
+    }
+
+    .tile:hover .echo {
+      background: #ece8dc;
+      mix-blend-mode: difference;
+      border-radius: 0;
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 10;
+      background:
+        repeating-linear-gradient(0deg, transparent 0 2px, rgba(0, 0, 0, 0.09) 2px 3px),
+        radial-gradient(ellipse, transparent 57%, rgba(35, 20, 52, 0.22));
+    }
+  </style>
+</head>
+
+<body>
+  <main id="main"></main>
+  <div id="crt-scanlines"></div>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('cmyk-blend');
+
+    const main = document.getElementById('main');
+    let pointerX = window.innerWidth / 2;
+    let pointerY = window.innerHeight / 2;
+    let tiles = [];
+
+    const roundingTypes = ['0', '50%', '50% 0', '15% 50%'];
+    const roundingTypeRandomiser = new LAB.CyclicRandomiser(roundingTypes);
+
+    function setTurn(tile, turn) {
+      tile.style.setProperty('--turn', turn + 'deg');
+      tile.style.setProperty('--neg-turn', -turn + 'deg');
+      tile.style.setProperty('--half-turn', turn / 2 + 'deg');
+    }
+
+    function init() {
+      main.innerHTML = '';
+      const columns = Math.ceil(window.innerWidth / 64);
+      const rows = Math.ceil(window.innerHeight / 58);
+      const count = columns * rows;
+      tiles = [];
+
+      const roundingType = roundingTypeRandomiser.nextOne();
+      const shapeSize = LAB.rand(20, 40);
+
+      for (let i = 0; i < count; i++) {
+        const tile = document.createElement('a');
+        tile.className = 'tile';
+        tile.href = LAB.pageRandomiser.nextOne();
+        tile.style.setProperty('--shape-size', shapeSize + 'px');
+        tile.style.setProperty('--rounding', roundingType);
+        setTurn(tile, LAB.rand(-35, 35));
+        ['cyan', 'magenta', 'yellow'].forEach(colour => {
+          const echo = document.createElement('i');
+          echo.className = `echo ${colour}`;
+          tile.appendChild(echo);
+        });
+        main.appendChild(tile);
+        tiles.push(tile);
+      }
+      updateAfterimages();
+    }
+
+    function updateAfterimages() {
+      tiles.forEach((tile, index) => {
+        const box = tile.getBoundingClientRect();
+        const centreX = box.left + box.width / 2;
+        const centreY = box.top + box.height / 2;
+        const distanceX = (pointerX - centreX) / Math.max(window.innerWidth, 1);
+        const distanceY = (pointerY - centreY) / Math.max(window.innerHeight, 1);
+        const wobble = Math.sin(index * 1.7) * 5;
+        const x = distanceX * 42 + wobble;
+        const y = distanceY * 42 - wobble;
+        tile.style.setProperty('--x', x + 'px');
+        tile.style.setProperty('--y', y + 'px');
+        tile.style.setProperty('--neg-x', -x + 'px');
+        tile.style.setProperty('--neg-y', -y + 'px');
+        tile.style.setProperty('--small-x', x * 0.15 + 'px');
+        tile.style.setProperty('--small-neg-y', y * -0.2 + 'px');
+      });
+    }
+
+    window.addEventListener('mousemove', event => {
+      pointerX = event.clientX;
+      pointerY = event.clientY;
+      updateAfterimages();
+    });
+
+    window.addEventListener('touchmove', event => {
+      const touch = event.touches[0];
+      if (touch) {
+        pointerX = touch.clientX;
+        pointerY = touch.clientY;
+        updateAfterimages();
+      }
+    }, { passive: true });
+
+    window.addEventListener('resize', init);
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    init();
+
+  </script>
+</body>
+
+</html>

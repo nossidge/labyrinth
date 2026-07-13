@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Isometric exercise">
+  <title>Cubic Route</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body,
+    html {
+      width: 100%;
+      height: 100%;
+      background: #000000;
+      overflow: hidden;
+    }
+
+    #svg {
+      width: 100vw;
+      height: 100vh;
+      display: block;
+    }
+
+    .block polygon {
+      transition: transform 0.15s ease, filter 0.15s ease;
+    }
+
+    .block:hover {
+      filter: brightness(1.6) drop-shadow(0 0 10px rgba(255, 255, 255, 0.4));
+    }
+
+    .block:hover polygon {
+      transform: translateY(-10px);
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 100;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.22) 50%);
+      background-size: 100% 3px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+  <svg id="svg"></svg>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('isometric-blocks');
+
+    const svg = document.getElementById('svg');
+    const NS = 'http://www.w3.org/2000/svg';
+
+    const W = 92;     // block width
+    const HW = W / 2; // half width
+    const HH = W / 4; // quarter (iso vertical step)
+    const gap = 0.22; // chance of a block vs a gap
+
+    let winW, winH;
+
+    function shade(hue, light) {
+      return `hsl(${hue}, 55%, ${light}%)`;
+    }
+
+    function addBlock(cx, cy, hue, href) {
+      const block = document.createElementNS(NS, 'a');
+      block.setAttribute('class', 'block');
+      block.setAttribute('href', href);
+      block.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', href);
+
+      // Use winH to make the blocks really tall
+      const top = `${cx},${cy} ${cx + HW},${cy + HH} ${cx},${cy + 2 * HH} ${cx - HW},${cy + HH}`;
+      const left = `${cx - HW},${cy + HH} ${cx},${cy + 2 * HH} ${cx},${cy + 2 * HH + W + winH} ${cx - HW},${cy + HH + W + winH}`;
+      const right = `${cx + HW},${cy + HH} ${cx},${cy + 2 * HH} ${cx},${cy + 2 * HH + W + winH} ${cx + HW},${cy + HH + W + winH}`;
+
+      const faces = [
+        [top, shade(hue, 62)],
+        [left, shade(hue, 22)],
+        [right, shade(hue, 34)],
+      ];
+      faces.forEach(([pts, fill]) => {
+        const p = document.createElementNS(NS, 'polygon');
+        p.setAttribute('points', pts);
+        p.setAttribute('fill', fill);
+        p.setAttribute('stroke', 'rgba(0,0,0,0.4)');
+        p.setAttribute('stroke-width', '1');
+        block.appendChild(p);
+      });
+      svg.appendChild(block);
+    }
+
+    function init() {
+      winW = window.innerWidth;
+      winH = window.innerHeight;
+      svg.setAttribute('viewBox', `0 0 ${winW} ${winH}`);
+      svg.innerHTML = '';
+
+      const cols = Math.ceil(winW / HW) + 4;
+      const rows = Math.ceil(winH / HH) + 8;
+      const originX = winW / 2;
+      const originY = -W;
+
+      // Draw back-to-front so nearer blocks overlap farther ones
+      const cells = [];
+      for (let gy = -rows; gy < rows; gy++) {
+        for (let gx = -cols; gx < cols; gx++) {
+          const cx = originX + (gx - gy) * HW;
+          const cy = originY + (gx + gy) * HH;
+          if (cx < -W || cx > winW + W || cy < -2 * W || cy > winH + W) continue;
+          if (LAB.chance(gap)) continue;
+          cells.push({ gx, gy, cx, cy });
+        }
+      }
+      cells.sort((a, b) => (a.gx + a.gy) - (b.gx + b.gy));
+
+      cells.forEach(({ cx, cy }) => {
+        const hue = ((cx + cy) / (winW + winH)) * 300 + 180;
+        addBlock(cx, cy, hue % 360, LAB.pageRandomiser.nextOne());
+      });
+    }
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    window.addEventListener('resize', init);
+
+    init();
+
+  </script>
+</body>
+
+</html>

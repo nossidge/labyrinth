@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="One sandwich short of a picnic">
+  <title>Tile Slide</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      background-color: #111111;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #main {
+      position: relative;
+    }
+
+    .tile {
+      position: absolute;
+      display: block;
+      border-radius: 14px;
+      transition:
+        left 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+        top 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+        filter 0.2s ease;
+    }
+
+    .tile:hover {
+      filter: brightness(1.4);
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 100;
+      background: linear-gradient(rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0.12) 50%);
+      background-size: 100% 3px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+  <main id="main"></main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('tile-slide');
+
+    const main = document.getElementById('main');
+    const gap = 6;
+
+    let cols, rows, size, gapPos, lastMovedPos;
+    let tiles = [];
+
+    function init() {
+      size = Math.min(70, Math.floor(Math.min(window.innerWidth, window.innerHeight) / 8));
+      cols = Math.max(3, Math.floor((window.innerWidth * 0.8) / (size + gap)));
+      rows = Math.max(3, Math.floor((window.innerHeight * 0.8) / (size + gap)));
+
+      main.style.width = `${cols * (size + gap)}px`;
+      main.style.height = `${rows * (size + gap)}px`;
+      main.innerHTML = '';
+      tiles = [];
+
+      const total = cols * rows;
+      for (let i = 0; i < total - 1; i++) {
+        const a = document.createElement('a');
+        a.href = LAB.pageRandomiser.nextOne();
+        a.className = 'tile';
+        a.style.width = `${size}px`;
+        a.style.height = `${size}px`;
+        const hue = Math.floor((i / total) * 300);
+        a.style.background = `hsl(${hue}, 65%, 55%)`;
+        placeAt(a, i);
+        main.appendChild(a);
+        tiles[i] = a;
+      }
+      gapPos = total - 1;
+      tiles[gapPos] = null;
+    }
+
+    function placeAt(tile, pos) {
+      const col = pos % cols;
+      const row = Math.floor(pos / cols);
+      tile.style.left = `${col * (size + gap)}px`;
+      tile.style.top = `${row * (size + gap)}px`;
+    }
+
+    function neighbours(pos) {
+      const col = pos % cols;
+      const row = Math.floor(pos / cols);
+      const list = [];
+      if (col > 0) list.push(pos - 1);
+      if (col < cols - 1) list.push(pos + 1);
+      if (row > 0) list.push(pos - cols);
+      if (row < rows - 1) list.push(pos + cols);
+      return list;
+    }
+
+    function slide() {
+      let candidates = neighbours(gapPos);
+      if (lastMovedPos !== null && candidates.indexOf(lastMovedPos) !== -1) {
+        candidates = candidates.filter(function (p) { return p !== lastMovedPos; });
+      }
+      if (candidates.length === 0) {
+        candidates = neighbours(gapPos);
+      }
+      const from = LAB.sample(candidates);
+      lastMovedPos = gapPos;
+      const tile = tiles[from];
+      placeAt(tile, gapPos);
+      tiles[gapPos] = tile;
+      tiles[from] = null;
+      gapPos = from;
+    }
+
+    let resizeTimer = null;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(init, 200);
+    });
+
+    init();
+    setInterval(slide, 200);
+
+  </script>
+</body>
+
+</html>

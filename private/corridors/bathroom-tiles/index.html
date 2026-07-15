@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="night on the tiles">
+  <title>grout and about</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #f3efe6;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    #main {
+      display: grid;
+      width: 100vw;
+      height: 100vh;
+      padding: 6px;
+      gap: 6px;
+    }
+
+    .tile {
+      display: block;
+      border-radius: 4px;
+      transition: background-color 3.5s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .tile:hover {
+      transform: scale(0.94);
+    }
+  </style>
+</head>
+
+<body>
+  <main id="main"></main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('bathroom-tiles');
+
+    const palettePastel = [
+      '#e8b7b7', '#e8cfb7', '#e8e2b7', '#c7e0bd', '#b7d8e0',
+      '#c1c3e8', '#dcc0e0', '#e0c0d0', '#cdd6c0', '#d8cfc0',
+    ];
+    const paletteShaded = [
+      '#c1694f', '#d9a441', '#6b8299', '#8ba17a', '#9a6b8a', '#d99a94', '#5f7367'
+    ];
+    const palette = LAB.chance(0.5) ? palettePastel : paletteShaded;
+
+    const main = document.getElementById('main');
+    const cellSize = 74;
+    let tiles = [];
+    let driftCount;
+
+    function init() {
+      const cols = Math.floor(window.innerWidth / cellSize);
+      const rows = Math.floor(window.innerHeight / cellSize);
+      main.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+      main.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+      main.innerHTML = '';
+      tiles = [];
+
+      for (let i = 0; i < cols * rows; i++) {
+        const a = document.createElement('a');
+        a.href = LAB.pageRandomiser.nextOne();
+        a.className = 'tile';
+        a.style.backgroundColor = LAB.sample(palette);
+        main.appendChild(a);
+        tiles.push(a);
+      }
+
+      driftCount = Math.max(1, Math.floor(tiles.length * 0.12));
+    }
+
+    // Really subtle colour changing
+    function drift() {
+      if (tiles.length === 0) return;
+      for (let i = 0; i < driftCount; i++) {
+        const s = LAB.sample(tiles);
+        s.style.backgroundColor = LAB.sample(palette);
+      }
+    }
+
+    window.addEventListener('resize', init);
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    init();
+    setInterval(drift, 1200);
+
+  </script>
+</body>
+
+</html>

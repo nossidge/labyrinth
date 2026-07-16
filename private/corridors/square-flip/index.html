@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Flippertigibbet">
+  <title>Farancia abacura</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #e8e4d8;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    #main {
+      display: grid;
+      width: 100vw;
+      height: 100vh;
+      perspective: 800px;
+    }
+
+    .cell {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .tile {
+      width: 74%;
+      height: 74%;
+      position: relative;
+      transform-style: preserve-3d;
+      will-change: transform;
+    }
+
+    .face {
+      position: absolute;
+      inset: 0;
+      backface-visibility: hidden;
+    }
+
+    .front {
+      background-color: #2b2b2b;
+    }
+
+    .back {
+      background-color: #d94f3d;
+      transform: rotateY(180deg);
+    }
+
+    .cell:hover {
+      transform: scale(1.1);
+    }
+  </style>
+</head>
+
+<body>
+  <main id="main"></main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('square-flip');
+
+    const main = document.getElementById('main');
+    const cellSize = 72;
+    let tiles = [];
+
+    function init() {
+      const cols = Math.max(2, Math.floor(window.innerWidth / cellSize));
+      const rows = Math.max(2, Math.floor(window.innerHeight / cellSize));
+      main.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+      main.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+      main.innerHTML = '';
+      tiles = [];
+
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const cell = document.createElement('a');
+          cell.className = 'cell';
+          cell.href = LAB.pageRandomiser.nextOne();
+          const tile = document.createElement('div');
+          tile.className = 'tile';
+          const front = document.createElement('div');
+          front.className = 'face front';
+          const back = document.createElement('div');
+          back.className = 'face back';
+          tile.append(front, back);
+          cell.appendChild(tile);
+          main.appendChild(cell);
+          tiles.push({ el: tile, diag: c + r });
+        }
+      }
+    }
+
+    function draw(t) {
+      const time = t / 1000;
+      for (const tile of tiles) {
+        const angle = 180 * (0.5 + 0.5 * Math.sin(time * 1.3 - tile.diag * 0.5));
+        tile.el.style.transform = `rotateY(${angle}deg)`;
+      }
+      requestAnimationFrame(draw);
+    }
+
+    window.addEventListener('resize', init);
+
+    init();
+    requestAnimationFrame(draw);
+
+  </script>
+</body>
+
+</html>

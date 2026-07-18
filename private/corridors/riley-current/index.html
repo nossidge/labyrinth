@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+Op-art vertical black wavy parallel lines.
+Stolen shamelessly from Bridget Riley's "Current" (1964)
+https://en.wikipedia.org/wiki/Bridget_Riley
+https://bridget-riley.publications.britishart.yale.edu/catalogue/10/
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Bun">
+  <title>Current</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #f4f4f4;
+    }
+
+    #canvas {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    #links {
+      position: fixed;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="canvas"></canvas>
+  <nav id="links" aria-label="More pages"></nav>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('riley-current');
+
+    const canvas = document.getElementById('canvas');
+    const context = canvas.getContext('2d');
+
+    // There's a bunch of code here that makes the page work with the keyboard.
+    // Users can tab to anchor links and trigger them with enter.
+    // So we don't just rely on JS handling canvas mouse clicks.
+    const links = document.getElementById('links');
+
+    let width = 0;
+    let height = 0;
+    let amplitude;
+    let wavelength;
+    let drift;
+    let lineCount;
+    let startTime = performance.now();
+    let focusedIndex = -1;
+    let hoveredIndex = -1;
+    let mouseX = -1;
+    let mouseY = -1;
+    let lastInteraction = 'mouse';
+    let isProgrammaticFocus = false;
+
+    function randomiseWaves() {
+      amplitude = LAB.rand(12, 27);
+      wavelength = LAB.rand(height / 5, height / 3);
+      drift = LAB.rand(0.00006, 0.00016) * (LAB.chance(0.5) ? -1 : 1);
+      lineCount = LAB.randInt(50, 70);
+      startTime = performance.now();
+
+      links.innerHTML = '';
+      for (let i = 0; i < lineCount - 1; i++) {
+        const link = document.createElement('a');
+        link.href = LAB.pageRandomiser.nextOne();
+        link.setAttribute('aria-label', `Link ${i + 1}`);
+        link.addEventListener('focus', () => {
+          focusedIndex = i;
+          if (!isProgrammaticFocus) {
+            lastInteraction = 'keyboard';
+          }
+        });
+        link.addEventListener('blur', () => {
+          if (focusedIndex === i) focusedIndex = -1;
+        });
+        links.appendChild(link);
+      }
+    }
+
+    function resize() {
+      const scale = window.devicePixelRatio || 1;
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = Math.round(width * scale);
+      canvas.height = Math.round(height * scale);
+      context.setTransform(scale, 0, 0, scale, 0, 0);
+      randomiseWaves();
+    }
+
+    function draw(time) {
+      const phase = (time - startTime) * drift;
+      const spacing = width / (lineCount - 1);
+      const step = 3;
+
+      let newHoveredIndex = -1;
+      if (mouseX >= 0 && mouseY >= 0) {
+        const bend = Math.sin((mouseY / wavelength) * Math.PI * 2 + phase);
+        const kink = Math.sin((mouseY / wavelength) * Math.PI * 4 - phase * 0.7) * 0.18;
+        const offset = amplitude * (bend + kink);
+        const unOffset = mouseX - offset;
+        const index = Math.floor(unOffset / spacing);
+        if (index >= 0 && index < lineCount - 1) {
+          newHoveredIndex = index;
+        }
+      }
+
+      if (lastInteraction === 'mouse') {
+        if (newHoveredIndex !== hoveredIndex || (newHoveredIndex !== -1 && document.activeElement !== links.children[newHoveredIndex])) {
+          hoveredIndex = newHoveredIndex;
+          if (hoveredIndex !== -1) {
+            const link = links.children[hoveredIndex];
+            if (link && document.activeElement !== link) {
+              isProgrammaticFocus = true;
+              link.focus({ preventScroll: true });
+              isProgrammaticFocus = false;
+            }
+          } else {
+            if (document.activeElement && document.activeElement.parentElement === links) {
+              isProgrammaticFocus = true;
+              document.activeElement.blur();
+              isProgrammaticFocus = false;
+            }
+          }
+        }
+      } else {
+        hoveredIndex = newHoveredIndex;
+      }
+
+      const activeIndex = lastInteraction === 'keyboard' ? focusedIndex : hoveredIndex;
+      canvas.style.cursor = (lastInteraction === 'mouse' && hoveredIndex !== -1) ? 'pointer' : 'default';
+
+      context.fillStyle = '#f4f4f0';
+      context.fillRect(0, 0, width, height);
+
+      if (activeIndex !== -1) {
+        context.fillStyle = 'rgba(150, 0, 0, 0.08)';
+        context.beginPath();
+        const baseX1 = activeIndex * spacing;
+        const baseX2 = (activeIndex + 1) * spacing;
+
+        for (let y = -step; y <= height + step; y += step) {
+          const bend = Math.sin((y / wavelength) * Math.PI * 2 + phase);
+          const kink = Math.sin((y / wavelength) * Math.PI * 4 - phase * 0.7) * 0.18;
+          const x1 = baseX1 + amplitude * (bend + kink);
+          if (y === -step) {
+            context.moveTo(x1, y);
+          } else {
+            context.lineTo(x1, y);
+          }
+        }
+        for (let y = height + step; y >= -step; y -= step) {
+          const bend = Math.sin((y / wavelength) * Math.PI * 2 + phase);
+          const kink = Math.sin((y / wavelength) * Math.PI * 4 - phase * 0.7) * 0.18;
+          const x2 = baseX2 + amplitude * (bend + kink);
+          context.lineTo(x2, y);
+        }
+        context.closePath();
+        context.fill();
+      }
+
+      context.strokeStyle = '#000000';
+      context.lineWidth = 2;
+
+      for (let i = 0; i < lineCount; i++) {
+        const baseX = i * spacing;
+        context.beginPath();
+
+        for (let y = -step; y <= height + step; y += step) {
+          const bend = Math.sin((y / wavelength) * Math.PI * 2 + phase);
+          const kink = Math.sin((y / wavelength) * Math.PI * 4 - phase * 0.7) * 0.18;
+          const x = baseX + amplitude * (bend + kink);
+
+          if (y === -step) {
+            context.moveTo(x, y);
+          } else {
+            context.lineTo(x, y);
+          }
+        }
+        context.stroke();
+      }
+
+      requestAnimationFrame(draw);
+    }
+
+    canvas.addEventListener('mousemove', (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+      lastInteraction = 'mouse';
+    });
+
+    canvas.addEventListener('mouseleave', () => {
+      mouseX = -1;
+      mouseY = -1;
+    });
+
+    canvas.addEventListener('click', () => {
+      lastInteraction = 'mouse';
+      if (hoveredIndex !== -1) {
+        const link = links.children[hoveredIndex];
+        if (link) link.click();
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, randomiseWaves);
+    });
+
+    window.addEventListener('resize', resize);
+
+    resize();
+    requestAnimationFrame(draw);
+
+  </script>
+</body>
+
+</html>

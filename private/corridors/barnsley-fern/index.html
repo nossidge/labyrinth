@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+https://en.wikipedia.org/wiki/Barnsley_fern
+https://en.wikipedia.org/wiki/Affine_transformation
+https://www.chradams.co.uk/fern/maker.html
+https://www.fractal.garden/barnsley-fern
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Britton Cotton Brady">
+  <title>Poncing off to Barnsley</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body,
+    html {
+      width: 100%;
+      height: 100%;
+      background: #030805;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    a {
+      display: block;
+      width: 90vmin;
+      height: 90vmin;
+      outline: none;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1000;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+      background-size: 100% 3px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+  <a id="link" href="../index.html">
+    <canvas id="canvas"></canvas>
+  </a>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('barnsley-fern');
+
+    const link = document.getElementById('link');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    const FERNS = [
+      {
+        name: 'barnsley',
+        maps: [
+          [0, 0, 0, 0.16, 0, 0, 0.01],
+          [0.85, 0.04, -0.04, 0.85, 0, 1.6, 0.85],
+          [0.2, -0.26, 0.23, 0.22, 0, 1.6, 0.07],
+          [-0.15, 0.28, 0.26, 0.24, 0, 0.44, 0.07]
+        ]
+      },
+      {
+        name: 'modified',
+        maps: [
+          [0, 0, 0, 0.2, 0, -0.12, 0.01],
+          [0.845, 0.035, -0.035, 0.82, 0, 1.6, 0.85],
+          [0.2, -0.31, 0.255, 0.245, 0, 0.29, 0.07],
+          [-0.15, 0.24, 0.25, 0.20, 0, 0.68, .07]
+        ]
+      },
+      {
+        name: 'culcita',
+        maps: [
+          [0, 0, 0, 0.25, 0, -0.14, 0.02],
+          [0.85, 0.02, -0.02, 0.83, 0, 1, 0.84],
+          [0.09, -0.28, 0.3, 0.11, 0, 0.6, 0.07],
+          [-0.09, 0.28, 0.3, 0.09, 0, 0.7, 0.07]
+        ]
+      },
+      {
+        name: 'cyclosorus',
+        maps: [
+          [0, 0, 0, 0.25, 0, -0.4, 0.02],
+          [0.95, 0.005, -0.005, 0.93, -0.002, 0.5, 0.84],
+          [0.035, -0.2, 0.16, 0.04, -0.09, 0.02, 0.07],
+          [-0.04, 0.2, 0.16, 0.04, 0.083, 0.12, 0.07]
+        ]
+      },
+      {
+        name: 'fishbone',
+        maps: [
+          [0, 0, 0, 0.25, 0, -0.4, 0.02],
+          [0.95, 0.002, -0.002, 0.93, -0.002, 0.5, 0.84],
+          [0.035, -0.11, 0.27, 0.01, -0.05, 0.005, 0.07],
+          [-0.04, 0.11, 0.27, 0.01, 0.047, 0.06, 0.07]
+        ]
+      }
+    ];
+
+    let fernIndex = 0;
+    let x = 0, y = 0;
+    let W, H;
+
+    let hue = 120; // Initial colour is green
+
+    function resize() {
+      const size = canvas.clientWidth;
+      if (W !== size) {
+        W = canvas.width = size;
+        H = canvas.height = size;
+        init();
+      }
+    }
+
+    function init() {
+      if (fernIndex !== 0) hue = LAB.randInt(0, 360);
+      fern = FERNS[fernIndex++ % FERNS.length];
+      link.href = LAB.pageRandomiser.nextOne();
+      ctx.fillStyle = '#030805';
+      ctx.fillRect(0, 0, W, H);
+      x = 0;
+      y = 0;
+    }
+
+    function draw() {
+      const scale = H / 11;
+      const offX = W / 2;
+      const offY = H;
+
+      ctx.fillStyle = `hsl(${hue}, 75%, 55%)`;
+      for (let i = 0; i < 1500; i++) {
+        const rnd = LAB.rand(0, 1);
+        let m, acc = 0;
+        for (const map of fern.maps) {
+          acc += map[6];
+          if (rnd <= acc) { m = map; break; }
+        }
+        if (!m) m = fern.maps[fern.maps.length - 1];
+        const nx = m[0] * x + m[1] * y + m[4];
+        const ny = m[2] * x + m[3] * y + m[5];
+        x = nx;
+        y = ny;
+        ctx.fillRect(offX + x * scale, offY - y * scale, 1, 1);
+      }
+      requestAnimationFrame(draw);
+    }
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    window.addEventListener('resize', resize);
+
+    resize();
+    draw();
+
+  </script>
+</body>
+
+</html>

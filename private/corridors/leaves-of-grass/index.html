@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+https://en.wikipedia.org/wiki/L-system
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Tupperware® presents the all-new Multitude Container™!">
+  <title>Leaves of Grass</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      background: #060606;
+      overflow: hidden;
+    }
+
+    #link {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    canvas {
+      display: block;
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 100;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+      background-size: 100% 3px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+  <a id="link" href="../index.html">
+    <canvas id="canvas"></canvas>
+  </a>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('leaves-of-grass');
+
+    const link = document.getElementById('link');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    // A curated set of stochastic-ish L-system plant grammars
+    const RULESETS = [
+      { axiom: 'X', rules: { X: 'F+[[X]-X]-F[-FX]+X', F: 'FF' }, angle: 25 },
+      { axiom: 'X', rules: { X: 'F[+X][-X]FX', F: 'FF' }, angle: 25.7 },
+      { axiom: 'X', rules: { X: 'F[+X]F[-X]+X', F: 'FF' }, angle: 20 },
+      { axiom: 'F', rules: { F: 'FF-[-F+F+F]+[+F-F-F]' }, angle: 22.5 },
+      { axiom: 'X', rules: { X: 'F-[[X]+X]+F[+FX]-X', F: 'FF' }, angle: 22 },
+    ];
+    const ruleRandomiser = new LAB.CyclicRandomiser(RULESETS);
+
+    let segments = [];
+    let drawn = 0;
+    let hueBase = 100;
+
+    function expand(rs, iterations) {
+      let s = rs.axiom;
+      for (let i = 0; i < iterations; i++) {
+        let out = '';
+        for (const ch of s) out += rs.rules[ch] || ch;
+        s = out;
+      }
+      return s;
+    }
+
+    // Turn an L-system string into a list of line segments via turtle graphics
+    function turtle(str, rs) {
+      const segs = [];
+      const stack = [];
+      const baseAngle = rs.angle * Math.PI / 180;
+      let x = 0, y = 0, dir = -Math.PI / 2, len = 6, depth = 0;
+      let minX = 0, maxX = 0, minY = 0, maxY = 0;
+
+      for (const ch of str) {
+        if (ch === 'F') {
+          const jitter = LAB.rand(-0.06, 0.06);
+          const nx = x + Math.cos(dir + jitter) * len;
+          const ny = y + Math.sin(dir + jitter) * len;
+          segs.push({ x1: x, y1: y, x2: nx, y2: ny, depth });
+          x = nx; y = ny;
+          minX = Math.min(minX, x); maxX = Math.max(maxX, x);
+          minY = Math.min(minY, y); maxY = Math.max(maxY, y);
+        } else if (ch === '+') {
+          dir += baseAngle * LAB.rand(0.8, 1.2);
+        } else if (ch === '-') {
+          dir -= baseAngle * LAB.rand(0.8, 1.2);
+        } else if (ch === '[') {
+          stack.push({ x, y, dir, len, depth });
+          len *= 0.82;
+          depth++;
+        } else if (ch === ']') {
+          const s = stack.pop();
+          x = s.x; y = s.y; dir = s.dir; len = s.len; depth = s.depth;
+        }
+      }
+      return { segs, minX, maxX, minY, maxY };
+    }
+
+    function init() {
+      const rs = ruleRandomiser.nextOne();
+      const iterations = rs.axiom === 'F' ? 4 : LAB.randInt(4, 6);
+      const str = expand(rs, iterations);
+      const { segs, minX, maxX, minY, maxY } = turtle(str, rs);
+
+      // Fit the plant nicely into the lower-centre of the screen
+      const w = window.innerWidth, h = window.innerHeight;
+      const pw = (maxX - minX) || 1, ph = (maxY - minY) || 1;
+      const scale = Math.min(w * 0.85 / pw, h * 0.9 / ph);
+      const offX = w / 2 - (minX + maxX) / 2 * scale;
+      const offY = h * 0.96 - maxY * scale;
+
+      segments = segs.map(s => ({
+        x1: s.x1 * scale + offX, y1: s.y1 * scale + offY,
+        x2: s.x2 * scale + offX, y2: s.y2 * scale + offY,
+        depth: s.depth,
+      }));
+      drawn = 0;
+      hueBase = LAB.randInt(70, 150);
+
+      ctx.fillStyle = '#060606';
+      ctx.fillRect(0, 0, w, h);
+
+      link.href = LAB.pageRandomiser.nextOne();
+    }
+
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      init();
+    }
+
+    function draw() {
+      const batch = Math.max(6, Math.floor(segments.length / 90));
+      for (let n = 0; n < batch && drawn < segments.length; n++, drawn++) {
+        const s = segments[drawn];
+        const hue = (hueBase + s.depth * 8) % 360;
+        const light = 30 + s.depth * 8;
+        ctx.strokeStyle = `hsl(${hue}, 80%, ${Math.min(75, light)}%)`;
+        ctx.lineWidth = Math.max(0.6, 3.5 - s.depth * 0.5);
+        ctx.shadowColor = `hsl(${hue}, 90%, 60%)`;
+        ctx.shadowBlur = 6;
+        ctx.beginPath();
+        ctx.moveTo(s.x1, s.y1);
+        ctx.lineTo(s.x2, s.y2);
+        ctx.stroke();
+      }
+      ctx.shadowBlur = 0;
+      requestAnimationFrame(draw);
+    }
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    window.addEventListener('resize', resize);
+
+    resize();
+    draw();
+
+  </script>
+</body>
+
+</html>

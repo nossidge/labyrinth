@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Deferential, glad 2 B F U's">
+  <title>U and I</title>
+  <style>
+    :root {
+      --glyph-size: 36px;
+      --font-size: 16px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #080808;
+    }
+
+    #main {
+      display: flex;
+      flex-wrap: wrap;
+      width: 100%;
+      height: 100%;
+      align-content: center;
+      justify-content: center;
+    }
+
+    .glyph {
+      position: relative;
+      width: var(--glyph-size);
+      height: var(--glyph-size);
+      display: block;
+      text-decoration: none;
+    }
+
+    .glyph .layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: monospace;
+      font-size: var(--font-size);
+      font-weight: bold;
+      transition: transform 0.15s ease, opacity 0.15s ease;
+      pointer-events: none;
+    }
+
+    .glyph .layer.r {
+      color: #ff3333;
+      mix-blend-mode: screen;
+    }
+
+    .glyph .layer.g {
+      color: #33ff33;
+      mix-blend-mode: screen;
+    }
+
+    .glyph .layer.b {
+      color: #3366ff;
+      mix-blend-mode: screen;
+    }
+
+    .glyph:hover .layer.r {
+      transform: translate(-3px, 0);
+    }
+
+    .glyph:hover .layer.b {
+      transform: translate(3px, 0);
+    }
+
+    .glyph:hover .layer.g {
+      transform: translate(0, -2px);
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 100;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%);
+      background-size: 100% 2px;
+    }
+  </style>
+</head>
+
+<body>
+  <main id="main"></main>
+  <div id="crt-scanlines"></div>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('letters-go-then');
+
+    const main = document.getElementById('main');
+
+    const glyphSize = 42;
+    const fontSize = 20;
+    document.documentElement.style.setProperty('--glyph-size', glyphSize + 'px');
+    document.documentElement.style.setProperty('--font-size', fontSize + 'px');
+
+    function init() {
+      main.innerHTML = '';
+
+      const cols = Math.floor(window.innerWidth / glyphSize);
+      const rows = Math.floor(window.innerHeight / glyphSize);
+      const total = cols * rows;
+
+      for (let i = 0; i < total; i++) {
+        const a = document.createElement('a');
+        a.className = 'glyph';
+
+        // The character is the first letter of the page title
+        const corridor = LAB.corridorsNextOne();
+        const char = corridor.title[0];
+        a.href = corridor.url;
+
+        ['r', 'g', 'b'].forEach(function (chan) {
+          const span = document.createElement('span');
+          span.className = 'layer ' + chan;
+          span.textContent = char;
+          a.appendChild(span);
+        });
+
+        main.appendChild(a);
+      }
+    }
+
+    // Really subtle jitter to a random character
+    function jitter() {
+      const glyphs = document.querySelectorAll('.glyph');
+      const lucky = LAB.sample(glyphs);
+
+      // Make sure the chosen glyph isn't already being hovered over
+      if (lucky && !lucky.matches(':hover')) {
+
+        // Grab all layers of the chosen glyph (r, g, b)
+        const layers = lucky.querySelectorAll('.layer');
+
+        // Apply a wee random offset to each layer
+        const pixelNudge = 2;
+        layers.forEach(function (l) {
+          const x = LAB.rand(-pixelNudge, pixelNudge);
+          const y = LAB.rand(-pixelNudge, pixelNudge);
+          l.style.transform = 'translate(' + x + 'px, ' + y + 'px)';
+
+          // Revert the offset after a bit, unless the glyph is being hovered over
+          setTimeout(() => {
+            if (!lucky.matches(':hover')) l.style.transform = '';
+          }, 120);
+        });
+      }
+    }
+
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(init, 100);
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    init();
+    setInterval(jitter, 200);
+
+  </script>
+</body>
+
+</html>

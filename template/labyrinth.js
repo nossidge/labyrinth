@@ -98,6 +98,21 @@ class Labyrinth {
     return Array.from({ length: end - start + 1 }, (_, i) => start + i);
   }
 
+  corridorsNext(amount = 1) {
+    return this.corridorRandomiser().next(amount);
+  }
+
+  corridorsNextOne() {
+    return this.corridorRandomiser().nextOne();
+  }
+
+  corridorRandomiser() {
+    if (!this._corridorRandomiser) {
+      this._corridorRandomiser = new CyclicRandomiser(this.corridorsData);
+    }
+    return this._corridorRandomiser;
+  }
+
   goto() {
     const items = this.corridorsData, parts = items[0].url.split('/'), heart = 'heart-of-hearts';
     const birth = ((c => c[11] + c[15] + c[12] + c[3])(items.find(c => c.id == heart).created));

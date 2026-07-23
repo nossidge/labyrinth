@@ -3,13 +3,47 @@
 
 <!--
 https://en.wikipedia.org/wiki/Turtles_all_the_way_down
+https://en.wikipedia.org/wiki/Teenage_Mutant_Ninja_Turtles
+
+I used ImageMagick commands to prepare the images.
+Starting with irregularly shaped PNGs from a Google Image search.
+
+# Make the background transparent by flood-filling from the top right pixel
+convert d1.png -fuzz 10% -alpha set -fill none -draw "color 0,0 floodfill" d2.png
+convert l1.png -fuzz 10% -alpha set -fill none -draw "color 0,0 floodfill" l2.png
+convert m1.png -fuzz 10% -alpha set -fill none -draw "color 0,0 floodfill" m2.png
+convert r1.png -fuzz 10% -alpha set -fill none -draw "color 0,0 floodfill" r2.png
+
+# Remove any edges that are exactly the same colour as the corner pixels
+convert d2.png -fuzz 1% -trim +repage d3.png
+convert l2.png -fuzz 1% -trim +repage l3.png
+convert m2.png -fuzz 1% -trim +repage m3.png
+convert r2.png -fuzz 1% -trim +repage r3.png
+
+# Make these irregular rectangles into 300x300 squares
+convert d3.png -gravity center -background transparent -extent 300x300 d4.png
+convert l3.png -gravity center -background transparent -extent 300x300 l4.png
+convert m3.png -gravity center -background transparent -extent 300x300 m4.png
+convert r3.png -gravity center -background transparent -extent 300x300 r4.png
+
+# Delete the temporary files
+rm d1.png d2.png d3.png
+rm l1.png l2.png l3.png
+rm m1.png m2.png m3.png
+rm r1.png r2.png r3.png
+
+# Rename the final files
+mv d4.png donatello.png
+mv l4.png leonardo.png
+mv m4.png michelangelo.png
+mv r4.png raphael.png
 -->
 
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="You have broken me">
-  <title>All the way down</title>
+  <meta name="description" content="April O'Dear">
+  <title>Splintering</title>
   <style>
     body,
     html {
@@ -35,8 +69,8 @@ https://en.wikipedia.org/wiki/Turtles_all_the_way_down
       border: 4px inset #dfdfdf;
       display: grid;
       position: relative;
-      grid-template-columns: repeat(var(--square-number, 4), 1fr);
-      grid-template-rows: repeat(var(--square-number, 4), 1fr);
+      grid-template-columns: repeat(var(--square-number, 2), 1fr);
+      grid-template-rows: repeat(var(--square-number, 2), 1fr);
     }
 
     .turtle {
@@ -45,10 +79,10 @@ https://en.wikipedia.org/wiki/Turtles_all_the_way_down
       display: flex;
       justify-content: center;
       align-items: center;
-      font-size: 80px;
       position: relative;
       box-sizing: border-box;
       cursor: pointer;
+      overflow: hidden;
     }
 
     .turtle:not(.splitting):hover {
@@ -74,7 +108,10 @@ https://en.wikipedia.org/wiki/Turtles_all_the_way_down
       pointer-events: auto;
     }
 
-    .turtle-emoji {
+    .turtle-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
       pointer-events: none;
       transition: opacity 0.5s ease-out;
     }
@@ -103,12 +140,13 @@ https://en.wikipedia.org/wiki/Turtles_all_the_way_down
 <body>
   <div id="turtles-container">
     <!-- This is where all the turtles will live -->
-    <!-- Small, small turtle house -->
+    <!-- The sewers of New York City -->
   </div>
 
   <div id="footer">
     <a href="../index.html">It's</a>
-    <a href="../ninja-turtles/index.html">turtles</a>
+    <a href="../index.html">ninja</a>
+    <a href="../turtles/index.html">turtles</a>
     <a href="../index.html">all</a>
     <a href="../index.html">the</a>
     <a href="../index.html">way</a>
@@ -117,45 +155,51 @@ https://en.wikipedia.org/wiki/Turtles_all_the_way_down
 
   <script src="../../common/labyrinth.js"></script>
   <script>
-    const LAB = new Labyrinth('turtles');
+    const LAB = new Labyrinth('ninja-turtles');
 
-    // Currently I just want one nice big turtle in the middle
-    // Alter this to start with any number of initial turtles
-    const squareNumber = 1;
+    const turtleNames = ['leonardo', 'donatello', 'raphael', 'michelangelo'];
+
+    // Start with a 2x2 grid showing all four turtles
+    const squareNumber = 2;
 
     const container = document.getElementById('turtles-container');
     container.style.setProperty('--square-number', squareNumber);
 
-    function createTurtle(parent, level) {
+    function shuffle(array) {
+      const shuffled = array.slice();
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      return shuffled;
+    }
+
+    function createTurtle(parent, level, turtleName) {
       const turtle = document.createElement('div');
       turtle.className = 'turtle';
 
-      // Scale font size relative to viewport so it shrinks with the container
-      const fontSize = Math.max((45 / squareNumber) / Math.pow(2, level), 1);
-      turtle.style.fontSize = fontSize + 'vmin';
-
-      const emoji = document.createElement('span');
-      emoji.className = 'turtle-emoji';
-      emoji.innerText = '🐢';
-      turtle.appendChild(emoji);
+      const img = document.createElement('img');
+      img.className = 'turtle-img';
+      img.src = turtleName + '.png';
+      img.alt = turtleName;
+      turtle.appendChild(img);
 
       turtle.addEventListener('click', (e) => {
         e.stopPropagation();
 
-        // The 'splitting' class acts as a guard to prevent
-        // redundant clicks while the recursion is in progress
         if (turtle.classList.contains('splitting')) return;
         turtle.classList.add('splitting');
 
-        // Fade out old turtle emoji
-        emoji.style.opacity = '0';
+        // Fade out current turtle image
+        img.style.opacity = '0';
 
         // Create sub-grid
         const subGrid = document.createElement('div');
         subGrid.className = 'sub-grid';
 
+        const shuffledNames = shuffle(turtleNames);
         for (let i = 0; i < 4; i++) {
-          createTurtle(subGrid, level + 1);
+          createTurtle(subGrid, level + 1, shuffledNames[i]);
         }
 
         turtle.appendChild(subGrid);
@@ -166,14 +210,8 @@ https://en.wikipedia.org/wiki/Turtles_all_the_way_down
         }, 50);
 
         setTimeout(() => {
-          // We don't remove the parent because we need it to hold the subgrid
-          // But we need to hide the emoji
-          emoji.style.display = 'none';
-
-          // And make the turtle no longer clickable itself (so subgrid can be clicked)
+          img.style.display = 'none';
           turtle.style.pointerEvents = 'none';
-
-          // We must ensure the subgrid is clickable
           subGrid.style.pointerEvents = 'auto';
         }, 500);
       });
@@ -181,9 +219,10 @@ https://en.wikipedia.org/wiki/Turtles_all_the_way_down
       parent.appendChild(turtle);
     }
 
-    // Initialise grid
+    // Initialise grid with all four turtles in random order
+    const initialNames = shuffle(turtleNames);
     for (let i = 0; i < squareNumber * squareNumber; i++) {
-      createTurtle(container, 0);
+      createTurtle(container, 0, initialNames[i]);
     }
 
   </script>

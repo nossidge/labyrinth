@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+Proc-gen subatomic particle tracks, like those from a bubble chamber
+
+https://www.sciencephoto.com/media/1121694/view/tracks-of-charged-subatomic-particles
+https://www.sciencephoto.com/media/1278/view/particle-tracks
+https://mag.uchicago.edu/science-medicine/early-exposure
+https://fineartamerica.com/featured/tracks-of-charged-subatomic-particles-fermi-national-accelerator-laboratory-science-photo-library.html
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="some worms to aid in the decay">
+  <title>strangely charming</title>
+  <style>
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #000000;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    a.link {
+      position: fixed;
+      z-index: 2;
+      width: 24px;
+      height: 24px;
+      font: 10px/24px monospace;
+      text-align: center;
+      text-decoration: none;
+      border: 1px solid #dddddd;
+      border-radius: 50%;
+      transition: border-color 0.1s linear;
+    }
+
+    a.link:hover {
+      border-color: #aaaaaa;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="canvas"></canvas>
+  <div id="links" aria-label="Labyrinth links"></div>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('particle-tracks');
+
+    const canvas = document.getElementById('canvas');
+    const context = canvas.getContext('2d');
+    const links = document.getElementById('links');
+    const tracks = [];
+    let pixelRatio = 1;
+    let winW, winH;
+
+    function resize() {
+      links.innerHTML = '';
+      winW = window.innerWidth;
+      winH = window.innerHeight;
+      pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.floor(winW * pixelRatio);
+      canvas.height = Math.floor(winH * pixelRatio);
+      context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+      drawCrossHairs();
+    }
+
+    // The little cross marks on the background
+    function drawCrossHairs() {
+      context.save();
+      context.strokeStyle = '#787878';
+      context.lineWidth = 1;
+      const gap = Math.max(75, Math.min(winW, winH) / 6 - 10);
+      const cx = winW / 2;
+      const cy = winH / 2;
+      const xs = [];
+      const ys = [];
+      for (let x = cx; x < winW; x += gap) xs.push(x);
+      for (let x = cx; x >= 0; x -= gap) xs.push(x);
+      for (let y = cy; y < winH; y += gap) ys.push(y);
+      for (let y = cy; y >= 0; y -= gap) ys.push(y);
+      for (let i = 0; i < xs.length; i++) {
+        for (let j = 0; j < ys.length; j++) {
+          const x = xs[i];
+          const y = ys[j];
+          context.beginPath();
+          context.moveTo(x - 3, y);
+          context.lineTo(x + 3, y);
+          context.moveTo(x, y - 3);
+          context.lineTo(x, y + 3);
+          context.stroke();
+        }
+      }
+      context.restore();
+    }
+
+    // Fade the canvas after every particle collision
+    // Uses a really small alpha, so it won't be apparent until there's been many collisions
+    function fadeCanvas() {
+      context.save();
+      context.fillStyle = 'rgba(0, 0, 0, 0.02)';
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      context.restore();
+      drawCrossHairs();
+    }
+
+    function makeTrack(x, y, kind) {
+      const direction = LAB.chance(0.5) ? -1 : 1;
+      let speed, curvature, decay;
+
+      switch (kind) {
+        case 'straight':
+          speed = LAB.rand(4.2, 6.4);
+          curvature = direction * LAB.rand(0.0002, 0.0025);
+          decay = LAB.rand(0.997, 0.999);
+          break;
+        case 'whorl':
+          speed = LAB.rand(1.2, 2.1);
+          curvature = direction * LAB.rand(0.045, 0.085);
+          decay = LAB.rand(0.986, 0.992);
+          break;
+        default: // 'normal'
+          speed = LAB.rand(1.8, 4.5);
+          curvature = direction * LAB.rand(0.004, 0.026);
+          decay = LAB.rand(0.992, 0.997);
+          break;
+      }
+
+      const colour =
+        LAB.chance(0.09) ? '225, 135, 205'
+          : LAB.chance(0.3) ? '125, 225, 238'
+            : '195, 225, 235';
+
+      return {
+        x,
+        y,
+        heading: LAB.rand(0, Math.PI * 2),
+        speed,
+        initialSpeed: speed,
+        curvature,
+        decay,
+        age: 0,
+        life: LAB.randInt(1000, 1500),
+        colour: colour,
+        glow: LAB.chance(0.16)
+      };
+    }
+
+    function spawnLink(x, y) {
+      const link = document.createElement('a');
+      link.className = 'link';
+      link.href = LAB.pageRandomiser.nextOne();
+      link.style.left = `${x - 12}px`;
+      link.style.top = `${y - 12}px`;
+      links.appendChild(link);
+    }
+
+    function collideParticle(x, y) {
+      fadeCanvas();
+      spawnLink(x, y);
+      const count = LAB.randInt(15, 35);
+      const whorls = LAB.randInt(2, 3);
+      const straight = LAB.randInt(2, 5);
+      for (let i = 0; i < count; i += 1) {
+        const kind = i < whorls ? 'whorl' : i < whorls + straight ? 'straight' : 'normal';
+        tracks.push(makeTrack(x, y, kind));
+      }
+    }
+
+    function animate() {
+      tracks.forEach((track) => {
+        if (track.age >= track.life || track.speed < 0.08) {
+          return;
+        }
+        const oldX = track.x;
+        const oldY = track.y;
+        const energyLoss = track.initialSpeed / Math.max(track.speed, 0.2);
+        track.heading += track.curvature * energyLoss;
+        track.x += Math.cos(track.heading) * track.speed + LAB.rand(-0.16, 0.16);
+        track.y += Math.sin(track.heading) * track.speed + LAB.rand(-0.16, 0.16);
+        track.speed *= track.decay;
+        track.age += 1;
+
+        context.save();
+        context.strokeStyle = `rgba(${track.colour}, ${LAB.rand(0.32, 0.62)})`;
+        context.lineWidth = LAB.rand(0.55, 1.05);
+        if (track.glow) {
+          context.shadowColor = `rgba(${track.colour}, 0.45)`;
+          context.shadowBlur = 3;
+        }
+        context.beginPath();
+        context.moveTo(oldX, oldY);
+        context.lineTo(track.x, track.y);
+        context.stroke();
+        context.restore();
+      });
+      requestAnimationFrame(animate);
+    }
+
+    function randomFire() {
+      const marginX = 0.10;
+      const marginY = 0.20;
+      const x = LAB.rand(winW * marginX, winW * (1 - marginX));
+      const y = LAB.rand(winH * marginY, winH * (1 - marginY));
+      collideParticle(x, y);
+    }
+
+    window.addEventListener('resize', resize);
+
+    document.addEventListener('click', (event) => {
+      collideParticle(event.clientX, event.clientY);
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, randomFire);
+    });
+
+    resize();
+    collideParticle(winW / 2, winH / 2);
+    animate();
+
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+A composition of diagonally tilted shapes.
+Trying to invoke the feeling of the work of Kazimir Malevich.
+https://en.wikipedia.org/wiki/Kazimir_Malevich#Suprematism_(1915-1918)
+https://commons.wikimedia.org/wiki/File:Suprematist_Composition_-_Kazimir_Malevich.jpg
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Being Kaz Malevich">
+  <title>The Non-Objective World</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #dfdad4;
+    }
+
+    #canvas {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    .shape {
+      position: absolute;
+      display: block;
+      background: var(--colour);
+      transform: translate(-50%, -50%) rotate(var(--angle));
+      animation: drift var(--duration) ease-in-out var(--delay) infinite alternate;
+      transition: filter 160ms ease;
+      text-decoration: none;
+    }
+
+    .shape:hover {
+      filter: drop-shadow(0.7vmin 0.9vmin 0.6vmin rgba(50, 43, 32, 0.28));
+    }
+
+    .circle {
+      border-radius: 50%;
+    }
+
+    /* This is really subtle, the animation lasts at least a minute */
+    /* Might not be super necessary to the feel of the page... */
+    /* But I've coded it now, so it stays :-) */
+    @keyframes drift {
+      from {
+        transform: translate(calc(-50% + var(--from-x)), calc(-50% + var(--from-y))) rotate(calc(var(--angle) - var(--turn)));
+      }
+
+      to {
+        transform: translate(calc(-50% + var(--to-x)), calc(-50% + var(--to-y))) rotate(calc(var(--angle) + var(--turn)));
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main id="canvas" aria-label="Non-objective composition"></main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('suprematist-composition');
+
+    const canvas = document.getElementById('canvas');
+    const colours = ['#11100e', '#c8331b', '#d9a91f', '#28356b'];
+
+    // Several averaged random values make a loose diagonal cluster
+    function scatter(size) {
+      return ((LAB.randNegToPos(size) + LAB.randNegToPos(size) + LAB.randNegToPos(size)) / 3);
+    }
+
+    function addShape(kind, width, height, colour, angle, along, across) {
+      const shape = document.createElement('a');
+      const axisX = LAB.rand(43, 57);
+      const axisY = LAB.rand(43, 57);
+      shape.className = `shape ${kind}`;
+      shape.href = LAB.pageRandomiser.nextOne();
+      shape.setAttribute('aria-label', 'another corridor');
+      shape.style.left = `${axisX + along * 0.72 + across * 0.45}%`;
+      shape.style.top = `${axisY - along * 0.72 + across * 0.45}%`;
+      shape.style.width = `${width}vmin`;
+      shape.style.height = `${height}vmin`;
+      shape.style.setProperty('--colour', colour);
+      shape.style.setProperty('--angle', `${angle}deg`);
+      shape.style.setProperty('--turn', `${LAB.rand(1, 3)}deg`);
+      shape.style.setProperty('--from-x', `${LAB.randNegToPos(1.5)}vmin`);
+      shape.style.setProperty('--from-y', `${LAB.randNegToPos(1.5)}vmin`);
+      shape.style.setProperty('--to-x', `${LAB.randNegToPos(3)}vmin`);
+      shape.style.setProperty('--to-y', `${LAB.randNegToPos(3)}vmin`);
+      shape.style.setProperty('--duration', `${LAB.rand(60, 120)}s`);
+      shape.style.setProperty('--delay', `${LAB.rand(-100, 0)}s`);
+      canvas.appendChild(shape);
+    }
+
+    function init() {
+      canvas.innerHTML = '';
+
+      // Always draw one black centre square
+      addShape('block', LAB.rand(22, 28), LAB.rand(21, 27), '#11100e', LAB.rand(-7, 5), LAB.rand(-8, 5), scatter(9));
+
+      const barCount = LAB.randInt(4, 7);
+      for (let i = 0; i < barCount; i++) {
+        let colour = i < 2 ? colours[i] : LAB.sample(colours);
+        if (i === 2) {
+          colour = LAB.chance(0.5) ? '#d9a91f' : '#28356b';
+        }
+        addShape('bar', LAB.rand(17, 43), LAB.rand(2, 4), colour, LAB.rand(-60, -20), LAB.rand(-31, 31), scatter(15));
+      }
+
+      const planeCount = LAB.randInt(3, 4);
+      for (let i = 0; i < planeCount; i++) {
+        addShape('plane', LAB.rand(7, 14), LAB.rand(4, 9), LAB.chance(0.6) ? '#c8331b' : '#11100e', LAB.rand(-55, -22), LAB.rand(-29, 29), scatter(17));
+      }
+
+      const accentCount = LAB.randInt(3, 4);
+      for (let i = 0; i < accentCount; i++) {
+        const along = LAB.rand(-35, 35);
+        if (i === 0) {
+          const side = LAB.rand(3, 6);
+          addShape('accent', side, side, '#c8331b', LAB.rand(-12, 12), along, scatter(19));
+        } else if (i === 1) {
+          addShape('hairline', LAB.rand(12, 25), LAB.rand(0.3, 0.7), '#11100e', LAB.rand(-60, -20), along, scatter(19));
+        } else {
+          const side = LAB.rand(2.5, 5);
+          addShape('circle', side, side, LAB.chance(0.5) ? '#11100e' : '#28356b', 0, along, scatter(19));
+        }
+      }
+    }
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    init();
+
+  </script>
+</body>
+
+</html>

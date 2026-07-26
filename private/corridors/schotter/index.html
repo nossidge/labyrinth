@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+A field of increasingly disordered squares.
+Purloined without mercy from Georg Nees's "Schotter" (1968).
+
+https://en.wikipedia.org/wiki/Georg_Nees
+https://collections.vam.ac.uk/item/O221321/schotter-print-nees-georg/
+https://zellyn.com/2024/06/schotter-1/
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Schott through the heart">
+  <title>Gravel</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #dfdad4;
+    }
+
+    #main {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+
+    .square {
+      position: absolute;
+      display: block;
+      border: 2px solid #201f1b;
+      background: transparent;
+      transition: box-shadow 0.2s ease;
+    }
+
+    .square:hover,
+    .square:focus {
+      z-index: 5;
+      box-shadow: 0 0 8px #201f1b88;
+      outline: none;
+    }
+  </style>
+</head>
+
+<body>
+  <main id="main" aria-label="A field of increasingly disordered squares"></main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('schotter');
+
+    const main = document.getElementById('main');
+
+    function squareTransform(square) {
+      const disorder = Number(square.dataset.disorder);
+      const cellSize = Number(square.dataset.cellSize);
+      const shift = cellSize * 0.4 * disorder;
+      const x = LAB.rand(-shift, shift);
+      const y = LAB.rand(-shift, shift);
+      const angle = LAB.rand(-45 * disorder, 45 * disorder);
+      return `translate(${x}px, ${y}px) rotate(${angle}deg)`;
+    }
+
+    function init() {
+      main.replaceChildren();
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const columns = 12;
+      const cellSize = Math.max(18, Math.floor(Math.min(vw / 20, vh / 20)));
+      const rows = Math.max(2, Math.floor((vh - cellSize) / cellSize));
+      const gridWidth = columns * cellSize;
+      const gridHeight = rows * cellSize;
+      const left = Math.floor((vw - gridWidth) / 2);
+      const top = Math.floor((vh - gridHeight) / 2);
+      const squareSize = Math.max(12, cellSize);
+
+      for (let row = 0; row < rows; row += 1) {
+        const disorder = rows > 1 ? row / (rows - 1) : 0;
+        for (let column = 0; column < columns; column += 1) {
+          const square = document.createElement('a');
+          square.className = 'square';
+          square.href = LAB.pageRandomiser.nextOne();
+          square.dataset.disorder = disorder;
+          square.dataset.cellSize = cellSize;
+          square.style.width = `${squareSize}px`;
+          square.style.height = `${squareSize}px`;
+          square.style.left = `${left + column * cellSize + (cellSize - squareSize) / 2}px`;
+          square.style.top = `${top + row * cellSize + (cellSize - squareSize) / 2}px`;
+          square.style.transform = squareTransform(square);
+          main.appendChild(square);
+        }
+      }
+    }
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    document.addEventListener('keydown', (event) => {
+      LAB.handleKeydown(event, init);
+    });
+
+    window.addEventListener('resize', init);
+
+    init();
+
+  </script>
+</body>
+
+</html>

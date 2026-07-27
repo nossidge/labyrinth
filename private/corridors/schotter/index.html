@@ -106,8 +106,8 @@ https://zellyn.com/2024/06/schotter-1/
       if (!e.target.closest('a')) init();
     });
 
-    document.addEventListener('keydown', (event) => {
-      LAB.handleKeydown(event, init);
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
     });
 
     window.addEventListener('resize', init);

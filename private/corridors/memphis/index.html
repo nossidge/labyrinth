@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+https://en.wikipedia.org/wiki/Memphis_Group
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Down in the Jungle Room">
+  <title>If Carlton Could Talk</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      background-color: #f4eee0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cpath d='M10 20 q10 -14 20 0' stroke='%23ddd6c2' stroke-width='4' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='84' cy='30' r='4' fill='%23ddd6c2'/%3E%3Cpath d='M58 92 q12 12 24 0' stroke='%23ddd6c2' stroke-width='4' fill='none' stroke-linecap='round'/%3E%3Crect x='24' y='66' width='9' height='9' fill='%23ddd6c2' transform='rotate(20 28 70)'/%3E%3Ccircle cx='40' cy='104' r='3' fill='%23ddd6c2'/%3E%3C/svg%3E");
+    }
+
+    #main {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+
+    .shape {
+      position: absolute;
+      display: block;
+    }
+
+    .shape svg {
+      display: block;
+      overflow: visible;
+    }
+
+    .shape:hover svg {
+      animation: wiggle 0.22s infinite alternate ease-in-out;
+    }
+
+    @keyframes wiggle {
+      from {
+        transform: rotate(-7deg) scale(1.08);
+      }
+
+      to {
+        transform: rotate(7deg) scale(1.08);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main id="main" aria-label="A field of Memphis-style shapes"></main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('memphis');
+
+    const main = document.getElementById('main');
+
+    const COLOURS = [
+      '#f94144', '#f3722c', '#f9c74f', '#90be6d',
+      '#43aa8b', '#577590', '#f72585', '#111111',
+    ];
+
+    function fullCircle(colour) {
+      return `<circle cx="50" cy="50" r="46" fill="${colour}"/>`;
+    }
+
+    function halfCircle(colour) {
+      return `<path d="M 5 55 A 50 50 0 0 1 105 55 Z" fill="${colour}"/>`;
+    }
+
+    function wobblyTriangle(colour) {
+      const p1 = `${LAB.rand(35, 65)},5`;
+      const p2 = `${LAB.rand(0, 20)},${LAB.rand(75, 95)}`;
+      const p3 = `${LAB.rand(80, 100)},${LAB.rand(75, 95)}`;
+      return `<polygon points="${p1} ${p2} ${p3}" fill="${colour}"/>`;
+    }
+
+    function plus(colour) {
+      return `<path d="M 35 5 h 30 v 30 h 30 v 30 h -30 v 30 h -30 v -30 h -30 v -30 h 30 Z" fill="${colour}"/>`;
+    }
+
+    function squiggle(colour) {
+      let d = 'M 5 30';
+      for (let i = 0; i < 4; i++) {
+        d += ` q 12 ${i % 2 ? 28 : -28} 24 0`;
+      }
+      return `<path d="${d}" stroke="${colour}" stroke-width="8" fill="none" stroke-linecap="round"/>`;
+    }
+
+    function zigzag(colour) {
+      let points = '';
+      for (let i = 0; i <= 6; i++) {
+        points += `${i * 16},${i % 2 ? 8 : 48} `;
+      }
+      return `<polyline points="${points}" stroke="${colour}" stroke-width="9" fill="none" stroke-linejoin="miter"/>`;
+    }
+
+    function stripedBar(colour) {
+      const other = LAB.sample(COLOURS.filter(c => c !== colour));
+      let stripes = '';
+      for (let i = 0; i < 5; i += 2) {
+        stripes += `<rect x="${i * 20}" y="0" width="20" height="40" fill="${other}"/>`;
+      }
+      return `<rect x="0" y="0" width="100" height="40" fill="${colour}"/>${stripes}`;
+    }
+
+    const GENERATORS = [
+      { make: fullCircle, box: '0 0 100 100', bg: true },
+      { make: halfCircle, box: '0 0 110 60', bg: true },
+      { make: wobblyTriangle, box: '0 0 100 100', bg: true },
+      { make: plus, box: '0 0 100 100', bg: true },
+      { make: squiggle, box: '0 0 110 60', bg: false },
+      { make: zigzag, box: '0 0 100 56', bg: false },
+      { make: stripedBar, box: '0 0 100 40', bg: false },
+    ];
+
+    function init() {
+      main.replaceChildren();
+
+      const winW = window.innerWidth;
+      const winH = window.innerHeight;
+      const count = Math.max(18, Math.floor((winW * winH) / 28000));
+
+      for (let i = 0; i < count; i++) {
+        const generator = LAB.sample(GENERATORS);
+        const colour = LAB.sample(COLOURS);
+        const size = LAB.rand(50, 150);
+
+        const shape = document.createElement('a');
+        shape.href = LAB.pageRandomiser.nextOne();
+        shape.className = 'shape';
+        shape.style.left = LAB.rand(-0.02, 0.92) * winW + 'px';
+        shape.style.top = LAB.rand(-0.02, 0.9) * winH + 'px';
+        shape.style.transform = `rotate(${LAB.rand(0, 360)}deg)`;
+        shape.style.zIndex = generator.bg ? LAB.randInt(1, 4) : LAB.randInt(5, 9);
+
+        shape.innerHTML = `<svg viewBox="${generator.box}" width="${size}">
+          ${generator.make(colour)}
+        </svg>`;
+
+        main.appendChild(shape);
+      }
+    }
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    window.addEventListener('resize', init);
+
+    init();
+
+  </script>
+</body>
+
+</html>

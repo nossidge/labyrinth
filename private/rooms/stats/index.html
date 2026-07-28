@@ -16,7 +16,7 @@
 
     body {
       background-color: #f0f0f0;
-      color: #333;
+      color: #333333;
       font-family: Georgia, serif;
       line-height: 1.6;
       padding: 20px;
@@ -26,7 +26,7 @@
       max-width: 1200px;
       margin: 0 auto;
       background-color: white;
-      border: 3px solid #333;
+      border: 3px solid #333333;
       padding: 30px;
     }
 
@@ -41,13 +41,13 @@
       display: flex;
       gap: 5px;
       margin-bottom: 16px;
-      border-bottom: 3px solid #333;
+      border-bottom: 3px solid #333333;
     }
 
     .tab-button {
       padding: 10px 20px;
       background-color: #ddd;
-      border: 2px solid #333;
+      border: 2px solid #333333;
       border-bottom: none;
       cursor: pointer;
       font-size: 1rem;
@@ -56,11 +56,11 @@
     }
 
     .tab-button:hover {
-      background-color: #ccc;
+      background-color: #cccccc;
     }
 
     .tab-button.active {
-      background-color: #333;
+      background-color: #333333;
       color: white;
     }
 
@@ -75,12 +75,12 @@
     /* Cards */
     .card {
       background-color: #f9f9f9;
-      border: 2px solid #ccc;
+      border: 2px solid #cccccc;
       padding: 20px;
     }
 
     .card h2 {
-      border-bottom: 2px solid #ccc;
+      border-bottom: 2px solid #cccccc;
       padding-bottom: 10px;
       margin-bottom: 15px;
       font-size: 1.3rem;
@@ -96,7 +96,7 @@
 
     .metric-card {
       background-color: white;
-      border: 2px solid #999;
+      border: 2px solid #999999;
       padding: 15px;
       text-align: center;
     }
@@ -112,9 +112,9 @@
 
     .random-button {
       padding: 12px 24px;
-      background-color: #333;
+      background-color: #333333;
       color: white;
-      border: 2px solid #333;
+      border: 2px solid #333333;
       font-size: 1rem;
       font-family: Georgia, serif;
       cursor: pointer;
@@ -123,16 +123,16 @@
     }
 
     .random-button:hover {
-      background-color: #555;
+      background-color: #555555;
     }
 
     .random-button:active {
-      background-color: #222;
+      background-color: #222222;
     }
 
     .metric-label {
       font-size: 0.85rem;
-      color: #666;
+      color: #666666;
       text-transform: uppercase;
       letter-spacing: 1px;
       margin-bottom: 5px;
@@ -142,21 +142,21 @@
     .metric-value {
       font-size: 2rem;
       font-weight: bold;
-      color: #333;
+      color: #333333;
       font-family: 'Courier New', monospace;
       margin-bottom: 5px;
     }
 
     .metric-subtitle {
       font-size: 0.8rem;
-      color: #999;
+      color: #999999;
     }
 
     .status-badge {
       display: inline-block;
       padding: 5px 10px;
-      background-color: #ddd;
-      border: 1px solid #999;
+      background-color: #dddddd;
+      border: 1px solid #999999;
       font-size: 0.9rem;
       margin-top: 10px;
     }
@@ -181,16 +181,67 @@
 
     /* Charts */
     .chart-container {
-      height: 500px;
+      height: 460px;
       padding-bottom: 40px;
       position: relative;
     }
 
     .chart-container h2 {
+      margin-top: 0;
+    }
+
+    .chart-canvas {
+      position: relative;
+    }
+
+    #graph .chart-canvas {
+      height: calc(100%);
+    }
+
+    #tags .chart-canvas {
+      height: calc(100% - 34px);
+    }
+
+    .chart-container h2 {
       font-size: 1.3rem;
-      border-bottom: 2px solid #ccc;
+      border-bottom: 2px solid #cccccc;
       padding-bottom: 10px;
       margin-bottom: 15px;
+    }
+
+    /* Tag filter */
+    .tag-filter {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 15px;
+    }
+
+    .tag-button {
+      padding: 4px 10px;
+      background-color: #dddddd;
+      border: 1px solid #999999;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-family: 'Courier New', monospace;
+      transition: background-color 0.2s;
+    }
+
+    .tag-button:hover {
+      background-color: #cccccc;
+    }
+
+    .tag-button.active {
+      background-color: #333333;
+      color: white;
+      border-color: #333333;
+    }
+
+    .tag-description {
+      font-style: italic;
+      color: #666666;
+      margin-bottom: 15px;
+      font-size: 0.9rem;
     }
 
     /* Table */
@@ -202,7 +253,7 @@
     }
 
     thead {
-      background-color: #333;
+      background-color: #333333;
       color: white;
     }
 
@@ -211,14 +262,14 @@
       text-align: left;
       font-size: 0.9rem;
       font-weight: bold;
-      border: 1px solid #333;
+      border: 1px solid #333333;
       cursor: pointer;
       user-select: none;
       font-family: Georgia, serif;
     }
 
     th:hover {
-      background-color: #555;
+      background-color: #555555;
     }
 
     th.sorted-asc::after {
@@ -232,7 +283,7 @@
     }
 
     tbody tr {
-      border-bottom: 1px solid #ddd;
+      border-bottom: 1px solid #dddddd;
       cursor: pointer;
     }
 
@@ -287,7 +338,7 @@
       }
 
       .chart-container {
-        height: 300px;
+        height: 350px;
       }
     }
   </style>
@@ -301,6 +352,7 @@
     <div class="tabs">
       <button class="tab-button active" data-tab="status">Status</button>
       <button class="tab-button" data-tab="graph">Graph</button>
+      <button class="tab-button" data-tab="tags">Tags</button>
       <button class="tab-button" data-tab="table">Table</button>
     </div>
 
@@ -311,42 +363,42 @@
         <div class="metrics-grid">
           <div class="metric-card">
             <div class="metric-label">Total Pages</div>
-            <div class="metric-value" id="totalCorridors">—</div>
+            <div class="metric-value" id="total-corridors">—</div>
             <div class="metric-subtitle">Pages created</div>
           </div>
 
           <div class="metric-card">
             <div class="metric-label">Pages Remaining</div>
-            <div class="metric-value" id="pagesRemaining">—</div>
+            <div class="metric-value" id="pages-remaining">—</div>
             <div class="metric-subtitle">Pages until 365 goal</div>
           </div>
 
           <div class="metric-card">
             <div class="metric-label">Days Active</div>
-            <div class="metric-value" id="daysActive">—</div>
+            <div class="metric-value" id="days-active">—</div>
             <div class="metric-subtitle">Since start of 2026</div>
           </div>
 
           <div class="metric-card">
             <div class="metric-label">Days Remaining</div>
-            <div class="metric-value" id="daysRemaining">—</div>
+            <div class="metric-value" id="days-remaining">—</div>
             <div class="metric-subtitle">Until end of 2026</div>
           </div>
 
           <div class="metric-card">
             <div class="metric-label">Avg Per Day</div>
-            <div class="metric-value" id="avgPerDay">—</div>
-            <div class="metric-subtitle" id="upToDate">Up to 2026-12-31</div>
+            <div class="metric-value" id="avg-per-day">—</div>
+            <div class="metric-subtitle" id="up-to-date">Up to 2026-12-31</div>
           </div>
 
           <div class="metric-card">
             <div class="metric-label">Schedule Status</div>
-            <div id="statusBadge" class="status-badge on-target">On Target</div>
-            <div class="metric-subtitle" id="scheduleText">—</div>
+            <div id="status-badge" class="status-badge on-target">On Target</div>
+            <div class="metric-subtitle" id="schedule-text">—</div>
           </div>
 
           <div class="metric-card metric-card-wide">
-            <a href="../index.html" id="randomPageButton" class="random-button">
+            <a href="../index.html" id="random-page-button" class="random-button">
               Visit Random Page
             </a>
           </div>
@@ -358,7 +410,19 @@
     <div id="graph" class="tab-content">
       <div class="card chart-container">
         <h2>Page count over time</h2>
-        <canvas id="cumulativeChart"></canvas>
+        <div class="chart-canvas">
+          <canvas id="cumulative-chart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tags tab -->
+    <div id="tags" class="tab-content">
+      <div class="card chart-container">
+        <h2>Tag distribution</h2>
+        <div class="chart-canvas">
+          <canvas id="tag-chart"></canvas>
+        </div>
       </div>
     </div>
 
@@ -366,7 +430,9 @@
     <div id="table" class="tab-content">
       <div class="card">
         <h2>All pages</h2>
-        <table id="corridorsTable">
+        <div id="tag-filter" class="tag-filter"></div>
+        <div id="tag-description" class="tag-description"></div>
+        <table id="corridors-table">
           <thead>
             <tr>
               <th class="sortable" data-sort="created">Created</th>
@@ -374,7 +440,7 @@
               <th class="sortable" data-sort="title">Title</th>
             </tr>
           </thead>
-          <tbody id="corridorsTableBody">
+          <tbody id="corridors-table-body">
           </tbody>
         </table>
       </div>
@@ -404,10 +470,15 @@
         button.classList.add('active');
         document.getElementById(tabName).classList.add('active');
 
-        // Trigger chart resize if switching to graph tab
+        // Trigger chart resize if switching to graph or tags tab
         if (tabName === 'graph') {
           setTimeout(() => {
-            cumulativeChart.resize();
+            cumulativeChartInstance.resize();
+          }, 100);
+        }
+        if (tabName === 'tags') {
+          setTimeout(() => {
+            tagChartInstance.resize();
           }, 100);
         }
       });
@@ -433,16 +504,16 @@
       const formattedDate = `${year}-${month}-${day}`;
 
       // Update DOM
-      document.getElementById('totalCorridors').textContent = totalCorridors;
-      document.getElementById('daysActive').textContent = daysActive;
-      document.getElementById('avgPerDay').textContent = avgPerDay;
-      document.getElementById('daysRemaining').textContent = daysRemaining;
-      document.getElementById('pagesRemaining').textContent = 365 - totalCorridors;
-      document.getElementById('upToDate').textContent = `Up to ${formattedDate}`;
+      document.getElementById('total-corridors').textContent = totalCorridors;
+      document.getElementById('days-active').textContent = daysActive;
+      document.getElementById('avg-per-day').textContent = avgPerDay;
+      document.getElementById('days-remaining').textContent = daysRemaining;
+      document.getElementById('pages-remaining').textContent = 365 - totalCorridors;
+      document.getElementById('up-to-date').textContent = `Up to ${formattedDate}`;
 
       // Status badge
-      const statusBadge = document.getElementById('statusBadge');
-      const scheduleText = document.getElementById('scheduleText');
+      const statusBadge = document.getElementById('status-badge');
+      const scheduleText = document.getElementById('schedule-text');
 
       if (difference > 0) {
         statusBadge.className = 'status-badge ahead';
@@ -495,10 +566,10 @@
     const { dailyCount, cumulativeData } = generateDailyData();
 
     // Cumulative chart with target
-    const ctxCumulative = document.getElementById('cumulativeChart').getContext('2d');
+    const ctxCumulative = document.getElementById('cumulative-chart').getContext('2d');
     const idealData = cumulativeData.map((d, i) => i + 1);
 
-    const cumulativeChart = new Chart(ctxCumulative, {
+    const cumulativeChartInstance = new Chart(ctxCumulative, {
       type: 'line',
       data: {
         labels: cumulativeData.map(d => new Date(d.date).toLocaleDateString('en-GB', { month: 'short', day: 'numeric' })),
@@ -553,23 +624,147 @@
       }
     });
 
-    // Generate and manage corridors table
-    let tableData = [...LAB.corridorsData];
-    let currentSort = { column: 'created', direction: 'asc' };
+    // Tag descriptions
+    const tagDescriptions = {
+      abstract: 'Page displays non-representational shapes, patterns, or animations',
+      art: 'Page contains references to art movements or specific artists',
+      crt: 'Page has a CRT-style filter over it',
+      emoji: 'Page makes use of emoji',
+      game: 'Page contains an interactive quiz or game',
+      humour: 'Page makes a vague attempt at alleged humour',
+      images: 'Page contains or links to image files',
+      major: 'Page took more than one day to create',
+      map: 'Page shows some sort of geographic map',
+      maths: 'Page visualises mathematical concepts or structures',
+      meta: 'Page contains information about the Labyrinth project itself',
+      mobile: 'Page works on mobile devices',
+      nature: 'Page represents a landscape or something from the natural world',
+      parallax: 'Page uses mouse movement for a parallax effect',
+      poetry: 'Page contains poetry or references to poetry',
+      pop: 'Page references pop culture in some way',
+      science: 'Page references science in some way',
+      secret: 'Page has a hidden interaction that links to the Labyrinth Stats page',
+      skeuomorphic: 'Page resembles something from the real world',
+      sound: 'Page plays sounds',
+      tech: 'Page references technology in some way',
+      text: 'Page is primarily text-based',
+      tilde: 'Page features the tilde character in some way',
+      unicode: 'Page uses unicode characters for aesthetics rather than meaning',
+      vendor: 'Page uses external libraries in some way',
+    };
 
-    function sortTable(column) {
-      if (currentSort.column === column) {
-        currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
-      } else {
-        currentSort.column = column;
-        currentSort.direction = column === 'created' ? 'desc' : 'asc';
+    // Tag statistics
+    function calculateTagStats() {
+      const tagCount = {};
+      LAB.corridorsData.forEach(corridor => {
+        (corridor.tags || []).forEach(tag => {
+          tagCount[tag] = (tagCount[tag] || 0) + 1;
+        });
+      });
+      return tagCount;
+    }
+
+    const tagStats = calculateTagStats();
+    const sortedTags = Object.entries(tagStats).sort((a, b) => b[1] - a[1]);
+    const alphaTags = Object.entries(tagStats).sort((a, b) => a[0].localeCompare(b[0]));
+
+    // Generate color palette
+    function generateColors(count) {
+      const colors = [];
+      for (let i = 0; i < count; i++) {
+        const hue = Math.round((i * 360) / count);
+        colors.push(`hsl(${hue}, 40%, 50%)`);
       }
+      return colors;
+    }
 
+    // Tag pie chart
+    const ctxTag = document.getElementById('tag-chart').getContext('2d');
+    const tagColors = generateColors(sortedTags.length);
+
+    const tagChartInstance = new Chart(ctxTag, {
+      type: 'pie',
+      data: {
+        labels: sortedTags.map(t => t[0]),
+        datasets: [{
+          data: sortedTags.map(t => t[1]),
+          backgroundColor: tagColors,
+          borderColor: '#ffffff',
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: false,
+        plugins: {
+          legend: {
+            position: 'right',
+            labels: {
+              color: '#333333',
+              font: { family: 'Georgia, serif' }
+            }
+          },
+          tooltip: {
+            callbacks: {
+              label: function (ctx) {
+                const tag = ctx.label;
+                const count = ctx.parsed;
+                return `${tag}: ${count} page${count !== 1 ? 's' : ''}`;
+              }
+            }
+          }
+        },
+        onClick: function (event, elements) {
+          if (elements.length > 0) {
+            const tag = sortedTags[elements[0].index][0];
+            activeTagFilter = tag;
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active'));
+            document.querySelector('[data-tab="table"]').classList.add('active');
+            document.getElementById('table').classList.add('active');
+            filterTable();
+          }
+        }
+      }
+    });
+
+    // Tag filter
+    let activeTagFilter = null;
+
+    function renderTagFilter() {
+      const filterContainer = document.getElementById('tag-filter');
+      filterContainer.innerHTML = '';
+
+      // "All" button
+      const allButton = document.createElement('button');
+      allButton.className = 'tag-button' + (activeTagFilter === null ? ' active' : '');
+      allButton.textContent = '(all)';
+      allButton.addEventListener('click', () => {
+        activeTagFilter = null;
+        filterTable();
+      });
+      filterContainer.appendChild(allButton);
+
+      // Tag buttons (alphabetical)
+      alphaTags.forEach(([tag]) => {
+        const button = document.createElement('button');
+        button.className = 'tag-button' + (activeTagFilter === tag ? ' active' : '');
+        button.textContent = tag;
+        button.addEventListener('click', () => {
+          activeTagFilter = activeTagFilter === tag ? null : tag;
+          filterTable();
+        });
+        filterContainer.appendChild(button);
+      });
+    }
+
+    function applySort() {
       tableData.sort((a, b) => {
-        let aVal = a[column];
-        let bVal = b[column];
+        let aVal = a[currentSort.column];
+        let bVal = b[currentSort.column];
 
-        if (column === 'created') {
+        if (currentSort.column === 'created') {
           aVal = new Date(aVal);
           bVal = new Date(bVal);
         } else if (typeof aVal === 'string') {
@@ -583,6 +778,36 @@
           return aVal < bVal ? 1 : aVal > bVal ? -1 : 0;
         }
       });
+    }
+
+    function filterTable() {
+      if (activeTagFilter) {
+        tableData = LAB.corridorsData.filter(c => (c.tags || []).includes(activeTagFilter));
+        document.getElementById('tag-description').textContent = tagDescriptions[activeTagFilter] || '';
+      } else {
+        tableData = [...LAB.corridorsData];
+        document.getElementById('tag-description').textContent = '';
+      }
+      applySort();
+      renderTable();
+      renderTagFilter();
+    }
+
+    renderTagFilter();
+
+    // Generate and manage corridors table
+    let tableData = [...LAB.corridorsData];
+    let currentSort = { column: 'created', direction: 'asc' };
+
+    function sortTable(column) {
+      if (currentSort.column === column) {
+        currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+      } else {
+        currentSort.column = column;
+        currentSort.direction = column === 'created' ? 'desc' : 'asc';
+      }
+
+      applySort();
 
       // Update header indicators
       document.querySelectorAll('th.sortable').forEach(header => {
@@ -597,7 +822,7 @@
     }
 
     function renderTable() {
-      const tbody = document.getElementById('corridorsTableBody');
+      const tbody = document.getElementById('corridors-table-body');
       tbody.innerHTML = '';
 
       tableData.forEach(corridor => {

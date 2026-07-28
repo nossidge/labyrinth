@@ -1,0 +1,1563 @@
+tags:
+  - abstract: Page displays non-representational shapes, patterns, or animations
+  - art: Page contains references to art movements or specific artists
+  - crt: Page has a CRT-style filter over it
+  - emoji: Page makes use of emoji
+  - game: Page contains an interactive quiz or game
+  - humour: Page makes a vague attempt at alleged humour
+  - images: Page contains or links to image files
+  - major: Page took more than one day to create
+  - map: Page shows some sort of geographic map
+  - maths: Page visualises mathematical concepts or structures
+  - meta: Page contains information about the Labyrinth project itself
+  - mobile: Page works on mobile devices
+  - nature: Page represents a landscape or something from the natural world
+  - parallax: Page uses mouse movement for a parallax effect
+  - poetry: Page contains poetry or references to poetry
+  - pop: Page references pop culture in some way
+  - science: Page references science in some way
+  - secret: Page has a hidden interaction that links to the Labyrinth Stats page
+  - skeuomorphic: Page resembles something from the real world
+  - sound: Page plays sounds
+  - tech: Page references technology in some way
+  - text: Page is primarily text-based
+  - tilde: Page features the tilde character in some way
+  - unicode: Page uses unicode characters for aesthetics rather than meaning
+  - vendor: Page uses external libraries in some way
+rooms:
+  - id: stats
+    title: Stats
+    created: 2026-02-28 16:02
+    links: dynamic
+    tags: [meta, vendor]
+    visual_description: >-
+      A Web 1.0 styled analytics dashboard displaying statistics about the labyrinth's creation progress. The page features three tabs: Status (showing six key metrics with daily creation rate and schedule progress), Graph (displaying a cumulative growth chart with a target trajectory line), and Table (a sortable table of all corridors with creation timestamp, ID, and title). The Status tab includes a button to visit a random corridor in the labyrinth. The page is data-driven, pulling all corridor information from the YAML configuration file.
+corridors:
+  - id: withnail
+    title: Withnail
+    created: 2026-01-06 23:41
+    links: dynamic
+    tags: [images, pop, vendor]
+    visual_description: >-
+      This page is based on a quote from the film "Withnail and I":
+      > I don't advise a hair cut, man. All hairdressers are in the employment of the government. Hair are your aerials. They pick up signals from the cosmos and transmit them directly into the brain. (This is the reason bald-headed men are uptight.)
+      At the top of the page there are clouds, and every so often a lightning bolt is beamed down from a cloud and transmitted down to the bottom of the screen. At the bottom of the screen there are a bunch of repeating images of the Withnail and Marwood, and when the lightning bolt hits one of them a spark is displayed.
+  - id: othello
+    title: Othello
+    created: 2026-01-07 00:22
+    links: 64
+    tags: [skeuomorphic]
+    visual_description: >-
+      A skeuomorphic rendering of a wooden Othello/Reversi board. The board features an 8x8 grid of discs that flip from black to white with a satisfying rotational animation. Hovering over a tile triggers a subtle flip effect, and every few seconds, a random tile flips on its own to simulate an unseen opponent. The board is viewed against a textured dark background with a simulated dust/noise overlay. Every disc on the board is a link to a random corridor.
+  - id: bsod
+    title: BSOD
+    created: 2026-01-07 22:35
+    links: dynamic
+    tags: [major, tech, vendor]
+    visual_description: >-
+      A glitchy parody of the Windows Blue Screen of Death. Certain phrases in the error message can be clicked on to take the user to other corridor pages. At the bottom of the page is a progress bar that ticks up over time. When that reaches 100%, lots of pop ups fill the page, then a pseudo reboot happens. This leads to a black screen with a bunch of different error messages until it eventually goes back to simply the BSOD page again.
+  - id: 1-bit-dots
+    title: 1-Bit Dots
+    created: 2026-01-07 23:02
+    links: dynamic
+    tags: [abstract, crt]
+    visual_description: >-
+      A high-contrast grid of black circles on a white background. The grid demonstrates an intentional "loss of signal" or "bit rot" from left to right, where the dots become increasingly fragmented and irregular. Hovering over any dot causes it to invert its colour and scale up slightly. The entire grid is a dense array of links, with each dot leading to a random destination in the labyrinth.
+  - id: dancing-baby
+    title: Dancing Baby
+    created: 2026-01-07 23:51
+    links: 3
+    tags: [images, pop]
+    visual_description: >-
+      A tribute to the iconic "Dancing Baby" meme from the early 1990s. Three images of the original CGI baby are displayed against an animated GIF background of Ally McBeal's apartment. The central baby is larger and framed with a magenta border, flanked by two smaller versions. Hovering over any baby causes it to scale up with a bouncy animation. Each baby image is a clickable link to a random corridor in the labyrinth.
+  - id: polygon-face
+    title: Polygon Face
+    created: 2026-01-08 21:53
+    links: 1
+    tags: [images]
+    visual_description: >-
+      A surreal artistic piece featuring a floating, low-poly bust of a human head in the centre of the screen. The background is a group of the same bust, repeated to give a crowded effect. Hovering over the bust causes it to invert colours, while the background image changes to show even more busts. The polygon bust acts as a single, central portal to a random corridor.
+  - id: blade-runner
+    title: Blade Runner
+    created: 2026-01-08 23:05
+    links: 8
+    tags: [images, pop]
+    visual_description: >-
+      A grid of stylistic portrait tiles featuring iconic characters from the "Blade Runner" universe (Deckard, Roy Batty, Rachael, etc.). Hovering over a portrait applies a vivid neon colour wash (cyans, pinks, ambers) and reveals a famous quote from the film as a tooltip. Every portrait in the grid serves as a link to a random corridor.
+  - id: in-utero
+    title: In Utero
+    created: 2026-01-10 16:40
+    links: 12
+    tags: [images]
+    visual_description: >-
+      A biological, atmospheric simulation of a fetal environment. A central "baby" image floats in a deep red, pulsing "womb" gradient. Wispy, organic lines (veins) connect the fetus to various floating words representing embryonic thoughts ("Becoming", "Heartbeat", "Possibility"). The veins procedurally update their paths as the words drift slowly. Clicking the fetus replaces the words with smaller fetuses. Both the smaller fetuses and each floating thought-word are links to other corridors.
+  - id: piano
+    title: Piano
+    created: 2026-01-10 18:21
+    links: dynamic
+    tags: [mobile, sound, secret, vendor]
+    visual_description: >-
+      A skeuomorphic "upward-facing" piano keyboard with the name "Tilde & Sons" inscribed on the wood above the keys. The interface consists of two octaves of interactive white and black keys. Clicking or pressing a key triggers a visual "depression" animation and spawns a floating "note bubble" containing the note name (e.g., "C", "F#"). These bubbles drift upward onto a "stage" area. Every spawned note bubble acts as a link to a random corridor.
+  - id: trine
+    title: Trine
+    created: 2026-01-10 22:38
+    links: 3
+    tags: [abstract, image, tilde, vendor]
+    visual_description: >-
+      Three tilde images arranged in a tight triangular formation at the centre of a dark void, each rotating slowly. Faint connecting lines link the tildes together. Background text of whispered words about "the power of three" drifts behind them. Clicking any tilde triggers a transition: the tildes animate outward into a pyramid formation, glowing lines connect them, and a soft radial pulse emanates from the centre. After the animation completes, each tilde becomes a clickable link to a random corridor in the labyrinth.
+  - id: happy
+    title: Happy
+    created: 2026-01-10 23:41
+    links: 5
+    tags: [crt]
+    visual_description: >-
+      A simple, cheerful yellow smiley face centred on a dark background. The face features two dark eyes, pink blush marks on the cheeks, and a curved smile. Hovering over the eyes causes them to glow, hovering over the blush intensifies its colour, and hovering over the mouth highlights it with a white stroke. Each feature of the face is a clickable link to a random corridor in the labyrinth.
+  - id: swapping-circles
+    title: Swapping Circles
+    created: 2026-01-12 22:48
+    links: 49
+    tags: [abstract, crt]
+    visual_description: >-
+      A 7x7 grid of white and black circles on a dark background. Each circle has a designated home position, and circles continuously swap with adjacent cells to move toward their home, creating a shuffling effect. Hovering over a circle makes it scale up with a glowing drop-shadow. Every circle is a clickable link to a random corridor in the labyrinth.
+  - id: professional-help
+    title: Professional Help
+    created: 2026-01-14 22:19
+    links: dynamic
+    tags: [game, images, humour, major, secret, vendor]
+    visual_description: >-
+      A quiz about nominative determinism and puns. The user is presented with a photographs of celebrities and emojis of tools and must match the tool that corresponds to their namesake trade, via click-and-drag. For instance, Sabrina Carpenter matches the hammer emoji. When a match is made, the pair appears in a separate area as a clickable link leading to a random corridor. Upon completing all matches, the page celebrates with a lo-fi fireworks display. The title letters individually link to other areas of the labyrinth.
+  - id: zodiac
+    title: Zodiac
+    created: 2026-01-16 01:15
+    links: dynamic
+    tags: [images, major]
+    visual_description: >-
+      A page that shows the current astrological constellation of the Zodiac. The background is a classic Web 1.0 starry background animated gif. Each star in the constellation is represented as an emoji (✨, ⭐, 🌟). When the user clicks any of the stars, they are redirected to a random destination.
+  - id: crash-test-dummies
+    title: Crash Test Dummies
+    created: 2026-01-17 12:32
+    links: 40
+    tags: [abstract]
+    visual_description: >-
+      A high-impact, warning-themed page featuring a chaotic scattering of black-and-yellow "crash test" symbols. The background is a flat, industrial yellow. The symbols jitter slightly and respond to mouse movements. The density of the symbols creates a sense of imminent impact. Every icon on the page leads to a random corridor.
+  - id: cow
+    title: Cow
+    created: 2026-01-17 14:08
+    links: 1
+    tags: [emoji, images, mobile]
+    visual_description: >-
+      A large cow emoji (🐄) centred on a cow-print background. Hovering over the cow cycles the background through six different cow-spot patterns. The cow emoji is a clickable link back to the corridors index page.
+  - id: symbolizm
+    title: Symbolizm
+    created: 2026-01-17 17:44
+    links: dynamic
+    tags: [abstract, crt, tilde, unicode]
+    visual_description: >-
+      A hacker-themed grid of cells filling the screen on a dark background. Most cells display random punctuation and symbol characters that glitch and update continuously. Scattered among them are tilde characters (~) that serve as hyperlinks to random corridors. Clicking a non-tilde cell changes the background colour and regenerates the grid. The tildes flash periodically to hint that they are clickable.
+  - id: mompster-quest
+    title: Mompster Quest
+    created: 2026-01-18 23:34
+    links: dynamic
+    tags: [emoji, game]
+    visual_description: >-
+      A parody of a bad turn-based battle game styled like a retro console RPG using emoji characters. The interface has two panels: one for the player's party of three randomly named adventurers, and one for enemy "Mompsters". Each character shows HP, MP, and XP bars. Battles play out automatically with a scrolling log of attacks, damage, and level-ups. The player navigates through six increasingly difficult areas, from a Training Area to the final Desolate Keep boss fight. Clicking a character's avatar link navigates to a random corridor in the labyrinth.
+  - id: poem-fragments
+    title: Poem Fragments
+    created: 2026-01-19 21:33
+    links: dynamic
+    tags: [poetry, text, major]
+    visual_description: >-
+      A dark, contemplative page displaying fragments from various poems. Words from a poem drift across the screen, attracted toward the mouse cursor. When adjacent words from the same line collide, they merge into a phrase. Once all words of a line have merged, the completed phrase glows at the centre of the screen. Clicking it triggers an explosion of the words, which scatter and fade before the next poem fragment begins. Faint background particles and a soft radial glow follow the cursor. Each word and the footer text are links to random corridors.
+  - id: vertical-lines
+    title: Vertical Lines
+    created: 2026-01-19 22:09
+    links: dynamic
+    tags: [abstract]
+    visual_description: >-
+      A deliberately lo-fi pattern of vertically stretched pipe characters (|) on a black background, inspired by a curtain design. The pipe characters vary in height. Hovering over a pipe character causes it to turn magenta. Every pipe character is a clickable link to a random corridor.
+  - id: i-luv-u
+    title: I luv U
+    created: 2026-01-19 22:35
+    links: 3
+    tags: [images, unicode]
+    visual_description: >-
+      A deliberately lo-fi MySpace-era Valentine with a sparkling animated GIF background of glitter hearts on a hot pink backdrop. The letters "I", "<3", and "U" are displayed large in the centre, separated by horizontal rules. Each letter is a link to a random corridor.
+  - id: substack
+    title: Substack
+    created: 2026-01-19 22:35
+    links: 4
+    tags: [text]
+    visual_description: >-
+      A confrontational typographic page on a neon pink background. Four lines of bold monospace text read "i'm not going / to read your / fucking substack / you fucking nazi". Each line is a link to the corridors index.
+  - id: heart-of-hearts
+    title: Heart of Hearts
+    created: 2026-01-20 18:19
+    links: 12
+    tags: [abstract]
+    visual_description: >-
+      A heart shape made of "<3" text characters, centred on a dark red background that pulses like a heartbeat. Concentric ripple rings expand outward from the centre in time with the beat. Each "<3" character is a link that rotates and glows on hover.
+  - id: ants-marching
+    title: Ants Marching
+    created: 2026-01-20 18:54
+    links: dynamic
+    tags: [emoji]
+    visual_description: >-
+      Ant emojis (🐜) enter from the edges of the screen and walk toward the centre, carrying food emojis (🍎, 🍕, 🍓, etc.). When an ant reaches the centre, it drops its food onto a growing pile. Each carried item and each item in the pile is a link to a random corridor.
+  - id: stuntman
+    title: Stuntman
+    created: 2026-01-20 21:51
+    links: 2
+    tags: [emoji]
+    visual_description: >-
+      Vehicle emojis (🏎️, 🏍️, 🚒, etc.) enter from the left, drive up a yellow ramp, and launch into the air with flips against a sunset gradient sky. On landing, hype messages ("RADICAL!", "GNARLY!", etc.) pop up and fade. The sun and the ramp are links.
+  - id: zeno
+    title: Zeno
+    created: 2026-01-21 18:47
+    links: 10
+    tags: [major, tech, vendor]
+    visual_description: >-
+      A Windows 95-style desktop with a teal dithered background. A grey window titled "Downloading Eternity..." displays a progress bar that advances via Zeno's Paradox, halving the remaining distance each tick so it never reaches 100%. Desktop icons ("Axioms", "Tortoise", "Achilles", "Recycle Bin"), window controls, and buttons are all links.
+  - id: everyday
+    title: Everyday
+    created: 2026-01-21 22:16
+    links: dynamic
+    tags: [text]
+    visual_description: >-
+      A dark, minimal calendar with the heading "I think about you every day". Navigation buttons let the user move between months and years. Every populated day cell contains a single hyperlinked word: "You". Past days are dimmed and desaturated.
+  - id: baby-god
+    title: Baby God
+    created: 2026-01-22 00:24
+    links: dynamic
+    tags: [emoji, images]
+    visual_description: >-
+      A dark, cultish parody of the "Dancing Baby" meme. A large baby image sits on a "throne" at the centre, glowing red against a black radial gradient. Smaller baby emojis (👶) of various skin tones crawl inward from the screen edges. When they reach the centre, they are "consumed" with a screen flash and shake. Scrolling marquees read "BABIES FOR THE BABY GOD" and "WE HUNGER / WE CRAWL / WE SERVE". Blood drip emojis fall from the top. The central baby links to the Dancing Baby page; each crawling baby links to a random corridor.
+  - id: indy
+    title: Indy
+    created: 2026-01-24 13:17
+    links: 30
+    tags: [emoji, images, pop]
+    visual_description: >-
+      A dark pit scene with an Egyptian hieroglyphic background. A fedora-wearing emoji (🤠) dangles from a rope with pendulum physics at the top centre, draggable by the user. Below, a pit of wriggling snake emojis (🐍) and a lizard (🦎) fills the bottom of the screen. A torchlight glow follows the cursor. Each snake is a link to a random corridor.
+  - id: tyger
+    title: Tyger
+    created: 2026-01-27 23:27
+    links: 1
+    tags: [emoji, nature, poetry]
+    visual_description: >-
+      A scrolling parallax jungle scene inspired by Blake's "The Tyger". Tree emojis (🌲, 🌳, 🌴, etc.) drift right-to-left across three depth layers at different speeds, with background trees blurred. A large tiger emoji (🐅) bounces in the centre. The tiger links to random corridors.
+  - id: pills
+    title: Pills
+    created: 2026-01-28 00:12
+    links: 60
+    tags: [abstract, emoji]
+    visual_description: >-
+      Sixty animated pills fall continuously down a dark grid background. Each pill is either a two-toned capsule or a round tablet in varied colour combinations (pink/white, blue/white, yellow/orange, etc.). Most pills bear abbreviated prescription text ("XAN", "PRO", "50mg", etc.). Each pill is a link to a random corridor.
+  - id: cloudflare
+    title: Cloudflare
+    created: 2026-02-01 03:29
+    links: 4
+    tags: [tech]
+    visual_description: >-
+      A clone of the Cloudflare 500 error page that everyone has encountered at some point. It's the exact same code as the real thing, except all links navigate to random corridors within the labyrinth.
+  - id: fire-brigade
+    title: Fire Brigade
+    created: 2026-02-01 20:09
+    links: dynamic
+    tags: [emoji, game, major, mobile, secret]
+    visual_description: >-
+      A "Pipes"-style game played on a grid of buildings (🏠, 🏢, 🏦, etc.) with a fire engine (🚒) to the left. The user clicks grid cells to rotate pipe segments, directing water from the fire engine towards buildings on a fire that has started towards the right (🔥). Every 8 moves the fire spreads to adjacent buildings. Clicking any building navigates to a random corridor.
+  - id: spider-box
+    title: Spider Box
+    created: 2026-02-02 21:09
+    links: dynamic
+    tags: [emoji, images]
+    visual_description: >-
+      A dark grid background littered with faint cobweb emojis (🕸️), centred on a layered cardboard box image. Clicking the box's front flap triggers an animation: a spider emoji (🕷️) climbs out and scurries toward a random screen edge. The spider and the background cobwebs are all links to random corridors.
+  - id: important-business
+    title: Important Business
+    created: 2026-02-03 23:09
+    links: 8
+    tags: [major, tech, vendor]
+    visual_description: >-
+      A Windows 97-style corporate dashboard mockup filled with "real-time" metrics: net revenue charts, employee efficiency tables, synergy dials, and a ticker of parody corporate memos ("THE MARKET IS ALWAYS RIGHT"). A green-on-black subsystem log scrolls at the bottom. Links are placed in the sidebar "Operations" panel and the "Start" button.
+  - id: parklife
+    title: Parklife
+    created: 2026-02-04 21:47
+    links: 7
+    tags: [pop, text]
+    visual_description: >-
+      A CSS recreation of Phil Daniels' business card from the Blur "Parklife" music video. Each line of text is a separate link to a random corridor.
+  - id: chinatown
+    title: Chinatown
+    created: 2026-02-05 23:15
+    links: dynamic
+    tags: [images, humour, mobile, pop, vendor]
+    visual_description: >-
+      A cinematic homage to the film Chinatown, set against a grainy black-and-white noir background with letterboxing. Yellow subtitle text reads "Forget it Jake, it's Chinatown". Clicking the page or pressing arrow keys generates new phrases by combining countries with settlement types (e.g. "Lesothoburg", "Nigeriaville"). The subtitle text is a link to a random corridor.
+  - id: charlotte
+    title: Charlotte
+    created: 2026-02-05 23:17
+    links: dynamic
+    tags: [emoji, pop]
+    visual_description: >-
+      The phrases from Charlotte's Web -- "SOME PIG", "TERRIFIC", "RADIANT", "HUMBLE" -- rendered in a custom 5x5 pixel font using spiderweb emojis (🕸️) against a dark background with a spiderweb canvas. Clicking the page cycles through the phrases. Each pixel/emoji in the letters is a link to a random corridor.
+  - id: wandering-aengus
+    title: Wandering Aengus
+    created: 2026-02-05 23:23
+    links: dynamic
+    tags: [emoji, game, images, major, poetry, secret]
+    visual_description: >-
+      A catch-game based on W.B. Yeats' poem "The Song of Wandering Aengus". Against a deep blue sky, the user controls a basket (🧺) with the mouse to catch falling silver and golden apples dropped by a drifting Moon (🌙) and Sun (☀️). Each catch reveals one word of the poem; each miss removes the last word. Visible words are links to corridors. Completing the poem fades the game UI, filling the screen with apples.
+  - id: panopticon
+    title: Panopticon
+    created: 2026-02-06 00:02
+    links: 30
+    tags: [abstract]
+    visual_description: >-
+      Thirty cartoon eyes scattered across a dark purple background, all tracking the user's cursor. Each eye has a black pupil with a white highlight and is randomly sized and positioned. Clicking empty space reshuffles the eyes. Each eye is a link to a random corridor.
+  - id: symbolizma
+    title: Symbolizma
+    created: 2026-02-07 16:32
+    links: 144
+    tags: [abstract, crt, unicode]
+    visual_description: >-
+      A 12x12 grid of squares on a black dotted background, each displaying a random symbol or character. Squares drift subtly over time. Hovering a square has a chance to briefly "corrupt" a random neighbour with a cyan flash. On hover, the hovered square glows magenta and scales up. Every square is a link to a random corridor.
+  - id: symbolizmo
+    title: Symbolizmo
+    created: 2026-02-08 12:37
+    links: dynamic
+    tags: [abstract, unicode]
+    visual_description: >-
+      Concentric rings of circular orbs rotate slowly on a deep indigo background. Each orb displays a randomly chosen unicode symbol and pulses with a subtle scale animation. Hovering an orb triggers a bright magenta glow and outward scale. Every orb is a link to a random corridor.
+  - id: city-fireworks
+    title: City Fireworks
+    created: 2026-02-08 17:44
+    links: dynamic
+    tags: [mobile, secret]
+    visual_description: >-
+      A city skyline silhouette at night with glowing windows in the buildings. Fireworks explode in the sky above at random intervals in varying colours and particle counts. Clicking a building navigates to a random corridor; clicking the sky launches a new firework.
+  - id: oblique-strategies
+    title: Oblique Strategies
+    created: 2026-02-08 21:57
+    links: dynamic
+    tags: [pop, text]
+    visual_description: >-
+      A dark, grainy background with a facedown deck of cards in the centre. Clicking the deck draws a card that slides out, displaying a creative prompt from Brian Eno and Peter Schmidt's Oblique Strategies in typewriter text. Each drawn card is a link to a random corridor. Multiple cards accumulate on screen.
+  - id: barbershop
+    title: Barbershop
+    created: 2026-02-08 22:55
+    links: dynamic
+    tags: [images, skeuomorphic]
+    visual_description: >-
+      A procedurally generated face with a thick beard and hair on a grey background. The user shaves the face by dragging the mouse, which erases hair with a scissor cursor. A "Smile for the camera!" button adds the clean-shaven face to a gallery at the bottom, and a new customer's face appears. Every face in the gallery is a link to a random corridor.
+  - id: emoji-map
+    title: Emoji Map
+    created: 2026-02-08 23:56
+    links: 625
+    tags: [emoji, map]
+    visual_description: >-
+      A 25x25 grid of emoji terrain tiles on a parchment background. Mountains (⛰️), forests (🌲), deserts (🏜️), rivers (🌊), and oceans (🟦) form logical biomes. Towns (🏘️), castles (🏰), caves (🕳️), and other points of interest are scattered across the map. Every emoji tile is a link to a random corridor.
+  - id: bat-country
+    title: Bat Country
+    created: 2026-02-15 16:19
+    links: dynamic
+    tags: [crt, emoji, humour, map, pop, vendor]
+    visual_description: >-
+      Inspired by "We can't stop here. This is bat country!" from Fear and Loathing in Las Vegas. A green wireframe globe rendered via Three.js on a black background. A random country is highlighted and swarmed with bat emojis. Navigation buttons spin the globe to a new country, with bats flying away and new ones swarming the destination. Each bat is a link to a random corridor.
+  - id: turtles
+    title: Turtles
+    created: 2026-02-15 18:05
+    links: dynamic
+    tags: [emoji, humour, mobile]
+    visual_description: >-
+      A single large turtle emoji centred on a grey background. Clicking it splits recursively into four smaller turtles in the same space, each of which can be clicked to split again. A footer reads "It's turtles all the way down" with each word linking to another corridor.
+  - id: ripples
+    title: Ripples
+    created: 2026-02-18 21:03
+    links: dynamic
+    tags: [crt, nature]
+    visual_description: >-
+      A low-resolution water simulation on a dark background. Clicking or dragging the mouse creates ripples that propagate across the canvas in shifting blue-to-magenta hues. Lily pad shapes drift on the surface, affected by the wave physics. Clicking a lily pad navigates to a random corridor.
+  - id: cyclone
+    title: Cyclone
+    created: 2026-02-18 22:20
+    links: dynamic
+    tags: [abstract, emoji]
+    visual_description: >-
+      Spiral emoji (🌀) spawn at the centre and expand outward in a rotating spiral pattern. Each emoji grows in size as it moves from the centre. Hovering an emoji brightens it with a cyan drop-shadow glow. Each emoji is a link to a random corridor.
+  - id: autumn
+    title: Autumn
+    created: 2026-02-17 22:33
+    links: dynamic
+    tags: [emoji, nature]
+    visual_description: >-
+      Leaf emojis (🍂, 🍁, 🍃, 🌿, 🌱) drift and sway down a warm autumn gradient background. Leaves accumulate in a pile along the bottom of the screen. A subtle grain overlay adds a lo-fi texture. Each leaf is a link to a random corridor.
+  - id: chromaphilia
+    title: Chromaphilia
+    created: 2026-02-17 23:32
+    links: 6
+    tags: [abstract, crt, mobile, secret]
+    visual_description: >-
+      Three primary-coloured circles (red, green, blue) float on a black background, using screen blend mode to demonstrate additive colour mixing. Dragging the circles creates secondary and tertiary hues where they overlap. The entire interface is filtered through a heavy CRT noise and scanline overlay, evoking a fuzzy television. Coloured buttons appear around the edges of the screen only when the overlapping circles produce the matching hue - for example, red overlapping blue reveals the magenta button. Clicking any revealed button links to a random corridor in the labyrinth.
+  - id: dvd
+    title: DVD
+    created: 2026-02-18 23:04
+    links: dynamic
+    tags: [crt, images]
+    visual_description: >-
+      A screensaver tribute featuring the classic DVD logo bouncing across the screen. Each time the logo hits an edge, it reflects at a new angle and the background shifts to a different pastel colour. The logo itself is a clickable link to a random corridor, with its destination updating on every bounce.
+  - id: shed
+    title: Shed
+    created: 2026-02-19 18:42
+    links: dynamic
+    tags: [emoji]
+    visual_description: >-
+      A dark page with an upside-down light bulb emoji dangling from the top. Clicking the bulb illuminates the interior of a shed, revealing wooden shelves lined with emoji tools (🔨, 🪚, 🪛, etc.). Each tool is a link to a random corridor, but they are hidden and unclickable while the light is off. When dark, the tools shuffle along their shelves unseen; when lit, they freeze in place as if playing dead - a Toy Story-esque take on sentient tools.
+  - id: spin-the-wheel
+    title: Spin the Wheel
+    created: 2026-02-19 20:25
+    links: 12
+    tags: [meta, skeuomorphic]
+    visual_description: >-
+      A skeuomorphic spin-the-wheel carnival game mounted on a detailed wooden base. The wheel is divided into 12 colourful segments, each inscribed with the first letter of a destination corridor. Hovering over any segment reveals the full corridor name via a floating tooltip. A brass indicator peg at the top clacks realistically as the wheel's pegs pass by during a spin. When the wheel stops, the indicated segment determines the destination.
+  - id: maxwells-demon
+    title: Maxwell's Demon
+    created: 2026-02-19 21:30
+    links: 3
+    tags: [science]
+    visual_description: >-
+      A simulation of Maxwell's Demon, the famous thermodynamics thought experiment. A wall with a central gate bisects the screen into two chambers. Red hot molecules and blue cold molecules drift and bounce around as DOM elements. A gate between the chambers opens selectively as molecules approach to sort them by speed, sending fast ones right and slow ones left. When sorting completes and entropy reaches zero, a message appears celebrating the apparent defeat of the second law of thermodynamics.
+  - id: vonnegut
+    title: Vonnegut
+    created: 2026-02-19 22:21
+    links: dynamic
+    tags: [mobile, text]
+    visual_description: >-
+      A Kurt Vonnegut Jr. quote about the importance of art rendered in black monospace text on a white background. The message encourages the reader to sing, dance, write, and create. Nearly every word in the passage is a clickable link styled with default browser link colours, each leading to a random corridor in the labyrinth.
+  - id: trainspotting
+    title: Trainspotting
+    created: 2026-02-20 16:08
+    links: dynamic
+    tags: [emoji, secret]
+    visual_description: >-
+      A pastoral English countryside scene with rolling green hills, fields, drifting clouds, and a bright sun. Every minute on the minute, a train of emoji carriages (🚂, 🚃) thunders across the screen from right to left. The browser title bar counts down seconds until the next arrival, switching to "Train approaching!" during passage. Each carriage, the sun, and every cloud are clickable links to random corridors in the labyrinth.
+  - id: counting-sheep
+    title: Counting Sheep
+    created: 2026-02-20 17:08
+    links: dynamic
+    tags: [emoji, images, vendor]
+    visual_description: >-
+      A scene with a green field background and a large fence image angled diagonally across the centre. Sheep emojis (🐑) enter from the right and walk left, jumping over the fence as they pass. Each sheep begins behind the fence, then animates a jump to clear it, landing on the other side. A large counter at the top tracks how many sheep have jumped, with a pop animation on each increment. The counter, the fence, and every sheep are links to random corridors.
+  - id: wikipedia
+    title: Wikipedia
+    created: 2026-02-20 18:14
+    links: dynamic
+    tags: [images, text, tech]
+    visual_description: >-
+      A replica of a classic-era Wikipedia article about Superbad.com, the web art project that inspired this labyrinth. The page mimics the old Wikipedia layout with a sidebar navigation, infobox, body text, references, and external links. Every hyperlink on the page - including the logo, tagline, navigation items, inline citations, and reference links - is hijacked to lead to a random corridor in the labyrinth.
+  - id: magic-8-ball
+    title: Magic 8-Ball
+    created: 2026-02-21 16:54
+    links: dynamic
+    tags: [skeuomorphic]
+    visual_description: >-
+      A skeuomorphic Magic 8-Ball centred on a black background. A large glossy sphere displays a white "8" on its surface. Clicking the ball triggers a shake animation, after which a blue triangle fades in within the inner window, revealing a random divination message. The message itself becomes a clickable link to a random corridor. Clicking the ball again resets the cycle with a new message.
+  - id: passage
+    title: Passage
+    created: 2026-02-22 17:10
+    links: dynamic
+    tags: [emoji, game, major]
+    visual_description: >-
+      A lifecycle simulation featuring hundreds of emoji people wandering across a black background. Each person progresses through life stages from baby to child, adult, and senior, represented by different emoji. People with matching compatibility values marry when they come near each other, forming tethered pairs that drift together and produce children. The simulation tracks births, deaths, marriages, and family relationships with visible connection lines between spouses, parents, and siblings. A settings panel lets the user adjust population, lifespan, speeds, and other parameters. Every emoji person and the background are links to random corridors.
+  - id: bookshelves
+    title: Bookshelves
+    created: 2026-02-22 21:40
+    links: dynamic
+    tags: [skeuomorphic, secret, unicode]
+    visual_description: >-
+      Three horizontal wooden shelves filled with procedurally generated books against a dark wood background. Each book is an SVG with a randomly chosen dark colour spine, gold foil lines, and either alchemical unicode symbols or horizontal gold text blocks. The page has a subtle film grain overlay. All books link to a random corridor in the labyrinth.
+  - id: subbuteo
+    title: Subbuteo
+    created: 2026-02-23 18:25
+    links: dynamic
+    tags: [emoji, game]
+    visual_description: >-
+      A browser-based version of the tabletop football game Subbuteo. A green pitch with white markings hosts two teams of eight players each, represented by shirt emojis in blue and yellow. Players take turns drag-flicking their pieces to knock a ball emoji toward the opponent's goal. The first team to score three goals wins. A row of animated emoji faces at the top of the screen represents the crowd. Every fan emoji and the scoreboard are links to random corridors.
+  - id: tilde-ripples
+    title: Tilde Ripples
+    created: 2026-02-24 18:06
+    links: dynamic
+    tags: [abstract, tilde]
+    visual_description: >-
+      A 40x25 grid of tilde characters (~) in light purple on a black background. Hovering over or clicking any tilde triggers a ripple effect that propagates outward to neighbouring cells, scaling them up before they gradually shrink back down. The ripple strength decays with distance. Each tilde is a link to a random corridor.
+  - id: soap-bubbles
+    title: Soap Bubbles
+    created: 2026-02-27 14:30
+    links: dynamic
+    tags: [abstract, unicode]
+    visual_description: >-
+      Circles resembling soap bubbles float up from the bottom of the screen to the top. When a bubble reaches a random point along its ascent, it pops with a quick animation, leaving behind a ring of soap residue. Each residue ring is a clickable link to a random corridor.
+  - id: fireflies
+    title: Fireflies
+    created: 2026-02-27 15:13
+    links: dynamic
+    tags: [nature]
+    visual_description: >-
+      A lo-fi scene of a calm lake at dusk. The air is filled with dozens of fireflies floating lazily. At the front, bulrushes, cattails, and other marsh plants sway gently in the breeze. Each firefly and plant is a portal to another corridor in the labyrinth.
+  - id: high-noon
+    title: High Noon
+    created: 2026-02-27 16:57
+    links: dynamic
+    tags: [emoji]
+    visual_description: >-
+      A Wild West town square rendered in ASCII art. Wooden buildings fade into the horizon giving a view down the main street. In the centre, two stick-figure cowboys with proc-gen Wild-West themed names face off. They breathe subtly, walk away from each other, and then turn back for a "High Noon" draw with water pistols. The loser falls over with a dramatic animation. Every building and cowboy is a portal to another corridor in the labyrinth.
+  - id: koi-pond
+    title: Koi Pond
+    created: 2026-02-27 18:54
+    links: dynamic
+    tags: [images, mobile, nature]
+    visual_description: >-
+      A top-down view of a koi pond with a deep blue, rippling water surface. Two koi fish images swim in a continuous circular orbit, chasing each other. Subtle CSS animations create very slight water ripple effects. Each fish is a link to a random corridor.
+  - id: earth-and-moon
+    title: Earth and Moon
+    created: 2026-02-27 23:31
+    links: 2
+    tags: [nature, science, emoji]
+    visual_description: >-
+      A celestial mechanics simulation with a central Earth emoji orbited by a Moon emoji against a starfield background with twinkling stars. The Earth cycles through three globe emoji (🌎🌍🌏) as the moon orbits. The moon displays eight phase emoji (🌕🌖🌗🌘🌑🌒🌓🌔) corresponding to its orbital position. A faint orbital path traces the moon's trajectory. Both the Earth and Moon are links to random corridors.
+  - id: diamond-mandala
+    title: Diamond Mandala
+    created: 2026-03-01 15:10
+    links: dynamic
+    tags: [abstract, crt]
+    visual_description: >-
+      A symmetrical, rotating lo-fi mandala rendered with concentric rings and radiating diamond petals. Hovering over any element triggers a bright glowing effect. Each ring, petal, and the central point are clickable links to random corridors.
+  - id: rorschach
+    title: Rorschach
+    created: 2026-03-02 11:10
+    links: dynamic
+    tags: [abstract]
+    visual_description: >-
+      A generative Rorschach inkblot test rendered with two mirrored SVGs showing a symmetrical inkblot. The blot is composed of randomly generated circles processed through a gloopy, gooey filter effect, creating organic, blob-like shapes. Each circle is a clickable link to a random corridor. Hovering over a circle on either side lightens it and applies a dark shadow ring, with the effect synchronized on both the left and right mirrored sides. Clicking anywhere on the page outside the circles regenerates a new inkblot.
+  - id: snakes-and-ladders
+    title: Snakes and Ladders
+    created: 2026-03-03 17:11
+    links: dynamic
+    tags: [game]
+    visual_description: >-
+      A lo-fi, interactive rendition of the classic board game. The board consists of a 10x10 grid with snakes and ladders manually placed (not procedurally generated). Players roll dice to move tokens across the board, and the game is over when a player lands on the last square. The SVG snakes and player counters can be clicked to visit a random corridor.
+  - id: gauze
+    title: Gauze
+    created: 2026-03-04 00:08
+    links: dynamic
+    tags: [abstract]
+    visual_description: >-
+      A generative string-art dreamcatcher rendered on a dark background. A large square sits centred on the screen. Random points are generated along one half of an edge, then mirrored across all 8 half-edges to create perfect symmetry. Lines are drawn from every point to every other, producing intricate cobweb-like patterns. Each reload produces a new pattern in a randomly chosen colour palette. Clicking outside the square or pressing any key regenerates the design.
+  - id: brain-in-a-jar
+    title: Brain in a Jar
+    created: 2026-03-06 15:43
+    links: 1
+    tags: [emoji]
+    visual_description: >-
+      A brain emoji in a jar emoji, with bubbles floating around it. The jar is clickable and takes you to a random corridor in the labyrinth.
+  - id: neon-garden
+    title: Neon Garden
+    created: 2026-03-06 16:30
+    links: dynamic
+    tags: [nature, poetry]
+    visual_description: >-
+      A phosphorescent garden of neon flora in a deep black cave. Procedurally generated SVG plants in vivid neon colour palettes fill the screen. Tall stem flowers with four distinct head types (star, dahlia, spiky orb, tulip bell) sway gently and pulse with layered glow effects. Glowing mushroom clusters dot the ground, lotus fans bloom at floor level, and hanging vines drape from the top with animated draw-in paths and luminous tips. Floating spore particles drift upward through ambient glow spots. In the centre a Wordsworth poem is displayed, "—And I have felt a presence that disturbs me with the joy...". Every plant, flower, mushroom, lotus, vine, and the box containing the central poem is a clickable link to a random corridor.
+  - id: 10-print
+    title: 10 PRINT
+    created: 2026-03-07 01:18
+    links: dynamic
+    tags: [maths, major]
+    visual_description: >-
+      A procedurally generated maze rendered in monospace characters (╱ and ╲). The maze is animated with vibrant colours where each connected component has a distinct hue from a broad palette. Hovering over a character highlights its entire component with a glowing effect and dims all other components. Each connected component is a clickable link to a random corridor in the labyrinth. Clicking anywhere outside the maze generates a new pattern.
+  - id: life-gliders
+    title: Life Gliders
+    created: 2026-03-08 10:53
+    links: 9
+    tags: [crt, maths]
+    visual_description: >-
+      A 3x3 grid of Conway's Game of Life gliders rendered as 5x5 cell grids. Each glider cycles through four distinct rotational states at one-second intervals, creating an illusion of continuous rotation and motion. Live cells are white, dead cells are black. Hovering over a glider group highlights it with a subtle background shift and intensifies the glow on live cells. Each glider group is a clickable link to a random corridor in the labyrinth.
+  - id: bart
+    title: Bart
+    created: 2026-03-08 13:18
+    links: 50
+    tags: [images, mobile, pop]
+    visual_description: >-
+      A silly interactive page featuring a PNG of Bart Simpson's head with his signature spiky hair removed. A canvas overlay procedurally generates regular isosceles triangles along the hairline to simulate his hair. A slider underneath lets the user control the number of hair spikes, defaulting to 9 (the original count). The background is sky blue, like the opening credits of The Simpsons. Clicking Bart's head will take you to a random corridor in the labyrinth, depending on the current number of hair spikes.
+  - id: dedicated-follower
+    title: Dedicated Follower
+    created: 2026-03-08 15:12
+    links: 1
+    tags: [images, mobile, pop]
+    visual_description: >-
+      A riff on The Kinks' song "Dedicated Follower of Fashion", specifically the lyric "one week he's in polka dots, the next week he's in stripes." A silhouette of a fashionably dressed man in a fedora and trench coat stands centred on the page. Every other week, the background shows polka dots. On alternating weeks, the background shifts to diagonal stripes instead. Clicking the silhouette takes you to a random corridor in the labyrinth.
+  - id: ugly-bug-ball
+    title: Ugly Bug Ball
+    created: 2026-03-09 12:37
+    links: dynamic
+    tags: [emoji, pop]
+    visual_description: >-
+      A disco-themed riff on the Disney song "Ugly Bug Ball" from the 1963 film "Summer Magic". A spinning disco ball emoji hangs from a string at the top of the page, with coloured cone-shaped light beams sweeping across the scene. The lower portion of the screen is a dance floor made of neon-coloured tiles that pulse between vibrant colour pairs. Bug emojis (🐛, 🐜, 🐝, 🐞, 🦗, 🪲, etc.) dance across the floor with various CSS animations — bouncing, wiggling, hopping, swaying, spinning, and grooving. Some bugs dance solo while others are paired up facing each other in shared containers. Clicking anywhere on the page that isn't a link regenerates all the bugs in new positions. Every bug is a clickable link to a random corridor in the labyrinth.
+  - id: sisqo
+    title: Sisqo
+    created: 2026-03-10 18:00
+    links: 17
+    tags: [emoji, pop]
+    visual_description: >-
+      A riff on the lyrics to "The Thong Song" by Sisqo. The background is a still from the music video, and the lyrics are displayed in a large font in the centre of the page. The nouns are replaced by emojis, "dumps like a 🚚", "baby move your 🍑", etc. Each emoji is a link to a random corridor in the labyrinth.
+  - id: rotational-imagery
+    title: Rotational Imagery
+    created: 2026-03-11 13:10
+    links: dynamic
+    tags: [abstract]
+    visual_description: >-
+      A page that generates black and white static kaleidoscopes of multiple primitive shapes with rotational symmetry. Clicking the background regenerates the kaleidoscope, and clicking the image takes you to a random corridor.
+  - id: seabed
+    title: Seabed
+    created: 2026-03-12 16:04
+    links: dynamic
+    tags: [crt, nature]
+    visual_description: >-
+      An underwater sandy shore teeming with procedurally generated sea life (starfish, anemones, sea urchins, jellyfish, and seaweed) all gently swaying and pulsing in deep ocean blues. Bubbles periodically rise from the depths. Hovering any creature makes it glow with a bioluminescent shimmer, and every creature is a clickable link into the labyrinth.
+  - id: video-call
+    title: Video Call
+    created: 2026-03-13 16:19
+    links: dynamic
+    tags: [emoji, major, tech]
+    visual_description: >-
+      A lo-fi simulation of a teleconference call (Zoom/Google Meet style). The page features a 3x3 grid of nine webcam views, each showing an animated cartoon emoji character in front of a desk. Participants have randomly generated names (e.g. "Julie's iPad", "David Jones") and a hidden participation level that dictates how often they speak. A real-time transcript panel on the right captures the conversation, which consists entirely of variations of the word "blah". While a participant is speaking, a flashing microphone icon appears on their video cell, and their speech appears in the transcript as lowercase "draft" text being typed word-by-word. Once they finish, the text turns white and is reformatted with proper capitalization and punctuation. The interface includes a header with meeting info and a footer toolbar with buttons for mute, video, and ending the call. Every video cell and toolbar button is a link into the labyrinth.
+  - id: float-and-sting
+    title: Float and Sting
+    created: 2026-03-14 01:22
+    links: dynamic
+    tags: [emoji, pop, secret]
+    visual_description: >-
+      A perspective view from inside a boxing ring, riffing on Muhammad Ali's famous phrase "float like a butterfly, sting like a bee". In the ring, a 🦋 butterfly and a 🐝 bee face off. They bob and sway in idle breathing motions, then at randomised intervals charge toward each other for brief clashing exchanges before retreating. In the background, rows of emoji spectators fill tiered stands, each bouncing and swaying with excitement. Every spectator and both fighters are clickable links into the labyrinth.
+  - id: handshake-simulator
+    title: Handshake Simulator
+    created: 2026-03-14 23:06
+    links: dynamic
+    tags: [emoji, game, humour, major, secret]
+    visual_description: >-
+      A "Flappy Bird" style game with a corporate office theme. The player controls a "floppy" hand on a long noodle arm, navigating through a treacherous workspace to reach a high-stakes client meeting. The goal is to avoid colliding with the floor or "distraction" hands belonging to random colleagues. The environment is a lo-fi office with ceiling tiles, windows, framed bar charts, and potted plants. Successful navigation results in a triumphant handshake win animation, while failure leads to various "fired" game-over screens. Both the player and client arms are rendered with procedurally animated, wobbling SVG paths. Before the game starts, and when the game ends, the user can click the "Exit" button to navigate to a different labyrinth page.
+  - id: chandelier
+    title: Chandelier
+    created: 2026-03-15 16:22
+    links: dynamic
+    tags: [skeuomorphic]
+    visual_description: >-
+      A procedurally generated chandelier rendered in SVG, hanging from the top of the page against a dark background. The chandelier features 3 to 6 tiers of symmetrically mirrored arms with candle holders and flickering flames, swooping crystal garlands between arm tips, dangling crystals (teardrops, prisms, beads, droplets), and a bottom finial. The entire structure is perfectly symmetrical left-to-right. Each refresh or click on the background generates a new chandelier with different tiers, arm styles (curved, scrolled, straight), and decorations. One of five warm metallic colour palettes (gold, silver, bronze, pewter, antique gold) is chosen at random. Every part of the chandelier - the rose, crown, hubs, candles, crystals, garlands, and finial - is a clickable link to a random corridor in the labyrinth.
+  - id: campfire
+    title: Campfire
+    created: 2026-03-16 00:31
+    links: 10
+    tags: [emoji, major, mobile, nature]
+    visual_description: >-
+      A nighttime campfire scene in a deep mountainous wood. The bottom third of the page shows a ground plane of dark earth/grass. In the centre, a campfire is built from emoji logs (🪵) with procedural CSS flame shapes and sparks (tiny orange/yellow dots) floating into the sky. Around the campfire sit emoji people (🧑, 👩, 👨, etc.) in a symmetric semicircle, each gently animating to simulate breathing. Above the tree and mountain line, in the top two thirds of the page, the sky is black with faint stars and the moon showing the emoji of the current lunar phase. The moon, fire, and each person is a link. The overall mood is warm and and contemplative.
+  - id: moire-stars
+    title: Moiré Stars
+    created: 2026-03-18 16:33
+    links: dynamic
+    tags: [abstract, mobile]
+    visual_description: >-
+      Two overlapping SVG layers of radiating lines rotate slowly in opposite directions against a dark background, producing moiré interference patterns. Each render generates a random colour palette with two contrasting hues. Pressing any key regenerates the pattern with new colours. The entire background is a single clickable link into the labyrinth.
+  - id: moire-lines
+    title: Moiré Lines
+    created: 2026-03-18 16:34
+    links: dynamic
+    tags: [abstract]
+    visual_description: >-
+      Three layers of thin coloured lines slowly counter-rotate and drift across a near-black background, producing hypnotic moiré interference patterns. Each frame partially fades the previous, leaving ghostly trailing echoes of past positions. A randomly chosen palette of three contrasting hues colours the line sets. Scattered across the page in a staggered grid are small glowing nodes that pulse in and out of visibility in sinusoidal waves. Hovering a node makes it bloom bright and scale up. Every node is a clickable link to a random corridor in the labyrinth.
+  - id: moire-circles
+    title: Moiré Circles
+    created: 2026-03-18 16:36
+    links: dynamic
+    tags: [abstract, mobile]
+    visual_description: >-
+      An abstract canvas piece featuring 3 to 5 "emitters" scattered across a black void, each radiating concentric rings in a distinct hue (cyan, magenta, amber, green, blue, red, or yellow chosen at random). The rings pulse and breathe at different frequencies while the emitters slowly drift in Lissajous-like paths, causing overlapping circles to phase in and out of alignment and produce organic interference patterns. Every other ring is drawn thicker and brighter. Clicking the background leads to another page in the labyrinth.
+  - id: zalgo
+    title: Zalgo
+    created: 2026-03-19 18:29
+    links: 5
+    tags: [crt, mobile, unicode]
+    visual_description: >-
+      The word "Zalgo" displayed large and centred on a black background. Each letter continuously accumulates random Unicode combining diacritical marks - stacking above, below, and through the characters in the style of the classic Zalgo text meme. Individual letters grow increasingly corrupted at random intervals, sprouting new glyphs one by one, until they suddenly reset to their bare form and the corruption begins again. The page uses a jittering fractal noise grain overlay, and periodic glitch bursts of horizontal colour-shifted slices that flash across the screen. Each letter is a clickable link to a random corridor in the labyrinth.
+  - id: gravity-well
+    title: Gravity Well
+    created: 2026-03-22 17:10
+    links: 10
+    tags: [abstract, crt]
+    visual_description: >-
+      An abstract particle simulation on a black canvas. Ten black hole gravity wells drift slowly across the screen, attracting glowing particles that zoom about leaving coloured trails. Particles are consumed when they reach a well's core and respawn from the screen edges. Every eight seconds the wells rearrange to new positions, reshuffling the orbital patterns. Each gravity well core is a clickable link to a random corridor in the labyrinth.
+  - id: pride-and-prejudice
+    title: Pride and Prejudice
+    created: 2026-03-23 17:03
+    links: dynamic
+    tags: [images, major, mobile, text]
+    visual_description: >-
+      An elegant ebook-style page presenting Markov-generated text derived from Jane Austen's "Pride and Prejudice". At the top, a random pen-and-ink chapter header illustration from the 1894 George Allen edition is displayed. Below it, a "Chapter XIV"-style heading with a randomly chosen Roman numeral, flanked by small ornamental dividers. The body text is set in large justified serif with a decorative drop cap on the first letter. Each page load selects a random illustration, chapter number, and Markov paragraph. Clicking "Next" and "Back" buttons moves to a different chapter of randomised text. Clicking the image links elsewhere in the labyrinth.
+  - id: butterfly
+    title: Butterfly
+    created: 2026-03-26 15:19
+    links: 1
+    tags: [mobile, nature]
+    visual_description: >-
+      A canvas element rendering of a butterfly, with a head, an antenna, a body and two wings. The colour palette is randomly generated using real butterflies as a guide. Clicking anywhere on the page links to a random corridor in the labyrinth.
+  - id: fault-lines
+    title: Fault Lines
+    created: 2026-03-27 14:16
+    links: dynamic
+    tags: [abstract, crt, mobile]
+    visual_description: >-
+      A dark, near-black surface that fractures on interaction. Clicking or pressing any key sends branching, glowing cracks propagating outward from the point of impact. The cracks fork out like a realistic fault line in a mirror or glass, each fracture uses a random glow colour (magma orange, ultraviolet purple, electric cyan, amber, or pale yellow). Invisible shard polygons are placed at impact points, crack endpoints, and branch junctions; hovering a shard reveals its glowing outline and clicking it takes you to a random corridor in the labyrinth.
+  - id: travis
+    title: Travis
+    created: 2026-03-28 22:18
+    links: 1
+    tags: [emoji, mobile, pop]
+    visual_description: >-
+      A melancholic landscape diorama inspired by the Travis song "Why Does It Always Rain On Me?". A lone 🧍 person stands on a barren, featureless ground beneath a heavy overcast sky. Directly above the person, a ☁️ cloud perpetually follows them, with rain particles falling from the cloud and splashing on impact. The user can click anywhere on the ground to make the person walk to that location, or use arrow keys, WASD, or HJKL for direct control. The cloud moves in lockstep with the person, reinforcing the feeling that the rain targets only them. A CSS perspective effect scales the person and cloud larger when near the bottom of the screen and smaller toward the horizon, with movement speed matching the perspective. Hovering over the person and cloud produces a subtle glow, and clicking them links to a random corridor in the labyrinth.
+  - id: wanted-poster
+    title: Wanted Poster
+    created: 2026-03-29 18:39
+    links: 6
+    tags: [emoji, humour, major, mobile, secret, text, vendor]
+    visual_description: >-
+      A Wild West wanted poster pinned to a wooden plank background. The poster is a yellowed, aged-paper rectangle with a fractal noise texture, torn jagged edges via CSS clip-path and two nails holding it up at the top. At the top: "WANTED" in huge slab-serif type (Rye font). Below that: "DEAD OR ALIVE" in smaller text flanked by decorative horizontal rules. In the centre: a framed random emoji portrait. Below the portrait: a ridiculous crime description randomised from a pool of 20 absurd Wild West offences (e.g. "Grand theft cactus in the first degree", "Smuggling beans across state lines"). At the bottom: "REWARD: $x" where x is a random amount from $1,000 to $10,000. Every line of text - the title, subtitle, portrait, crime label, crime description, and reward - is a clickable link to a random corridor in the labyrinth.
+  - id: pendula
+    title: Pendula
+    created: 2026-03-30 14:12
+    links: 1
+    tags: [abstract, crt, mobile]
+    visual_description: >-
+      A pendulum wave demonstration on a dark background. A row of pendulums hangs from a beam, each with a slightly longer period than the last. As they swing, they drift in and out of phase, producing emergent wave patterns from simple motion. Each bob glows with a soft radial halo and leaves faint colour trails. The number of pendulums scales dynamically with screen width. Pressing any key toggles the visibility of the strings and top beam, leaving just the floating bobs tracing waves. The entire background is a single clickable link into the labyrinth.
+  - id: hourglass
+    title: Hourglass
+    created: 2026-04-01 17:19
+    links: 1
+    tags: [mobile, skeuomorphic]
+    visual_description: >-
+      A large SVG hourglass centred on the screen. Sand particles (tiny CSS squares) fall one by one from the upper chamber through the neck into the lower chamber, accumulating as the lower level rises. The upper chamber slowly empties while the lower fills. When all sand has fallen, the hourglass flips with a rotation animation and starts again. The whole structure is a single clickable link to a random corridor, glowing gold on hover. The background is dark mahogany. The mood is meditative and patient.
+  - id: cool-s
+    title: Cool S
+    created: 2026-04-02 16:23
+    links: 1
+    tags: [images, mobile]
+    visual_description: >-
+      A graffiti-themed page riffing on the classic "Cool S" glyph that every schoolchild has drawn on a desk or notebook. A large white "Cool S" SVG sits dead centre against a brick-wall background. Hovering over the central S causes smaller copies to spawn at random positions, sizes, rotations, and neon colours across the entire page, building up a layered graffiti effect. Moving the mouse away triggers all spawned copies to fade out smoothly before being removed. Clicking the S takes you to a random corridor in the labyrinth.
+  - id: penfell
+    title: Penfell
+    created: 2026-04-03 17:21
+    links: dynamic
+    tags: [abstract, crt, mobile]
+    visual_description: >-
+      This was supposed to be an implementation of penrose tiling, but I couldn't get it working correctly. However, I liked the glitched effect, so I've left it as is. And since I'm so fond of bad puns, instead of "penrose" it's "penfell". Each shape is a clickable link to a random corridor in the labyrinth.
+  - id: penwilt
+    title: Penwilt
+    created: 2026-04-04 15:36
+    links: dynamic
+    tags: [abstract, crt, mobile]
+    visual_description: >-
+      Another botched implementation of penrose tiling. This one is even worse, so the pen rose has pen wilted. Each shape is a clickable link to a random corridor in the labyrinth.
+  - id: easter-eggs
+    title: Easter Eggs
+    created: 2026-04-05 14:58
+    links: dynamic
+    tags: [mobile]
+    visual_description: >-
+      A festive field of randomised Easter eggs scrolling diagonally toward the top-right of the screen. Each egg is an SVG ellipse decorated with one of 20 randomly chosen patterns including zigzag bands, dot rings, the "Cool S" schoolyard glyph, diagonal stripes, concentric ovals, crosses, diamonds, wavy lines, starbursts, polka dots, chevrons, spirals, flowers, grids, hearts, five-pointed stars, criss-cross hatching, scalloped bands, and dotted rings. Shell colours are drawn from a bright Easter palette of pinks, purples, cyans, greens, yellows, and oranges against a deep purple background. Groups spawn off-screen from the bottom-left, drift steadily toward the top-right, and are destroyed when they exit. Every egg is a clickable link to a random corridor in the labyrinth.
+  - id: plasma-ball
+    title: Plasma Ball
+    created: 2026-04-06 12:44
+    links: 1
+    tags: [mobile]
+    visual_description: >-
+      A glowing orb on a dark void, inspired by a plasma ball. Inside, swirling nebula particles orbit a pulsing luminous core in violet and magenta hues. When the mouse approaches, jagged purple-white lightning arcs crackle from the globe's circumference toward the cursor. The arcs fade in gradually from a distance and intensify as the mouse gets closer. Moving the cursor toward the centre of the orb causes the arcs to spread across a wider arc of the circumference, until at the dead centre they radiate from the entire edge like a plasma ball. Clicking the orb takes you to a random corridor in the labyrinth.
+  - id: square-pulse
+    title: Square Pulse
+    created: 2026-04-07 11:13
+    links: dynamic
+    tags: [abstract, crt, mobile]
+    visual_description: >-
+      An abstract grid of concentric rectangles on a black void, each cell pulsing smaller then larger. The grid dimensions adapt to the viewport so every cell is approximately square. Occasional horizontal glitch tears rip across the screen, displacing pixel bands. Pressing any key shifts the entire colour palette. Every cell in the grid is a clickable link to a random corridor in the labyrinth.
+  - id: fuzzy-sin
+    title: Fuzzy Sin
+    created: 2026-04-08 19:00
+    links: 7
+    tags: [abstract, crt, mobile]
+    visual_description: >-
+      Seven coloured sine waves drift horizontally across a dark void, each slowly accumulating entropy. Their signals grow noisier, ghost echoes trail behind, and occasional glitch tears rip across the screen. The viewport is divided into seven invisible horizontal bars, one per wave. Hovering a bar causes its associated wave to glow brighter, thicken, and pulse with a coloured shadow. Each bar is a clickable link to a random corridor in the labyrinth. Pressing any key shifts the entire colour palette and resets the signal decay.
+  - id: triangular-sweep
+    title: Triangular Sweep
+    created: 2026-04-09 12:55
+    links: dynamic
+    tags: [abstract, crt, mobile]
+    visual_description: >-
+      A dense tessellation of black and white triangles filling the viewport. A vertical "tide" sweeps steadily from left to right, inverting every triangle it passes; white becomes black and black becomes white. After the sweep completes and a brief pause, a second sweep rolls left to right again, restoring each triangle to its original colour. The cycle then repeats endlessly, producing a hypnotic, rhythmic inversion effect. Hovering any triangle makes it scale up. Every triangle is a clickable link to a random corridor in the labyrinth.
+  - id: diamond-shift
+    title: Diamond Shift
+    created: 2026-04-10 11:06
+    links: dynamic
+    tags: [abstract, crt, mobile]
+    visual_description: >-
+      A grid of black and white diamonds on a dark background, arranged in a checkerboard pattern. Every two seconds, the rows shift horizontally with each diamond wrapping around to the opposite side. Even rows slide right, odd rows slide left. The grid dimensions adapt responsively to the viewport so the diamonds always fill the available space. Hovering over a diamond causes it to scale up and glow with a white drop shadow. Every diamond in the grid is a clickable link to a random corridor in the labyrinth.
+  - id: expanding-hoops
+    title: Expanding Hoops
+    created: 2026-04-11 12:18
+    links: dynamic
+    tags: [abstract, crt, mobile]
+    visual_description: >-
+      A dense grid of small squares on a black background, animated with an expanding circular wave pattern reminiscent of water rippling outwards. Bright white rings radiate outward from the centre of the grid in a continuous sinusoidal pulse, fading to black between each crest. The grid is centred within the viewport with equal padding on all sides. Hovering over any square causes it to glow white. Every square in the grid is a clickable link to a random corridor in the labyrinth.
+  - id: spiral-crosshatch
+    title: Spiral Crosshatch
+    created: 2026-04-12 15:38
+    links: dynamic
+    tags: [abstract, mobile]
+    visual_description: >-
+      A grid of crosshatched cells on a black background, each cell containing two diagonal lines forming an X. A spiralling animation pulses the opacity of each cell based on its angle and distance from the centre, creating a hypnotic rotating spiral pattern. The grid responsively scales to fill the viewport. Hovering over a cell inverts it to a white background with black crosshatch lines and scales it up slightly. Every cell in the grid is a clickable link to a random corridor in the labyrinth.
+  - id: spiral-squares
+    title: Spiral Squares
+    created: 2026-04-12 15:38
+    links: dynamic
+    tags: [abstract, mobile]
+    visual_description: >-
+      A grid of solid white squares on a black background. A spiralling animation pulses the opacity of each square based on its angle and distance from the centre, creating a hypnotic rotating spiral pattern. The grid responsively scales to fill the viewport. Hovering over a square inverts it to a white background with a black square and scales it up slightly. Every square in the grid is a clickable link to a random corridor in the labyrinth.
+  - id: lucy
+    title: Lucy
+    created: 2026-04-13 15:11
+    links: 2
+    tags: [crt, major, mobile, nature, poetry]
+    visual_description: >-
+      A twilight landscape inspired by Wordsworth's Lucy poems. The sky is deep indigo fading to near-black, with a single bright star in the upper right radiating soft rays and gently pulsing. Below a subtly undulating horizon line, rolling hills recede in layers of dark green. A meandering stream stretches across the lower half with a continuous shimmer animation from left to right. Grass blades in various green shades sway gently in the wind. Mossy, lichen-covered rocks are scattered along the stream, with a main cluster toward the bottom left. Nestled beside this cluster is a single violet flower rendered in SVG. The star and the violet cluster each glow softly on hover and are the two clickable links into the labyrinth.
+  - id: not-waving
+    title: Not Waving
+    created: 2026-04-14 16:19
+    links: 1
+    tags: [mobile, nature, poetry]
+    visual_description: >-
+      A sombre, atmospheric scene inspired by Stevie Smith's poem "Not Waving but Drowning". A dark gradient fades from slate grey into deep ocean blue. Seven procedurally generated wave layers undulate gently across the lower two-thirds of the page, each a translucent wash of dark blue-grey drifting with its own rhythm. Near the bottom centre, a lone stick-figure hand rises from beneath the waves, waving and bobbing in a slow, desperate loop. A single line from the poem fades in over the water. The hand is the sole clickable link to a random corridor in the labyrinth. A film-grain overlay completes the lo-fi aesthetic.
+  - id: coffee-spoons
+    title: Coffee Spoons
+    created: 2026-04-15 13:30
+    links: dynamic
+    tags: [crt, mobile, poetry]
+    visual_description: >-
+      A meditative page inspired by T.S. Eliot's "The Love Song of J. Alfred Prufrock" and the line "I have measured out my life with coffee spoons." On a dark coffee-brown background, SVG spoons drop one by one from the top of the screen and pile up at the bottom centre in neat rows of eight. Each spoon is a warm metallic hue with a subtle gleaming animation. As each spoon falls, a line from the poem fades in and out at the centre of the screen. Once the entire poem has been shown, the spoons continue to fall in silence. Every spoon is a clickable link to a random corridor in the labyrinth.
+  - id: percolation
+    title: Percolation
+    created: 2026-04-16 16:55
+    links: 1
+    tags: [crt, maths, mobile]
+    visual_description: >-
+      A grid of small squares filling the screen, initially all dark/blocked. On load, squares are randomly "activated" one by one, gaining a bright colour, at a steady rate. As clusters of activated squares connect, they are coloured the same hue to show connected components (like a percolation simulation). When a cluster spans from the top edge to the bottom edge of the grid, it flashes - percolation has been achieved! The simulation then resets and runs again. Clicking anywhere on the grid takes you to a random corridor in the labyrinth.
+  - id: signal-loss
+    title: Signal Loss
+    created: 2026-04-18 22:49
+    links: dynamic
+    tags: [crt, mobile, tech]
+    visual_description: >-
+      A simulation of a TV broadcast losing its signal. Seven SMPTE colour bars fill the screen, cycling through a four-phase decay loop: the bars hold steady with a subtle colour drift, then begin to melt and desaturate as pixelated static noise bleeds in, until the signal is fully lost and "NO SIGNAL" pulses on a field of snow. The broadcast then reforms and the cycle repeats. A rolling black band drifts continuously down the screen, and horizontal glitch tears rip across at random intervals with occasional colour-shifted slices. A rectangular TV-bezel vignette, CRT scanline overlay, and RGB sub-pixel effect complete the dead-television aesthetic. Each of the seven colour bars is a clickable link to a random corridor in the labyrinth, reassigned every cycle.
+  - id: police-line
+    title: Police Line
+    created: 2026-04-19 16:39
+    links: dynamic
+    tags: [crt, images, mobile]
+    visual_description: >-
+      A crime-scene themed page featuring a chaotic scattering of "POLICE LINE DO NOT CROSS" tape banners. Each banner is a long, thin strip stretching beyond the screen edges, placed at random angles across the page. The tapes come in a variety of official-looking designs: classic yellow-and-black, UK blue-and-white, red-and-white, reflective silver, fluorescent orange, hazmat neon green, Battenburg checkerboard, and more. Behind the tapes, a chalk body outline on dark tarmac serves as the background. Clicking any tape banner takes the user to a random corridor. Clicking the background or pressing a key regenerates the layout with new random positions and designs.
+  - id: growing-squares
+    title: Growing Squares
+    created: 2026-04-20 20:09
+    links: dynamic
+    tags: [abstract, crt, mobile]
+    visual_description: >-
+      A minimalist geometric page of concentric squares expanding endlessly from the centre of the screen. The squares are rendered as thin outlines on a black background, alternating between bright white and dark grey borders to create a hypnotic pulse as they grow outward and fade away at the edges. New squares continually spawn at the centre while older ones drift beyond the viewport. Every square outline is a clickable link to a random corridor in the labyrinth.
+  - id: dead-channel
+    title: Dead Channel
+    created: 2026-04-21 14:33
+    links: dynamic
+    tags: [crt, mobile]
+    visual_description: >-
+      A field of tiny monochrome rectangles fills the screen like a detuned television. A broad interference band sweeps from left to right, causing nearby cells to flicker between pale grey and dark charcoal while the rest of the grid jitters more subtly. Hovering over a tile makes it flare brighter and enlarge slightly. Every cell is a clickable link to a random corridor.
+  - id: diagonal-circles
+    title: Diagonal Circles
+    created: 2026-04-22 16:33
+    links: dynamic
+    tags: [abstract, crt, mobile, secret]
+    visual_description: >-
+      A tightly packed field of monochrome circles fills the screen against a black background. The circles are arranged in diagonal bands that slowly march across the grid, alternating between bright white and near-black to create a drifting optical pattern. Hovering over any circle makes it enlarge and glow softly. Every circle is a clickable link to a random corridor in the labyrinth.
+  - id: paternoster
+    title: Paternoster
+    created: 2026-04-23 15:53
+    links: dynamic
+    tags: [abstract, crt, mobile]
+    visual_description: >-
+      A grid of alternating light and dark squares filling the viewport, arranged in columns that scroll continuously like a paternoster lift. Even columns move upward while odd columns move downward, creating a mesmerising mechanical rhythm. Squares wrap seamlessly from top to bottom and vice versa. Hovering over a square makes it glow and enlarge slightly. Every square is a clickable link to a random corridor in the labyrinth.
+  - id: cuckoo-clock
+    title: Cuckoo Clock
+    created: 2026-04-24 17:59
+    links: 1
+    tags: [mobile, skeuomorphic, secret]
+    visual_description: >-
+      A front-on view of an ornate cuckoo clock rendered entirely in CSS. The clock body is a chalet-style wooden house shape with decorative elements in gold trim on dark wood. The clock face shows the real current time with moving hour and minute hands, marked by Roman numerals. Every minute on the minute mark, a small door above the clock face swings open and a bird emoji (🐦) pops out, bobs twice, then retreats and the door closes. A brass pendulum swings continuously below the body with a smooth CSS animation. The background is dark wallpaper with a subtle damask repeating pattern. Clicking anywhere on the entire clock navigates to a random corridor.
+  - id: rainbow-drops
+    title: Rainbow Drops
+    created: 2026-04-25 16:25
+    links: dynamic
+    tags: [abstract, crt, mobile]
+    visual_description: >-
+      A cascade of falling rain rendered on a black canvas, but with each vertical column tinted a different hue across the full rainbow spectrum from left to right. Drops are drawn as soft gradient streaks that fade from transparent to fully saturated at the leading tip, leaving faint trails as they descend at varying speeds and lengths. An invisible grid of vertical link strips overlays the entire page, with each column acting as a clickable link to a random corridor in the labyrinth; hovering a column reveals a faint white wash.
+  - id: kaleidoscope
+    title: Kaleidoscope
+    created: 2026-04-26 10:26
+    links: 1
+    tags: [abstract, mobile]
+    visual_description: >-
+      A twelve-segment kaleidoscope rendered on a full-screen canvas against a black void. A pool of drifting shapes - filled circles, stroked arcs, and rotating line segments - moves slowly within a single pie-slice wedge, then is mirrored and rotated through the segments to produce a continuously evolving six-fold symmetrical pattern. Each shape cycles its hue over time and leaves faint trails thanks to a low-opacity black overlay redrawn each frame, giving the whole composition a soft, glowing, slowly shifting feel. Clicking anywhere on the page takes you to a random corridor in the labyrinth.
+  - id: stained-glass
+    title: Stained Glass
+    created: 2026-04-27 13:22
+    links: dynamic
+    tags: [abstract, mobile]
+    visual_description: >-
+      A circular stained-glass rose window rendered in SVG against a deep, candle-lit radial gradient background. A pale central pane is surrounded by four concentric rings of jewel-toned panes (reds, blues, greens, ambers, purples, and teals), each ring divided into progressively more segments and slightly rotated for a rosette effect. Dark iron leading outlines every pane and ring, and a warm drop-shadow glow surrounds the whole window. Hovering a pane brightens and saturates it, as if light were passing through. Pressing any key regenerates the window with a fresh random colour arrangement. Every pane, including the central circle, is a clickable link to a random corridor in the labyrinth.
+  - id: shattered-glass
+    title: Shattered Glass
+    created: 2026-04-28 14:26
+    links: dynamic
+    tags: [abstract, mobile]
+    visual_description: >-
+      A broken mirror mandala rendered in SVG against a deep blue-black radial gradient background, inspired by (but not really representing) Tennyson's "The Lady of Shalott" and the line "the mirror crack'd from side to side". Three concentric rings of jagged polygonal shards in cool steely blues and greys radiate outward from a dark central core circled by a thin pale stroke. Each shard is generated procedurally with slightly randomised vertices, fill colour, and opacity so every render is unique. Hovering a shard scales it up and brightens it, as if light were catching a fragment. Clicking the background or pressing any key shatters the mirror anew with a fresh random arrangement. Every shard is a clickable link to a random corridor in the labyrinth.
+  - id: cascade-bars
+    title: Cascade Bars
+    created: 2026-04-29 13:15
+    links: dynamic
+    tags: [abstract, crt, mobile]
+    visual_description: >-
+      A full-screen stack of horizontal black bars fills the page like a bank of metal shutters or blinds, on a black background. A bright white highlight travels downward in a steady cascade, causing each bar to flash on in sequence before the wave begins again. Hovering over a bar gives it a soft glow. Every bar is a clickable link to a random corridor in the labyrinth.
+  - id: chequered-pulse
+    title: Chequered Pulse
+    created: 2026-04-30 16:34
+    links: dynamic
+    tags: [abstract, crt, mobile]
+    visual_description: >-
+      A full-screen checkerboard of monochrome squares fills the viewport on a near-black background. The tiles pulse in alternating phases, with white squares swelling as the dark grey ones shrink, and the rhythm ripples outward from the centre to create a soft wave across the grid. Hovering over any square makes it glow and brighten. Every tile is a clickable link to a random corridor in the labyrinth.
+  - id: weather-map
+    title: Weather Map
+    created: 2026-05-01 11:11
+    links: dynamic
+    tags: [emoji, images, map, mobile, vendor]
+    visual_description: >-
+      An outline map of The British Isles sits on a flat blue sea, sprinkled with weather-emoji markers driven by live data from the open-meteo API. A small rounded toggle button in the top-left of the map flips between two views: a "settlements" view that places one emoji per major city and town, and a "grid" view that lays an evenly-spaced lattice of weather emojis over the whole map for a more uniform regional picture. Hovering an emoji highlights it with a soft white drop-shadow and pops up a small custom tooltip showing the weather conditions, temperature, humidity and wind, along with the settlement name in the cities view. Every emoji is a clickable link to a random corridor in the labyrinth.
+  - id: cloud-watching
+    title: Cloud Watching
+    created: 2026-05-02 17:40
+    links: dynamic
+    tags: [mobile, nature]
+    visual_description: >-
+      A perspective looking at a clear blue sky. The background is a gentle blue gradient from deep blue at the top to pale blue at the bottom. Large, soft, white CSS clouds built from overlapping border-radius: 50% divs drift slowly across the screen at different speeds and sizes, creating a parallax depth effect across three layers. Distant clouds are smaller, slower, and more transparent; nearby clouds are larger, faster, and more opaque. Hovering over a cloud makes it slightly more opaque. Every cloud is a clickable link to a random corridor in the labyrinth. The mood is peaceful and lazy.
+  - id: film-strip
+    title: Film Strip
+    created: 2026-05-03 16:43
+    links: dynamic
+    tags: [mobile, tech]
+    visual_description: >-
+      A vertical filmstrip scrolling slowly upward through the centre of the screen. The strip is a tall column with sprocket holes along both edges. Each "frame" on the strip is a square containing a simple procedurally generated abstract scene, random arrangements of coloured CSS shapes (circles, rectangles, triangles) on a white background, like avant-garde film stills. A new frame scrolls into view every few seconds. Each frame is a clickable link to a random corridor. The background on either side of the strip is dark theatre-black. A projector-flicker effect (periodic slight brightness variation) overlays the whole page.
+  - id: spinners
+    title: Spinners
+    created: 2026-05-04 18:10
+    links: dynamic
+    tags: [mobile, tech]
+    visual_description: >-
+      A pale grey field packed edge-to-edge with familiar loading indicators: dotted throbbers, segmented rings, twin arcs, and little orbiting dots in browser blues and slate greys. Every spinner turns endlessly at its own slightly different speed, creating a page that feels like dozens of websites all waiting forever. Hovering over any spinner brightens it gently. Every spinner is a clickable link to a random corridor in the labyrinth.
+  - id: dogs-got-no
+    title: Dog's Got No
+    created: 2026-05-05 13:16
+    links: dynamic
+    tags: [images, humour, mobile]
+    visual_description: >-
+      A joke browser riffing on the classic "My dog's got no nose. How does he smell? Terrible!" gag. A rounded rectangle sits centred on a soft pastel page, using a silly illustration of a dog as its background. Inside the rectangle, one joke at a time is shown on a translucent dashed-border card set in Comic Sans. The joke here is that for each body part, we use incorrect alternative definitions from Wordnik.com. e.g. "My dog's got no *head*. How does he *read data from and write data to the disk or tape*?". Clicking each joke links to a random corridor in the labyrinth.
+  - id: needlework
+    title: Needlework
+    created: 2026-05-06 11:10
+    links: dynamic
+    tags: [abstract, mobile, unicode]
+    visual_description: >-
+      A table of x and o characters, designed to resemble a homemade cross-stitch sampler. Most stitches are plain red and green, but a selection of blue loop-stitches are hyperlinks elsewhere.
+  - id: spartan-tartan
+    title: Spartan Tartan
+    created: 2026-05-07 15:44
+    links: dynamic
+    tags: [abstract, crt, mobile]
+    visual_description: >-
+      A full-screen tartan weave drawn on a black canvas, made from 15 horizontal and 15 vertical threads of varying widths, hues and opacities that cross at bright glowing intersections. The horizontal threads cycle through one half of the colour wheel and the vertical threads through the other, so the crossings bloom into rich rainbow knots against the dark background. The black rectangles between the threads form an irregular patchwork grid where each cell is a clickable link to a random corridor in the labyrinth, glowing with a soft white border on hover.
+  - id: orbiting-arcs
+    title: Orbiting Arcs
+    created: 2026-05-08 16:52
+    links: 15
+    tags: [abstract, crt, mobile]
+    visual_description: >-
+      Concentric arcs of varying radii spin around a common centre on a black canvas, each rendered in a distinct hue with randomised sweep, speed, and line width. Alternating arcs rotate in opposite directions, creating a hypnotic, restless orbital pattern. The page is divided into concentric ring bands, and each ring is a clickable link to a different random corridor in the labyrinth. Hovering anywhere within a ring's band emboldens that ring's arc with a thicker stroke and a glowing drop-shadow.
+  - id: orbiting-orbs
+    title: Orbiting Orbs
+    created: 2026-05-09 07:46
+    links: 9
+    tags: [abstract, crt, mobile]
+    visual_description: >-
+      Concentric rings of glowing dots orbit around a common centre on a black canvas, each ring tinted in a distinct hue and rotating at its own speed and direction. Alternating rings rotate in opposite directions, creating a layered, restless orbital pattern. The page is divided into concentric ring bands, and each ring is a clickable link to a different random corridor in the labyrinth. Hovering anywhere within a ring's band emboldens every dot in that ring, scaling them up and intensifying their neon glow.
+  - id: plasma-grid
+    title: Plasma grid
+    created: 2026-05-11 11:58
+    links: 1296
+    tags: [abstract, crt, mobile]
+    visual_description: >-
+      A 36x36 square grid of pixels against a black background. Each pixel's colour is derived from a sum of sine and cosine waves of its coordinates and a slowly advancing time value, producing a continuously shifting plasma field of incandescent hues. Rather than repainting every pixel each tick, only a random ~60% subset is updated per frame, giving the field an organic shimmer instead of a uniform sweep. A scanline overlay sits above the grid for a lo-fi monitor feel. Hovering any pixel scales it up with a neon glow. Every pixel is a clickable link to a random corridor in the labyrinth.
+  - id: paper-planes
+    title: Paper Planes
+    created: 2026-05-12 16:26
+    links: dynamic
+    tags: [mobile, skeuomorphic]
+    visual_description: >-
+      A background styled like a ruled school exercise book, with blue horizontal lines and a red left margin. Paper planes rendered as simple white CSS triangles with fold lines launch from random screen edges and glide across with gentle arcing trajectories, rotating slightly as they fly. Some planes wobble. They pile up or drift off-screen. Every plane is a clickable link to a random corridor. Clicking anywhere on the background launches an additional plane from that position.
+  - id: sine-bars
+    title: Sine Bars
+    created: 2026-05-13 05:35
+    links: dynamic
+    tags: [abstract, mobile]
+    visual_description: >-
+      A full-screen stack of alternating black and white horizontal bars on a black background, each bar's height oscillating in a sinusoidal wave that travels down the screen. The bars continuously breathe and swell out of phase with one another, creating a hypnotic rolling pattern. Every bar is a clickable link to a random corridor in the labyrinth, with hover inverting its colours.
+  - id: square-vacillation
+    title: Square Vacillation
+    created: 2026-05-14 15:23
+    links: dynamic
+    tags: [abstract, crt, mobile]
+    visual_description: >-
+      A full-screen field of small square tiles laid out in a regular grid. A thin grey divider line slowly sweeps back and forth across the page like a pendulum. On wide landscape screens the line swings horizontally from left to right and back again; on narrow portrait screens (such as a phone held upright) it swings vertically up and down instead. The field continuously vacillates between light and dark squares as the line passes over it. Hovering any square scales it up with a soft white glow. Every square is a clickable link to a random corridor in the labyrinth.
+  - id: asteroids
+    title: Asteroids
+    created: 2026-05-15 15:18
+    links: 99
+    tags: [abstract, mobile]
+    visual_description: >-
+      A swarm of 99 irregular polygonal asteroids drift and slowly rotate across an off-white background, wrapping seamlessly around the screen edges. Each asteroid is a procedurally generated 5-to-10-sided polygon in either solid black with a white stroke or solid white with a black stroke, varying in size from small chunks to large boulders. A dotted noise overlay with a multiply blend mode adds a lo-fi grainy texture across the whole page. Hovering an asteroid inverts its colours and brings it to the front. Every asteroid is a clickable link to a random corridor in the labyrinth. Clicking anywhere on the background or pressing any key re-randomises the entire field of asteroids.
+  - id: potsherds
+    title: Potsherds
+    created: 2026-05-16 13:00
+    links: dynamic
+    tags: [mobile, skeuomorphic]
+    visual_description: >-
+      An overhead view of an archaeological dig. Procedurally generated pottery sherds are scattered across a warm earthy background of brown soil overlaid with a faint excavation grid. Each sherd is an irregular polygon rendered in a palette of terracotta, ochre, and rust tones, decorated with darker painted dots and the occasional painted stripe clipped to its outline. Hovering over a sherd lifts it slightly off the ground with a scaled-up transform and a deeper drop shadow, simulating the act of picking it up for inspection. Every sherd is a clickable link to a random corridor in the labyrinth.
+  - id: kingdom-hearts
+    title: Kingdom Hearts
+    created: 2026-05-17 00:30
+    links: 6
+    tags: [major, mobile, pop, tech]
+    visual_description: >-
+      A parody of the ridiculous story of the Kingdom Hearts games. The exact story text from the game "Kingdom Hearts 0.2 Birth by Sleep -A fragmentary passage-" is procedurally split up and regurgitated into a mash up of itself. The page uses HTML and CSS in order to closely replicate the actual menu screen from the PlayStation game. The user can press any key or click a button to generate more procedurally generated story paragraphs. All of the buttons on the page are links to other pages in the labyrinth.
+  - id: blackout
+    title: Blackout
+    created: 2026-05-18 17:40
+    links: dynamic
+    tags: [images, major, mobile, poetry]
+    visual_description: >-
+      A gallery of blackout poetry images created using the blackout poetry engine at https://blackout.tilde.town/ by ~vilmibm. A single image is displayed centred on a near-black page, with a credit caption pinned to the bottom of the page above "back" and "next" navigation buttons, which advance or return through a slideshow of blackout poems. The URL hash updates to reflect the current poem so individual pieces can be linked directly. The image itself is a link to a random corridor in the labyrinth.
+  - id: polygonae
+    title: Polygonae
+    created: 2026-05-19 13:45
+    links: dynamic
+    tags: [abstract, mobile]
+    visual_description: >-
+      A full-screen grid of tiles on a warm off-white background, each tile holding a single SVG shape from: circles, squares, triangles, hexagons, diamonds, stars, plus signs, half-circles, and eye shapes. The muted colours are black, terracotta, ochre, slate blue, plum, sage green, and pink. Every so often a small fraction of the tiles morph into new shapes and colours. Hovering any tile applies a soft glow in its current colour. Resizing the window or pressing any key regenerates the entire grid. Every tile is a clickable link to a random corridor in the labyrinth.
+  - id: wallpaper-samples
+    title: Wallpaper Samples
+    created: 2026-05-20 11:07
+    links: dynamic
+    tags: [abstract, mobile]
+    visual_description: >-
+      A grid of wallpaper sample swatches in the style of a pattern book. The swatches are filled with a rotating selection of CSS patterns. These are: horizontal, vertical and diagonal stripes, small and large polka dots, fine and bold grids, chequerboard, small and large zigzags, two tartan variants, and houndstooth. The grid dimensions adapt to the viewport, and recently used patterns are excluded when picking new ones to keep neighbouring swatches visually distinct. Hovering a swatch lifts it slightly with a deeper shadow and randomly reassigns its pattern. Every swatch is a clickable link to a random corridor in the labyrinth.
+  - id: periodic-table
+    title: Periodic Table
+    created: 2026-05-21 16:47
+    links: dynamic
+    tags: [art, images, humour, major, science, unicode]
+    visual_description: >-
+      A full periodic table of the 118 elements rendered as a grid of square cells in classic chemistry-textbook style. Each cell shows the element's atomic number in the top-left, its symbol in large bold text in the centre, and its full name in smaller text below. Each of the element cells is a clickable link to a random corridor in the labyrinth. However, in addition to this usual periodic table, clicking left and right navigates to brand new, very silly versions of the table. All of these are a pun on the word "periodic":
+      - achromatic:    The periodic table is in black and white.
+      - acrobatic:     The table container flips around every so often, to simulate a backflip.
+      - alphabetic:    The elements of the normal periodic table are in alphabetic order.
+      - automatic:     The hoverover highlight effect happens automatically every so often.
+      - demographic:   Table of the countries of the world in population count order.
+      - energetic:     The table container is animated to move erratically.
+      - enigmatic:     The chemical element HTML tags are hidden, and only visible on hover over.
+      - episodic:      Each day shows only one chemical element, which changes each day.
+      - futuristic:    Flashy CSS, and each element has a prefix or suffix like "cyber" or "mega".
+      - gastronomic:   Instead of listing the chemical elements, it lists types of food.
+      - Hellenistic:   The entire periodic table is in Greek.
+      - hieroglyphic:  The entire periodic table is in Unicode Egyptian Hieroglyphs.
+      - hyperbolic:    Each element ends in an exclamation mark, and the hoverover is twice as big.
+      - inauthentic:   The elements are replaced with nonsense ones, such as "Music" and "Wood".
+      - microscopic:   The periodic table is 25% of the normal size.
+      - philharmonic:  The periodic table is replaced by a orchestra concert seating table.
+      - pianistic:     The elements are coloured white or black as on a keyboard.
+      - pointillistic: The periodic table is in a pointillistic artistic technique.
+      - pre-Socratic:  A table containing the four classical elements: earth, water, air, and fire.
+      - psychedelic:   The periodic table is in animated psychedelic colours.
+      - realistic:     The periodic table is replaced with a JPEG of a literal wooden table.
+  - id: blend-difference
+    title: Blend Difference
+    created: 2026-05-22 13:30
+    links: dynamic
+    tags: [abstract, mobile]
+    visual_description: >-
+      A chaotic field of overlapping circles and squares scatters itself across the screen, each one filled with a vivid primary or secondary colour and rendered with `mix-blend-mode: difference` so their intersections flash into strange inverted combinations. Every shape is slightly rotated to make the pile-up feel more restless. Hovering over a shape thickens its outline dramatically. Pressing any key spawns another batch of shapes. Every shape is a clickable link to a random corridor in the labyrinth.
+  - id: mondrian-bauhaus
+    title: Mondrian Bauhaus
+    created: 2026-05-23 11:10
+    links: dynamic
+    tags: [art, mobile]
+    visual_description: >-
+      A page inspired by Piet Mondrian and the Bauhaus movement that recursively subdivides the viewport into a quilt of bordered rectangles. The palette is primary blues, reds, yellows, greens and oranges balanced by large fields of cream off-white, with each rectangle wrapped in a thick black border. Pressing any key regenerates the layout. Every rectangle in the quilt is a clickable link to a random corridor in the labyrinth.
+  - id: capillary-blooms
+    title: Capillary Blooms
+    created: 2026-05-24 12:20
+    links: dynamic
+    tags: [abstract, mobile]
+    visual_description: >-
+      Clicking anywhere on the black background (or pressing any key for a central bloom) sprouts a "bloom" of recursively branching tendrils that radiate outward in glowing arms. Each bloom picks from one of six neon palettes (pink, blue, orange, green, purple, or monochrome grey) and is drawn with quadratic curves so each tendril twists organically. The branches thin and shorten with depth, and at the deepest tips small glowing white circular "leaves" occasionally appear. Each leaf gently blooms into view, glows on hover, and is a clickable link to a random corridor in the labyrinth. Previous leaves fade out smoothly whenever a new bloom is spawned.
+  - id: dilbert-curve
+    title: Dilbert Curve
+    created: 2026-05-25 10:50
+    links: 1
+    tags: [images, humour, mobile, pop]
+    visual_description: >-
+      A silly riff on the mathematical Hilbert curve. A square canvas sits centred on a vivid red background. Underneath the canvas is a hidden cartoon of Dilbert, the 90s comic character. A thick order-5 Hilbert curve is drawn slowly across the canvas using a destination-out composite that erases the overlay, progressively revealing the Dilbert image beneath the snaking path. Clicking anywhere on the canvas takes you to a random corridor in the labyrinth.
+  - id: sluggo-tie
+    title: Sluggo Tie
+    created: 2026-05-26 16:15
+    links: dynamic
+    tags: [images, mobile, pop]
+    visual_description: >-
+      A repeating grid of the same still image from a 1952 Nancy comic strip, tiled across the page as many times as will fit at a fixed cell size. The number of columns and rows is calculated dynamically from the viewport dimensions, with a guaranteed minimum side padding so larger screens get a more generous border around the grid. Hovering any tile inverts its colours, and every tile is a clickable link to a random corridor in the labyrinth.
+  - id: cathedral-dome
+    title: Cathedral Dome
+    created: 2026-05-27 20:54
+    links: dynamic
+    tags: [abstract, crt, mobile, unicode]
+    visual_description: >-
+      An ASCII cathedral interior rendered as a row of vertical pillars arranged in a dome-like arch, tallest in the middle and tapering down to the sides. Each pillar is built from monospaced shaft characters (|, │, ║, ▌, etc.) topped with an ornamental cap glyph (✦, ✛, ✠, †, etc.). Scattered along the shafts are glowing pink stained-glass "windows" (◇, ◈, ✦, ❖) that pulse with a soft neon glow. The whole scene sits on a near-black background washed in muted candlelight tones, filtered through a radial vignette. Hovering a pillar makes it glow warm amber-white. Clicking the background or resizing the window regenerates the cathedral with new characters and proportions. Every pillar is a clickable link to a random corridor in the labyrinth.
+  - id: dominoes
+    title: Dominoes
+    created: 2026-05-28 17:14
+    links: dynamic
+    tags: [mobile, unicode]
+    visual_description: >-
+      A parchment-coloured page filled with a centred block of oversized domino tile glyphs. Most tiles are plain black, while scattered red tiles act as links to random corridors.
+  - id: mahjong
+    title: Mahjong
+    created: 2026-05-29 11:27
+    links: dynamic
+    tags: [mobile, unicode]
+    visual_description: >-
+      A grid of Mahjong tiles laid out on a dark green felt table, framed by a tan border in the style of a traditional mahjong set. Each tile displays a single Unicode Mahjong character. Hovering a tile turns it bright red with white characters and lifts it slightly off the table. Clicking anywhere on the background regenerates the entire layout with a new random selection of tiles. Every tile is a clickable link to a random corridor in the labyrinth.
+  - id: rainbow-rug
+    title: Rainbow Rug
+    created: 2026-05-30 12:08
+    links: 192
+    tags: [abstract, crt, mobile]
+    visual_description: >-
+      A grid of square cells centred on a near-black background, each cell continuously rotating and shifting through a rainbow of HSL colours driven by a sine wave based on its row, column, and time. The result is a woven, shimmering rug of colour in constant kinetic motion. Hovering any cell flashes it to pure white. Every cell is a clickable link to a random corridor in the labyrinth.
+  - id: pascals-triangle
+    title: Pascal's Triangle
+    created: 2026-05-31 11:52
+    links: 45
+    tags: [images, mobile, text]
+    visual_description: >-
+      A lo-fi 90s styled page featuring the first nine rows of Pascal's triangle formatted in monospace text, aligned and centred on the screen. The numbers are light pink, on a tiled triangle GIF background. Each number in the triangle acts as a clickable link.
+  - id: less-than-better
+    title: Less Than Better
+    created: 2026-06-01 14:52
+    links: 3
+    tags: [humour, images, mobile, pop]
+    visual_description: >-
+      A pun page riffing on the 90s/00s bands Better Than Ezra and Less Than Jake. On a plain magenta background, a portrait of Ezra Pound sits on the left and a portrait of Jake Gyllenhaal sits on the right, separated by a huge monospace "< ? <" inequality in white, implying that some unnamed person ranks better than Ezra but less than Jake. Hovering over the Ezra portrait swaps the page background to a live photo of Better Than Ezra; hovering over the Jake portrait swaps it to a live photo of Less Than Jake. The 2 portraits and central question mark are clickable links to a random corridor in the labyrinth.
+  - id: wolfram-automata
+    title: Wolfram Automata
+    created: 2026-06-02 13:57
+    links: 1
+    tags: [crt, maths]
+    visual_description: >-
+      A full-screen rendering of a one-dimensional Wolfram-style cellular automaton on a near-black background. A random rule is chosen from a curated set (22, 30, 54, 73, 90, 110, 150) and the automaton is drawn row by row from the top of the screen down to the bottom, with each generation's colour cycling slowly through the hue spectrum. Pressing any key picks a new random rule and redraws the automaton from the top. Clicking anywhere on the screen takes you to a random corridor in the labyrinth.
+  - id: ozymandias
+    title: Ozymandias
+    created: 2026-06-03 13:48
+    links: 18
+    tags: [major, mobile, nature, poetry]
+    visual_description: >-
+      A desert ruin scene inspired by Percy Bysshe Shelley's poem "Ozymandias". In the desert is a pedestal with the four line inscription: "MY NAME IS OZYMANDIAS, / KING OF KINGS: / LOOK ON MY WORKS, / YE MIGHTY, AND DESPAIR!". Two SVG legs stand on the pedestal, and the head is lying on the sand to the right. Sand particles blow in gusty bursts across the screen from right to left. A continuously regenerated sandy grain overlay simulates a constant sandstorm haze across the whole page. The fallen head, each leg, and every word of the inscription are clickable links to random corridors in the labyrinth.
+  - id: northern-lights
+    title: Northern Lights
+    created: 2026-06-04 16:53
+    links: 5
+    tags: [mobile, nature]
+    visual_description: >-
+      A serene night-sky scene featuring a procedurally generated arctic landscape silhouetted against drifting aurora borealis bands. Five translucent ribbons of green, teal, purple and pink slowly undulate across the upper portion of the screen, layered over a starfield of twinkling white pinpricks. In the lower portion, layered jagged silhouettes of distant mountains and a snowy foreground plain are randomly generated each visit, complete with snow drifts, scattered snow-capped boulders, and occasional pine tree silhouettes. Each aurora band is a clickable link to a random corridor in the labyrinth, brightening and glowing on hover.
+  - id: dans-la-lune
+    title: Dans la Lune
+    created: 2026-06-05 14:27
+    links: 1
+    tags: [images, mobile, pop]
+    visual_description: >-
+      A full-screen frame from the 1902 silent film 'Le Voyage dans la Lune', showing the Man in the Moon appearing as a white face in the night sky. Hovering over the moon changes the frame to the iconic shot where a spacecraft is stuck in its right eye. The moon acts as a clickable link to a random corridor in the labyrinth.
+  - id: metaballs
+    title: Metaballs
+    created: 2026-06-06 15:52
+    links: dynamic
+    tags: [crt, maths, mobile]
+    visual_description: >-
+      A lava lamp-like effect created using CSS filters (blur and contrast) on floating circular elements. The circles, acting as metaballs, bounce around the screen and merge smoothly when they overlap. The balls are coloured with radial gradients in red, green, or blue, set against either a black or white background palette. Hovering over a ball brightens it, and clicking the background toggles the palette between black and white. Every metaball is a clickable link to a random corridor in the labyrinth.
+  - id: dance-dance
+    title: Dance Dance
+    created: 2026-06-07 17:23
+    links: 9
+    tags: [images, major, mobile, pop, secret]
+    visual_description: >-
+      A 3x3 grid filling the screen with sections of the Dance Dance Revolution dance mat. The nine squares start with randomly shuffled images, and hovering over any square swaps it for a different random image. When every square happens to land on its correct image, a simulated game starts: arrow images rise up from the bottom of the screen in four lanes towards four static grey target arrows near the top, bursting when they hit the targets at the top, to mimic stepping on the beat. Each image is a clickable link to a random corridor in the labyrinth.
+  - id: triangular-tesserae
+    title: Triangular Tesserae
+    created: 2026-06-08 13:25
+    links: dynamic
+    tags: [abstract, mobile]
+    visual_description: >-
+      A full-screen mosaic of irregular triangular tiles cover the viewport. Each tile is filled from one of five warm cycling palettes (amber/brown, deep blue, crimson, forest green, or purple), with dark hairline borders between tiles. Hovering a tile brightens it noticeably. A radial dot-grain overlay completes the lo-fi texture. Every triangle is a clickable link to a random corridor in the labyrinth.
+  - id: argus
+    title: Argus
+    created: 2026-06-09 11:16
+    links: dynamic
+    tags: [abstract, mobile]
+    visual_description: >-
+      A pitch-black field scattered with disembodied eyes, named after the hundred-eyed giant of Greek myth. Each eye is a glowing white almond shape with a small pupil and highlight, placed at a random position and scale so the field has no visual overlap between eyes. On a steady tick the eyes blink open and shut at random, and every time the eyes open they all share a single colour, alternating between black-pupiled and red-pupiled on each successive opening. The pupils swivel together to follow the mouse cursor, and hovering an eye gives it a red neon glow. The number of eyes adapts to the size of the viewport. Every eye is a clickable link to a random corridor in the labyrinth.
+  - id: floating-quads
+    title: Floating Quads
+    created: 2026-06-10 17:19
+    links: dynamic
+    tags: [abstract, crt, mobile]
+    visual_description: >-
+      A black page with colourfully drifting rectangles that float across the screen. Each quad is a solid block of colour drawn from a neon palette, bouncing off screen edges. Clicking the background or pressing any key shifts the colour palette. Hovering a rectangle increases its opacity and adds a glowing colour-matched shadow. Every floating rectangle is a clickable link to a random corridor in the labyrinth.
+  - id: drystone-wall
+    title: Drystone Wall
+    created: 2026-06-12 15:17
+    links: dynamic
+    tags: [abstract, mobile]
+    visual_description: >-
+      A page that resembles a drystone wall built from irregular cool-grey and blue-grey stones. The wall is constructed by approximating a Voronoi diagram over the viewport and rendering each cell as a convex hull SVG polygon, giving the appearance of tightly packed natural stones. Hovering over a stone makes it brighten and glow softly. Clicking anywhere on the background, or pressing any key, "shatters" the wall - every stone flies outward from the impact point with a randomised rotation and fades away, before the wall rebuilds itself. Every stone is a clickable link to a random corridor in the labyrinth.
+  - id: drystone-spikes
+    title: Drystone Spikes
+    created: 2026-06-13 13:28
+    links: dynamic
+    tags: [abstract, mobile]
+    visual_description: >-
+      A variant of the drystone wall page, but instead of smoothing each Voronoi cell into a convex hull polygon, the raw points are rendered directly, producing irregular spiky shapes. The cool-grey and blue-grey colour palette and shatter-on-click behaviour are the same as the original. Every spiky shape is a clickable link to a random corridor in the labyrinth.
+  - id: superformula
+    title: Superformula
+    created: 2026-06-14 12:05
+    links: 1
+    tags: [crt, maths, mobile]
+    visual_description: >-
+      A canvas-based visualisation of Johan Gielis' superformula, a single equation that morphs between organic shapes like starfish, flowers, snowflakes, and polygons. Five concentric layers of the shape rotate in alternating directions, with parameters smoothly interpolating between random configurations. The shapes are rendered in vivid cycling hues against a deep dark background. The canvas itself is a clickable link to a random corridor in the labyrinth.
+  - id: clifford-attractor
+    title: Clifford Attractor
+    created: 2026-06-15 14:36
+    links: 1
+    tags: [maths, mobile]
+    visual_description: >-
+      A canvas-based visualisation of a Clifford strange attractor. Iterated sine and cosine equations plot thousands of points that condense into intricate, evolving fractal patterns against a black background. The attractor gently fades and shifts hue over time, producing a hypnotic, colour-cycling cloud. The canvas is centred on the page and acts as a single portal to a random corridor.
+  - id: harmonography
+    title: Harmonography
+    created: 2026-06-16 14:15
+    links: 9
+    tags: [crt, maths, mobile]
+    visual_description: >-
+      A 3x3 grid of small dark framed tiles, each animating a procedurally generated harmonograph - the looping, decaying Lissajous curves traced by a pair of coupled pendulums. Each tile draws its curve progressively in a randomly chosen neon colour, the line gradually spiralling inward as the simulated pendulums lose energy. Pressing any number key from 1 to 9 regenerates that particular tile, and hovering over any tile redraws it as a brand new harmonograph. On narrow or short screens the grid sheds whole columns and rows of tiles to stay tidy. Every tile is a clickable link to a random corridor in the labyrinth.
+  - id: binary-flicker
+    title: Binary Flicker
+    created: 2026-06-17 18:20
+    links: dynamic
+    tags: [abstract, crt, mobile, unicode]
+    visual_description: >-
+      A dense full-screen grid of flickering 0s and 1s rendered in muted grey monospace text on a black background. Random batches of bits flip every tick, with occasional cells briefly brightening to near-white before fading back to grey. Scattered sparsely throughout the grid are "anomaly" bits that pulse between hot pink and cyan with a glowing text-shadow, marking them as clickable links to random corridors in the labyrinth. Hovering an anomaly inverts it to black-on-white and scales it up dramatically. Clicking the background or pressing any key regenerates the entire grid.
+  - id: binary-matrix
+    title: Binary Matrix
+    created: 2026-06-18 12:23
+    links: dynamic
+    tags: [abstract, crt, mobile, unicode]
+    visual_description: >-
+      A full-screen "Matrix"-style grid of 0s and 1s rendered in monospace green-on-black, with a darker phosphor green for "off" bits and a glowing brighter green for "on" bits. The whole field is filtered through a vignette darkening the corners. Every tick, a small batch of random bits flip their digit and toggle their on/off glow, producing a constant low-level shimmer across the grid. Scattered sparsely throughout are amber-gold "link" bits that mark portals to random corridors in the labyrinth, scaling up dramatically and turning white on hover. Clicking the background or pressing any key regenerates the entire grid.
+  - id: binary-swap
+    title: Binary Swap
+    created: 2026-06-19 11:17
+    links: dynamic
+    tags: [abstract, mobile, unicode]
+    visual_description: >-
+      A black-on-white full-screen grid of 0s and 1s rendered in bold monospace type, where "on" bits invert to white-on-black tiles. Every tick, a random circular cluster of bits flips state, creating rolling waves of inversion that ripple across the field. Moving the mouse causes nearby bits to "bloom" with a hot red flash before fading back. Scattered sparsely throughout are larger red "link" bits that mark portals to random corridors in the labyrinth, scaling up dramatically on hover. Clicking the background or pressing any key regenerates the entire grid.
+  - id: block-glyphs
+    title: Block Glyphs
+    created: 2026-06-20 11:13
+    links: dynamic
+    tags: [abstract, crt, mobile, unicode]
+    visual_description: >-
+      A full-screen grid of random Unicode block characters and geometric glyphs (░▒▓█▄▀▌▐■□▪▫▬▭▮▯▱▰◧◨◩◪◫) in shades of grey on a black background. Roughly one in ten cells is instead a glowing pink link with a neon text-shadow; hovering one inverts it to a bright cyan-on-black highlight and scales it up to twice its size. Pressing any key or clicking the background regenerates the entire grid with new characters, colours, and link positions. Every glowing pink glyph is a clickable link to a random corridor in the labyrinth.
+  - id: pipe-glyphs
+    title: Pipe Glyphs
+    created: 2026-06-21 11:35
+    links: dynamic
+    tags: [abstract, crt, mobile, unicode]
+    visual_description: >-
+      A full-screen grid of box-drawing pipe characters (─│┌┐└┘├┤┬┴┼) in muted green tones on a dark background, evoking a retro terminal maze. Roughly six percent of cells are glowing amber glyphs (◈◇◆⬡⬢) that serve as clickable links to random corridors. Hovering a link inverts its colours and scales it up. Clicking the background or pressing any key regenerates the grid with new characters and link positions.
+  - id: luftballons
+    title: Luftballons
+    created: 2026-06-22 12:11
+    links: 99
+    tags: [mobile, nature]
+    visual_description: >-
+      A sky scene with 99 red balloons floating upwards. Each balloon is an SVG with a radial gradient from bright red to dark red, a small highlight, and a trailing string. The balloons sway gently as they rise, and when they drift off the top of the screen they respawn at the bottom. Hovering over a balloon applies a bright glow and brightness boost. The background is a soft blue sky gradient. Every balloon is a clickable link to a random corridor in the labyrinth.
+  - id: dog-days
+    title: Dog Days
+    created: 2026-06-24 01:12
+    links: dynamic
+    tags: [humour, major, mobile]
+    visual_description: >-
+      A monthly calendar in warm cream tones with Comic Sans typography. Each day features a procedurally generated SVG dog with a unique name, breed, and bio determined by a seeded random number generator keyed to that date. Dogs have randomised body proportions, ear styles, tail shapes, colours, and accessories. Clicking a day opens a modal with the full dog portrait, name, and a short bio covering age, breed, origin, likes, dislikes, favourite food, and hobby. The dog portrait in the modal is a clickable link to a random corridor in the labyrinth. Future dates are greyed out and locked.
+  - id: ulam-spiral
+    title: Ulam Spiral
+    created: 2026-06-25 05:31
+    links: dynamic
+    tags: [crt, maths, mobile]
+    visual_description: >-
+      A visualisation of the Ulam spiral: integers written in a square spiral with primes highlighted as coloured dots. Colours gradient from red at the centre (lower numbers) to purple at the edges (higher numbers). Primes periodically twinkle white in ascending numerical order, appearing to spiral outward from the centre. Every prime dot is a clickable link to a random corridor in the labyrinth.
+  - id: woodstack
+    title: Woodstack
+    created: 2026-06-26 01:29
+    links: dynamic
+    tags: [abstract, crt, mobile, parallax]
+    visual_description: >-
+      Inspired by cut timber in an old workshop, the page fills the screen with layered horizontal wooden strips in warm brown tones. Layers of strips are stacked with increasing opacity, each strip randomly rotated and positioned to evoke a pile of cut lumber. A subtle parallax effect shifts the layers in response to mouse movement. Every strip is a clickable link to a random corridor in the labyrinth.
+  - id: chladni-figures
+    title: Chladni Figures
+    created: 2026-06-27 18:31
+    links: dynamic
+    tags: [maths, mobile, science]
+    visual_description: >-
+      A canvas-based simulation of Chladni figures, where sand grains settle on the nodal lines of a vibrating plate. Thousands of tiny coloured particles jitter across the screen, scattering where the plate vibrates most and accumulating along the quiet nodal patterns to form intricate, symmetrical geometric designs. The colour palette shifts with each retune. Pressing any key retunes the plate to a new frequency and resets the sand.
+  - id: spirograph
+    title: Spirograph
+    created: 2026-06-28 22:16
+    links: dynamic
+    tags: [crt, maths, mobile]
+    visual_description: >-
+      A canvas-based visualisation of hypotrochoid curves, the mathematical shapes produced by a spirograph toy. A small rolling gear traces intricate, rainbow-coloured patterns inside a larger fixed circle. Each figure draws progressively with a glowing neon line, holding briefly when complete before fading to the next randomly generated shape. On shape generation, the canvas links to a different random corridor.
+  - id: spiro-dots
+    title: Spiro Dots
+    created: 2026-06-29 02:23
+    links: dynamic
+    tags: [crt, maths, mobile]
+    visual_description: >-
+      A spirograph-like animation of 240 coloured dots arranged in a hypotrochoid curve, slowly rotating against a dark background. Every few seconds the gear parameters change and the dots smoothly transition to form a new shape, with colours shifting gradually across the full hue spectrum. The entire spirograph area is a clickable link to a random corridor, while clicking outside it generates a fresh pattern.
+  - id: highly-strung
+    title: Highly Strung
+    created: 2026-06-30 14:30
+    links: dynamic
+    tags: [abstract, mobile]
+    visual_description: >-
+      A cat's cradle of curve-stitch string art spanning the screen. Four corner panels of straight threads frame the page, their envelopes tracing smooth parabolic curves. In the centre, a rosette of intersecting chords creates a dreamcatcher-like effect. Lines cycle through vibrant HSL colours in a continuous animation. Hovering over any line thickens it and adds a glow. The entire central rosette acts as a single clickable anchor to a random corridor.
+  - id: penrose
+    title: Penrose
+    created: 2026-07-01 07:22
+    links: dynamic
+    tags: [crt, maths, mobile]
+    visual_description: >-
+      An implementation of penrose tiling, which covers a plane perfectly but never repeats the exact same layout. Each triangle is a clickable link to a random corridor in the labyrinth.
+  - id: honeycomb
+    title: Honeycomb
+    created: 2026-07-02 00:26
+    links: dynamic
+    tags: [abstract, crt, mobile]
+    visual_description: >-
+      A full-screen tessellation of hexagonal cells packed together like a honeycomb, all in warm amber and gold tones. A glowing wave ripples outward from the centre of the screen, cycling the hue and brightness of each hexagon to create a pulsing, organic shimmer. Hovering over any cell makes it swell and glow brightly. Every hexagon is a clickable link to a random corridor in the labyrinth.
+  - id: pythagoras-tree
+    title: Square Roots
+    created: 2026-07-03 14:59
+    links: dynamic
+    tags: [crt, maths, mobile]
+    visual_description: >-
+      A canvas-based rendering of the Pythagoras tree fractal. A square trunk sprouts two smaller squares on its shoulders, tilted so their inner corners meet at a right angle, and each of those recurses the same pattern up to ten levels deep. Each square is filled with an HSL colour that shifts with depth, creating a gradient from dark at the base to bright at the canopy. The tree sways gently in a simulated breeze. The entire canvas is a clickable link to a random corridor in the labyrinth.
+  - id: wavy-squares
+    title: Wavy Squares
+    created: 2026-07-04 11:19
+    links: dynamic
+    tags: [abstract, crt, mobile]
+    visual_description: >-
+      A full-screen grid of nested concentric squares, each cell containing a random number of SVG rectangles drawn at decreasing sizes. The squares oscillate back and forth in a smooth wave pattern, each rotating around its own centre. Hovering over a cell brightens the square outlines with a cyan glow. Every cell is a clickable link to a random corridor in the labyrinth.
+  - id: starfield
+    title: Starfield
+    created: 2026-07-05 13:40
+    links: dynamic
+    tags: [abstract, crt, mobile]
+    visual_description: >-
+      A canvas-based warp-speed starfield simulation. Thousands of stars streak outward from the centre of the screen, creating a sense of forward motion through deep space. Each star is rendered as a coloured line whose hue shifts with depth, cycling through the colour spectrum over time. The entire canvas is a single clickable link to a random corridor in the labyrinth.
+  - id: circuit-flow
+    title: Circuit Flow
+    created: 2026-07-06 14:20
+    links: dynamic
+    tags: [abstract, crt, mobile]
+    visual_description: >-
+      A randomised circuit board rendered on a dark green background. Pads are placed on a grid and connected with L-shaped orthogonal traces. Small electron-like sparks travel along the traces. Hovering over a pad causes it to glow. Every pad is a clickable link to a random corridor in the labyrinth.
+  - id: neon-topography
+    title: Neon Topography
+    created: 2026-07-07 09:36
+    links: dynamic
+    tags: [abstract, crt, mobile]
+    visual_description: >-
+      An animated topographic map rendered on a low-resolution canvas. Contour lines are drawn across a value-noise field, with two layers of noise combined to create broad rolling hills with finer texture. The contour edges glow in cycling neon hues while the spaces between are rendered in dark blue-grey tones. The landscape drifts slowly sideways and the base hue cycles through the rainbow. The entire canvas is a clickable link to a random corridor in the labyrinth.
+  - id: truchet-tiles
+    title: Truchet Tiles
+    created: 2026-07-08 09:16
+    links: dynamic
+    tags: [abstract, crt, mobile]
+    visual_description: >-
+      A full-screen grid of Truchet tiles, each tile containing two quarter-circle arcs rendered as SVG paths in warm gold tones on a dark background. Hovering over a tile rotates it 90 degrees clockwise with a smooth animation, changing the pattern of the arcs. Pressing any key rotates a random subset of tiles. Every tile is a clickable link to a random corridor in the labyrinth.
+  - id: jaggy-spray-paint
+    title: Jaggy Spray Paint
+    created: 2026-07-09 14:05
+    links: 1
+    tags: [abstract, crt, mobile]
+    visual_description: >-
+      A full-screen black canvas where moving the mouse - or dragging a finger on touch screens - paints jagged, multi-segment neon strokes that flicker in randomised hues and slowly fade away. The whole image is periodically corrupted by horizontal RGB-split glitches and displaced slices. Pressing any key paints a stroke at a random point. Moving the mouse or dragging draws; a single click or tap is a link to a random corridor in the labyrinth.
+  - id: turing-patterns
+    title: Turing Patterns
+    created: 2026-07-10 14:52
+    links: dynamic
+    tags: [crt, maths, mobile]
+    visual_description: >-
+      A reaction-diffusion simulation based on the Gray-Scott model, producing organic Turing patterns such as spots, stripes, worms, and coral-like structures. The chemical concentrations are mapped to a glowing two-tone colour ramp that cycles through hues over time. The square canvas is a single clickable link to a random corridor in the labyrinth.
+  - id: space-torus
+    title: Space Torus
+    created: 2026-07-11 23:25
+    links: 1
+    tags: [crt, maths, mobile, parallax]
+    visual_description: >-
+      A canvas-based 3D torus rendered as a point cloud in a deep space setting. The torus rotates continuously, with points coloured on a magenta-to-cyan gradient based on depth. The background is a multi-layered parallax starfield with twinkling stars that respond to mouse movement. The user can click and drag to control the torus's rotation. Clicking the canvas links to a random corridor in the labyrinth.
+  - id: cmyk-blend
+    title: CMYK Blend
+    created: 2026-07-12 01:51
+    links: dynamic
+    tags: [abstract, crt, mobile, parallax]
+    visual_description: >-
+      A full-screen grid of tiles, each containing three overlapping shapes in cyan, magenta, and yellow that use multiply blend mode to create colour mixing effects. The shapes shift position relative to the mouse pointer, creating a parallax-like afterimage effect across the grid. Hovering over a tile inverts the colours using difference blend mode and squares the shapes. Every tile is a clickable link to a random corridor in the labyrinth.
+  - id: isometric-blocks
+    title: Isometric Blocks
+    created: 2026-07-13 16:36
+    links: dynamic
+    tags: [abstract, crt, mobile]
+    visual_description: >-
+      A dense field of isometric blocks rendered in SVG on a black background. Each block has three shaded faces giving a 3D effect, and coloured in varying shades of a hue that shifts across the grid. Blocks are drawn back-to-front so nearer ones overlap farther ones. Hovering a block lifts it upward and brightens it with a glowing drop-shadow. Every block is a clickable link to a random corridor in the labyrinth.
+  - id: tile-slide
+    title: Tile Slide
+    created: 2026-07-14 13:35
+    links: dynamic
+    tags: [abstract, crt, mobile]
+    visual_description: >-
+      A grid of colourful tiles with one empty space in the bottom right corner. Every few tenths of a second, a random tile adjacent to the empty space slides into it, causing the gap to appear to wander across the board. The tiles are coloured by their original home position, so the shuffling motion is visually apparent. The gap never immediately reverses direction, preventing the same tile from bouncing back and forth. Every tile is a clickable link to a random corridor in the labyrinth.
+  - id: bathroom-tiles
+    title: Bathroom Tiles
+    created: 2026-07-15 15:46
+    links: dynamic
+    tags: [abstract, mobile]
+    visual_description: >-
+      A full-screen grid of pastel-coloured rounded tiles inspired by bathroom tiling. Each tile is a soft muted hue from a curated palette of pinks, beiges, greens, blues, and lavenders. Every so often, a subset of tiles slowly shifts to a new colour. Hovering over a tile causes it to shrink slightly. Every tile is a clickable link to a random corridor in the labyrinth.
+  - id: square-flip
+    title: Square Flip
+    created: 2026-07-16 17:22
+    links: dynamic
+    tags: [abstract, mobile]
+    visual_description: >-
+      A full-screen grid of two-sided tiles rendered in dark grey and red. A wave of 3D flips rolls diagonally across the board, each tile rotating on its Y-axis to reveal either face. The sine-driven animation creates a smooth, rhythmic cascade from corner to corner. Hovering over a tile scales it up slightly. Every tile is a clickable link to a random corridor in the labyrinth.
+  - id: movement-in-squares
+    title: Movement in Squares
+    created: 2026-07-17 02:19
+    links: dynamic
+    tags: [art, mobile]
+    visual_description: >-
+      An op-art homage to Bridget Riley's "Movement in Squares" (1961). A grid of black and white squares fills the screen. A vertical wave of compression sweeps across the columns, narrowing the squares as the wave passes and widening them behind it, creating a hypnotic optical illusion of depth and movement. Every square in the grid is a clickable link to a random corridor in the labyrinth.
+  - id: riley-current
+    title: Riley Current
+    created: 2026-07-18 15:55
+    links: dynamic
+    tags: [art, mobile]
+    visual_description: >-
+      An op-art homage to Bridget Riley's "Current" (1964). Vertical black wavy parallel lines drift on a canvas, moving subtly. A secondary kink wave adds subtle distortion. Hovering between two lines highlights the space between them with a faint red wash. Each gap between lines is a clickable link to a random corridor in the labyrinth.
+  - id: cp-1919
+    title: CP 1919
+    created: 2026-07-19 16:34
+    links: 40
+    tags: [mobile, science]
+    visual_description: >-
+      A canvas-based simulation of the famous CP 1919 pulsar radio emissions, famously used as the cover art for Joy Division's "Unknown Pleasures" album. White ridged lines undulate across a black background, overlapping and occluding each other to create a 3D landscape effect. Hovering over the ridges highlights them. Each of the 40 lines acts as a clickable link to a random corridor in the labyrinth.
+  - id: barnsley-fern
+    title: Barnsley Fern
+    created: 2026-07-20 14:19
+    links: 1
+    tags: [crt, maths, mobile]
+    visual_description: >-
+      A procedural rendering of the Barnsley fern fractal, drawn point by point using iterated function systems (IFS). Five fern variants cycle on each reset: the classic Barnsley fern, a modified variant, Cuscita, Cyclosorus, and Fishbone. The points are drawn in a randomly chosen hue, starting green for the first fern. The entire canvas is a single clickable link to a random corridor in the labyrinth.
+  - id: leaves-of-grass
+    title: Leaves of Grass
+    created: 2026-07-21 02:28
+    links: dynamic
+    tags: [crt, maths, mobile]
+    visual_description: >-
+      An L-system plant rendered progressively on a canvas against a dark background. A procedural plant grows from the bottom of the screen, its branching structure drawn segment by segment in glowing green hues that shift with depth. Each generation of branches is a different shade, creating a gradient from dark at the base to bright at the tips. The entire canvas is a single clickable link to a random corridor in the labyrinth.
+  - id: letters-go-then
+    title: Letters Go Then
+    created: 2026-07-22 05:06
+    links: dynamic
+    tags: [crt, meta, unicode]
+    visual_description: >-
+      A screen-filling grid of monospace letter glyphs, each representing the first letter of a corridor's title. Every glyph is rendered with three overlapping RGB colour layers using screen blend mode, producing a chromatic-aberration effect on hover as the red, green, and blue channels shift apart. A subtle random jitter animation periodically nudges individual glyphs. Each glyph is a clickable link to its corresponding corridor in the labyrinth.
+  - id: ninja-turtles
+    title: Ninja Turtles
+    created: 2026-07-23 03:44
+    links: dynamic
+    tags: [images, humour, mobile, pop]
+    visual_description: >-
+      A riff on the "turtles all the way down" concept using the Teenage Mutant Ninja Turtles. The page starts with a 2x2 grid showing the faces of Donatello, Leonardo, Michelangelo, and Raphael in a random order. Clicking any turtle causes it to split into four smaller squares, each displaying a different turtle's face in a randomised arrangement. The process is recursively infinite, with images scaling to fit their containing square. Each word of the phrase "It's ninja turtles all the way down" is a clickable link to another labyrinth page.
+  - id: particle-tracks
+    title: Particle Tracks
+    created: 2026-07-24 07:01
+    links: dynamic
+    tags: [mobile, science]
+    visual_description: >-
+      A procedural simulation of subatomic particle tracks, like those from a bubble chamber. Against a black background with faint crosshair marks, clicking (or pressing any key) triggers a particle collision that spawns a burst of tracks: curved whorls, straight lines, and normal trajectories, each in pale cyan or purple hues. Tracks leave fading trails as they spiral, curve, and slow over time. The canvas gradually darkens with each collision, building layers of ghostly traces. Small circular links appear at each collision point.
+  - id: suprematist-composition
+    title: Suprematist Composition
+    created: 2026-07-25 15:52
+    links: dynamic
+    tags: [art, mobile]
+    visual_description: >-
+      A composition of diagonally tilted shapes, invoking the work of Kazimir Malevich. Against a warm off-white background, geometric shapes drift slowly with subtle rotation and translation. A central black square anchors the composition, surrounded by diagonal bars in black, red, gold, and blue, along with smaller accent shapes and circles. Hovering over a shape applies a soft drop-shadow. Every shape is a clickable link to a random corridor in the labyrinth.
+  - id: schotter
+    title: Schotter
+    created: 2026-07-26 14:31
+    links: dynamic
+    tags: [art, mobile]
+    visual_description: >-
+      A tribute to Georg Nees's 1968 plotter work "Schotter" (Gravel). A grid of black squares is arranged in rows on a white background. The top rows are orderly and aligned, but disorder increases toward the bottom, with squares shifting position and rotating at random. Every square is a clickable link to a random corridor in the labyrinth.
+  - id: memphis
+    title: Memphis
+    created: 2026-07-27 14:42
+    links: dynamic
+    tags: [art, mobile]
+    visual_description: >-
+      A tribute to the Memphis design movement of the 1980s. Against a warm off-white background with a subtle repeating pattern, colourful abstract shapes are scattered across the page: squiggles, zigzags, circles, semicircles, triangles, plus signs, and striped bars in bold hues. Larger shapes sit in the background while smaller, more detailed elements occupy the foreground. Hovering over a shape triggers a wiggle animation. Every shape is a clickable link to a random corridor in the labyrinth.

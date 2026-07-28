@@ -35,7 +35,7 @@ def load_corridor_metadata
     metadata[id] = {
       'title' => corridor['title'],
       'created' => corridor['created'],
-      'mobile' => corridor['mobile'],
+      'tags' => corridor['tags'],
     }
   end
   metadata
@@ -73,7 +73,7 @@ def generate_dir_files(dir_path)
       title: metadata['title'],
       created: metadata['created'],
       url: "../../#{rel_path}",
-      mobile: metadata['mobile'] || false,
+      tags: metadata['tags'] || [],
     }
   end
 

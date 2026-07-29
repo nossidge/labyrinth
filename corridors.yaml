@@ -1561,3 +1561,10 @@ corridors:
     tags: [art, mobile]
     visual_description: >-
       A tribute to the Memphis design movement of the 1980s. Against a warm off-white background with a subtle repeating pattern, colourful abstract shapes are scattered across the page: squiggles, zigzags, circles, semicircles, triangles, plus signs, and striped bars in bold hues. Larger shapes sit in the background while smaller, more detailed elements occupy the foreground. Hovering over a shape triggers a wiggle animation. Every shape is a clickable link to a random corridor in the labyrinth.
+  - id: farbstudie
+    title: Farbstudie
+    created: 2026-07-29 18:05
+    links: dynamic
+    tags: [art, mobile]
+    visual_description: >-
+      A grid of squares inspired by Kandinsky's "Farbstudie - Quadrate mit konzentrischen Ringen" (1913). Each cell contains concentric rings rendered as slightly wobbling ellipses in watercolour-like hues from a curated palette, evoking hand-drawn washes. The grid dimensions adapt to the viewport. Hovering over a cell scales it up slightly. Every cell is a clickable link to a random corridor in the labyrinth.

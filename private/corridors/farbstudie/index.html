@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+Washes of watercolour applied in concentric rings.
+Pilfered from Kandinsky's "Farbstudie - Quadrate mit konzentrischen Ringen" (1913)
+https://en.wikipedia.org/wiki/Wassily_Kandinsky
+https://en.wikipedia.org/wiki/File:Vassily_Kandinsky,_1913_-_Color_Study,_Squares_with_Concentric_Circles.jpg
+https://www.moma.org/interactives/exhibitions/2012/inventingabstraction/?work=12
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="I know this somewhere is really nowhere">
+  <title>Colour study</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      background-color: #2b2118;
+    }
+
+    #main {
+      display: grid;
+      width: 100vw;
+      height: 100vh;
+      gap: 3px;
+    }
+
+    .cell {
+      display: block;
+      overflow: hidden;
+    }
+
+    .cell svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+      transition: transform 0.4s ease;
+    }
+
+    .cell:hover svg {
+      transform: scale(1.08);
+    }
+  </style>
+</head>
+
+<body>
+  <main id="main"></main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('farbstudie');
+
+    const main = document.getElementById('main');
+
+    const PALETTE = [
+      '#e63946', '#f1a208', '#2a9d8f', '#1d3557', '#f4e04d', '#8338ec',
+      '#ff6d00', '#0b6e4f', '#d00000', '#3a86ff', '#ffb4a2', '#22223b',
+      '#e07a5f', '#81b29a', '#f2cc8f', '#6d597a',
+    ];
+
+    // A square of concentric rings, with a wobble to make it look hand-drawn and watercolour
+    function cellSvg() {
+      const colours = LAB.shuffle(PALETTE);
+      const ringCount = LAB.randInt(3, 5);
+
+      let shapes = '';
+      const cx = 50 + LAB.rand(-4, 4);
+      const cy = 50 + LAB.rand(-4, 4);
+
+      for (let i = 0; i < ringCount; i++) {
+        const r = 46 * (1 - i / ringCount) + LAB.rand(-2, 2);
+        const wobbleX = r * LAB.rand(0.88, 1.12);
+        const wobbleY = r * LAB.rand(0.88, 1.12);
+        const rotate = LAB.rand(0, 360);
+        const colour = colours[(i + 1) % colours.length];
+        shapes += `<ellipse cx="${cx + LAB.rand(-2, 2)}" cy="${cy + LAB.rand(-2, 2)}"` +
+          ` rx="${wobbleX}" ry="${wobbleY}" fill="${colour}"` +
+          ` transform="rotate(${rotate} ${cx} ${cy})"/>`;
+      }
+
+      return `<svg viewBox="0 0 100 100" preserveAspectRatio="none">` +
+        `<rect width="100" height="100" fill="${colours[0]}"/>${shapes}</svg>`;
+    }
+
+    function init() {
+      main.replaceChildren();
+
+      const winW = window.innerWidth;
+      const winH = window.innerHeight;
+      const cols = Math.max(2, Math.round(winW / 160));
+      const rows = Math.max(2, Math.round(winH / 160));
+      main.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+      main.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+
+      for (let i = 0; i < cols * rows; i++) {
+        const cell = document.createElement('a');
+        cell.href = LAB.pageRandomiser.nextOne();
+        cell.className = 'cell';
+        cell.innerHTML = cellSvg();
+        main.appendChild(cell);
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    window.addEventListener('resize', init);
+
+    init();
+
+  </script>
+</body>
+
+</html>

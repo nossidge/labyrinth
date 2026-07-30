@@ -1568,3 +1568,10 @@ corridors:
     tags: [art, mobile]
     visual_description: >-
       A grid of squares inspired by Kandinsky's "Farbstudie - Quadrate mit konzentrischen Ringen" (1913). Each cell contains concentric rings rendered as slightly wobbling ellipses in watercolour-like hues from a curated palette, evoking hand-drawn washes. The grid dimensions adapt to the viewport. Hovering over a cell scales it up slightly. Every cell is a clickable link to a random corridor in the labyrinth.
+  - id: razzle-dazzle
+    title: Razzle Dazzle
+    created: 2026-07-30 01:31
+    links: 24
+    tags: [abstract]
+    visual_description: >-
+      A page inspired by dazzle camouflage, the WWI ship-painting technique. The screen is divided into a grid of distorted polygons, each filled with a randomly rotated black-and-white stripe pattern. Hovering over a pattern inverts its colours. Every pattern is a clickable link to a random corridor in the labyrinth.

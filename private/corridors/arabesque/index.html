@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+This is supposed to resemble some kind of zellige lattice thing with strapwork fancy bits.
+I wanted to do this purely with HTML elements and CSS, but it was easier to go with canvas.
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Feline Zellige">
+  <title>Arabesque</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body,
+    html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #10222e;
+    }
+
+    canvas {
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    #links {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .link {
+      position: absolute;
+      --radius: 22px;
+      width: calc(var(--radius) * 2);
+      height: calc(var(--radius) * 2);
+      margin-left: calc(var(--radius) * -1);
+      margin-top: calc(var(--radius) * -1);
+      border-radius: 50%;
+      display: block;
+      transition: box-shadow 0.3s ease;
+    }
+
+    .link:hover,
+    .link:focus {
+      box-shadow: 0 0 0 3px #d4a017, 0 0 26px #d4a017;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="canvas"></canvas>
+  <div id="links"></div>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('arabesque');
+
+    const links = document.getElementById('links');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    const CELL_DIM = 150;
+    const PHASE_SPEED = 0.0012;
+    const COLOUR_HIGH = '#d4a017';
+    const COLOUR_FILL = ['#1b3a4d', '#14536b', '#2a6353', '#5a2436'];
+
+    let phase = 0;
+
+    function squareCorners(cx, cy, r, angle) {
+      const corners = [];
+      for (let i = 0; i < 4; i++) {
+        const a = angle + i * Math.PI / 2;
+        corners.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r]);
+      }
+      return corners;
+    }
+
+    function drawSquare(corners, fill, stroke) {
+      ctx.beginPath();
+      ctx.moveTo(corners[0][0], corners[0][1]);
+      for (let i = 1; i < 4; i++) {
+        ctx.lineTo(corners[i][0], corners[i][1]);
+      }
+      ctx.closePath();
+      if (fill) {
+        ctx.fillStyle = fill;
+        ctx.fill();
+      }
+      if (stroke) {
+        ctx.strokeStyle = stroke;
+        ctx.stroke();
+      }
+    }
+
+    function draw() {
+      const winW = canvas.width;
+      const winH = canvas.height;
+      ctx.fillStyle = '#10222e';
+      ctx.fillRect(0, 0, winW, winH);
+      ctx.lineWidth = 2.5;
+
+      const cols = Math.ceil(winW / CELL_DIM) + 1;
+      const rows = Math.ceil(winH / CELL_DIM) + 1;
+
+      for (let gy = 0; gy < rows; gy++) {
+        for (let gx = 0; gx < cols; gx++) {
+          const cx = gx * CELL_DIM + CELL_DIM / 2;
+          const cy = gy * CELL_DIM + CELL_DIM / 2;
+          const parity = (gx + gy) % 2;
+
+          const r = CELL_DIM * 0.68;
+          drawSquare(squareCorners(cx, cy, r, Math.PI / 4), null, 'rgba(212, 160, 23, 0.35)');
+          drawSquare(squareCorners(cx, cy, r, 0), null, 'rgba(212, 160, 23, 0.35)');
+
+          const starTurn = (parity === 0 ? phase : -phase);
+          const sr = CELL_DIM * 0.34;
+          const fill = COLOUR_FILL[(gx * 3 + gy * 5) % COLOUR_FILL.length];
+          drawSquare(squareCorners(cx, cy, sr, starTurn), fill, COLOUR_HIGH);
+          drawSquare(squareCorners(cx, cy, sr, starTurn + Math.PI / 4), fill, COLOUR_HIGH);
+
+          ctx.beginPath();
+          ctx.arc(cx, cy, 6, 0, Math.PI * 2);
+          ctx.fillStyle = COLOUR_HIGH;
+          ctx.fill();
+        }
+      }
+    }
+
+    function createLinks() {
+      links.replaceChildren();
+      const cols = Math.ceil(canvas.width / CELL_DIM) + 1;
+      const rows = Math.ceil(canvas.height / CELL_DIM) + 1;
+      for (let gy = 0; gy < rows; gy++) {
+        for (let gx = 0; gx < cols; gx++) {
+          const a = document.createElement('a');
+          a.className = 'link';
+          a.href = LAB.pageRandomiser.nextOne();
+          a.style.left = (gx * CELL_DIM + CELL_DIM / 2) + 'px';
+          a.style.top = (gy * CELL_DIM + CELL_DIM / 2) + 'px';
+
+          // Account for the fact that some of these links are off-screen
+          a.addEventListener('focus', function () {
+            window.scrollTo({ left: 0, top: 0, behavior: 'instant' });
+          });
+
+          links.appendChild(a);
+        }
+      }
+    }
+
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      createLinks();
+      draw();
+    }
+
+    function animate() {
+      phase += PHASE_SPEED;
+      draw();
+      requestAnimationFrame(animate);
+    }
+
+    window.addEventListener('resize', resize);
+
+    resize();
+    animate();
+
+  </script>
+</body>
+
+</html>

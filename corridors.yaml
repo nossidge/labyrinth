@@ -1572,6 +1572,13 @@ corridors:
     title: Razzle Dazzle
     created: 2026-07-30 01:31
     links: 24
-    tags: [abstract]
+    tags: [abstract, mobile]
     visual_description: >-
       A page inspired by dazzle camouflage, the WWI ship-painting technique. The screen is divided into a grid of distorted polygons, each filled with a randomly rotated black-and-white stripe pattern. Hovering over a pattern inverts its colours. Every pattern is a clickable link to a random corridor in the labyrinth.
+  - id: arabesque
+    title: Arabesque
+    created: 2026-07-31 16:46
+    links: dynamic
+    tags: [art, mobile]
+    visual_description: >-
+      A zellige-inspired lattice rendered on canvas with rotating, interlocking squares in deep teal and gold. Each cell contains nested squares that rotate in alternating directions over time, producing a hypnotic strapwork pattern. Small gold dots mark the centre of each cell. Every cell is a clickable link to a random corridor in the labyrinth.

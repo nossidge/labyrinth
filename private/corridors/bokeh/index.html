@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Hyacinth Bokeh">
+  <title>wide open at f/1.4</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body,
+    html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      overscroll-behavior: none;
+      background: linear-gradient(200deg, #060a14 0%, #0c1020 55%, #141020 100%);
+    }
+
+    main {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      touch-action: none;
+    }
+
+    .light {
+      position: absolute;
+      display: block;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      transition: filter 0.5s ease, opacity 0.5s ease;
+      text-decoration: none;
+    }
+
+    .light:hover {
+      filter: blur(1px) !important;
+      opacity: 1 !important;
+    }
+
+    /* Grain overlay */
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image: radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+      background-size: 5px 5px;
+      pointer-events: none;
+      z-index: 10;
+    }
+  </style>
+</head>
+
+<body>
+  <main id="main"></main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('bokeh');
+
+    const PALETTES = [
+      ['#ffb84d', '#ffd98c', '#ff8c3d', '#fff2cc', '#e05c30', '#ffe680'],
+      ['#4dc8ff', '#8cf2ff', '#3d6cff', '#ccf5ff', '#b44dff', '#80ffe6'],
+      ['#ff4d6d', '#ff8c4d', '#ffd94d', '#4dff88', '#4db8ff', '#ff4dd2'],
+    ];
+    const paletteRandomiser = new LAB.CyclicRandomiser(PALETTES);
+    let currentPalette;
+
+    const main = document.getElementById('main');
+    const screenMargin = 200;
+    const lights = [];
+
+    function createLight() {
+      const light = document.createElement('a');
+      light.className = 'light';
+      light.href = LAB.pageRandomiser.nextOne();
+
+      const size = LAB.rand(20, 160);
+      const blur = LAB.rand(4, size / 4 + 8);
+      const colour = LAB.sample(currentPalette);
+
+      light.style.width = size + 'px';
+      light.style.height = size + 'px';
+      light.style.background = `radial-gradient(circle at 45% 40%, ${colour}, ${colour}cc 60%, ${colour}22 100%)`;
+      light.style.filter = `blur(${blur}px)`;
+      light.style.opacity = LAB.rand(0.35, 0.8);
+
+      const state = {
+        el: light,
+        x: LAB.rand(-0.05, 1.05) * window.innerWidth,
+        y: LAB.rand(-0.05, 1.05) * window.innerHeight,
+        vx: LAB.rand(-0.12, 0.12),
+        vy: LAB.rand(-0.08, 0.08),
+      };
+
+      light.style.left = state.x + 'px';
+      light.style.top = state.y + 'px';
+
+      main.appendChild(light);
+      lights.push(state);
+    }
+
+    function recreateScene() {
+      lights.forEach(l => l.el.remove());
+      lights.length = 0;
+
+      const area = window.innerWidth * window.innerHeight;
+      const count = Math.max(20, Math.min(60, Math.round(area / 28000)));
+
+      for (let i = 0; i < count; i++) {
+        createLight();
+      }
+    }
+
+    function init() {
+      currentPalette = paletteRandomiser.nextOne();
+      recreateScene();
+    }
+
+    function draw() {
+      lights.forEach(l => {
+        l.x += l.vx;
+        l.y += l.vy;
+
+        if (l.x < -screenMargin) l.x = window.innerWidth + screenMargin;
+        if (l.x > window.innerWidth + screenMargin) l.x = -screenMargin;
+        if (l.y < -screenMargin) l.y = window.innerHeight + screenMargin;
+        if (l.y > window.innerHeight + screenMargin) l.y = -screenMargin;
+
+        l.el.style.left = l.x + 'px';
+        l.el.style.top = l.y + 'px';
+      });
+      requestAnimationFrame(draw);
+    }
+
+    window.addEventListener('resize', recreateScene);
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    init();
+    draw();
+
+  </script>
+</body>
+
+</html>

@@ -1582,3 +1582,10 @@ corridors:
     tags: [art, mobile]
     visual_description: >-
       A zellige-inspired lattice rendered on canvas with rotating, interlocking squares in deep teal and gold. Each cell contains nested squares that rotate in alternating directions over time, producing a hypnotic strapwork pattern. Small gold dots mark the centre of each cell. Every cell is a clickable link to a random corridor in the labyrinth.
+  - id: bokeh
+    title: Bokeh
+    created: 2026-08-01 18:15
+    links: dynamic
+    tags: [abstract, mobile]
+    visual_description: >-
+      Floating orbs of soft, blurred light drift across a dark gradient background, simulating the bokeh effect of an out-of-focus camera lens. Each orb is a radial gradient in a randomly chosen warm or cool palette, with varying sizes and blur amounts. The orbs bounce gently off-screen and wrap around to the opposite edge. Hovering an orb sharpens it slightly and increases its opacity. Every orb is a clickable link to a random corridor in the labyrinth.

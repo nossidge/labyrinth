@@ -1589,3 +1589,10 @@ corridors:
     tags: [abstract, mobile]
     visual_description: >-
       Floating orbs of soft, blurred light drift across a dark gradient background, simulating the bokeh effect of an out-of-focus camera lens. Each orb is a radial gradient in a randomly chosen warm or cool palette, with varying sizes and blur amounts. The orbs bounce gently off-screen and wrap around to the opposite edge. Hovering an orb sharpens it slightly and increases its opacity. Every orb is a clickable link to a random corridor in the labyrinth.
+  - id: light-terrazzo
+    title: Light Terrazzo
+    created: 2026-08-02 11:46
+    links: dynamic
+    tags: [abstract, mobile]
+    visual_description: >-
+      A light-coloured terrazzo floor rendered in SVG. A cream and beige background is scattered with small white specks and irregular polygonal chips in muted earth tones. The larger chips are each a clickable link to a random corridor in the labyrinth, scaling up and rotating on hover with a drop-shadow effect. Clicking the background or pressing any key regenerates the pattern.

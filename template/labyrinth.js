@@ -98,6 +98,14 @@ class Labyrinth {
     return Array.from({ length: end - start + 1 }, (_, i) => start + i);
   }
 
+  svgElement(name, attributes = [], parent = null) {
+    const ns = 'http://www.w3.org/2000/svg';
+    const node = document.createElementNS(ns, name);
+    Object.entries(attributes).forEach(([key, value]) => node.setAttribute(key, value));
+    if (parent) parent.appendChild(node);
+    return node;
+  }
+
   corridorsNext(amount = 1) {
     return this.corridorRandomiser().next(amount);
   }

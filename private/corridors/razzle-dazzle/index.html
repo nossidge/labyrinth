@@ -48,22 +48,13 @@ https://en.wikipedia.org/wiki/Dazzle_camouflage
     const LAB = new Labyrinth('razzle-dazzle');
 
     const svg = document.getElementById('dazzle');
-    const ns = 'http://www.w3.org/2000/svg';
     const cols = 6;
     const rows = 4;
-
-    // SVG element helper
-    function element(name, attributes, parent) {
-      const node = document.createElementNS(ns, name);
-      Object.entries(attributes).forEach(([key, value]) => node.setAttribute(key, value));
-      if (parent) parent.appendChild(node);
-      return node;
-    }
 
     function init() {
       svg.replaceChildren();
       svg.setAttribute('viewBox', `0 0 ${innerWidth} ${innerHeight}`);
-      const defs = element('defs', {}, svg);
+      const defs = LAB.svgElement('defs', {}, svg);
 
       const points = [];
       for (let y = 0; y <= rows; y++) {
@@ -83,7 +74,7 @@ https://en.wikipedia.org/wiki/Dazzle_camouflage
           const patternId = `stripe-${x}-${y}`;
           const stripeWidth = LAB.randInt(10, 40);
           const size = stripeWidth * 2;
-          const pattern = element('pattern', {
+          const pattern = LAB.svgElement('pattern', {
             id: patternId,
             width: size,
             height: size,
@@ -91,11 +82,11 @@ https://en.wikipedia.org/wiki/Dazzle_camouflage
             patternTransform: `rotate(${LAB.randInt(-75, 75)})`
           }, defs);
           const palette = ['#000000', '#ffffff'];
-          element('rect', { width: size, height: size, fill: palette[0] }, pattern);
-          element('rect', { width: stripeWidth, height: size, fill: palette[1] }, pattern);
-          const link = element('a', { href: LAB.pageRandomiser.nextOne(), class: 'panel' }, svg);
+          LAB.svgElement('rect', { width: size, height: size, fill: palette[0] }, pattern);
+          LAB.svgElement('rect', { width: stripeWidth, height: size, fill: palette[1] }, pattern);
+          const link = LAB.svgElement('a', { href: LAB.pageRandomiser.nextOne(), class: 'panel' }, svg);
           const corners = [points[y][x], points[y][x + 1], points[y + 1][x + 1], points[y + 1][x]];
-          element('polygon', {
+          LAB.svgElement('polygon', {
             points: corners.map((point) => point.join(',')).join(' '),
             fill: `url(#${patternId})`
           }, link);

@@ -1596,3 +1596,10 @@ corridors:
     tags: [abstract, mobile]
     visual_description: >-
       A light-coloured terrazzo floor rendered in SVG. A cream and beige background is scattered with small white specks and irregular polygonal chips in muted earth tones. The larger chips are each a clickable link to a random corridor in the labyrinth, scaling up and rotating on hover with a drop-shadow effect. Clicking the background or pressing any key regenerates the pattern.
+  - id: dark-terrazzo
+    title: Dark Terrazzo
+    created: 2026-08-03 01:12
+    links: 1
+    tags: [abstract, mobile]
+    visual_description: >-
+      A dark terrazzo surface rendered on a canvas with a near-black background. Irregular polygonal chips in warm, muted colours (terracotta, olive, ochre, slate) are layered across the screen alongside small white flecks. The entire canvas is a single clickable link to a random corridor. Pressing any key regenerates the pattern with new chip positions and colours.

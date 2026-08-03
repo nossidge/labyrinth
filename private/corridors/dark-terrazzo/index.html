@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+See also `light-terrazzo`.
+In this version, we draw to a canvas instead of an SVG.
+This lets the chips stack up, so we can draw a lot of them.
+The downside is that the whole canvas has to be one hyperlink.
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="A Chip on his Delany">
+  <title>Dark Terrazzo</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #161616;
+      font-family: monospace;
+    }
+
+    #canvas {
+      position: fixed;
+      inset: 0;
+      display: block;
+    }
+
+    .chip-link {
+      position: absolute;
+      display: block;
+      border-radius: 50%;
+      transition: box-shadow 0.2s ease;
+    }
+
+    .chip-link:hover,
+    .chip-link:focus {
+      box-shadow: 0 0 0 3px rgba(255, 240, 200, 0.8), 0 0 22px rgba(255, 240, 200, 0.35);
+    }
+  </style>
+</head>
+
+<body>
+  <a id="link" href="../index.html">
+    <canvas id="canvas"></canvas>
+  </a>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('dark-terrazzo');
+
+    const link = document.getElementById('link');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    const CHIP_COLOURS = [
+      '#c44e3f', '#8f3a34', '#e08a4f', '#d9b04a',
+      '#3f7a5e', '#3f5e8c', '#5e4a86', '#a04a6a',
+      '#8a8578', '#2a2a30', '#d8cfc0', '#4a9a8c',
+    ];
+
+    let chips = [];
+    let sparkles = [];
+
+    function chipPolygon(cx, cy, radius) {
+      const sides = LAB.randInt(5, 8);
+      const pts = [];
+      for (let i = 0; i < sides; i++) {
+        const angle = (i / sides) * Math.PI * 2;
+        const r = radius * LAB.rand(0.72, 1.05);
+        pts.push([cx + Math.cos(angle) * r, cy + Math.sin(angle) * r]);
+      }
+      return pts;
+    }
+
+    function drawChip(pts, colour) {
+      ctx.beginPath();
+      ctx.moveTo(pts[0][0], pts[0][1]);
+      for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+      ctx.closePath();
+      ctx.fillStyle = colour;
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(0, 0, 0, 0.18)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    function init() {
+      link.href = LAB.pageRandomiser.nextOne();
+
+      chips = [];
+      sparkles = [];
+
+      const W = canvas.width;
+      const H = canvas.height;
+
+      // Big chips
+      const bigCount = Math.floor((W * H) / 26000);
+      for (let i = 0; i < bigCount; i++) {
+        const radius = LAB.rand(18, 46);
+        const pts = chipPolygon(LAB.rand(0, W), LAB.rand(0, H), radius);
+        drawChip(pts, LAB.sample(CHIP_COLOURS));
+        chips.push({ pts: pts, radius: radius });
+      }
+
+      // Fine chips
+      const fineCount = Math.floor((W * H) / 3000);
+      for (let i = 0; i < fineCount; i++) {
+        const radius = LAB.rand(2, 7);
+        drawChip(chipPolygon(LAB.rand(0, W), LAB.rand(0, H), radius), LAB.sample(CHIP_COLOURS));
+      }
+
+      // Small white flecks
+      const whiteCount = Math.floor((W * H) / 9000);
+      for (let i = 0; i < whiteCount; i++) {
+        const x = LAB.rand(0, W);
+        const y = LAB.rand(0, H);
+        const size = LAB.rand(1.5, 3.5);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+        ctx.fillRect(x, y, size, size * LAB.rand(0.6, 1.4));
+        sparkles.push({ x: x, y: y, size: size });
+      }
+    }
+
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      for (let i = 0; i < 20; i++) {
+        init();
+      }
+    }
+
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(resize, 100);
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    resize();
+
+  </script>
+</body>
+
+</html>

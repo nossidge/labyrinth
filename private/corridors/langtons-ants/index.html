@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+Draw a bunch of Langton's Ants to the page and watch them interact
+https://en.wikipedia.org/wiki/Langton%27s_ant
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="for to get out of the rain">
+  <title>Formication</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #080808;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .ant {
+      position: fixed;
+      z-index: 3;
+      width: 6px;
+      height: 6px;
+      margin: -1px 0 0 -1px;
+      border-radius: 50%;
+      background: #ffffff;
+      box-shadow: 0 0 5px #ffffff, 0 0 10px #ffffff;
+      pointer-events: none;
+    }
+
+    .crt-scanlines {
+      position: fixed;
+      inset: 0;
+      z-index: 99;
+      pointer-events: none;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+      background-size: 100% 2px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="crt-scanlines"></div>
+
+  <a id="link" href="../index.html">
+    <canvas id="canvas"></canvas>
+  </a>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('langtons-ants');
+
+    const link = document.getElementById('link');
+    const canvas = document.getElementById('canvas');
+    const context = canvas.getContext('2d');
+    const maxAnts = Infinity;
+    const antSpeed = 60;
+    const cellSize = 4;
+    const hues = [320, 180, 90, 40, 265, 10, 210, 140, 290, 60];
+    const ants = [];
+
+    let cells;
+    let columns;
+    let rows;
+
+    function addAnt(x, y) {
+      if (ants.length >= maxAnts) return;
+      const marker = document.createElement('div');
+      marker.className = 'ant';
+      document.body.appendChild(marker);
+      ants.push({
+        x: Math.max(0, Math.min(columns - 1, x)),
+        y: Math.max(0, Math.min(rows - 1, y)),
+        direction: LAB.randInt(0, 3),
+        hue: hues[ants.length % hues.length],
+        marker: marker
+      });
+    }
+
+    function moveAnt(ant) {
+      const index = ant.y * columns + ant.x;
+      if (cells[index]) {
+        ant.direction = (ant.direction + 3) % 4;
+        cells[index] = 0;
+        context.fillStyle = `hsl(${ant.hue}, 80%, 12%)`;
+      } else {
+        ant.direction = (ant.direction + 1) % 4;
+        cells[index] = 1;
+        context.fillStyle = `hsl(${ant.hue}, 100%, 60%)`;
+      }
+      context.fillRect(ant.x * cellSize, ant.y * cellSize, cellSize, cellSize);
+      if (ant.direction === 0) ant.y--;
+      if (ant.direction === 1) ant.x++;
+      if (ant.direction === 2) ant.y++;
+      if (ant.direction === 3) ant.x--;
+      ant.x = (ant.x + columns) % columns;
+      ant.y = (ant.y + rows) % rows;
+    }
+
+    function init() {
+      link.href = LAB.pageRandomiser.nextOne();
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      columns = Math.ceil(canvas.width / cellSize);
+      rows = Math.ceil(canvas.height / cellSize);
+      cells = new Uint8Array(columns * rows);
+      context.fillStyle = '#080808';
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      ants.forEach((ant) => ant.marker.remove());
+      ants.length = 0;
+      for (let i = 0; i < 5; i++) {
+        addAnt(LAB.randInt(0, columns - 1), LAB.randInt(0, rows - 1));
+      }
+    }
+
+    function animate() {
+      ants.forEach((ant) => {
+        for (let i = 0; i < antSpeed; i++) moveAnt(ant);
+        ant.marker.style.left = ant.x * cellSize + 'px';
+        ant.marker.style.top = ant.y * cellSize + 'px';
+      });
+      requestAnimationFrame(animate);
+    }
+
+    window.addEventListener('resize', init);
+
+    // Hold Shift, Ctrl, or Alt and click the canvas to create a new ant
+    document.addEventListener('click', (e) => {
+      if (e.shiftKey || e.ctrlKey || e.altKey) {
+        e.preventDefault();
+        addAnt(Math.floor(e.clientX / cellSize), Math.floor(e.clientY / cellSize));
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    init();
+    animate();
+
+  </script>
+</body>
+
+</html>

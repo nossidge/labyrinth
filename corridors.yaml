@@ -1603,3 +1603,10 @@ corridors:
     tags: [abstract, mobile]
     visual_description: >-
       A dark terrazzo surface rendered on a canvas with a near-black background. Irregular polygonal chips in warm, muted colours (terracotta, olive, ochre, slate) are layered across the screen alongside small white flecks. The entire canvas is a single clickable link to a random corridor. Pressing any key regenerates the pattern with new chip positions and colours.
+  - id: langtons-ants
+    title: Langton's Ants
+    created: 2026-08-04 14:15
+    links: 1
+    tags: [crt, maths, mobile]
+    visual_description: >-
+      A canvas-based simulation of Langton's Ant: five tiny glowing white dots crawl across a dark grid, each following the same simple rules - turn left on black, right on white, flip the cell, move forward. The ants leave trails in distinct hues, and as their paths intersect, complex emergent highways and chaotic patterns arise from the interaction. The entire canvas is a single clickable link to a random corridor in the labyrinth.

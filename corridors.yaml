@@ -1610,3 +1610,10 @@ corridors:
     tags: [crt, maths, mobile]
     visual_description: >-
       A canvas-based simulation of Langton's Ant: five tiny glowing white dots crawl across a dark grid, each following the same simple rules - turn left on black, right on white, flip the cell, move forward. The ants leave trails in distinct hues, and as their paths intersect, complex emergent highways and chaotic patterns arise from the interaction. The entire canvas is a single clickable link to a random corridor in the labyrinth.
+  - id: celtic-knots
+    title: Celtic Knots
+    created: 2026-08-05 23:44
+    links: dynamic
+    tags: [images, mobile, unicode]
+    visual_description: >-
+      A generator of symmetrical Celtic knots, rendered as text using a custom "Knots" font where box-drawing characters display as interwoven knotwork. The knot is centered on a parchment-like woven background image. Sliders in a collapsible control panel in the bottom left adjust the knot's width, height, and the weighting of blocked, crossed, and straight boundaries. Clicking anywhere (or pressing most keys) generates a new knot. The knot itself is a single clickable link to a random corridor in the labyrinth, with the destination changing each time a new knot is generated.

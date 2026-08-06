@@ -1617,3 +1617,10 @@ corridors:
     tags: [images, mobile, unicode]
     visual_description: >-
       A generator of symmetrical Celtic knots, rendered as text using a custom "Knots" font where box-drawing characters display as interwoven knotwork. The knot is centered on a parchment-like woven background image. Sliders in a collapsible control panel in the bottom left adjust the knot's width, height, and the weighting of blocked, crossed, and straight boundaries. Clicking anywhere (or pressing most keys) generates a new knot. The knot itself is a single clickable link to a random corridor in the labyrinth, with the destination changing each time a new knot is generated.
+  - id: pixel-sort
+    title: Pixel Sort
+    created: 2026-08-06 16:58
+    links: dynamic
+    tags: [abstract, mobile]
+    visual_description: >-
+      A canvas filled with randomly placed coloured rectangles. The page continuously sorts vertical and horizontal strips of pixels by brightness. Each rectangle is a clickable link to a random corridor in the labyrinth. Clicking the background or pressing any key regenerates the rectangles.

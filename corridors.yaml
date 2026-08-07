@@ -1624,3 +1624,10 @@ corridors:
     tags: [abstract, mobile]
     visual_description: >-
       A canvas filled with randomly placed coloured rectangles. The page continuously sorts vertical and horizontal strips of pixels by brightness. Each rectangle is a clickable link to a random corridor in the labyrinth. Clicking the background or pressing any key regenerates the rectangles.
+  - id: falls-the-shadow
+    title: Falls the Shadow
+    created: 2026-08-07 01:25
+    links: dynamic
+    tags: [crt, mobile, poetry, text]
+    visual_description: >-
+      Stanzas from T.S. Eliot's "The Hollow Men" displayed across three colour-separated text layers (red, green, blue) that drift independently using screen blend mode. A canvas of animated TV static with horizontal glitch bars forms the background. Each word is a clickable link to a random corridor.

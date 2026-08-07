@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+https://poets.org/poem/hollow-men
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="For Thine is... Life is... For Thine is the...">
+  <title>Life is very long</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body,
+    html {
+      width: 100%;
+      height: 100%;
+      background-color: #080808;
+      font-family: "Courier New", Courier, monospace;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      display: flex;
+    }
+
+    canvas {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+    }
+
+    main {
+      position: relative;
+      width: 80vw;
+      height: 80vh;
+    }
+
+    .layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      font-size: 26px;
+      line-height: 1.2;
+      letter-spacing: 6px;
+      word-spacing: -10px;
+      mix-blend-mode: screen;
+      white-space: pre-wrap;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      pointer-events: none;
+    }
+
+    #layer-r {
+      color: #ff0000;
+    }
+
+    #layer-g {
+      color: #00ff00;
+    }
+
+    #layer-b {
+      color: #0000ff;
+    }
+
+    .link {
+      text-decoration: none;
+      color: inherit;
+      padding: 2px 4px;
+      pointer-events: auto;
+    }
+
+    .link:hover {
+      filter: invert(1);
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 100;
+      background: linear-gradient(rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0.2) 50%);
+      background-size: 100% 3px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+  <canvas id="canvas"></canvas>
+  <main>
+    <div class="layer" id="layer-r"></div>
+    <div class="layer" id="layer-g"></div>
+    <div class="layer" id="layer-b"></div>
+  </main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('falls-the-shadow');
+
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    let winW, winH;
+
+    const layerR = document.getElementById('layer-r');
+    const layerG = document.getElementById('layer-g');
+    const layerB = document.getElementById('layer-b');
+
+    const stanzas = [
+      `
+        Between the idea
+        And the reality
+        Between the motion
+        And the act
+        Falls the Shadow
+      `, `
+        Between the conception
+        And the creation
+        Between the emotion
+        And the response
+        Falls the Shadow
+      `, `
+        Between the desire
+        And the spasm
+        Between the potency
+        And the existence
+        Between the essence
+        And the descent
+        Falls the Shadow
+      `
+    ];
+
+    const LAYER_PERMUTATIONS = [
+      [layerR, layerG, layerB],
+      [layerR, layerB, layerG],
+      [layerG, layerR, layerB],
+      [layerG, layerB, layerR],
+      [layerB, layerR, layerG],
+      [layerB, layerG, layerR],
+    ];
+    const layersRandomiser = new LAB.CyclicRandomiser(LAYER_PERMUTATIONS);
+
+    function resize() {
+      winW = canvas.width = window.innerWidth;
+      winH = canvas.height = window.innerHeight;
+      init();
+    }
+
+    function init() {
+      const layers = layersRandomiser.nextOne();
+      layers.forEach((layer, index) => {
+        layer.innerHTML = '';
+        const lines = stanzas[index].trim().split('\n').map(line => line.trim());
+        lines.forEach((line) => {
+          const lineSpan = document.createElement('span');
+          const words = line.split(' ');
+          words.forEach((word, wordIdx) => {
+            const a = document.createElement('a');
+            a.href = LAB.pageRandomiser.nextOne();
+            a.className = 'link';
+            a.textContent = word;
+            lineSpan.appendChild(a);
+            if (wordIdx < words.length - 1) {
+              lineSpan.appendChild(document.createTextNode(' '));
+            }
+          });
+          layer.appendChild(lineSpan);
+        });
+      });
+    }
+
+    // Animation wrapper to allow for FPS throttling
+    function handleTickWithFPS(tickFunction, fps = 60) {
+      const targetFrameMs = 1000 / fps;
+      let previousTime = 0;
+      function tick(now) {
+        const dt = now - previousTime;
+        if (previousTime !== 0 && dt < targetFrameMs) {
+          requestAnimationFrame(tick);
+          return;
+        }
+        previousTime = now;
+        tickFunction(now);
+        requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    }
+
+    // Background of television static
+    function tickStatic() {
+      const imageData = ctx.createImageData(winW, winH);
+      const data = imageData.data;
+
+      for (let i = 0; i < data.length; i += 4) {
+        const v = LAB.randInt(0, 60);
+        data[i] = v;
+        data[i + 1] = v;
+        data[i + 2] = v;
+        data[i + 3] = 180;
+      }
+      ctx.putImageData(imageData, 0, 0);
+
+      // Horizontal glitch bars
+      if (LAB.chance(0.08)) {
+        const y = LAB.randInt(0, winH);
+        const h = LAB.randInt(2, 22);
+        const r = LAB.chance(0.5) ? 255 : 0;
+        const g = LAB.chance(0.5) ? 255 : 0;
+        const b = LAB.chance(0.5) ? 255 : 0;
+        const a = 0.15;
+        ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${a})`;
+        ctx.fillRect(0, y, winW, h);
+      }
+    }
+
+    // Animate the words around based on the colour layer
+    function tickWords() {
+      const t = Date.now() * 0.001;
+      const dxR = Math.sin(t * 0.7) * 6;
+      const dyR = Math.cos(t * 0.5) * 3;
+      const dxG = Math.sin(t * 0.9 + 2) * 4;
+      const dyG = Math.cos(t * 0.6 + 1) * 5;
+      const dxB = Math.sin(t * 0.8 + 4) * 5;
+      const dyB = Math.cos(t * 0.4 + 3) * 4;
+
+      layerR.style.transform = 'translate(' + dxR + 'px, ' + dyR + 'px)';
+      layerG.style.transform = 'translate(' + dxG + 'px, ' + dyG + 'px)';
+      layerB.style.transform = 'translate(' + dxB + 'px, ' + dyB + 'px)';
+
+      requestAnimationFrame(tickWords);
+    }
+
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(resize, 100);
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    resize();
+    tickWords();
+    handleTickWithFPS(tickStatic, 16);
+
+  </script>
+</body>
+
+</html>

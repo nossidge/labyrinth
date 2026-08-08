@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+https://en.wikipedia.org/wiki/Diffusion-limited_aggregation
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="David Jack Robert">
+  <title>Frostwork</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000000;
+    }
+
+    main {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      height: 100%;
+    }
+
+    canvas {
+      display: block;
+      width: 92vmin;
+      height: 92vmin;
+      image-rendering: pixelated;
+    }
+
+    .nav-panel {
+      position: fixed;
+      top: 0;
+      height: 100%;
+      width: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 5;
+      cursor: pointer;
+    }
+
+    #nav-left {
+      left: 0;
+      background: linear-gradient(to right, rgba(255, 255, 255, 0.02), transparent);
+    }
+
+    #nav-left:hover {
+      background: linear-gradient(to right, rgba(255, 255, 255, 0.06), transparent);
+    }
+
+    #nav-right {
+      right: 0;
+      background: linear-gradient(to left, rgba(255, 255, 255, 0.02), transparent);
+    }
+
+    #nav-right:hover {
+      background: linear-gradient(to left, rgba(255, 255, 255, 0.06), transparent);
+    }
+
+    .nav-button {
+      background: none;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: rgba(255, 255, 255, 0.25);
+      font-size: 28px;
+      padding: 12px 16px;
+      line-height: 1;
+      pointer-events: none;
+    }
+
+    .nav-panel:hover .nav-button {
+      border-color: rgba(255, 255, 255, 0.5);
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    @media (max-width: 600px) {
+      .nav-panel {
+        top: auto;
+        bottom: 0;
+        height: 60px;
+        width: 50%;
+        background: none;
+      }
+
+      .nav-button {
+        border: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="nav-left" class="nav-panel">
+    <button class="nav-button">&larr;</button>
+  </div>
+
+  <main>
+    <a id="link" href="../index.html">
+      <canvas id="plot" width="260" height="260"></canvas>
+    </a>
+  </main>
+
+  <div id="nav-right" class="nav-panel">
+    <button class="nav-button">&rarr;</button>
+  </div>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('dendrite');
+
+    const link = document.getElementById('link');
+    const canvas = document.getElementById('plot');
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width;
+    const H = canvas.height;
+    const cx = W >> 1;
+    const cy = H >> 1;
+    const maxR = (Math.min(W, H) >> 1) - 3;
+
+    const symmetryOptions = [3, 4, 5, 6, 7, 8];
+
+    let rng;
+    let img, data;
+    let count, attached, sym, hueBase, finished;
+    let occupied = new Uint8Array(W * H);
+    let maxRadius;
+
+    function mulberry32(seed) {
+      return function () {
+        seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+        let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+        t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+      };
+    }
+
+    function seededRand(min, max) { return rng() * (max - min) + min; }
+    function seededRandInt(min, max) { return Math.floor(seededRand(min, max + 1)); }
+
+    function makeScene(forcedSeed) {
+      const validSeed = (forcedSeed !== undefined && !isNaN(forcedSeed))
+      const seed = validSeed ? forcedSeed : LAB.randInt(1, 1000000000);
+      rng = mulberry32(seed);
+      return {
+        seed: seed,
+        sym: symmetryOptions[seededRandInt(0, symmetryOptions.length - 1)],
+        hue: seededRandInt(0, 360),
+        href: LAB.pageRandomiser.nextOne()
+      };
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlSeed = urlParams.has('seed') ? parseInt(urlParams.get('seed'), 10) : undefined;
+    let history = [makeScene(urlSeed)];
+    let historyIndex = 0;
+
+    function scene() { return history[historyIndex]; }
+
+    function hslToRgb(h, s, l) {
+      let r, g, b;
+      if (s === 0) { r = g = b = l; }
+      else {
+        const hue2rgb = (p, q, x) => {
+          if (x < 0) x += 1;
+          if (x > 1) x -= 1;
+          if (x < 1 / 6) return p + (q - p) * 6 * x;
+          if (x < 1 / 2) return q;
+          if (x < 2 / 3) return p + (q - p) * (2 / 3 - x) * 6;
+          return p;
+        };
+        const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+        const p = 2 * l - q;
+        r = hue2rgb(p, q, h + 1 / 3);
+        g = hue2rgb(p, q, h);
+        b = hue2rgb(p, q, h - 1 / 3);
+      }
+      return [r * 255 | 0, g * 255 | 0, b * 255 | 0];
+    }
+
+    function paint(x, y) {
+      if (x < 0 || x >= W || y < 0 || y >= H) return;
+      const i = y * W + x;
+      if (occupied[i]) return;
+      occupied[i] = 1;
+      const r = Math.hypot(x - cx, y - cy);
+      if (r > maxRadius) maxRadius = r;
+      const hue = (hueBase + r * 1.3) % 360;
+      const [rr, gg, bb] = hslToRgb(hue / 360, 0.7, 0.6);
+      const idx = i * 4;
+      data[idx] = rr; data[idx + 1] = gg; data[idx + 2] = bb; data[idx + 3] = 255;
+    }
+
+    function stick(x, y) {
+      const dx = x - cx;
+      const dy = y - cy;
+      for (let s = 0; s < sym; s++) {
+        const ang = (s / sym) * Math.PI * 2;
+        const ca = Math.cos(ang), sa = Math.sin(ang);
+        const rx = Math.round(cx + dx * ca - dy * sa);
+        const ry = Math.round(cy + dx * sa + dy * ca);
+        paint(rx, ry);
+      }
+    }
+
+    function neighbourOccupied(x, y) {
+      for (let oy = -1; oy <= 1; oy++) {
+        for (let ox = -1; ox <= 1; ox++) {
+          if (ox === 0 && oy === 0) continue;
+          const nx = x + ox, ny = y + oy;
+          if (nx < 0 || nx >= W || ny < 0 || ny >= H) continue;
+          if (occupied[ny * W + nx]) return true;
+        }
+      }
+      return false;
+    }
+
+    function addParticle() {
+      const spawnR = Math.min(maxRadius + 6, maxR);
+      const killR = Math.min(spawnR * 2 + 8, maxR + 30);
+      const a = seededRand(0, Math.PI * 2);
+      let x = Math.round(cx + Math.cos(a) * spawnR);
+      let y = Math.round(cy + Math.sin(a) * spawnR);
+
+      let steps = 0;
+      const maxSteps = 6000;
+      while (steps++ < maxSteps) {
+        if (neighbourOccupied(x, y)) { stick(x, y); return true; }
+        x += seededRandInt(-1, 1);
+        y += seededRandInt(-1, 1);
+        if (Math.hypot(x - cx, y - cy) > killR) return false;
+        if (x < 1) x = 1; if (x > W - 2) x = W - 2;
+        if (y < 1) y = 1; if (y > H - 2) y = H - 2;
+      }
+      return false;
+    }
+
+    function init() {
+      occupied = new Uint8Array(W * H);
+      img = ctx.createImageData(W, H);
+      data = img.data;
+      for (let i = 0; i < W * H; i++) { data[i * 4 + 3] = 255; }
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(0, 0, W, H);
+      sym = scene().sym;
+      hueBase = scene().hue;
+      rng = mulberry32(scene().seed);
+      maxRadius = 0;
+      finished = false;
+      paint(cx, cy); // Seed at centre
+      link.href = scene().href;
+
+      const newUrl = new URL(window.location);
+      newUrl.searchParams.set('seed', scene().seed);
+      window.history.replaceState({}, '', newUrl);
+    }
+
+    function tick() {
+      if (!finished) {
+        const perFrame = 90;
+        for (let i = 0; i < perFrame; i++) {
+          addParticle();
+          if (maxRadius >= maxR - 1) { finished = true; break; }
+        }
+        ctx.putImageData(img, 0, 0);
+      }
+      requestAnimationFrame(tick);
+    }
+
+    function next() {
+      if (historyIndex < history.length - 1) historyIndex++;
+      else { history.push(makeScene()); historyIndex = history.length - 1; }
+      init();
+    }
+
+    function prev() {
+      if (historyIndex > 0) historyIndex--;
+      else { history.unshift(makeScene()); historyIndex = 0; }
+      init();
+    }
+
+    document.addEventListener('click', (e) => {
+      if (e.target.closest('a') || e.target.closest('.nav-panel')) return;
+      next();
+    });
+
+    const LEFT = new Set(['ArrowLeft', 'ArrowDown', 'h', 'j', 'a', 's']);
+    const RIGHT = new Set(['ArrowRight', 'ArrowUp', 'k', 'l', 'd', 'w']);
+    document.addEventListener('keydown', (e) => {
+      if (LEFT.has(e.key)) { e.preventDefault(); prev(); }
+      else if (RIGHT.has(e.key)) { e.preventDefault(); next(); }
+    });
+
+    document.getElementById('nav-left').addEventListener('click', prev);
+    document.getElementById('nav-right').addEventListener('click', next);
+
+    init();
+    requestAnimationFrame(tick);
+
+  </script>
+</body>
+
+</html>

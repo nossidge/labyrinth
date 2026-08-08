@@ -1631,3 +1631,10 @@ corridors:
     tags: [crt, mobile, poetry, text]
     visual_description: >-
       Stanzas from T.S. Eliot's "The Hollow Men" displayed across three colour-separated text layers (red, green, blue) that drift independently using screen blend mode. A canvas of animated TV static with horizontal glitch bars forms the background. Each word is a clickable link to a random corridor.
+  - id: dendrite
+    title: Dendrite
+    created: 2026-08-08 12:03
+    links: 1
+    tags: [maths, mobile]
+    visual_description: >-
+      A canvas-based visualisation of diffusion-limited aggregation where particles randomly wander until they bump into the frozen cluster and stick, forming crystalline dendrites resembling snowflake-type structures. The background is a dark void, and the generated crystals are coloured based on their distance from the centre. Each generated structure is pseudo-randomly seeded and deterministic, allowing users to navigate through variations using back and forward arrows on the sides. The canvas serves as a link to another random corridor.

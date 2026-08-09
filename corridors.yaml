@@ -1638,3 +1638,10 @@ corridors:
     tags: [maths, mobile]
     visual_description: >-
       A canvas-based visualisation of diffusion-limited aggregation where particles randomly wander until they bump into the frozen cluster and stick, forming crystalline dendrites resembling snowflake-type structures. The background is a dark void, and the generated crystals are coloured based on their distance from the centre. Each generated structure is pseudo-randomly seeded and deterministic, allowing users to navigate through variations using back and forward arrows on the sides. The canvas serves as a link to another random corridor.
+  - id: julia-set
+    title: Julia Set
+    created: 2026-08-09 14:16
+    links: 1
+    tags: [maths, mobile]
+    visual_description: >-
+      A canvas-based, animated visualisation of a Julia set fractal where the complex parameter c slowly moves in a loop, causing the fractal to endlessly morph. The fractal features shimmering, vibrant colours. The page uses a deterministic, seeded random generation algorithm so that users can navigate back and forth through identical fractal variations using side arrows. The canvas acts as a portal linking to a random corridor in the labyrinth.

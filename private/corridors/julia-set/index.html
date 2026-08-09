@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+Julia set with the complex parameter c slowly moving in a loop
+https://en.wikipedia.org/wiki/Julia_set
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="shimmering, glimmering, in the sun">
+  <title>Half of What I Say</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000000;
+    }
+
+    main {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      height: 100%;
+    }
+
+    canvas {
+      display: block;
+      width: 96vmin;
+      height: 96vmin;
+      image-rendering: auto;
+    }
+
+    .nav-panel {
+      position: fixed;
+      top: 0;
+      height: 100%;
+      width: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 5;
+      cursor: pointer;
+    }
+
+    #nav-left {
+      left: 0;
+      background: linear-gradient(to right, rgba(255, 255, 255, 0.02), transparent);
+    }
+
+    #nav-left:hover {
+      background: linear-gradient(to right, rgba(255, 255, 255, 0.06), transparent);
+    }
+
+    #nav-right {
+      right: 0;
+      background: linear-gradient(to left, rgba(255, 255, 255, 0.02), transparent);
+    }
+
+    #nav-right:hover {
+      background: linear-gradient(to left, rgba(255, 255, 255, 0.06), transparent);
+    }
+
+    .nav-button {
+      background: none;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: rgba(255, 255, 255, 0.25);
+      font-size: 28px;
+      padding: 12px 16px;
+      line-height: 1;
+      pointer-events: none;
+    }
+
+    .nav-panel:hover .nav-button {
+      border-color: rgba(255, 255, 255, 0.5);
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    @media (max-width: 600px) {
+      .nav-panel {
+        top: auto;
+        bottom: 0;
+        height: 60px;
+        width: 50%;
+        background: none;
+      }
+
+      .nav-button {
+        border: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="nav-left" class="nav-panel">
+    <button class="nav-button">&larr;</button>
+  </div>
+
+  <main>
+    <a id="link" href="../index.html">
+      <canvas id="plot" width="340" height="340"></canvas>
+    </a>
+  </main>
+
+  <div id="nav-right" class="nav-panel">
+    <button class="nav-button">&rarr;</button>
+  </div>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('julia-set');
+
+    const link = document.getElementById('link');
+    const canvas = document.getElementById('plot');
+    const ctx = canvas.getContext('2d');
+    const SIZE = canvas.width;
+    const img = ctx.createImageData(SIZE, SIZE);
+    const data = img.data;
+
+    const timeIncrement = 0.6;
+    const maxIter = 70;
+    const zoom = 1.5;
+
+    let rng;
+
+    function mulberry32(seed) {
+      return function () {
+        seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+        let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+        t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+      };
+    }
+
+    function seededRand(min, max) { return rng() * (max - min) + min; }
+    function seededRandInt(min, max) { return Math.floor(seededRand(min, max + 1)); }
+    function seededChance(probability) { return seededRand(0, 1) < probability; }
+
+    // Each "scene" is a centre point + radius for c to orbit, plus a palette
+    function makeScene(forcedSeed) {
+      const validSeed = (forcedSeed !== undefined && !isNaN(forcedSeed));
+      const seed = validSeed ? forcedSeed : LAB.randInt(1, 1000000000);
+      rng = mulberry32(seed);
+      return {
+        seed: seed,
+        cx: seededRand(-0.8, 0.4),
+        cy: seededRand(-0.7, 0.7),
+        radius: seededRand(0.04, 0.16),
+        speed: seededRand(0.08, 0.22) * (seededChance(0.5) ? 1 : -1),
+        hue: seededRandInt(0, 360),
+        href: LAB.pageRandomiser.nextOne(),
+      };
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlSeed = urlParams.has('seed') ? parseInt(urlParams.get('seed'), 10) : undefined;
+    let history = [makeScene(urlSeed)];
+    let historyIndex = 0;
+    let t = 0;
+
+    function scene() { return history[historyIndex]; }
+
+    function colour(mu, hueBase) {
+      const h = (hueBase + mu * 18) % 360;
+      const s = 80;
+      const l = Math.min(60, mu * 9);
+      return hslToRgb(h / 360, s / 100, l / 100);
+    }
+
+    function hslToRgb(h, s, l) {
+      let r, g, b;
+      if (s === 0) { r = g = b = l; }
+      else {
+        const hue2rgb = (p, q, x) => {
+          if (x < 0) x += 1;
+          if (x > 1) x -= 1;
+          if (x < 1 / 6) return p + (q - p) * 6 * x;
+          if (x < 1 / 2) return q;
+          if (x < 2 / 3) return p + (q - p) * (2 / 3 - x) * 6;
+          return p;
+        };
+        const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+        const p = 2 * l - q;
+        r = hue2rgb(p, q, h + 1 / 3);
+        g = hue2rgb(p, q, h);
+        b = hue2rgb(p, q, h - 1 / 3);
+      }
+      return [r * 255 | 0, g * 255 | 0, b * 255 | 0];
+    }
+
+    function tick() {
+      const sc = scene();
+      const cRe = sc.cx + Math.cos(t * sc.speed) * sc.radius;
+      const cIm = sc.cy + Math.sin(t * sc.speed) * sc.radius;
+
+      let idx = 0;
+      for (let py = 0; py < SIZE; py++) {
+        const y0 = (py / SIZE - 0.5) * 2 * zoom;
+        for (let px = 0; px < SIZE; px++) {
+          const x0 = (px / SIZE - 0.5) * 2 * zoom;
+          let zx = x0, zy = y0;
+          let i = 0;
+          while (i < maxIter) {
+            const x2 = zx * zx, y2 = zy * zy;
+            if (x2 + y2 > 4) break;
+            zy = 2 * zx * zy + cIm;
+            zx = x2 - y2 + cRe;
+            i++;
+          }
+          if (i >= maxIter) {
+            data[idx] = 4; data[idx + 1] = 4; data[idx + 2] = 8;
+          } else {
+            const mag = zx * zx + zy * zy;
+            const mu = i + 1 - Math.log(Math.log(Math.sqrt(mag)) / Math.log(2)) / Math.log(2);
+            const [r, g, b] = colour(mu, sc.hue);
+            data[idx] = r; data[idx + 1] = g; data[idx + 2] = b;
+          }
+          data[idx + 3] = 255;
+          idx += 4;
+        }
+      }
+      ctx.putImageData(img, 0, 0);
+      t += timeIncrement;
+      requestAnimationFrame(tick);
+    }
+
+    function init() {
+      rng = mulberry32(scene().seed);
+      link.href = scene().href;
+      t = 0;
+
+      const newUrl = new URL(window.location);
+      newUrl.searchParams.set('seed', scene().seed);
+      window.history.replaceState({}, '', newUrl);
+    }
+
+    function next() {
+      if (historyIndex < history.length - 1) historyIndex++;
+      else { history.push(makeScene()); historyIndex = history.length - 1; }
+      init();
+    }
+
+    function prev() {
+      if (historyIndex > 0) historyIndex--;
+      else { history.unshift(makeScene()); historyIndex = 0; }
+      init();
+    }
+
+    document.addEventListener('click', (e) => {
+      if (e.target.closest('a') || e.target.closest('.nav-panel')) return;
+      next();
+    });
+
+    const LEFT = new Set(['ArrowLeft', 'ArrowDown', 'h', 'j', 'a', 's']);
+    const RIGHT = new Set(['ArrowRight', 'ArrowUp', 'k', 'l', 'd', 'w']);
+    document.addEventListener('keydown', (e) => {
+      if (LEFT.has(e.key)) { e.preventDefault(); prev(); }
+      else if (RIGHT.has(e.key)) { e.preventDefault(); next(); }
+    });
+
+    document.getElementById('nav-left').addEventListener('click', prev);
+    document.getElementById('nav-right').addEventListener('click', next);
+
+    init();
+    requestAnimationFrame(tick);
+
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Splitters">
+  <title>The Quadtrees are Dead</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #080808;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #main {
+      position: relative;
+      width: 94vmin;
+      height: 94vmin;
+    }
+
+    .square {
+      position: absolute;
+      display: block;
+      text-decoration: none;
+      background: #080808;
+      border: 1px solid #080808;
+      transition: transform 0.2s ease, filter 0.2s ease, background-color 0.2s ease;
+    }
+
+    .square:hover {
+      transform: scale(1.12);
+      z-index: 50;
+      filter: brightness(1.6) drop-shadow(0 0 10px rgba(120, 220, 255, 0.8));
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 100;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 255, 0, 0.03));
+      background-size: 100% 2px, 3px 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+  <main id="main"></main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('quadtree');
+
+    const main = document.getElementById('main');
+    const MIN_DEPTH = 2;
+    const MAX_DEPTH = 6;
+
+    // I was using JS here, but CSS animation is much more CPU friendly
+    const style = document.createElement('style');
+    let css = '';
+    for (let d = 0; d <= MAX_DEPTH; d++) {
+      css += `@keyframes cycle-${d} {\n`;
+      // Use 2% steps for smooth RGB interpolation
+      for (let percent = 0; percent <= 100; percent += 2) {
+        const T = (percent / 100) * 12;
+        const hue = (T * 30 + d * 25) % 360;
+        const light = 22 + d * 6 + 10 * Math.sin(T * Math.PI / 3);
+        css += `  ${percent}% { background-color: hsl(${hue.toFixed(1)}, 70%, ${light.toFixed(1)}%); }\n`;
+      }
+      css += `}\n`;
+      css += `.square.depth-${d} { animation: cycle-${d} 13.333s linear infinite; }\n`;
+    }
+    style.innerHTML = css;
+    document.head.appendChild(style);
+
+    // Recursively split a square into quadrants with decreasing probability
+    function subdivide(x, y, size, depth) {
+      const keepSplitting =
+        depth < MIN_DEPTH ||
+        (depth < MAX_DEPTH && LAB.chance(0.62));
+
+      if (keepSplitting) {
+        const h = size / 2;
+        subdivide(x, y, h, depth + 1);
+        subdivide(x + h, y, h, depth + 1);
+        subdivide(x, y + h, h, depth + 1);
+        subdivide(x + h, y + h, h, depth + 1);
+        return;
+      }
+
+      const cx = x + size / 2;
+      const cy = y + size / 2;
+      const wave = (cx - cy) * 0.04;
+      const offset = wave * (2 / 3);
+
+      let delay = -(offset / 0.9);
+      delay = delay % 13.3333;
+      if (delay > 0) delay -= 13.3333;
+
+      const a = document.createElement('a');
+      a.className = `square depth-${depth}`;
+      a.href = LAB.pageRandomiser.nextOne();
+      a.style.left = x + '%';
+      a.style.top = y + '%';
+      a.style.width = size + '%';
+      a.style.height = size + '%';
+      a.style.animationDelay = `${delay.toFixed(3)}s`;
+      main.appendChild(a);
+    }
+
+    function init() {
+      main.replaceChildren();
+      subdivide(0, 0, 100, 0);
+    }
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    init();
+
+  </script>
+</body>
+
+</html>

@@ -1644,4 +1644,11 @@ corridors:
     links: 1
     tags: [maths, mobile]
     visual_description: >-
-      A canvas-based, animated visualisation of a Julia set fractal where the complex parameter c slowly moves in a loop, causing the fractal to endlessly morph. The fractal features shimmering, vibrant colours. The page uses a deterministic, seeded random generation algorithm so that users can navigate back and forth through identical fractal variations using side arrows. The canvas acts as a portal linking to a random corridor in the labyrinth.
+      A canvas-based, animated visualisation of a Julia set fractal where the complex parameter c slowly moves in a loop, causing the fractal to endlessly morph. The fractal features shimmering, vibrant colours. The page uses a deterministic, seeded random generation algorithm so that users can navigate back and forth through identical fractal variations using side arrows. The canvas acts as a portal linking to a random corridor.
+  - id: quadtree
+    title: Quadtree
+    created: 2026-08-10 17:34
+    links: dynamic
+    tags: [abstract, crt, mobile]
+    visual_description: >-
+      A subdivided grid of square blocks that recursively divide into four smaller squares, filling the screen with a dense, uneven mosaic. A continuous, wavelike colour cycle sweeps diagonally across the blocks, dynamically shifting their hue and brightness based on their hierarchical depth. Every block is a clickable link leading to a random corridor.

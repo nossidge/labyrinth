@@ -1652,3 +1652,10 @@ corridors:
     tags: [abstract, crt, mobile]
     visual_description: >-
       A subdivided grid of square blocks that recursively divide into four smaller squares, filling the screen with a dense, uneven mosaic. A continuous, wavelike colour cycle sweeps diagonally across the blocks, dynamically shifting their hue and brightness based on their hierarchical depth. Every block is a clickable link leading to a random corridor.
+  - id: munching-squares
+    title: Munching Squares
+    created: 2026-08-11 15:38
+    links: 1
+    tags: [abstract, crt, mobile]
+    visual_description: >-
+      A canvas-based rendering of the classic "Munching Squares" demo effect. A 128x128 grid of pixels is drawn using XOR-based geometry, producing expanding and contracting concentric square patterns. The page cycles through a colour palette with eight shades from dark to bright. The entire canvas is a clickable link to a random corridor.

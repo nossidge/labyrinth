@@ -1659,3 +1659,10 @@ corridors:
     tags: [abstract, crt, mobile]
     visual_description: >-
       A canvas-based rendering of the classic "Munching Squares" demo effect. A 128x128 grid of pixels is drawn using XOR-based geometry, producing expanding and contracting concentric square patterns. The page cycles through a colour palette with eight shades from dark to bright. The entire canvas is a clickable link to a random corridor.
+  - id: flickering-bars
+    title: Flickering Bars
+    created: 2026-08-12 13:40
+    links: dynamic
+    tags: [abstract, mobile]
+    visual_description: >-
+      A full-screen display of vertical green bars that fluctuate in height. The bars sit flush against one another with thin black borders, and their heights and colours animate continuously using overlapping sine waves. Clicking the empty background or pressing a key reshuffles the layout. Clicking on any bar navigates to a random corridor.

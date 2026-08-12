@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Bickering Farrs (you know, like Jamie, I guess...)">
+  <title>
+    𝄁𝄂𝄀𝄁𝄃𝄃𝄀𝄁𝄂𝄀𝄁𝄀𝄁𝄂𝄃𝄃𝄂𝄀𝄁𝄂𝄃𝄁𝄂𝄃𝄀𝄁𝄂𝄃𝄀𝄁𝄂𝄂𝄃𝄀𝄃𝄀𝄁𝄂𝄀𝄁𝄃𝄀𝄁𝄂𝄃𝄂
+  </title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #0a0a0a;
+    }
+
+    #main {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      gap: 0;
+    }
+
+    .bar {
+      width: 12px;
+      background: #00ff88;
+      border-radius: 2px;
+      border-left: 1px solid #000000;
+      border-right: 2px solid #000000;
+      transition: height 0.15s ease;
+    }
+  </style>
+</head>
+
+<body>
+  <main id="main"></main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('flickering-bars');
+
+    const main = document.getElementById('main');
+
+    const palette = ['#00ff88', '#00cc6a', '#33ff99', '#00ffaa', '#66ffbb'];
+
+    let bars = [];
+
+    function init() {
+      main.innerHTML = '';
+      bars = [];
+      const count = Math.floor(window.innerWidth / 12);
+
+      for (let i = 0; i < count; i++) {
+        const bar = document.createElement('a');
+        bar.href = LAB.pageRandomiser.nextOne();
+        bar.className = 'bar';
+        bar.style.height = '10px';
+        main.appendChild(bar);
+        bars.push({
+          el: bar,
+          phase: LAB.rand(0, Math.PI * 2),
+          speed: LAB.rand(0.5, 2.5),
+          amplitude: LAB.rand(50, 250)
+        });
+      }
+    }
+
+    function draw() {
+      const time = Date.now() / 1000;
+
+      bars.forEach((bar, i) => {
+        const wave1 = Math.sin(time * bar.speed + bar.phase);
+        const wave2 = Math.sin(time * bar.speed * 0.5 + i * 0.1);
+        const height = 10 + (wave1 + 1) * bar.amplitude * 0.4 + (wave2 + 1) * 30;
+        bar.el.style.height = height + 'px';
+
+        const intensity = (wave1 + 1) / 2;
+        bar.el.style.background = palette[Math.floor(intensity * palette.length) % palette.length];
+        bar.el.style.opacity = 0.5 + intensity * 0.5;
+      });
+
+      requestAnimationFrame(draw);
+    }
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    window.addEventListener('resize', init);
+
+    init();
+    draw();
+
+  </script>
+</body>
+
+</html>

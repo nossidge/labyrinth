@@ -1666,3 +1666,10 @@ corridors:
     tags: [abstract, mobile]
     visual_description: >-
       A full-screen display of vertical green bars that fluctuate in height. The bars sit flush against one another with thin black borders, and their heights and colours animate continuously using overlapping sine waves. Clicking the empty background or pressing a key reshuffles the layout. Clicking on any bar navigates to a random corridor.
+  - id: crystal-shards
+    title: Crystal Shards
+    created: 2026-08-13 16:13
+    links: dynamic
+    tags: [abstract, crt, mobile]
+    visual_description: >-
+      A dark void filled with 30 translucent, coloured crystal shards rendered as skewed polygons with screen blend mode. Each shard animates with a slow rotate effect, rotating and skewing while cycling through hue shifts. The shards use a palette of vivid neon colours (red, cyan, purple, yellow, green, pink). Hovering a shard increases its opacity. Every shard is a clickable link to a random corridor.

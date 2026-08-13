@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="I see the crystal visions">
+  <title>crystal shards</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #060606;
+    }
+
+    #main {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      isolation: isolate;
+    }
+
+    .crystal {
+      position: absolute;
+      left: var(--l);
+      top: var(--t);
+      width: var(--w);
+      height: var(--h);
+      background: var(--c);
+      opacity: .58;
+      clip-path: polygon(0 18%, 91% 0, 100% 82%, 7% 100%);
+      mix-blend-mode: screen;
+      transform-origin: var(--hinge);
+      animation: turn var(--d) ease-in-out infinite alternate;
+    }
+
+    .crystal:hover {
+      opacity: 1;
+    }
+
+    @keyframes turn {
+      from {
+        transform: rotate(var(--r1)) skewX(-4deg);
+        filter: hue-rotate(0);
+      }
+
+      to {
+        transform: rotate(var(--r2)) skewX(5deg);
+        filter: hue-rotate(80deg);
+      }
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 100;
+      background: linear-gradient(rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0.12) 50%);
+      background-size: 100% 3px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+  <main id="main"></main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('crystal-shards');
+
+    const main = document.getElementById('main');
+    const colours = ['#ff1744', '#00e5ff', '#6b38ff', '#ffea00', '#00ff8a', '#ff2fcf'];
+    const crystalCount = 30;
+
+    function init() {
+      main.innerHTML = '';
+      for (let i = 0; i < crystalCount; i++) {
+        const crystal = document.createElement('a');
+        crystal.href = LAB.pageRandomiser.nextOne();
+        crystal.className = 'crystal';
+        crystal.style.setProperty('--hinge', i % 2 ? 'left center' : 'right center');
+        crystal.style.setProperty('--c', colours[i % colours.length]);
+        crystal.style.setProperty('--l', `${LAB.rand(-18, 55)}vw`);
+        crystal.style.setProperty('--t', `${LAB.rand(-12, 82)}vh`);
+        crystal.style.setProperty('--w', `${LAB.rand(42, 88)}vw`);
+        crystal.style.setProperty('--h', `${LAB.rand(9, 24)}vh`);
+        crystal.style.setProperty('--r1', `${LAB.rand(-18, 8)}deg`);
+        crystal.style.setProperty('--r2', `${LAB.rand(8, 25)}deg`);
+        crystal.style.setProperty('--d', `${LAB.rand(8, 19)}s`);
+        crystal.style.animationDelay = `${LAB.rand(-15, 0)}s`;
+        main.prepend(crystal);
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    init();
+
+  </script>
+</body>
+
+</html>

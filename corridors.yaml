@@ -1673,3 +1673,10 @@ corridors:
     tags: [abstract, crt, mobile]
     visual_description: >-
       A dark void filled with 30 translucent, coloured crystal shards rendered as skewed polygons with screen blend mode. Each shard animates with a slow rotate effect, rotating and skewing while cycling through hue shifts. The shards use a palette of vivid neon colours (red, cyan, purple, yellow, green, pink). Hovering a shard increases its opacity. Every shard is a clickable link to a random corridor.
+  - id: crystal-hinges
+    title: Crystal Hinges
+    created: 2026-08-14 12:18
+    links: dynamic
+    tags: [abstract, mobile]
+    visual_description: >-
+      A field of 36 coloured crystal shapes scattered across a warm beige background. Each crystal is a polygon rendered with a distinct hue from a palette of red, yellow, blue, green, and purple, rotated in 3D space with a multiply blend mode. Hovering a crystal inverts its colours and flattens its rotation. Pressing any key or clicking the background re-hinges all crystals to new random angles. Every crystal is a clickable link to a random corridor.

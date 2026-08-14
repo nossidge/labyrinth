@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="I keep my visions to myself">
+  <title>crystal hinges</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #f4efe2;
+    }
+
+    #main {
+      position: fixed;
+      inset: 0;
+      perspective: 600px;
+    }
+
+    .crystal {
+      position: absolute;
+      display: block;
+      width: var(--w);
+      height: var(--h);
+      left: var(--x);
+      top: var(--y);
+      background: var(--c);
+      opacity: .82;
+      clip-path: polygon(0 0, 100% var(--p), 72% 100%, 12% 78%);
+      transform: rotate(var(--r)) rotateY(var(--ry));
+      transform-origin: center;
+      mix-blend-mode: multiply;
+      border: 1px solid #2225;
+      transition: filter .2s, transform .5s;
+      text-decoration: none;
+    }
+
+    .crystal::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 0;
+      bottom: 0;
+      border-left: 1px dashed #fff8;
+    }
+
+    .crystal:hover {
+      filter: invert(1);
+      transform: rotate(var(--r)) rotateY(0) scale(1.08);
+      z-index: 20;
+    }
+  </style>
+</head>
+
+<body>
+  <main id="main"></main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('crystal-hinges');
+
+    const main = document.getElementById('main');
+    const colours = ['#ff1744', '#ffd600', '#0057ff', '#00b86b', '#eb4dff'];
+    const crystalCount = 36;
+
+    function init() {
+      main.innerHTML = '';
+      for (let i = 0; i < crystalCount; i++) {
+        const crystal = document.createElement('a');
+        crystal.className = 'crystal';
+        crystal.href = LAB.pageRandomiser.nextOne();
+        crystal.style.setProperty('--w', LAB.rand(12, 36) + 'vw');
+        crystal.style.setProperty('--h', LAB.rand(10, 38) + 'vh');
+        crystal.style.setProperty('--x', LAB.rand(-5, 88) + '%');
+        crystal.style.setProperty('--y', LAB.rand(-5, 88) + '%');
+        crystal.style.setProperty('--c', LAB.sample(colours));
+        crystal.style.setProperty('--p', LAB.rand(0, 100) + '%');
+        crystal.style.setProperty('--r', LAB.rand(-70, 70) + 'deg');
+        crystal.style.setProperty('--ry', LAB.rand(-55, 55) + 'deg');
+        main.appendChild(crystal);
+      }
+    }
+
+    function hingeAll() {
+      document.querySelectorAll('.crystal').forEach((crystal) =>
+        crystal.style.setProperty('--ry', LAB.rand(-75, 75) + 'deg')
+      );
+    }
+
+    document.addEventListener('keydown', hingeAll);
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) hingeAll();
+    });
+
+    init();
+
+  </script>
+</body>
+
+</html>

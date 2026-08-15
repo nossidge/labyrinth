@@ -1680,3 +1680,10 @@ corridors:
     tags: [abstract, mobile]
     visual_description: >-
       A field of 36 coloured crystal shapes scattered across a warm beige background. Each crystal is a polygon rendered with a distinct hue from a palette of red, yellow, blue, green, and purple, rotated in 3D space with a multiply blend mode. Hovering a crystal inverts its colours and flattens its rotation. Pressing any key or clicking the background re-hinges all crystals to new random angles. Every crystal is a clickable link to a random corridor.
+  - id: backscatter-orbs
+    title: Backscatter Orbs
+    created: 2026-08-15 02:08
+    links: 7
+    tags: [abstract, mobile]
+    visual_description: >-
+      Seven translucent orbs drift in slow orbital paths around the centre of a dark canvas. Each orb is a radial gradient in a distinct hue that shifts over time, rendered with additive blending for a soft glowing effect. The orbs leave faint trails as they move, fading gradually against the near-black background. Clicking outside an orb resets the simulation. Every orb is a clickable link to a random corridor.

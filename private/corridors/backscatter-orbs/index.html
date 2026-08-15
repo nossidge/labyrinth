@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+https://en.wikipedia.org/wiki/Backscatter_(photography)
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="just kinda floating">
+  <title>dust in the spotlights</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body,
+    html {
+      width: 100%;
+      height: 100%;
+      background-color: #080808;
+      overflow: hidden;
+    }
+
+    canvas {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    #links {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 10;
+    }
+
+    #links a {
+      position: absolute;
+      display: block;
+      text-decoration: none;
+      border-radius: 50%;
+      transition: box-shadow 0.3s ease;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="canvas"></canvas>
+  <div id="links"></div>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('backscatter-orbs');
+
+    const linkContainer = document.getElementById('links');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    const COUNT = 7;
+    const orbs = [];
+    let winW, winH, t = 0;
+
+    function resize() {
+      winW = canvas.width = window.innerWidth;
+      winH = canvas.height = window.innerHeight;
+    }
+
+    function init() {
+      linkContainer.replaceChildren();
+      ctx.fillStyle = 'rgb(0, 0, 0)';
+      ctx.fillRect(0, 0, winW, winH);
+      orbs.length = 0;
+
+      for (let i = 0; i < COUNT; i++) {
+        const hue = (360 / COUNT) * i;
+        const radius = LAB.rand(80, 180);
+        const speed = LAB.rand(0.003, 0.008);
+        const phase = LAB.rand(0, Math.PI * 2);
+        const dist = LAB.rand(60, 240);
+        orbs.push({ hue, radius, speed, phase, dist });
+
+        const a = document.createElement('a');
+        a.href = LAB.pageRandomiser.nextOne();
+        a.style.width = radius * 2 + 'px';
+        a.style.height = radius * 2 + 'px';
+        linkContainer.appendChild(a);
+      }
+    }
+
+    function tick() {
+      ctx.fillStyle = 'rgba(8, 8, 8, 0.04)';
+      ctx.fillRect(0, 0, winW, winH);
+
+      const cx = winW / 2;
+      const cy = winH / 2;
+
+      ctx.globalCompositeOperation = 'lighter';
+
+      orbs.forEach(function (orb, i) {
+        const angle = t * orb.speed + orb.phase;
+        const x = cx + Math.cos(angle) * orb.dist;
+        const y = cy + Math.sin(angle * 0.7) * orb.dist * 0.8;
+
+        const hueShift = Math.sin(t * 0.005 + i) * 40;
+        const h = (orb.hue + hueShift + 360) % 360;
+
+        const grad = ctx.createRadialGradient(x, y, 0, x, y, orb.radius);
+        grad.addColorStop(0, 'hsla(' + h + ', 80%, 50%, 0.15)');
+        grad.addColorStop(0.5, 'hsla(' + h + ', 70%, 40%, 0.06)');
+        grad.addColorStop(1, 'hsla(' + h + ', 60%, 30%, 0)');
+
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(x, y, orb.radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        const linkEl = linkContainer.children[i];
+        if (linkEl) {
+          linkEl.style.left = (x - orb.radius) + 'px';
+          linkEl.style.top = (y - orb.radius) + 'px';
+        }
+      });
+
+      ctx.globalCompositeOperation = 'source-over';
+      t++;
+      requestAnimationFrame(tick);
+    }
+
+    window.addEventListener('resize', resize);
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    resize();
+    init();
+    tick();
+
+  </script>
+</body>
+
+</html>

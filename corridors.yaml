@@ -1687,3 +1687,10 @@ corridors:
     tags: [abstract, mobile]
     visual_description: >-
       Seven translucent orbs drift in slow orbital paths around the centre of a dark canvas. Each orb is a radial gradient in a distinct hue that shifts over time, rendered with additive blending for a soft glowing effect. The orbs leave faint trails as they move, fading gradually against the near-black background. Clicking outside an orb resets the simulation. Every orb is a clickable link to a random corridor.
+  - id: stellations
+    title: Stellations
+    created: 2026-08-16 16:55
+    links: 1
+    tags: [abstract, crt, mobile]
+    visual_description: >-
+      A canvas-based visualisation of star polygon stellations. Multiple layers of star polygons are drawn with glowing neon lines, each layer slowly spinning and morphing through different densities. The layers are scaled inward creating a nested, hypnotic effect. Colours shift across the hue spectrum over time. The canvas is centered on a black background and acts as a clickable link to a random corridor.

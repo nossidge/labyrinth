@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+Open-ended polygon stellations of star polygons
+https://en.wikipedia.org/wiki/Star_polygon
+https://en.wikipedia.org/wiki/Stellation
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Penn & Stellar">
+  <title>her stellar fuse</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000000;
+    }
+
+    main {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+    }
+
+    canvas {
+      display: block;
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 100;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.18) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 255, 0, 0.03));
+      background-size: 100% 2px, 3px 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+  <main>
+    <a id="link" href="../index.html">
+      <canvas id="canvas"></canvas>
+    </a>
+  </main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('stellations');
+
+    const link = document.getElementById('link');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    let cx, cy, R, hue, layers, baseR;
+
+    function resize() {
+      baseR = Math.min(window.innerWidth, window.innerHeight) * 0.38;
+      const size = Math.ceil(2 * baseR);
+      canvas.width = size;
+      canvas.height = size;
+      cx = size / 2;
+      cy = size / 2;
+      R = size * 0.44;
+    }
+
+    function init() {
+      resize();
+
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      link.href = LAB.pageRandomiser.nextOne();
+
+      layers = [];
+      const count = LAB.randInt(3, 5);
+      for (let i = 0; i < count; i++) {
+        const n = LAB.sample([7, 8, 9, 11, 12, 13]);
+        layers.push({
+          n,
+          scale: 1 - i * (0.62 / count),
+          k: LAB.rand(2, n / 2),
+          kSpeed: LAB.rand(0.003, 0.008) * (LAB.chance(0.5) ? 1 : -1),
+          rot: LAB.rand(0, Math.PI * 2),
+          spin: LAB.rand(-0.004, 0.004) || 0.003,
+          hueOff: i * 55,
+        });
+      }
+      hue = LAB.rand(0, 360);
+      link.href = LAB.pageRandomiser.nextOne();
+    }
+
+    function draw() {
+      ctx.globalCompositeOperation = 'multiply';
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.16)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.globalCompositeOperation = 'source-over';
+
+      for (const L of layers) {
+        const n = L.n, r = R * L.scale;
+        const pts = [];
+        for (let i = 0; i < n; i++) {
+          const a = L.rot + (i / n) * Math.PI * 2;
+          pts.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r]);
+        }
+
+        const h = (hue + L.hueOff) % 360;
+        ctx.strokeStyle = `hsl(${h}, 90%, 62%)`;
+        ctx.lineWidth = 1.8;
+        ctx.shadowColor = `hsl(${h}, 90%, 62%)`;
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        for (let i = 0; i < n; i++) {
+          const from = pts[i];
+          const target = i + L.k;
+          const lo = Math.floor(target) % n;
+          const hiIdx = (lo + 1) % n;
+          const f = target - Math.floor(target);
+          const to = [
+            pts[lo][0] + (pts[hiIdx][0] - pts[lo][0]) * f,
+            pts[lo][1] + (pts[hiIdx][1] - pts[lo][1]) * f,
+          ];
+          ctx.moveTo(from[0], from[1]);
+          ctx.lineTo(to[0], to[1]);
+        }
+        ctx.stroke();
+
+        L.rot += L.spin;
+        L.k += L.kSpeed;
+
+        // Keep k oscillating within a decent looking range
+        if (L.k > n / 2 - 0.5 || L.k < 1.5) L.kSpeed *= -1;
+      }
+      ctx.shadowBlur = 0;
+
+      hue = (hue + 0.3) % 360;
+      requestAnimationFrame(draw);
+    }
+
+    window.addEventListener('resize', resize);
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    init();
+    draw();
+
+  </script>
+</body>
+
+</html>

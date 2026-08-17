@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="starfish troopers">
+  <title>flux incapacitator</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      overscroll-behavior: none;
+      background: #000000;
+      touch-action: none;
+    }
+
+    canvas {
+      position: absolute;
+      inset: 0;
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 100;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.22) 50%);
+      background-size: 100% 2px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+  <a href="../index.html">
+    <canvas id="canvas"></canvas>
+  </a>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('starfish-flux');
+
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    let winW, winH, cx, cy, maxR, rings, segments;
+
+    function init() {
+      winW = canvas.width = window.innerWidth;
+      winH = canvas.height = window.innerHeight;
+      cx = winW / 2;
+      cy = winH / 2;
+      maxR = Math.max(winW, winH) * 0.7;
+      rings = 40;
+      segments = 120;
+    }
+
+    function tick(time) {
+      const t = time * 0.001;
+
+      ctx.globalCompositeOperation = 'multiply';
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.12)';
+      ctx.fillRect(0, 0, winW, winH);
+      ctx.globalCompositeOperation = 'source-over';
+
+      for (let i = 0; i < rings; i++) {
+        const baseR = (i / rings) * maxR;
+        const warp = Math.sin(i * 0.5 - t * 2) * 30 + Math.cos(i * 0.3 + t * 1.5) * 20;
+        const r = baseR + warp;
+
+        const hue = (i * 9 + t * 40) % 360;
+        const alpha = 0.15 + Math.sin(i * 0.7 - t) * 0.1;
+
+        ctx.beginPath();
+        for (let s = 0; s <= segments; s++) {
+          const angle = (s / segments) * Math.PI * 2;
+          const wobble = Math.sin(angle * 5 + t * 3 + i * 0.4) * (8 + i * 0.3);
+          const px = cx + Math.cos(angle) * (r + wobble);
+          const py = cy + Math.sin(angle) * (r + wobble);
+          if (s === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+        ctx.strokeStyle = `hsla(${hue}, 70%, 55%, ${alpha})`;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      }
+
+      requestAnimationFrame(tick);
+    }
+
+    window.addEventListener('resize', init);
+
+    init();
+    requestAnimationFrame(tick);
+
+  </script>
+</body>
+
+</html>

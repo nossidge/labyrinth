@@ -1694,3 +1694,10 @@ corridors:
     tags: [abstract, crt, mobile]
     visual_description: >-
       A canvas-based visualisation of star polygon stellations. Multiple layers of star polygons are drawn with glowing neon lines, each layer slowly spinning and morphing through different densities. The layers are scaled inward creating a nested, hypnotic effect. Colours shift across the hue spectrum over time. The canvas is centered on a black background and acts as a clickable link to a random corridor.
+  - id: starfish-flux
+    title: Starfish Flux
+    created: 2026-08-17 23:24
+    links: 1
+    tags: [abstract, crt, mobile]
+    visual_description: >-
+      A canvas-based generative animation of concentric starfish-shaped rings that pulse and distort based on sine waves. The rings cycle through a rainbow of hues with shifting opacity. The entire canvas is a single clickable link to a random corridor.

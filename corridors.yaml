@@ -1701,3 +1701,10 @@ corridors:
     tags: [abstract, crt, mobile]
     visual_description: >-
       A canvas-based generative animation of concentric starfish-shaped rings that pulse and distort based on sine waves. The rings cycle through a rainbow of hues with shifting opacity. The entire canvas is a single clickable link to a random corridor.
+  - id: irregular-houndstooth
+    title: Irregular Houndstooth
+    created: 2026-08-18 20:27
+    links: dynamic
+    tags: [abstract, mobile]
+    visual_description: >-
+      A full-screen grid of 4x4-cell "tooth" pattern tiles in a two-tone black and white palette, each one the same base shape randomly rotated by a right angle and randomly inverted, loosely approximating a houndstooth weave. Hovering a tooth smoothly swaps its dark and light colours. A fine woven fabric grain overlay adds a textile texture across the page. Clicking the background or pressing any key refreshes the page. Every pattern is a clickable link to a random corridor.

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="of Love and the Baskervilles">
+  <title>release them</title>
+  <style>
+    :root {
+      --global-dark: #161616;
+      --global-light: #e7e2d6;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+      overflow: hidden;
+      overscroll-behavior: none;
+    }
+
+    body {
+      background-color: var(--global-dark);
+      position: fixed;
+      inset: 0;
+      touch-action: none;
+    }
+
+    #main {
+      display: flex;
+      flex-wrap: wrap;
+      width: 100vw;
+      height: 100%;
+    }
+
+    .tooth {
+      --dark: var(--global-dark);
+      --light: var(--global-light);
+      display: grid;
+      grid-template-columns: repeat(4, 14px);
+      grid-template-rows: repeat(4, 14px);
+      text-decoration: none;
+      transition: filter 0.15s ease;
+    }
+
+    .tooth:hover {
+      --dark: var(--global-light);
+      --light: var(--global-dark);
+    }
+
+    .cell.dark {
+      background-color: var(--dark);
+    }
+
+    .cell.light {
+      background-color: var(--light);
+    }
+
+    #fabric-grain {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 100;
+      background:
+        linear-gradient(rgba(255, 255, 255, 0.05) 50%, rgba(0, 0, 0, 0.05) 50%),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.05) 50%, rgba(0, 0, 0, 0.05) 50%),
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://w3.org id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      background-size: 4px 4px, 4px 4px, auto;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="fabric-grain"></div>
+  <main id="main"></main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('irregular-houndstooth');
+
+    // I can't make proper houndstooth in 4x4, so this will have to do
+    const BASE = [
+      [1, 0, 0, 0],
+      [0, 1, 1, 0],
+      [0, 1, 0, 0],
+      [0, 0, 0, 1]
+    ];
+
+    function rotate(m) {
+      const n = m.length;
+      const out = [];
+      for (let r = 0; r < n; r++) {
+        out.push([]);
+        for (let c = 0; c < n; c++) {
+          out[r][c] = m[n - 1 - c][r];
+        }
+      }
+      return out;
+    }
+
+    function init() {
+      const main = document.getElementById('main');
+      main.innerHTML = '';
+
+      const size = 56;
+      const cols = Math.ceil(window.innerWidth / size);
+      const rows = Math.ceil(window.innerHeight / size);
+      main.style.width = cols * size + 'px';
+      const count = cols * rows;
+
+      for (let i = 0; i < count; i++) {
+        let pattern = BASE;
+        const rotations = LAB.randInt(0, 3);
+        for (let r = 0; r < rotations; r++) {
+          pattern = rotate(pattern);
+        }
+        const invert = LAB.chance(0.5);
+
+        const tooth = document.createElement('a');
+        tooth.href = LAB.pageRandomiser.nextOne();
+        tooth.className = 'tooth';
+
+        for (let r = 0; r < 4; r++) {
+          for (let c = 0; c < 4; c++) {
+            let dark = pattern[r][c] === 1;
+            if (invert) dark = !dark;
+            const cell = document.createElement('span');
+            cell.className = 'cell ' + (dark ? 'dark' : 'light');
+            tooth.appendChild(cell);
+          }
+        }
+        main.appendChild(tooth);
+      }
+    }
+
+    window.addEventListener('resize', init);
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    init();
+
+  </script>
+</body>
+
+</html>

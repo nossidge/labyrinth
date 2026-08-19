@@ -102,9 +102,9 @@ corridors:
     title: Trine
     created: 2026-01-10 22:38
     links: 3
-    tags: [abstract, image, tilde, vendor]
+    tags: [abstract, tilde, vendor]
     visual_description: >-
-      Three tilde images arranged in a tight triangular formation at the centre of a dark void, each rotating slowly. Faint connecting lines link the tildes together. Background text of whispered words about "the power of three" drifts behind them. Clicking any tilde triggers a transition: the tildes animate outward into a pyramid formation, glowing lines connect them, and a soft radial pulse emanates from the centre. After the animation completes, each tilde becomes a clickable link to a random corridor in the labyrinth.
+      Three tilde characters arranged in a tight triangular formation at the centre of a dark void, each rotating slowly. Faint connecting lines link the tildes together. Background text of whispered words about "the power of three" drifts behind them. Clicking any tilde triggers a transition: the tildes animate outward into a pyramid formation, glowing lines connect them, and a soft radial pulse emanates from the centre. After the animation completes, each tilde becomes a clickable link to a random corridor in the labyrinth.
   - id: happy
     title: Happy
     created: 2026-01-10 23:41
@@ -1708,3 +1708,10 @@ corridors:
     tags: [abstract, mobile]
     visual_description: >-
       A full-screen grid of 4x4-cell "tooth" pattern tiles in a two-tone black and white palette, each one the same base shape randomly rotated by a right angle and randomly inverted, loosely approximating a houndstooth weave. Hovering a tooth smoothly swaps its dark and light colours. A fine woven fabric grain overlay adds a textile texture across the page. Clicking the background or pressing any key refreshes the page. Every pattern is a clickable link to a random corridor.
+  - id: vasarely-vega
+    title: Vasarely Vega
+    created: 2026-08-19 18:14
+    links: 1
+    tags: [abstract, art, mobile]
+    visual_description: >-
+      A homage to Victor Vasarely's Vega series. A checkerboard of white squares on a dark background is rendered on a canvas. A spherical lens bulges out of the grid, warping the checkerboard cells within its radius. The lens follows the mouse cursor; left alone, it moves around the board, and the lens radius pulses gently over time. Scroll wheel or arrow keys adjust the lens size. Clicking the canvas links to a random corridor.

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+A homage to Victor Vasarely's Vega series.
+https://en.wikipedia.org/wiki/Victor_Vasarely
+https://www.mutualart.com/Artwork/Untitled/48F1872A7C9450321F47759FE3C66E2F
+https://www.guggenheim.org/artwork/5677
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Suzanne Vincent">
+  <title>To the Victor</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body,
+    html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #0d0d0d;
+    }
+
+    #link {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <a id="link" href="../index.html">
+    <canvas id="canvas"></canvas>
+  </a>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('vasarely-vega');
+
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    let mouse = null;
+    let lastMove = 0;
+    let radiusScale = 0.6;
+    let cx = window.innerWidth / 2;
+    let cy = window.innerHeight / 2;
+
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    function tick(now) {
+      const t = now / 1000;
+      const w = canvas.width;
+      const h = canvas.height;
+
+      let tx, ty;
+      if (mouse && now - lastMove < 3000) {
+        // Follow the mouse if the mouse is moving
+        tx = mouse.x;
+        ty = mouse.y;
+      } else {
+        // Wander around the page if the mouse has stopped
+        tx = w / 2 + Math.cos(t * 0.4) * w * 0.4;
+        ty = h / 2 + Math.sin(t * 0.53) * h * 0.4;
+      }
+      cx += (tx - cx) * 0.08;
+      cy += (ty - cy) * 0.08;
+
+      const R = Math.min(w, h) * (0.42 + 0.04 * Math.sin(t * 0.7)) * radiusScale;
+      const cell = Math.min(w, h) / 15;
+      const cols = Math.ceil(w / cell);
+      const rows = Math.ceil(h / cell);
+
+      // Warp each grid vertex through the spherical lens
+      const vx = [];
+      const vy = [];
+      for (let j = 0; j <= rows; j++) {
+        for (let i = 0; i <= cols; i++) {
+          let x = i * cell;
+          let y = j * cell;
+          const dx = x - cx;
+          const dy = y - cy;
+          const d = Math.hypot(dx, dy);
+          if (d > 0 && d < R) {
+            const f = (R * Math.sin((d / R) * Math.PI / 2)) / d;
+            x = cx + dx * f;
+            y = cy + dy * f;
+          }
+          vx.push(x);
+          vy.push(y);
+        }
+      }
+
+      // Fill all the background with black
+      ctx.fillStyle = '#0d0d0d';
+      ctx.fillRect(0, 0, w, h);
+
+      // Fill every other square white
+      ctx.fillStyle = '#f4f1ea';
+      ctx.beginPath();
+      for (let j = 0; j < rows; j++) {
+        for (let i = 0; i < cols; i++) {
+          if ((i + j) % 2 === 0) continue;
+          const a = j * (cols + 1) + i;
+          const b = a + 1;
+          const c = a + cols + 2;
+          const d = a + cols + 1;
+          ctx.moveTo(vx[a], vy[a]);
+          ctx.lineTo(vx[b], vy[b]);
+          ctx.lineTo(vx[c], vy[c]);
+          ctx.lineTo(vx[d], vy[d]);
+          ctx.closePath();
+        }
+      }
+      ctx.fill();
+
+      requestAnimationFrame(tick);
+    }
+
+    window.addEventListener('mousemove', (e) => {
+      mouse = { x: e.clientX, y: e.clientY };
+      lastMove = performance.now();
+    });
+
+    const radiusDelta = 0.04;
+    function changeRadius(delta = 0) {
+      radiusScale += delta * radiusDelta;
+      radiusScale = Math.max(0.2, Math.min(3, radiusScale));
+    }
+
+    // Scroll wheel changes the circle radius
+    window.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const delta = e.deltaY > 0 ? -1 : 1;
+      changeRadius(delta);
+    }, { passive: false });
+
+    // Arrow keys, WASD keys, HJKL keys, plus and minus keys (and equals)
+    const SMALLIFY = new Set(['ArrowLeft', 'ArrowDown', 'h', 'j', 'a', 's', '-']);
+    const EMBIGGEN = new Set(['ArrowRight', 'ArrowUp', 'k', 'l', 'd', 'w', '+', '=']);
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, () => {
+        if (SMALLIFY.has(e.key)) changeRadius(-1);
+        if (EMBIGGEN.has(e.key)) changeRadius(1);
+      });
+    });
+
+    window.addEventListener('resize', resize);
+
+    resize();
+    requestAnimationFrame(tick);
+
+  </script>
+</body>
+
+</html>

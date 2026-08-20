@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+The code for the moving active area was taken from my previous page "vasarely-vega".
+
+Notes for future-me:
+Moving the mouse moves the warping effect based on the pointer position.
+Not moving the mouse for a while seconds makes it move automatically.
+When it moves automatically, it follows a path that's determined by the time.
+There is a bit of weird fancy stuff here that creates a temporary path.
+This is so that when the automatic kicks in, it doesn't instantly move to the time path point.
+When the temporary path reaches the real path, the temporary path disappears.
+So it smoothly moves from the last manual mouse position to the next automatic one.
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Dot Grid Warp">
+  <title>Dot Grid Warp</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      position: fixed;
+      top: 0;
+      left: 0;
+      background-color: #111111;
+      overflow: hidden;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+    }
+
+    #canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    .dot {
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      background-color: #4466aa;
+      border-radius: 50%;
+      text-decoration: none;
+      transition: background-color 0.2s ease;
+    }
+
+    .dot:hover {
+      background-color: #ffffff;
+      box-shadow: 0 0 10px #6688cc, 0 0 20px #6688cc;
+      z-index: 100;
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 100;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.12) 50%);
+      background-size: 100% 3px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+  <canvas id="canvas"></canvas>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('dot-grid-warp');
+
+    const gridSpacing = 28;
+
+    // Add a margin here, which starts the pattern off-screen to the left and top
+    // So there are dots to attract when the mouse is at the far left and top edges
+    const margin = 6 * gridSpacing;
+
+    const baseAttractRadius = 150;
+    let radiusScale = 1;
+
+    let mouse = null;
+    let lastMove = 0;
+    let mouseX = 0;
+    let mouseY = 0;
+    let firstFrame = true;
+    let prevActive = false;
+    let gliding = false;
+    let blending = false;
+    let lastFrame = null;
+
+    let dots = [];
+    let homeX = [];
+    let homeY = [];
+
+    function init() {
+      const cols = Math.ceil((window.innerWidth + margin) / gridSpacing) + 1;
+      const rows = Math.ceil((window.innerHeight + margin) / gridSpacing) + 1;
+
+      for (let i = 0; i < dots.length; i++) {
+        dots[i].remove();
+      }
+      dots = [];
+      homeX = [];
+      homeY = [];
+
+      for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+          const dot = document.createElement('a');
+          dot.href = LAB.pageRandomiser.nextOne();
+          dot.className = 'dot';
+
+          const hx = col * gridSpacing + 10 - margin;
+          const hy = row * gridSpacing + 10 - margin;
+
+          dot.style.left = hx + 'px';
+          dot.style.top = hy + 'px';
+
+          document.body.appendChild(dot);
+          dots.push(dot);
+          homeX.push(hx);
+          homeY.push(hy);
+        }
+      }
+    }
+
+    function tick(now) {
+      const t = now / 1000;
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      const dt = lastFrame == null ? 1 / 60 : Math.min((now - lastFrame) / 1000, 0.1);
+      lastFrame = now;
+
+      const active = !!(mouse && now - lastMove < 3000);
+
+      // The main path is a fixed curve that keeps on going, based on the time
+      // This still exists, whether or not it's currently on the automatic setting
+      const pathX = w / 2 + Math.cos(t * 0.4) * w * 0.4;
+      const pathY = h / 2 + Math.sin(t * 0.53) * h * 0.4;
+
+      if (active) {
+        // Follow the mouse, add a brief blend when the manual mouse kicks in
+        // This lerps the active position to the user's mouse pointer, instead of instantly jumping
+        gliding = false;
+        if (!prevActive) blending = true;
+        if (blending) {
+          mouseX += (mouse.x - mouseX) * 0.2;
+          mouseY += (mouse.y - mouseY) * 0.2;
+          if (Math.abs(mouse.x - mouseX) < 0.5 && Math.abs(mouse.y - mouseY) < 0.5) {
+            mouseX = mouse.x;
+            mouseY = mouse.y;
+            blending = false;
+          }
+        } else {
+          mouseX = mouse.x;
+          mouseY = mouse.y;
+        }
+      } else if (firstFrame) {
+        // When the page first loads, don't use the lerp blending
+        // Otherwise the first movement would be a sudden jump from top left to the active position
+        mouseX = pathX;
+        mouseY = pathY;
+        firstFrame = false;
+      } else {
+        // Automatic mode
+        if (prevActive) {
+          // If the mouse just stopped, glide in from the last manual position
+          gliding = true;
+        }
+
+        if (gliding) {
+          // A temporary path from the last manual mouse position to the main path
+          // Uses the the main path's own speed as the velocity
+          // When it reaches the main path it expires
+          // This handover can get a bit janky, but is usually seamless
+          const vx = -w * 0.16 * Math.sin(t * 0.4);
+          const vy = h * 0.212 * Math.cos(t * 0.53);
+          const speed = Math.max(Math.hypot(vx, vy), 150);
+          const dx = pathX - mouseX;
+          const dy = pathY - mouseY;
+          const dist = Math.hypot(dx, dy);
+          const step = speed * dt;
+          if (dist <= step) {
+            mouseX = pathX;
+            mouseY = pathY;
+            gliding = false;
+          } else {
+            mouseX += (dx / dist) * step;
+            mouseY += (dy / dist) * step;
+          }
+        } else {
+          // Just use the main path
+          mouseX = pathX;
+          mouseY = pathY;
+        }
+      }
+
+      prevActive = active;
+
+      const attractRadius = baseAttractRadius * radiusScale;
+      const attractStrength = attractRadius / 5;
+
+      for (let i = 0; i < dots.length; i++) {
+        const dx = mouseX - homeX[i];
+        const dy = mouseY - homeY[i];
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        let offsetX = 0;
+        let offsetY = 0;
+
+        if (dist < attractRadius && dist > 0) {
+          const force = (1 - dist / attractRadius) * attractStrength;
+          offsetX = (dx / dist) * force;
+          offsetY = (dy / dist) * force;
+        }
+
+        dots[i].style.left = (homeX[i] + offsetX) + 'px';
+        dots[i].style.top = (homeY[i] + offsetY) + 'px';
+
+        // Glow based on proximity
+        const glow = dist < attractRadius ? (1 - dist / attractRadius) : 0;
+        if (glow > 0.1) {
+          dots[i].style.backgroundColor = `rgb(${Math.floor(100 + glow * 155)}, ${Math.floor(130 + glow * 125)}, ${Math.floor(200 + glow * 55)})`;
+        } else {
+          dots[i].style.backgroundColor = '#4466aa';
+        }
+      }
+
+      requestAnimationFrame(tick);
+    }
+
+    document.addEventListener('mousemove', (e) => {
+      mouse = { x: e.clientX, y: e.clientY };
+      lastMove = performance.now();
+    });
+
+    const radiusDelta = 0.2;
+    const radiusMin = 0.8;
+    const radiusMax = 2.4;
+    function changeRadius(delta = 0) {
+      radiusScale += delta * radiusDelta;
+      radiusScale = Math.max(radiusMin, Math.min(radiusMax, radiusScale));
+    }
+
+    // Scroll wheel changes the attraction radius
+    window.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const delta = e.deltaY > 0 ? -1 : 1;
+      changeRadius(delta);
+    }, { passive: false });
+
+    // Arrow keys, WASD keys, HJKL keys, plus and minus keys (and equals)
+    const SMALLIFY = new Set(['ArrowLeft', 'ArrowDown', 'h', 'j', 'a', 's', '-']);
+    const EMBIGGEN = new Set(['ArrowRight', 'ArrowUp', 'k', 'l', 'd', 'w', '+', '=']);
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, () => {
+        if (SMALLIFY.has(e.key)) changeRadius(-1);
+        if (EMBIGGEN.has(e.key)) changeRadius(1);
+      });
+    });
+
+    window.addEventListener('resize', init);
+
+    init();
+    requestAnimationFrame(tick);
+
+  </script>
+</body>
+
+</html>

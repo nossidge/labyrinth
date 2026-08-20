@@ -1715,3 +1715,10 @@ corridors:
     tags: [abstract, art, mobile]
     visual_description: >-
       A homage to Victor Vasarely's Vega series. A checkerboard of white squares on a dark background is rendered on a canvas. A spherical lens bulges out of the grid, warping the checkerboard cells within its radius. The lens follows the mouse cursor; left alone, it moves around the board, and the lens radius pulses gently over time. Scroll wheel or arrow keys adjust the lens size. Clicking the canvas links to a random corridor.
+  - id: dot-grid-warp
+    title: Dot Grid Warp
+    created: 2026-08-20 18:49
+    links: dynamic
+    tags: [abstract, crt, mobile]
+    visual_description: >-
+      A full-screen grid of small blue dots on a dark background. An active point moves around the page, warping the dots toward it and glowing them brighter based on proximity. The point follows the mouse cursor; left alone for a few seconds it switches to an automatic mode, tracing a path determined by the time. The scroll wheel or arrow keys adjust the size of the warping radius. Every dot is a clickable link to a random corridor.

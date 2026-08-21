@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Halftone Pulse">
+  <title>Halftone Pulse</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #f0f0e8;
+    }
+
+    canvas {
+      display: block;
+      position: fixed;
+      top: 0;
+      left: 0;
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 100;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.06) 50%);
+      background-size: 100% 2px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+  <a href="../index.html">
+    <canvas id="canvas"></canvas>
+  </a>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('halftone-pulse');
+
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const SPACING = 18;
+
+    let dots = [];
+    let mouseX = -1;
+    let mouseY = -1;
+    let hoverEl = null;
+    let hoveredDot = null;
+
+    function init() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      hideHoverLink();
+
+      // Grid is centred on the screen so there is always a dot in the middle
+      // The extra + 1 row/column each side makes sure there are no dotless gaps at the edges
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+      const maxIx = Math.ceil(cx / SPACING) + 1;
+      const maxIy = Math.ceil(cy / SPACING) + 1;
+
+      dots = [];
+      for (let iy = -maxIy; iy <= maxIy; iy++) {
+        for (let ix = -maxIx; ix <= maxIx; ix++) {
+          dots.push({
+            x: cx + ix * SPACING,
+            y: cy + iy * SPACING,
+            maxR: SPACING * 0.42,
+            url: LAB.pageRandomiser.nextOne()
+          });
+        }
+      }
+    }
+
+    // Create a temporary anchor at the point where the user is hovering
+    // This is so that the browser's status bar will show the redirect URL
+    function showHoverLink(dot) {
+      if (hoveredDot === dot) return;
+      if (hoverEl) hoverEl.remove();
+      hoveredDot = dot;
+      hoverEl = document.createElement('a');
+      hoverEl.href = dot.url;
+      hoverEl.style.position = 'fixed';
+      hoverEl.style.zIndex = '90';
+      hoverEl.style.left = (dot.x - SPACING / 2) + 'px';
+      hoverEl.style.top = (dot.y - SPACING / 2) + 'px';
+      hoverEl.style.width = SPACING + 'px';
+      hoverEl.style.height = SPACING + 'px';
+      document.body.appendChild(hoverEl);
+    }
+
+    function hideHoverLink() {
+      if (hoverEl) hoverEl.remove();
+      hoverEl = null;
+      hoveredDot = null;
+    }
+
+    function tick(time) {
+      const t = time * 0.001;
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+
+      ctx.fillStyle = '#f0f0e8';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#222222';
+
+      let hovered = null;
+
+      for (let i = 0; i < dots.length; i++) {
+        const d = dots[i];
+        const dx = d.x - cx;
+        const dy = d.y - cy;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        // Oscillating dot radius based on distance from the central dot + time
+        const wave = Math.sin(dist * 0.04 - t * 2.5) * 0.5 + 0.5;
+        const wave2 = Math.cos(dist * 0.06 + t * 1.8) * 0.3 + 0.7;
+        const r = d.maxR * wave * wave2;
+
+        if (r > 0.5) {
+          ctx.beginPath();
+          ctx.arc(d.x, d.y, r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // Hover region is the cell of the dot (not just its animated size)
+        if (mouseX >= d.x - SPACING / 2 && mouseX < d.x + SPACING / 2 &&
+          mouseY >= d.y - SPACING / 2 && mouseY < d.y + SPACING / 2) {
+          hovered = d;
+        }
+      }
+
+      // Create or destroy the hover link anchor element
+      if (hovered) {
+        showHoverLink(hovered);
+      } else {
+        hideHoverLink();
+      }
+
+      requestAnimationFrame(tick);
+    }
+
+    window.addEventListener('mousemove', function (e) {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+    });
+
+    document.addEventListener('mouseleave', function () {
+      mouseX = -1;
+      mouseY = -1;
+    });
+
+    window.addEventListener('resize', init);
+
+    init();
+    requestAnimationFrame(tick);
+
+  </script>
+</body>
+
+</html>

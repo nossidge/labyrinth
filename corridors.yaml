@@ -1722,3 +1722,10 @@ corridors:
     tags: [abstract, crt, mobile]
     visual_description: >-
       A full-screen grid of small blue dots on a dark background. An active point moves around the page, warping the dots toward it and glowing them brighter based on proximity. The point follows the mouse cursor; left alone for a few seconds it switches to an automatic mode, tracing a path determined by the time. The scroll wheel or arrow keys adjust the size of the warping radius. Every dot is a clickable link to a random corridor.
+  - id: halftone-pulse
+    title: Halftone Pulse
+    created: 2026-08-21 18:01
+    links: dynamic
+    tags: [abstract, crt, mobile]
+    visual_description: >-
+      A dense, screen-filling grid of black halftone dots on an off-white background. Each dot's radius oscillates continuously, with the pulse phase determined by its distance from the centre of the screen and time, creating concentric waves radiating outward. Every dot is a clickable link to a random corridor.

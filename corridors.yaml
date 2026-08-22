@@ -1729,3 +1729,10 @@ corridors:
     tags: [abstract, crt, mobile]
     visual_description: >-
       A dense, screen-filling grid of black halftone dots on an off-white background. Each dot's radius oscillates continuously, with the pulse phase determined by its distance from the centre of the screen and time, creating concentric waves radiating outward. Every dot is a clickable link to a random corridor.
+  - id: day-for-night
+    title: Day for Night
+    created: 2026-08-22 03:33
+    links: dynamic
+    tags: [abstract, mobile]
+    visual_description: >-
+      Vertical slats fill the screen, each one a 3D flip-card with a sunset scene on the front and a night scene on the back. The slats ripple-flip in sequence, smoothly rotating between day and night with a staggered wave that travels across the screen. Hovering a slat brightens it. Every slat is a clickable link to a random corridor.

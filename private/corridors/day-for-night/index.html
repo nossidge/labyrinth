@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="La Nuit américaine">
+  <title>Day for Night</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body,
+    html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #05050d;
+    }
+
+    #main {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      perspective: 1400px;
+    }
+
+    .slat {
+      position: relative;
+      height: 100%;
+      transform-style: preserve-3d;
+      will-change: transform;
+      display: block;
+    }
+
+    .face {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      overflow: hidden;
+    }
+
+    .back {
+      transform: rotateY(180deg);
+    }
+
+    .night {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .slat:hover .face,
+    .slat:hover .night {
+      filter: brightness(1.35);
+    }
+  </style>
+</head>
+
+<body>
+  <main id="main"></main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('day-for-night');
+
+    const main = document.getElementById('main');
+    let slats = [];
+
+    function dayBackground() {
+      return `
+        radial-gradient(circle at 50% 25%,
+          #fff4c1 0 11vmin,
+          #ff9d3d 11vmin 12vmin,
+          rgba(255, 157, 61, 0) calc(15vmin + 1px)),
+        repeating-linear-gradient(0deg,
+          rgba(255, 255, 255, 0.12) 0 3px,
+          rgba(255, 255, 255, 0) 3px 26px),
+        linear-gradient(#ffd194 0%, #ff9a5a 55%, #d96098 100%)
+      `;
+    }
+
+    function nightBackground() {
+      return `
+        radial-gradient(circle at 50% 25%,
+          #f5f6f0 0 11vmin,
+          rgba(245, 246, 240, 0) calc(11vmin + 1px)),
+        repeating-linear-gradient(90deg,
+          rgba(0, 255, 190, 0.3) 0 2px,
+          rgba(0, 0, 0, 0) 2px 44px),
+        repeating-linear-gradient(0deg,
+          rgba(0, 255, 190, 0.3) 0 2px,
+          rgba(0, 0, 0, 0) 2px 44px),
+        linear-gradient(#050d18 0%, #0d2b40 70%, #133c54 100%)
+      `;
+    }
+
+    function init() {
+      main.innerHTML = '';
+      slats = [];
+
+      const winW = window.innerWidth;
+      const winH = window.innerHeight;
+      const count = Math.max(14, Math.round(winW / 44));
+      const slatW = winW / count;
+      const bgSize = `${winW}px ${winH}px`;
+
+      for (let i = 0; i < count; i++) {
+        const slat = document.createElement('a');
+        slat.className = 'slat';
+        slat.href = LAB.pageRandomiser.nextOne();
+        slat.style.width = slatW + 'px';
+
+        const offset = `${-i * slatW}px 0`;
+
+        const front = document.createElement('div');
+        front.className = 'face';
+        front.style.backgroundImage = dayBackground();
+        front.style.backgroundSize = bgSize;
+        front.style.backgroundPosition = offset;
+        slat.appendChild(front);
+
+        const back = document.createElement('div');
+        back.className = 'face back';
+        slat.appendChild(back);
+
+        const night = document.createElement('div');
+        night.className = 'night';
+        night.style.backgroundImage = nightBackground();
+        night.style.backgroundSize = bgSize;
+        night.style.backgroundPosition = offset;
+        back.appendChild(night);
+
+        main.appendChild(slat);
+        slats.push(slat);
+      }
+    }
+
+    function tick(now) {
+      const t = now / 1000;
+      for (let i = 0; i < slats.length; i++) {
+        const p = t / 7 + i * 0.045;
+        const k = Math.floor(p);
+        const f = p - k;
+        const flipPortion = 0.3;
+        let e = 1;
+        if (f < flipPortion) {
+          const u = f / flipPortion;
+          e = u * u * (3 - 2 * u); // smoothstep
+        }
+        const theta = (k + e) * 180;
+        slats[i].style.transform = `rotateY(${theta.toFixed(2)}deg)`;
+      }
+      requestAnimationFrame(tick);
+    }
+
+    window.addEventListener('resize', init);
+
+    init();
+    requestAnimationFrame(tick);
+
+  </script>
+</body>
+
+</html>

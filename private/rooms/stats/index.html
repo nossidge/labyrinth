@@ -272,6 +272,23 @@
       background-color: #555555;
     }
 
+    th.unsortable {
+      cursor: default;
+    }
+
+    th.unsortable:hover {
+      background-color: #333333;
+    }
+
+    th.tag-header,
+    td.tags {
+      text-align: right;
+    }
+
+    td.tags .tag-button {
+      margin-left: 4px;
+    }
+
     th.sorted-asc::after {
       content: ' ↑';
       font-size: 0.8rem;
@@ -302,6 +319,7 @@
 
     td.timestamp {
       font-family: 'Courier New', monospace;
+      text-wrap: nowrap;
     }
 
     td.id {
@@ -438,6 +456,7 @@
               <th class="sortable" data-sort="created">Created</th>
               <th class="sortable" data-sort="id">ID</th>
               <th class="sortable" data-sort="title">Title</th>
+              <th class="unsortable tag-header">Tags</th>
             </tr>
           </thead>
           <tbody id="corridors-table-body">
@@ -848,9 +867,24 @@
         titleLink.textContent = corridor.title;
         titleCell.appendChild(titleLink);
 
+        const tagsCell = document.createElement('td');
+        tagsCell.className = 'tags';
+        (corridor.tags || []).forEach(tag => {
+          const tagButton = document.createElement('button');
+          tagButton.className = 'tag-button' + (activeTagFilter === tag ? ' active' : '');
+          tagButton.textContent = tag;
+          tagButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            activeTagFilter = activeTagFilter === tag ? null : tag;
+            filterTable();
+          });
+          tagsCell.appendChild(tagButton);
+        });
+
         row.appendChild(createdCell);
         row.appendChild(idCell);
         row.appendChild(titleCell);
+        row.appendChild(tagsCell);
         tbody.appendChild(row);
       });
     }

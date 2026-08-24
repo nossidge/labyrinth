@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+A circle hand-drawn in one uninhibited brushstroke to express the Zen mind.
+I do not have a Zen mind, but I still think they are pretty.
+https://en.wikipedia.org/wiki/Ensō
+
+The tilde-in-a-circle animation I made using p5.js in 2014 was supposed to be an ensō.
+But I wasn't good enough of a coder back then to perfect it.
+https://tilde.town/~nossidge/2014-2018/
+https://tilde.town/~nossidge/tilde_circle.html
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Ensō Ferrari">
+  <title>Ensō on ensō forth</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    main {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      perspective: 1400px;
+    }
+
+    /* Bamboo paper texture */
+    body {
+      background-color: #d8c39a;
+      background-attachment: fixed;
+
+      background-image:
+        /* Vertical fibre grain stripes */
+        repeating-linear-gradient(90deg,
+          rgba(255, 248, 225, 0.05) 0px,
+          rgba(139, 105, 20, 0.04) 1px,
+          transparent 2px,
+          transparent 5px),
+
+        /* Horizontal fibre grain stripes */
+        repeating-linear-gradient(0deg,
+          rgba(255, 248, 225, 0.04) 0px,
+          transparent 1px,
+          transparent 4px),
+
+        /* Large areas of overlapping ellipses to give texture to the whole page */
+        radial-gradient(ellipse 180px 90px at 10% 20%, rgba(120, 90, 40, 0.10), transparent 70%),
+        radial-gradient(ellipse 220px 110px at 80% 10%, rgba(255, 245, 210, 0.18), transparent 70%),
+        radial-gradient(ellipse 160px 200px at 60% 70%, rgba(120, 90, 40, 0.08), transparent 70%),
+        radial-gradient(ellipse 240px 140px at 25% 85%, rgba(255, 245, 210, 0.14), transparent 70%),
+        radial-gradient(ellipse 200px 160px at 95% 60%, rgba(120, 90, 40, 0.09), transparent 70%),
+
+        /* A bunch of little dots to give some fine texture to each repeating section */
+        radial-gradient(circle at 15% 25%, rgba(90, 65, 20, 0.12) 0.6px, transparent 1px),
+        radial-gradient(circle at 65% 55%, rgba(90, 65, 20, 0.10) 0.5px, transparent 1px),
+        radial-gradient(circle at 40% 80%, rgba(255, 250, 230, 0.25) 0.6px, transparent 1px),
+        radial-gradient(circle at 85% 15%, rgba(90, 65, 20, 0.10) 0.5px, transparent 1px),
+        radial-gradient(circle at 30% 45%, rgba(255, 250, 230, 0.20) 0.5px, transparent 1px),
+
+        /* Paper tone should be a bit off-white */
+        linear-gradient(135deg, #e2cda1 0%, #d6bf94 50%, #decba0 100%);
+
+      background-size:
+        6px 6px,
+
+        6px 6px,
+
+        100% 100%,
+        100% 100%,
+        100% 100%,
+        100% 100%,
+        100% 100%,
+
+        36px 36px,
+        36px 36px,
+        36px 36px,
+        36px 36px,
+        36px 36px,
+
+        100% 100%;
+
+      background-repeat:
+        repeat,
+
+        repeat,
+
+        no-repeat,
+        no-repeat,
+        no-repeat,
+        no-repeat,
+        no-repeat,
+
+        repeat,
+        repeat,
+        repeat,
+        repeat,
+        repeat,
+
+        no-repeat;
+    }
+
+    canvas {
+      display: block;
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    #ink-static {
+      z-index: 1;
+    }
+
+    #ink {
+      z-index: 2;
+    }
+
+    #links {
+      position: absolute;
+      inset: 0;
+    }
+
+    .enso-link {
+      position: absolute;
+      display: block;
+      border-radius: 50%;
+      text-decoration: none;
+      transition: box-shadow 0.3s, opacity 1s;
+      z-index: 10;
+    }
+
+    .seal {
+      position: absolute;
+      right: -8px;
+      bottom: 8%;
+      width: 18px;
+      height: 18px;
+      border: 2px solid #a62d20;
+      border-radius: 10%;
+      background: #a32e21;
+      font-size: 13px;
+      font-weight: bold;
+      color: #e7b8a2;
+      opacity: 0;
+      transition: opacity 0.16s;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .enso-link:hover .seal,
+    .enso-link:focus .seal {
+      opacity: 1;
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <canvas id="ink-static"></canvas>
+    <canvas id="ink"></canvas>
+    <div id="links"></div>
+  </main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('enso');
+
+    const staticCanvas = document.getElementById('ink-static');
+    const staticCtx = staticCanvas.getContext('2d');
+    const canvas = document.getElementById('ink');
+    const ctx = canvas.getContext('2d');
+    const links = document.getElementById('links');
+
+    const STROKE_SEGMENTS = 280;
+    const STROKE_OPACITY = 0.88;
+
+    // I'm not Japanese, so I just hope these make sense
+    const numerals = ['壹', '貳', '參', '肆', '伍', '陸', '柒', '捌', '玖', '拾'];
+
+    const ensos = [];
+    let pixelRatio = 1;
+    let animating = false;
+
+    function resize() {
+      pixelRatio = window.devicePixelRatio || 1;
+      const width = Math.floor(window.innerWidth * pixelRatio);
+      const height = Math.floor(window.innerHeight * pixelRatio);
+      canvas.width = width;
+      canvas.height = height;
+      staticCanvas.width = width;
+      staticCanvas.height = height;
+      ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+      staticCtx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+      ensos.forEach(enso => {
+        if (enso.baked) {
+          bakeEnso(enso);
+        }
+      });
+    }
+
+    function makeLink(enso) {
+      const link = document.createElement('a');
+      link.className = 'enso-link';
+      link.href = LAB.pageRandomiser.nextOne();
+      link.style.opacity = '0';
+      const seal = document.createElement('span');
+      seal.className = 'seal';
+      seal.textContent = numerals[ensos.length % numerals.length];
+      seal.style.transform = `rotate(${LAB.rand(-12, 12)}deg)`;
+      link.appendChild(seal);
+      links.appendChild(link);
+      enso.link = link;
+      enso.linkVisible = false;
+      placeLink(enso);
+    }
+
+    function placeLink(enso) {
+      const diameter = enso.radius * 2;
+      enso.link.style.width = diameter + 'px';
+      enso.link.style.height = diameter + 'px';
+      enso.link.style.left = enso.x - enso.radius + 'px';
+      enso.link.style.top = enso.y - enso.radius + 'px';
+    }
+
+    function paintEnso(x, y) {
+      const room = Math.max(20, Math.min(window.innerWidth, window.innerHeight) / 2 - 12);
+      const maximum = Math.min(140, room);
+      const minimum = Math.min(40, maximum);
+      const radius = LAB.rand(minimum, maximum);
+      const margin = radius + 10;
+      const enso = {
+        x: Math.max(margin, Math.min(window.innerWidth - margin, x)),
+        y: Math.max(margin, Math.min(window.innerHeight - margin, y)),
+        radius: radius,
+        angle: LAB.rand(0, Math.PI * 2),
+        sweep: Math.PI * 2 - LAB.rand(0.28, 0.55),
+        width: LAB.rand(10, 18),
+        phase: LAB.rand(0, Math.PI * 2),
+        phaseTwo: LAB.rand(0, Math.PI * 2),
+        birth: performance.now(),
+        link: null,
+        linkVisible: false,
+        baked: false,
+      };
+      ensos.push(enso);
+      makeLink(enso);
+      if (!animating) {
+        animating = true;
+        requestAnimationFrame(tick);
+      }
+    }
+
+    // Draw the stroke along the circle, using progress to track
+    function drawPass(context, enso, progress, opacity, offset, widthScale, progressMax = 1) {
+      const progressToDraw = Math.min(progress, progressMax);
+      const visible = Math.floor(STROKE_SEGMENTS * progressToDraw);
+      for (let i = 0; i < visible; i++) {
+        const t = i / STROKE_SEGMENTS;
+        const next = (i + 1) / STROKE_SEGMENTS;
+        const angle = enso.angle + enso.sweep * t;
+        const nextAngle = enso.angle + enso.sweep * next;
+
+        // Use 2 randomised phases so that it doesn't make a perfect circle
+        const wobble = Math.sin(t * Math.PI * 4 + enso.phase) * enso.radius * 0.025 +
+          Math.sin(t * Math.PI * 9 + enso.phaseTwo) * enso.radius * 0.009;
+        const nextWobble = Math.sin(next * Math.PI * 4 + enso.phase) * enso.radius * 0.025 +
+          Math.sin(next * Math.PI * 9 + enso.phaseTwo) * enso.radius * 0.009;
+
+        const pressure = Math.max(0.08, Math.sin(Math.min(1, (1 - t) * 1.35) * Math.PI * 0.72));
+        context.beginPath();
+        context.moveTo(
+          enso.x + Math.cos(angle) * (enso.radius + wobble + offset),
+          enso.y + Math.sin(angle) * (enso.radius + wobble + offset)
+        );
+        context.lineTo(
+          enso.x + Math.cos(nextAngle) * (enso.radius + nextWobble + offset),
+          enso.y + Math.sin(nextAngle) * (enso.radius + nextWobble + offset)
+        );
+        context.lineWidth = Math.max(0.7, enso.width * pressure * widthScale);
+        context.strokeStyle = `rgba(30, 28, 26, ${opacity * (0.82 + 0.12 * Math.sin(i * 1.7))})`;
+        context.lineCap = 'round';
+        context.stroke();
+      }
+    }
+
+    // Draw the main stroke, and some extra fine ones to look like separated paintbrush hairs
+    function drawStrokesPass(context, enso, progress) {
+      const offset = 0.15;
+      drawPass(context, enso, progress, STROKE_OPACITY, 0, 1, 1);
+      drawPass(context, enso, progress, STROKE_OPACITY * 0.2, enso.width * offset, 0.1, 0.96);
+      drawPass(context, enso, progress, STROKE_OPACITY * 0.15, enso.width * offset * 2, 0.07, 0.94);
+      drawPass(context, enso, progress, STROKE_OPACITY * 0.25, -enso.width * offset, 0.14, 0.92);
+    }
+
+    function bakeEnso(enso) {
+      drawStrokesPass(staticCtx, enso, 1);
+      enso.baked = true;
+    }
+
+    function tick(now) {
+      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+      let anyAnimating = false;
+
+      for (let i = ensos.length - 1; i >= 0; i--) {
+        const enso = ensos[i];
+        const progress = Math.min(1, (now - enso.birth) / 1500);
+
+        if (progress < 1) {
+          anyAnimating = true;
+        }
+
+        if (progress >= 1 && !enso.baked) {
+          bakeEnso(enso);
+          enso.link.style.opacity = '1';
+          enso.linkVisible = true;
+        }
+
+        if (!enso.baked) {
+          drawStrokesPass(ctx, enso, progress);
+        }
+      }
+
+      if (anyAnimating) {
+        requestAnimationFrame(tick);
+      } else {
+        animating = false;
+      }
+    }
+
+    function randomEnso() {
+      paintEnso(LAB.rand(0, window.innerWidth), LAB.rand(0, window.innerHeight));
+    }
+
+    function init() {
+      ensos.forEach(enso => enso.link.remove());
+      ensos.length = 0;
+      staticCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+      paintEnso(window.innerWidth / 2, window.innerHeight / 2);
+      requestAnimationFrame(tick);
+    }
+
+    window.addEventListener('resize', resize);
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) {
+        paintEnso(e.clientX, e.clientY);
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, randomEnso);
+    });
+
+    resize();
+    init();
+
+  </script>
+</body>
+
+</html>

@@ -1736,3 +1736,10 @@ corridors:
     tags: [abstract, mobile]
     visual_description: >-
       Vertical slats fill the screen, each one a 3D flip-card with a sunset scene on the front and a night scene on the back. The slats ripple-flip in sequence, smoothly rotating between day and night with a staggered wave that travels across the screen. Hovering a slat brightens it. Every slat is a clickable link to a random corridor.
+  - id: enso
+    title: Ensō
+    created: 2026-08-24 08:22
+    links: dynamic
+    tags: [art, mobile]
+    visual_description: >-
+      A Zen-inspired page featuring hand-drawn ensō circles rendered on canvas with a brush-stroke aesthetic. Each circle animates in with a thick-to-thin ink taper, simulating a real brush running out of ink as the line progresses. Completed circles are baked onto a static canvas to keep CPU usage low. Clicking anywhere spawns a new ensō at the cursor position. Each circle has a numbered seal (using formal Japanese numerals) that fades in after the drawing animation completes. Hovering over an ensō reveals it as a portal to a random corridor.

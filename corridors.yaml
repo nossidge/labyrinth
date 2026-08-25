@@ -1743,3 +1743,10 @@ corridors:
     tags: [art, mobile]
     visual_description: >-
       A Zen-inspired page featuring hand-drawn ensō circles rendered on canvas with a brush-stroke aesthetic. Each circle animates in with a thick-to-thin ink taper, simulating a real brush running out of ink as the line progresses. Completed circles are baked onto a static canvas to keep CPU usage low. Clicking anywhere spawns a new ensō at the cursor position. Each circle has a numbered seal (using formal Japanese numerals) that fades in after the drawing animation completes. Hovering over an ensō reveals it as a portal to a random corridor.
+  - id: kolam
+    title: Kolam
+    created: 2026-08-25 22:48
+    links: dynamic
+    tags: [art, mobile]
+    visual_description: >-
+      A generative interpretation of the South Indian kolam tradition. Concentric diamond-shaped rings of dots are drawn on a brown background. Smooth looping curves weave around the dots, bulging outward at each point and denting inward between them, creating patterns. Curve colours are mostly cream with occasional amber and terracotta accents. Clicking the background or pressing any key regenerates the pattern. Each dot is a clickable link to a random corridor.

@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Douglas Noël Adams">
+  <title>GATTACA</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body,
+    html {
+      width: 100%;
+      height: 100%;
+      background-color: #080808;
+      font-family: "Courier New", Courier, monospace;
+      overflow: hidden;
+    }
+
+    main {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      perspective: 1400px;
+    }
+
+    #helix {
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    .base {
+      --diameter: 66px;
+      --radius: calc(var(--diameter) / 2);
+      width: var(--diameter);
+      height: var(--diameter);
+      margin-left: calc(var(--radius) * -1);
+      margin-top: calc(var(--radius) * -1);
+      border-radius: 50%;
+      position: absolute;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-decoration: none;
+      font-size: 15px;
+      font-weight: bold;
+      line-height: 1;
+      transition:
+        text-shadow 0.2s ease,
+        font-size 0.2s ease,
+        width 0.2s ease,
+        height 0.2s ease,
+        margin 0.2s ease;
+    }
+
+    .base:hover {
+      text-shadow: 0 0 12px currentColor;
+      font-size: 20px;
+    }
+
+    .base.big {
+      --diameter: 132px;
+      font-size: 30px;
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <canvas id="canvas"></canvas>
+    <div id="bases"></div>
+  </main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('deoxyribose');
+
+    const bases = document.getElementById('bases');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    const PAIRS = { A: 'T', T: 'A', G: 'C', C: 'G' };
+    const BASE_COLOURS = { A: '#e8c934', T: '#d03a2b', G: '#3ad06a', C: '#3a9ad0' };
+    const RUNG_SPACING = 46;
+    const WAVELENGTH = 480;
+
+    let winW, winH, CX, AMP;
+    const rungs = [];
+    let phase = 0;
+    let scroll = 0;
+
+    function resize() {
+      winW = canvas.width = window.innerWidth;
+      winH = canvas.height = window.innerHeight;
+      CX = winW / 2;
+      AMP = Math.min(winW * 0.22, 190);
+      buildRungs();
+    }
+
+    function newBasePair(rung) {
+      const base = LAB.sample(Object.keys(PAIRS));
+      rung.letters = [base, PAIRS[base]];
+      rung.els.forEach((el, i) => {
+        el.innerText = rung.letters[i];
+        el.style.color = BASE_COLOURS[rung.letters[i]];
+        el.href = LAB.pageRandomiser.nextOne();
+      });
+    }
+
+    function buildRungs() {
+      bases.replaceChildren();
+      rungs.length = 0;
+      const count = Math.ceil(winH / RUNG_SPACING) + 2;
+      for (let i = 0; i < count; i++) {
+        const els = [document.createElement('a'), document.createElement('a')];
+        els.forEach(el => {
+          el.className = 'base';
+          bases.appendChild(el);
+        });
+        const rung = { offset: i * RUNG_SPACING, els };
+        newBasePair(rung);
+        rungs.push(rung);
+      }
+    }
+
+    function strandX(y, side) {
+      return CX + Math.sin((y + scroll) * (Math.PI * 2) / WAVELENGTH + phase + side * Math.PI) * AMP;
+    }
+
+    function strandDepth(y, side) {
+      // -1 (behind) .. 1 (in front)
+      return Math.cos((y + scroll) * (Math.PI * 2) / WAVELENGTH + phase + side * Math.PI);
+    }
+
+    function draw() {
+      ctx.fillStyle = '#080808';
+      ctx.fillRect(0, 0, winW, winH);
+
+      // A bunch of circles to represent the sugar-phosphate helix outer backbone bit
+      for (let side = 0; side < 2; side++) {
+        for (let y = -10; y < winH + 10; y += 7) {
+          const x = strandX(y, side);
+          const depth = strandDepth(y, side);
+          const size = 2.2 + (depth + 1) * 1.4;
+          ctx.beginPath();
+          ctx.arc(x, y, size, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(190, 220, 230, ${0.25 + (depth + 1) * 0.3})`;
+          ctx.fill();
+        }
+      }
+    }
+
+    function positionRungs() {
+      const total = rungs.length * RUNG_SPACING;
+      rungs.forEach(rung => {
+        // Climb upward, wrapping from the top back to the bottom
+        const y = (((rung.offset - scroll) % total) + total) % total - RUNG_SPACING;
+
+        const x0 = strandX(y, 0);
+        const x1 = strandX(y, 1);
+
+        // Fade the colour when the rung is "perpendicular" to the viewer
+        const openness = Math.min(1, Math.abs(x0 - x1) / (AMP * 0.8));
+        ctx.strokeStyle = `rgba(120, 160, 170, ${0.15 + openness * 0.4})`;
+
+        // Draw the rung on the canvas
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(x0, y);
+        ctx.lineTo(x1, y);
+        ctx.stroke();
+
+        // Set the two letters a third of the way along the rung
+        const positions = [
+          [x0 + (x1 - x0) * 0.3, y],
+          [x0 + (x1 - x0) * 0.7, y],
+        ];
+        rung.els.forEach((el, i) => {
+          el.style.left = positions[i][0] + 'px';
+          el.style.top = positions[i][1] + 'px';
+          el.style.opacity = 0.25 + openness * 0.75;
+        });
+      });
+    }
+
+    function tick() {
+      phase += 0.006;
+      scroll += 0.35;
+
+      draw();
+      positionRungs();
+      requestAnimationFrame(tick);
+    }
+
+    function setLetter(letter, active) {
+      rungs.forEach(rung => {
+        rung.els.forEach(el => {
+          if (el.innerText === letter) {
+            el.classList.toggle('big', active);
+          }
+        });
+      });
+    }
+
+    window.addEventListener('keydown', e => {
+      const key = e.key.toUpperCase();
+      if (PAIRS[key]) setLetter(key, true);
+    });
+
+    window.addEventListener('keyup', e => {
+      const key = e.key.toUpperCase();
+      if (PAIRS[key]) setLetter(key, false);
+    });
+
+    window.addEventListener('resize', resize);
+
+    resize();
+    tick();
+
+  </script>
+</body>
+
+</html>

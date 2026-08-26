@@ -1750,3 +1750,10 @@ corridors:
     tags: [art, mobile]
     visual_description: >-
       A generative interpretation of the South Indian kolam tradition. Concentric diamond-shaped rings of dots are drawn on a brown background. Smooth looping curves weave around the dots, bulging outward at each point and denting inward between them, creating patterns. Curve colours are mostly cream with occasional amber and terracotta accents. Clicking the background or pressing any key regenerates the pattern. Each dot is a clickable link to a random corridor.
+  - id: deoxyribose
+    title: Deoxyribose
+    created: 2026-08-26 05:17
+    links: dynamic
+    tags: [mobile, science]
+    visual_description: >-
+      A rotating DNA double helix rendered on canvas against a dark background. Two sugar-phosphate backbones spiral around each other, connected by horizontal rungs. Each rung displays a nucleotide base pair (A-T or G-C) in distinctive colours: yellow for adenine, red for thymine, green for guanine, and blue for cytosine. The helix rotates continuously, with depth-based opacity creating a 3D effect. Each base letter on the rungs is a clickable link to a random corridor.

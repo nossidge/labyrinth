@@ -1757,3 +1757,10 @@ corridors:
     tags: [mobile, science]
     visual_description: >-
       A rotating DNA double helix rendered on canvas against a dark background. Two sugar-phosphate backbones spiral around each other, connected by horizontal rungs. Each rung displays a nucleotide base pair (A-T or G-C) in distinctive colours: yellow for adenine, red for thymine, green for guanine, and blue for cytosine. The helix rotates continuously, with depth-based opacity creating a 3D effect. Each base letter on the rungs is a clickable link to a random corridor.
+  - id: warp-weft-waves
+    title: Warp Weft Waves
+    created: 2026-08-27 16:05
+    links: 100
+    tags: [abstract, mobile]
+    visual_description: >-
+      Vertical "warp" threads and horizontal "weft" threads are simluated as sine wave lines with their amplitudes, frequencies, phases, and widths randomised. The background is deep maroon and the threads are earthy browns, terracottas, and muted blues. The number of threads scales with the viewport so the warp-to-weft ratio always matches the screen's width-to-height. Pressing a key gives new random values to the existing waves. An invisible grid of cells over the whole page are links to random corridors.

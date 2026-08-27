@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="(0, 1) => (⸾, ⌇)">
+  <title>⸾⌇⌇⌇⸾⌇⌇⌇⸾⌇⌇⸾⸾⸾⸾⌇⸾⌇⌇⌇⸾⌇⌇⸾⸾⌇⌇⌇⌇⸾⸾⌇</title>
+  <style>
+    :root {
+      --bg: #2a1a1a;
+      --link-cols: 10;
+      --link-rows: 10;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body,
+    html {
+      width: 100%;
+      height: 100%;
+      background-color: var(--bg);
+      overflow: hidden;
+    }
+
+    #canvas {
+      width: 100vw;
+      height: 100vh;
+    }
+
+    #links {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: grid;
+      grid-template-columns: repeat(var(--link-cols), 1fr);
+      grid-template-rows: repeat(var(--link-rows), 1fr);
+      z-index: 50;
+    }
+
+    .link-cell {
+      text-decoration: none;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="canvas"></canvas>
+  <div id="links"></div>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('warp-weft-waves');
+
+    const links = document.getElementById('links');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    const CSS_STYLE = getComputedStyle(document.documentElement);
+    const LINK_COLS = Number(CSS_STYLE.getPropertyValue('--link-cols'));
+    const LINK_ROWS = Number(CSS_STYLE.getPropertyValue('--link-rows'));
+
+    const THREAD_COLOURS = [
+      [101, 67, 33],
+      [105, 105, 105],
+      [112, 128, 144],
+      [139, 90, 43],
+      [160, 82, 45],
+      [165, 42, 42],
+      [188, 143, 143],
+      [205, 133, 63],
+      [222, 184, 135],
+    ];
+    const threadColourRandomiser = new LAB.CyclicRandomiser(THREAD_COLOURS);
+
+    const warpThreads = [];
+    const weftThreads = [];
+
+    let winW, winH;
+    let time = 0;
+
+    function resize() {
+      winW = canvas.width = window.innerWidth;
+      winH = canvas.height = window.innerHeight;
+      init();
+    }
+
+    function drawThread(fixed, v1, v2, amplitude, frequency, phase, colour, lineWidth, isVertical) {
+      ctx.strokeStyle = `rgba(${colour[0]}, ${colour[1]}, ${colour[2]}, 0.6)`;
+      ctx.lineWidth = lineWidth;
+      ctx.beginPath();
+
+      const steps = 100;
+      const length = v2 - v1;
+
+      for (let i = 0; i <= steps; i++) {
+        const t = i / steps;
+        const along = v1 + length * t;
+        const wave = Math.sin(t * Math.PI * 2 * frequency * length + phase + time) * amplitude;
+
+        let px, py;
+        if (isVertical) {
+          px = fixed + wave;
+          py = along;
+        } else {
+          px = along;
+          py = fixed + wave;
+        }
+
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+
+      ctx.stroke();
+    }
+
+    function init() {
+      const numWarp = Math.round(winW * 200 / 2400);
+      const numWeft = Math.round(winH * 90 / 960);
+
+      warpThreads.length = 0;
+      weftThreads.length = 0;
+      links.replaceChildren();
+
+      for (let i = 0; i < numWarp; i++) {
+        warpThreads.push({
+          x: (winW / (numWarp + 1)) * (i + 1),
+          tension: LAB.rand(0.5, 1),
+          amplitude: LAB.rand(5, 25),
+          frequency: LAB.rand(0.005, 0.025),
+          phase: LAB.rand(0, Math.PI * 2),
+          colour: threadColourRandomiser.nextOne(),
+          width: LAB.rand(0.5, 2.5),
+          isWarp: true
+        });
+      }
+
+      for (let i = 0; i < numWeft; i++) {
+        weftThreads.push({
+          y: (winH / (numWeft + 1)) * (i + 1),
+          tension: LAB.rand(0.5, 1),
+          amplitude: LAB.rand(3, 18),
+          frequency: LAB.rand(0.003, 0.018),
+          phase: LAB.rand(0, Math.PI * 2),
+          colour: threadColourRandomiser.nextOne(),
+          width: LAB.rand(0.5, 2.5)
+        });
+      }
+
+      for (let r = 0; r < LINK_ROWS; r++) {
+        for (let c = 0; c < LINK_COLS; c++) {
+          const cell = document.createElement('a');
+          cell.href = LAB.pageRandomiser.nextOne();
+          cell.className = 'link-cell';
+          links.appendChild(cell);
+        }
+      }
+    }
+
+    function tick() {
+      time += 0.016;
+
+      ctx.fillStyle = 'rgba(42, 26, 26, 0.3)';
+      ctx.fillRect(0, 0, winW, winH);
+
+      warpThreads.forEach(thread => {
+        drawThread(
+          thread.x,
+          0,
+          winH,
+          thread.amplitude,
+          thread.frequency,
+          thread.phase,
+          thread.colour,
+          thread.width,
+          true
+        );
+      });
+
+      weftThreads.forEach(thread => {
+        drawThread(
+          thread.y,
+          0,
+          winW,
+          thread.amplitude,
+          thread.frequency,
+          thread.phase,
+          thread.colour,
+          thread.width,
+          false
+        );
+      });
+
+      requestAnimationFrame(tick);
+    }
+
+    window.addEventListener('resize', resize);
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, () => {
+        warpThreads.forEach(thread => {
+          thread.amplitude = LAB.rand(5, 35);
+          thread.frequency = LAB.rand(0.005, 0.035);
+        });
+        weftThreads.forEach(thread => {
+          thread.amplitude = LAB.rand(3, 23);
+          thread.frequency = LAB.rand(0.003, 0.023);
+        });
+      });
+    });
+
+    resize();
+    tick();
+
+  </script>
+</body>
+
+</html>

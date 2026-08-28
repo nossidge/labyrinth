@@ -1764,3 +1764,10 @@ corridors:
     tags: [abstract, mobile]
     visual_description: >-
       Vertical "warp" threads and horizontal "weft" threads are simluated as sine wave lines with their amplitudes, frequencies, phases, and widths randomised. The background is deep maroon and the threads are earthy browns, terracottas, and muted blues. The number of threads scales with the viewport so the warp-to-weft ratio always matches the screen's width-to-height. Pressing a key gives new random values to the existing waves. An invisible grid of cells over the whole page are links to random corridors.
+  - id: lichen
+    title: Lichen
+    created: 2026-08-28 01:21
+    links: dynamic
+    tags: [mobile, nature, secret]
+    visual_description: >-
+      A simulation of a lichen colony spreading across an earthy surface. Starting from a single spore at the centre of the screen, the colony creeps outward cell by cell across a fine grid, forming an expanding patch of mossy greens and olive tones that eventually fills the screen before reseeding at the centre. User can click with the mouse to create new spores. Each spore is a clickable link to a random corridor.

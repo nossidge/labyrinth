@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Lichenstein">
+  <title>Lichenthropy</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body,
+    html {
+      width: 100%;
+      height: 100%;
+      background-color: #1a1208;
+      overflow: hidden;
+      user-select: none;
+      touch-action: none;
+    }
+
+    main {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      justify-content: center;
+      align-content: center;
+      overflow: hidden;
+    }
+
+    .spore {
+      user-select: none;
+      touch-action: none;
+      text-decoration: none;
+      opacity: 1;
+      animation: fade-in 0.15s ease-in;
+    }
+
+    @keyframes fade-in {
+      from {
+        opacity: 0;
+      }
+    }
+
+    .spore:hover {
+      outline: 1px solid #ccaa66;
+      z-index: 10;
+    }
+  </style>
+</head>
+
+<body>
+  <main id="main"></main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('lichen');
+
+    const main = document.getElementById('main');
+    const CELL = 16;
+
+    const PALETTE = [
+      '#6b7c4e', '#8a9a5b', '#5c6b3d', '#9aaa6e',
+      '#7d8c5a', '#a4b07a', '#556b2f', '#8fbc6b',
+      '#6e7f4a', '#b5c48b', '#4a5a30', '#7a8a55',
+      '#c2b280', '#a08050', '#8b7355', '#6d5c40',
+    ];
+
+    let COLS = 0, ROWS = 0;
+    let seedCol = 0, seedRow = 0;
+    let painting = false;
+    let lastCell = null;
+
+    // Grid state: Map of "col,row" => { el, col, row }
+    const occupiedCells = new Map();
+
+    // Helper to build string key for the above Map
+    function key(col, row) {
+      return col + ',' + row;
+    }
+
+    // Need to be enough to cover the screen and make sure that a middle cell exists
+    // So it must be an odd number
+    function oddAtLeast(n) {
+      n = Math.max(n, 1);
+      if (n % 2 === 0) n += 1;
+      return n;
+    }
+
+    // Keep the initial seed cell centred as the screen resizes
+    function resize() {
+      COLS = oddAtLeast(Math.ceil(window.innerWidth / CELL));
+      ROWS = oddAtLeast(Math.ceil(window.innerHeight / CELL));
+
+      main.style.gridTemplateColumns = 'repeat(' + COLS + ', ' + CELL + 'px)';
+      main.style.gridTemplateRows = 'repeat(' + ROWS + ', ' + CELL + 'px)';
+
+      const centreCol = (COLS - 1) / 2;
+      const centreRow = (ROWS - 1) / 2;
+
+      const dc = centreCol - seedCol;
+      const dr = centreRow - seedRow;
+
+      const next = new Map();
+      occupiedCells.forEach((s) => {
+        s.col += dc;
+        s.row += dr;
+        if (s.col < 0 || s.col >= COLS || s.row < 0 || s.row >= ROWS) {
+          s.el.remove();
+          return;
+        }
+        s.el.style.gridColumn = (s.col + 1) + '';
+        s.el.style.gridRow = (s.row + 1) + '';
+        next.set(key(s.col, s.row), s);
+      });
+      occupiedCells.clear();
+      next.forEach((s, k) => occupiedCells.set(k, s));
+
+      seedCol = centreCol;
+      seedRow = centreRow;
+    }
+
+    function addSpore(col, row) {
+      if (col < 0 || col >= COLS || row < 0 || row >= ROWS) return;
+      if (occupiedCells.has(key(col, row))) return;
+
+      const el = document.createElement('a');
+      el.className = 'spore';
+      el.href = LAB.pageRandomiser.nextOne();
+      if (col === seedCol && row === seedRow) el.href = LAB.goto();
+      el.style.gridColumn = (col + 1) + '';
+      el.style.gridRow = (row + 1) + '';
+      el.style.backgroundColor = LAB.sample(PALETTE);
+      main.appendChild(el);
+      occupiedCells.set(key(col, row), { el, col, row });
+    }
+
+    function getNeighbours(col, row) {
+      return [
+        [col - 1, row],
+        [col + 1, row],
+        [col, row - 1],
+        [col, row + 1],
+      ];
+    }
+
+    // Find empty cells adjacent to the living colony cells
+    function getFrontier() {
+      const frontier = [];
+      const seen = new Set();
+
+      occupiedCells.forEach(({ col, row }) => {
+        getNeighbours(col, row).forEach(([nc, nr]) => {
+          const k = key(nc, nr);
+          if (!occupiedCells.has(k) && !seen.has(k)) {
+            seen.add(k);
+            frontier.push([nc, nr]);
+          }
+        });
+      });
+
+      return frontier;
+    }
+
+    // Clear everything and start again at the dead centre
+    function init() {
+      occupiedCells.clear();
+      main.replaceChildren();
+      addSpore(seedCol, seedRow);
+    }
+
+    function grow() {
+      const frontier = getFrontier();
+
+      // I can't seem to hit this condition, so there could be a bug somewhere?
+      // But we want to start over again if the entire screen is full
+      if (frontier.length === 0) {
+        init();
+        return;
+      }
+
+      // Grow 1-3 cells at a time
+      const count = LAB.randInt(1, 3);
+      for (let i = 0; i < count && frontier.length > 0; i++) {
+        const pick = LAB.randInt(0, frontier.length - 1);
+        const [col, row] = frontier.splice(pick, 1)[0];
+        addSpore(col, row);
+      }
+    }
+
+    // Convert mouse coordinates to a grid column/row (or null if outside the grid)
+    function mouseToCell(e) {
+      const rect = main.getBoundingClientRect();
+      const left = rect.left + (rect.width - COLS * CELL) / 2;
+      const top = rect.top + (rect.height - ROWS * CELL) / 2;
+
+      const col = Math.floor((e.clientX - left) / CELL);
+      const row = Math.floor((e.clientY - top) / CELL);
+
+      if (col < 0 || col >= COLS || row < 0 || row >= ROWS) return null;
+      return { col, row };
+    }
+
+    // Paint every cell along the line from a to b
+    function paintLine(a, b) {
+      const steps = Math.max(Math.abs(b.col - a.col), Math.abs(b.row - a.row));
+      if (steps === 0) {
+        addSpore(a.col, a.row);
+        return;
+      }
+      for (let i = 0; i <= steps; i++) {
+        const col = Math.round(a.col + (b.col - a.col) * i / steps);
+        const row = Math.round(a.row + (b.row - a.row) * i / steps);
+        addSpore(col, row);
+      }
+    }
+
+    function paintAt(e) {
+      const cell = mouseToCell(e);
+      if (!cell) {
+        lastCell = null;
+        return;
+      }
+      if (lastCell) {
+        paintLine(lastCell, cell);
+      } else {
+        addSpore(cell.col, cell.row);
+      }
+      lastCell = cell;
+    }
+
+    function startPainting() {
+      painting = true;
+      lastCell = null;
+    }
+
+    function stopPainting() {
+      painting = false;
+      lastCell = null;
+    }
+
+    // Draw with the mouse when mouse is pressed
+    document.addEventListener('mousedown', (e) => {
+      if (e.button !== 0) return;
+      startPainting();
+      paintAt(e);
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (painting) paintAt(e);
+    });
+
+    document.addEventListener('mouseup', stopPainting);
+
+    // Draw with touch when a finger is down
+    document.addEventListener('touchstart', (e) => {
+      startPainting();
+      paintAt(e.touches[0]);
+    });
+
+    document.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      if (painting) paintAt(e.touches[0]);
+    }, { passive: false });
+
+    document.addEventListener('touchend', stopPainting);
+
+    document.addEventListener('touchcancel', stopPainting);
+
+    // Might not be important, but just in case
+    window.addEventListener('blur', stopPainting);
+
+    // Keep the seed cell centred as the screen resizes
+    window.addEventListener('resize', resize);
+
+    // Reset on key press
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    // Centre the grid, then start the seed in the dead centre of the screen
+    resize();
+    init();
+
+    // Safe to not rely on animation frame for this page, just an interval
+    setInterval(grow, 60);
+
+  </script>
+</body>
+
+</html>

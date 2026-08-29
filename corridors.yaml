@@ -1771,3 +1771,10 @@ corridors:
     tags: [mobile, nature, secret]
     visual_description: >-
       A simulation of a lichen colony spreading across an earthy surface. Starting from a single spore at the centre of the screen, the colony creeps outward cell by cell across a fine grid, forming an expanding patch of mossy greens and olive tones that eventually fills the screen before reseeding at the centre. User can click with the mouse to create new spores. Each spore is a clickable link to a random corridor.
+  - id: shrinking-squares
+    title: Shrinking Squares
+    created: 2026-08-29 15:00
+    links: dynamic
+    tags: [abstract, mobile, secret]
+    visual_description: >-
+      A grid of white squares on a black background. Over time random squares are slowly eroded: they shrink into circles and finally vanish, leaving empty space behind. Occasionally a dead square regrows from nothing back to full size, but not fast enough to regrow the full grid. Each square is a clickable link to a random corridor.

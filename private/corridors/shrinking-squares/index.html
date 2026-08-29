@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="shrink death of the universe">
+  <title>all is falling</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body,
+    html {
+      width: 100%;
+      height: 100%;
+      background-color: #111111;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    main {
+      display: grid;
+    }
+
+    .cell {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-decoration: none;
+      border: 1px solid #111111;
+    }
+
+    .cell .block {
+      background-color: #e0e0e0;
+      transition: all 0.8s ease;
+    }
+
+    .cell:hover .block {
+      background-color: #ffffff;
+      box-shadow: 0 0 4px rgba(255, 255, 255, 0.5);
+    }
+
+    .cell .block.dead {
+      background-color: transparent;
+    }
+  </style>
+</head>
+
+<body>
+  <main id="main"></main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('shrinking-squares');
+
+    const main = document.getElementById('main');
+
+    const CELL_SIZE = 23;
+    const CELL_PITCH = CELL_SIZE + 2;
+    const MAX_COLS = 27;
+    const MAX_ROWS = 17;
+    const MARGIN = 16;
+
+    let COLS = MAX_COLS;
+    let ROWS = MAX_ROWS;
+    const cells = [];
+
+    // Life goes from MAX_LIFE (full) down to 0 (dead)
+    const MAX_LIFE = 6;
+
+    // 2px at full life (square), 50% at life 1 (circle)
+    function radiusForLife(life) {
+      if (life === MAX_LIFE) return '2px';
+      const spread = Math.max(1, MAX_LIFE - 1);
+      return (50 * (MAX_LIFE - life) / spread) + '%';
+    }
+
+    function odd(n) {
+      if (n % 2 === 0) n -= 1;
+      return Math.max(1, n);
+    }
+
+    function computeGrid() {
+      const availW = window.innerWidth - MARGIN * 2;
+      const availH = window.innerHeight - MARGIN * 2;
+      return {
+        cols: odd(Math.min(MAX_COLS, Math.floor(availW / CELL_PITCH))),
+        rows: odd(Math.min(MAX_ROWS, Math.floor(availH / CELL_PITCH)))
+      };
+    }
+
+    function sizeForLife(life) {
+      const fraction = life / MAX_LIFE;
+      return Math.round(CELL_SIZE * fraction);
+    }
+
+    // Cells are positioned relative to the centre of the grid
+    // So shrinking always trims the outer edges symmetrically
+    function addCell(dx, dy) {
+      const cell = document.createElement('a');
+      cell.className = 'cell';
+      cell.href = LAB.pageRandomiser.nextOne();
+      if (dx === 0 && dy === 0) cell.href = LAB.goto();
+
+      const block = document.createElement('div');
+      block.className = 'block';
+
+      block.style.width = sizeForLife(MAX_LIFE) + 'px';
+      block.style.height = sizeForLife(MAX_LIFE) + 'px';
+      block.style.borderRadius = radiusForLife(MAX_LIFE);
+
+      positionCell(cell, dx, dy);
+
+      cell.appendChild(block);
+      main.appendChild(cell);
+      cells.push({ el: cell, block: block, life: MAX_LIFE, dx: dx, dy: dy });
+    }
+
+    function positionCell(cell, dx, dy) {
+      cell.style.gridRowStart = dy + (ROWS - 1) / 2 + 1;
+      cell.style.gridColumnStart = dx + (COLS - 1) / 2 + 1;
+    }
+
+    function setGridSize(cols, rows) {
+      main.style.gridTemplateColumns = `repeat(${cols}, ${CELL_PITCH}px)`;
+      main.style.gridTemplateRows = `repeat(${rows}, ${CELL_PITCH}px)`;
+    }
+
+    function init() {
+      const grid = computeGrid();
+      COLS = grid.cols;
+      ROWS = grid.rows;
+
+      setGridSize(COLS, ROWS);
+
+      main.innerHTML = '';
+      cells.length = 0;
+
+      const halfCols = (COLS - 1) / 2;
+      const halfRows = (ROWS - 1) / 2;
+      for (let dy = -halfRows; dy <= halfRows; dy++) {
+        for (let dx = -halfCols; dx <= halfCols; dx++) {
+          addCell(dx, dy);
+        }
+      }
+    }
+
+    // Trim (or restore) the outer rows and columns, keeping the centre cells
+    function resizeTo(newCols, newRows) {
+      if (newCols === COLS && newRows === ROWS) return;
+
+      const newHalfCols = (newCols - 1) / 2;
+      const newHalfRows = (newRows - 1) / 2;
+
+      const survivors = [];
+      for (const c of cells) {
+        if (Math.abs(c.dx) <= newHalfCols && Math.abs(c.dy) <= newHalfRows) {
+          survivors.push(c);
+        } else {
+          c.el.remove();
+        }
+      }
+      cells.length = 0;
+      for (const c of survivors) {
+        cells.push(c);
+      }
+
+      COLS = newCols;
+      ROWS = newRows;
+      setGridSize(COLS, ROWS);
+
+      for (const c of cells) {
+        positionCell(c.el, c.dx, c.dy);
+      }
+
+      const existing = new Set(cells.map(c => c.dx + ',' + c.dy));
+      for (let dy = -newHalfRows; dy <= newHalfRows; dy++) {
+        for (let dx = -newHalfCols; dx <= newHalfCols; dx++) {
+          if (!existing.has(dx + ',' + dy)) {
+            addCell(dx, dy);
+          }
+        }
+      }
+    }
+
+    // Pick some alive cells to erode
+    function erode() {
+      const alive = cells.filter(c => c.life > 0);
+      if (alive.length === 0) return;
+
+      const count = LAB.randInt(1, 3);
+      for (let i = 0; i < count; i++) {
+        const victim = LAB.sample(alive);
+        victim.life--;
+
+        if (victim.life <= 0) {
+          victim.life = 0;
+          victim.block.classList.add('dead');
+          victim.block.style.width = '0px';
+          victim.block.style.height = '0px';
+        } else {
+          victim.block.style.width = sizeForLife(victim.life) + 'px';
+          victim.block.style.height = sizeForLife(victim.life) + 'px';
+          victim.block.style.borderRadius = radiusForLife(victim.life);
+        }
+      }
+    }
+
+    // Pick some dead cells to regrow
+    function regrow() {
+      const dead = cells.filter(c => c.life === 0);
+      if (dead.length === 0) return;
+
+      // Only regrow if there are enough dead
+      if (dead.length < COLS) return;
+
+      const candidate = LAB.sample(dead);
+      candidate.life = MAX_LIFE;
+      candidate.block.classList.remove('dead');
+      candidate.block.style.width = sizeForLife(MAX_LIFE) + 'px';
+      candidate.block.style.height = sizeForLife(MAX_LIFE) + 'px';
+      candidate.block.style.borderRadius = radiusForLife(MAX_LIFE);
+      candidate.block.style.backgroundColor = '#e0e0e0';
+      candidate.el.href = LAB.pageRandomiser.nextOne();
+    }
+
+    function tick() {
+      // Always destroy
+      erode();
+
+      // Occasionally regrow
+      if (LAB.chance(0.3)) regrow();
+
+      setTimeout(tick, LAB.randInt(150, 400));
+    }
+
+    window.addEventListener('resize', () => {
+      const grid = computeGrid();
+      resizeTo(grid.cols, grid.rows);
+    });
+
+    // Reset on key press
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    init();
+    setTimeout(tick, 1000);
+
+  </script>
+</body>
+
+</html>

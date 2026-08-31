@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Spherical connections">
+  <title>ball-and-stick grid</title>
+  <style>
+    :root {
+      --colour-background: #e0e0e0;
+      --colour-dot-normal: #111111;
+      --colour-dot-hover: #3a3a3a;
+      --colour-lines: #9a9a9a;
+      --cell-dim: 56px;
+      --line: 2px;
+      --dot: 26px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      overflow: hidden;
+      overscroll-behavior: none;
+    }
+
+    body {
+      position: fixed;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      width: 100%;
+      background-color: var(--colour-background);
+    }
+
+    main {
+      position: relative;
+    }
+
+    table {
+      table-layout: fixed;
+      border-collapse: collapse;
+    }
+
+    table.lines td {
+      width: var(--cell-dim);
+      height: var(--cell-dim);
+      border: var(--line) solid var(--colour-lines);
+    }
+
+    table.dots {
+      position: absolute;
+      top: calc(var(--cell-dim) / -2 + var(--line) / 2);
+      left: calc(var(--cell-dim) / -2 + var(--line) / 2);
+    }
+
+    table.dots td {
+      width: var(--cell-dim);
+      height: var(--cell-dim);
+      font-size: 0;
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    .dot {
+      display: inline-block;
+      width: var(--dot);
+      height: var(--dot);
+      background-color: var(--colour-dot-normal);
+      border-radius: 50%;
+      text-decoration: none;
+      transition: background-color 0.08s;
+    }
+
+    .dot:hover {
+      background-color: var(--colour-dot-hover);
+    }
+  </style>
+</head>
+
+<body>
+  <main id="main">
+    <table class="lines" id="lines"></table>
+    <table class="dots" id="dots"></table>
+  </main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('ball-and-stick-grid');
+
+    const tableLines = document.getElementById('lines');
+    const tableDots = document.getElementById('dots');
+
+    const CSS_STYLE = getComputedStyle(document.documentElement);
+    const cellDim = parseInt(CSS_STYLE.getPropertyValue('--cell-dim'));
+
+    function buildTable(table, cols, rows, callbackFillCell) {
+      table.innerHTML = '';
+      for (let r = 0; r < rows; r++) {
+        const tr = document.createElement('tr');
+        for (let c = 0; c < cols; c++) {
+          const td = document.createElement('td');
+          callbackFillCell(td);
+          tr.appendChild(td);
+        }
+        table.appendChild(tr);
+      }
+    }
+
+    function init() {
+      const cols = Math.max(4, Math.floor((window.innerWidth * 0.6) / cellDim) + 1);
+      const rows = Math.max(2, Math.floor((window.innerHeight * 0.6) / cellDim) + 1);
+
+      buildTable(tableLines, cols, rows, () => { });
+
+      tableDots.style.width = (cols + 1) * cellDim + 'px';
+      tableDots.style.height = (rows + 1) * cellDim + 'px';
+
+      buildTable(tableDots, cols + 1, rows + 1, (td) => {
+        const dot = document.createElement('a');
+        dot.href = LAB.pageRandomiser.nextOne();
+        dot.className = 'dot';
+        td.appendChild(dot);
+      });
+    }
+
+    window.addEventListener('resize', init);
+
+    init();
+
+  </script>
+</body>
+
+</html>

@@ -1785,3 +1785,10 @@ corridors:
     tags: [abstract, mobile]
     visual_description: >-
       A full-screen grid of black squares separated by thin white gaps, demonstrating the Hermann grid optical illusion. With no animation or interaction, the eyes see grey circles at the gap crossings. Hovering over a square draws these explicitly at each of its four corners. The grid dimensions adapt to the viewport. Every square is a clickable link to a random corridor.
+  - id: ball-and-stick-grid
+    title: Ball-and-Stick Grid
+    created: 2026-08-31 09:35
+    links: dynamic
+    tags: [abstract, mobile]
+    visual_description: >-
+      A full-screen grid of grey lines on a white background with dark dots on every crossing. Hovering over a dot lightens it. The grid dimensions adapt to the viewport. Every dot is a clickable link to a random corridor.

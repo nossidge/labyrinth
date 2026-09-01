@@ -1792,3 +1792,10 @@ corridors:
     tags: [abstract, mobile]
     visual_description: >-
       A full-screen grid of grey lines on a white background with dark dots on every crossing. Hovering over a dot lightens it. The grid dimensions adapt to the viewport. Every dot is a clickable link to a random corridor.
+  - id: redshift-hotline
+    title: Redshift Hotline
+    created: 2026-09-01 14:01
+    links: dynamic
+    tags: [abstract, crt, mobile]
+    visual_description: >-
+      Horizontal bands of random lowercase letters and punctuation characters fill the screen edge to edge in white monospace text on a black background. Hovering over a band turns its characters red and nudges the whole band slightly to the left. Every band is a clickable link to a random corridor in the labyrinth.

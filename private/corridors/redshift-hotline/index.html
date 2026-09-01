@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+Because when you hover over it, it shifts red...
+And each line becomes red, which means it's hot...
+Okay, I appreciate the name for this one is a little nebulous.
+But I gotta come up with unique ids for every page!
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="redshift-hotline">
+  <title>wavelength bling</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #0a0a0f;
+      font-family: 'Courier New', Courier, monospace;
+    }
+
+    main {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+
+    .band {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      white-space: nowrap;
+      font-size: 13px;
+      line-height: 20px;
+      color: #cccccc;
+      overflow: hidden;
+      transition: transform 0.1s linear;
+    }
+
+    a {
+      text-decoration: none;
+      transform: translateX(0px);
+    }
+
+    a:hover {
+      color: #ff4444;
+      transform: translateX(-20px);
+      transition: transform 0.05s linear;
+    }
+
+    .letters {
+      transition: color 1s linear;
+    }
+
+    .letters.viewed {
+      color: #ff4444;
+      font-weight: bold;
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 100;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+      background-size: 100% 2px, 3px 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+  <main id="main"></main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('redshift-hotline');
+
+    const main = document.getElementById('main');
+    const bandHeight = 22;
+    const bands = [];
+
+    function makeBandText() {
+      const chars = 'abcdefghijklmnopqrstuvwxyz!@#$%^*()_+-=[]{}|;:,.?';
+      let text = '';
+      const len = Math.ceil(window.innerWidth / 8) + 10;
+      for (let i = 0; i < len; i++) {
+        text += LAB.sample(chars);
+      }
+      return text;
+    }
+
+    function init() {
+      main.replaceChildren();
+
+      const count = Math.ceil(window.innerHeight / bandHeight);
+      for (let i = 0; i < count; i++) {
+        const band = document.createElement('a');
+        band.className = 'band';
+        band.style.top = (i * bandHeight) + 'px';
+        band.innerHTML = makeBandText();
+        band.href = LAB.pageRandomiser.nextOne();
+        main.appendChild(band);
+        bands.push({ el: band, baseY: i * bandHeight });
+      }
+
+      const col = LAB.randInt(7, 11);
+      const rowEnd = bands.length - LAB.randInt(4, 8);
+      const rowStart = rowEnd - 7;
+      const vertical = 'spectrum';
+      const horizontal = 'miami';
+      const byRow = [];
+
+      function add(row, index, ch) {
+        if (!byRow[row]) {
+          byRow[row] = [];
+        }
+        byRow[row].push([index, ch]);
+      }
+
+      for (let i = 0; i < vertical.length; i++) {
+        add(rowStart + i, col, vertical[i]);
+      }
+      for (let j = 1; j < horizontal.length; j++) {
+        add(rowEnd, col + j, horizontal[j]);
+      }
+
+      for (let r = 0; r < byRow.length; r++) {
+        if (!byRow[r]) {
+          continue;
+        }
+        const band = bands[r].el;
+        const text = band.textContent;
+        const cells = byRow[r].sort(function (a, b) {
+          return a[0] - b[0];
+        });
+        let html = '';
+        let pos = 0;
+        for (let i = 0; i < cells.length; i++) {
+          if (cells[i][0] >= text.length) {
+            continue;
+          }
+          html += text.slice(pos, cells[i][0]);
+          html += '<span class="letters">' + cells[i][1] + '</span>';
+          pos = cells[i][0] + 1;
+        }
+        html += text.slice(pos);
+        band.innerHTML = html;
+      }
+    };
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === '`') {
+        const letters = document.querySelectorAll('.letters');
+        for (let i = 0; i < letters.length; i++) {
+          letters[i].classList.toggle('viewed');
+        }
+      }
+    });
+
+    window.addEventListener('resize', init);
+
+    init();
+
+  </script>
+</body>
+
+</html>

@@ -1799,3 +1799,10 @@ corridors:
     tags: [abstract, crt, mobile]
     visual_description: >-
       Horizontal bands of random lowercase letters and punctuation characters fill the screen edge to edge in white monospace text on a black background. Hovering over a band turns its characters red and nudges the whole band slightly to the left. Every band is a clickable link to a random corridor in the labyrinth.
+  - id: stalagtites
+    title: Stalacmites
+    created: 2026-09-02 20:12
+    links: dynamic
+    tags: [abstract, crt, mobile]
+    visual_description: >-
+      Two rows of vertical grey bars on a white background, one anchored to the top edge, the other to the bottom edge, with a gap between them. The bars vary in width and oscillate in height like an audio equaliser. Clicking the background or pressing a key gives the bars a small jitter. Hovering over a group flashes its bars magenta, and each group is a clickable link to a random corridor.

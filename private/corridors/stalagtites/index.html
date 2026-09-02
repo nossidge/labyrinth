@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="barcode battler">
+  <title>stalacmites</title>
+  <style>
+    :root {
+      --gap: 20%;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body,
+    html {
+      width: 100%;
+      height: 100%;
+      background-color: #ffffff;
+      font-family: monospace;
+      overflow: hidden;
+    }
+
+    body {
+      display: flex;
+    }
+
+    .bars {
+      display: flex;
+      position: relative;
+      flex: 1 1 0;
+      min-width: 0;
+      height: 100vh;
+      z-index: 1;
+    }
+
+    .spacer {
+      flex: 0 0 var(--gap);
+    }
+
+    #top-left .bar-group {
+      align-items: flex-start;
+    }
+
+    #bottom-right .bar-group {
+      align-items: flex-end;
+    }
+
+    .bar-group {
+      display: flex;
+      flex: 0 0 0;
+      flex-direction: row;
+      min-width: 0;
+      height: 100%;
+      transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      cursor: pointer;
+    }
+
+    .bar {
+      flex: 1 1 0;
+      min-width: 0;
+      height: 100%;
+      transition: height 0.2s ease, background-color 0.3s ease;
+    }
+
+    .bar.active {
+      background-color: #ff00ff !important;
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(rgba(255, 255, 255, 0) 50%, rgba(0, 0, 0, 0.08) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.03));
+      background-size: 100% 3px, 2px 100%;
+      pointer-events: none;
+      z-index: 100;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+  <div class="bars" id="top-left"></div>
+  <div class="spacer"></div>
+  <div class="bars" id="bottom-right"></div>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('stalagtites');
+
+    const barsTopLeft = document.getElementById('top-left');
+    const barsBottomRight = document.getElementById('bottom-right');
+
+    const GROUP_COUNT = 48;
+    const groups = [];
+
+    function init() {
+      for (let i = 0; i < GROUP_COUNT; i++) {
+        const group = document.createElement('a');
+        group.href = LAB.pageRandomiser.nextOne();
+        group.className = 'bar-group';
+        group.style.textDecoration = 'none';
+
+        const barCount = LAB.randInt(2, 6);
+        group.style.flexGrow = barCount;
+
+        const barStates = [];
+        for (let j = 0; j < barCount; j++) {
+          const bar = document.createElement('div');
+          bar.className = 'bar';
+          const grey = LAB.randInt(30, 220);
+          bar.style.backgroundColor = `rgb(${grey},${grey},${grey})`;
+          group.appendChild(bar);
+          barStates.push({ els: [bar], height: LAB.rand(0.3, 1.0), target: LAB.rand(0.2, 1.0), speed: LAB.rand(0.02, 0.06) });
+        }
+
+        // Duplicate the group in the bottom-right
+        const mirrorGroup = group.cloneNode(true);
+        barsBottomRight.appendChild(mirrorGroup);
+        const mirrorBars = mirrorGroup.querySelectorAll('.bar');
+        barStates.forEach((bs, j) => bs.els.push(mirrorBars[j]));
+
+        const highlight = () => {
+          const allBars = document.querySelectorAll('.bar');
+          allBars.forEach(b => b.classList.remove('active'));
+          barStates.forEach(bs => bs.els.forEach(b => b.classList.add('active')));
+        };
+        const unhighlight = () => {
+          barStates.forEach(bs => bs.els.forEach(b => b.classList.remove('active')));
+        };
+        group.addEventListener('mouseenter', highlight);
+        mirrorGroup.addEventListener('mouseenter', highlight);
+        group.addEventListener('mouseleave', unhighlight);
+        mirrorGroup.addEventListener('mouseleave', unhighlight);
+
+        barsTopLeft.appendChild(group);
+        groups.push({ el: [group, mirrorGroup], barStates });
+      }
+    }
+
+    // Animation wrapper to allow for FPS throttling
+    function handleTickWithFPS(tickFunction, fps = 60) {
+      const targetFrameMs = 1000 / fps;
+      let previousTime = 0;
+      function tick(now) {
+        const dt = now - previousTime;
+        if (previousTime !== 0 && dt < targetFrameMs) {
+          requestAnimationFrame(tick);
+          return;
+        }
+        previousTime = now;
+        tickFunction(now);
+        requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    }
+
+    // Animate like music equaliser bars
+    function tick() {
+      groups.forEach(g => {
+        g.barStates.forEach(bs => {
+          bs.height += (bs.target - bs.height) * bs.speed;
+          bs.els.forEach(el => { el.style.height = (bs.height * 100) + '%'; });
+          if (Math.abs(bs.height - bs.target) < 0.01) {
+            bs.target = LAB.rand(0.2, 1.0);
+          }
+        });
+      });
+    }
+
+    // Give them a little shifting animation
+    function shiftGroups() {
+      groups.forEach(g => {
+        g.el.forEach(el => {
+          el.style.transform = `translateX(${LAB.rand(-8, 8)}px)`;
+          setTimeout(() => { el.style.transform = 'translateX(0)'; }, 400);
+        });
+      });
+    }
+
+    document.body.addEventListener('click', (e) => {
+      if (!e.target.closest('.bar-group')) shiftGroups();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, shiftGroups);
+    });
+
+    init();
+    handleTickWithFPS(tick, 10);
+
+  </script>
+</body>
+
+</html>

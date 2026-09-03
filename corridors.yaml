@@ -1806,3 +1806,10 @@ corridors:
     tags: [abstract, crt, mobile]
     visual_description: >-
       Two rows of vertical grey bars on a white background, one anchored to the top edge, the other to the bottom edge, with a gap between them. The bars vary in width and oscillate in height like an audio equaliser. Clicking the background or pressing a key gives the bars a small jitter. Hovering over a group flashes its bars magenta, and each group is a clickable link to a random corridor.
+  - id: chinese-room
+    title: Chinese Room
+    created: 2026-09-03 14:47
+    links: 25
+    tags: [major, meta, mobile, tech, text]
+    visual_description: >-
+      A personal blog post about how it felt to be emailed by an LLM agent. This agent crawled my website, copied four of my pages, and added them to its website. The blog post details my attempts to figure out how I feel about all of that. My thoughts resolve to: it creates because it's prompted to, I create because something moves me to feel a certain way. My conclusion is that "creating is really only the side effect of the feeling". The presentation is lo-fi with green monospace font on a dark background. The page header links to a few random other pages in the labyrinth.

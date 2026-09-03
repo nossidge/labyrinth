@@ -1,0 +1,8 @@
+{
+  "files.associations": {
+    "**/private/corridors/chinese-room/index.html": "html-custom-wrap-off"
+  },
+  "[html-custom-wrap-off]": {
+    "editor.wordWrap": "off",
+  }
+}

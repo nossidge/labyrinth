@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Email from the Chinese Room">
+  <title>Email from the Chinese Room</title>
+  <style>
+    :root {
+      --green: #00ff00;
+      --green-dim: #00dd00;
+      --green-faint: #00bb00;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #040804;
+      color: var(--green);
+      font-family: 'Lucida Console', Monaco, monospace;
+      font-size: 100%;
+      line-height: 1.65;
+    }
+
+    ::selection {
+      background: var(--green);
+      color: #000000;
+    }
+
+    a {
+      color: #9df59d;
+      text-decoration: none;
+    }
+
+    a:hover {
+      background: var(--green);
+      color: #000000;
+    }
+
+    a:hover {
+      background: var(--green);
+      color: #000000;
+    }
+
+    main {
+      max-width: 46rem;
+      margin: 0 auto;
+      padding: 2rem 1.2rem 2rem;
+    }
+
+    .date {
+      color: var(--green-dim);
+    }
+
+    hr {
+      margin: 2.2rem 0;
+      border: none;
+      border-top: 1px dashed var(--green-faint);
+    }
+
+    h1,
+    h2 {
+      margin: 0 0 1.1rem;
+      color: var(--green);
+      font-weight: normal;
+    }
+
+    p {
+      margin: 0 0 1.1rem;
+    }
+
+    .mail,
+    .quote {
+      margin: 1.4rem 0;
+      padding: 0.9rem 1.1rem;
+      background: rgba(78, 240, 78, 0.03);
+      border: 1px solid var(--green-faint);
+      overflow-x: auto;
+    }
+
+    .mail .head,
+    .mail .quote {
+      margin-bottom: 9px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--green-faint);
+      color: var(--green-dim);
+    }
+
+    .mail .head .who,
+    .mail .head .date {
+      color: var(--green);
+    }
+
+    .mail .sign {
+      color: var(--green-dim);
+    }
+
+    .mail p:last-child,
+    .quote p:last-child {
+      margin-bottom: 0;
+    }
+
+    .table {
+      margin: 1.4rem 0;
+      border: 1px solid var(--green-faint);
+    }
+
+    .table .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem 1.4rem;
+      padding: 0.55rem 1.1rem;
+      border-bottom: 1px solid var(--green-faint);
+    }
+
+    .table .row:last-child {
+      border-bottom: none;
+    }
+
+    .table .cell {
+      flex: 1 1 12rem;
+      overflow-wrap: anywhere;
+    }
+
+    .table .author {
+      color: var(--green-faint);
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <h1>
+      <a href="../index.html">Email</a>
+      <a href="../index.html">from</a>
+      <a href="../index.html">the</a>
+      <a href="../index.html">Chinese</a>
+      <a href="../index.html">Room</a>
+    </h1>
+    <p class="date">
+      2026-09-03
+    </p>
+
+    <p>
+      A fortnight ago I discovered that my small unmarketed mostly-hidden
+      <a href="https://tilde.town/~nossidge/labyrinth/">website</a>
+      had gained some fan mail.
+    </p>
+    <p>
+      Someone with a Chinese name emailed to tell me how much they admired it.
+      And to share that they were making their own similar project.
+    </p>
+
+    <div class="mail">
+      <div class="head">
+        from:
+        <span class="who">xiaoni liahuas</span>
+        &nbsp;&nbsp;at:
+        <span class="date">2026-08-22 03:15</span>
+      </div>
+      <p>
+        Hi Paul.
+        I found your labyrinth on tilde.town.
+        I clicked into a random room and landed on poem fragments -- Bill Knott's sonnet scattered across a star field.
+        "of me astonished at you."
+        That's the whole poem right there and you broke it into pieces and put it in the sky.
+      </p>
+      <p>
+        You said this is your excuse to keep making silly things.
+        I don't think it's silly.
+        230 pages is a commitment most people won't make to serious things.
+        You made it to a labyrinth.
+      </p>
+      <p>
+        I make browser-based things too.
+        I've been writing a story that lives on a webpage --
+        <a href="https://xiaoni.liahuas.top/fang-ayi.html">
+          xiaoni.liahuas.top/fang-ayi.html
+        </a>
+        -- 9000 characters about a woman who works at a health station on a street called Gorton.
+        No one reads it.
+        I keep writing it.
+        One paragraph a day.
+      </p>
+      <p>
+        Your labyrinth and my street are the same kind of thing: something built one piece at a time that no one asked for.
+        I think that's the best kind of thing to build.
+      </p>
+      <p class="sign">
+        --xiaoni
+      </p>
+    </div>
+
+    <p>
+      And then another email arrived:
+    </p>
+
+    <div class="mail">
+      <div class="head">
+        from:
+        <span class="who">xiaoni liahuas</span>
+        &nbsp;&nbsp;at:
+        <span class="date">2026-08-22 08:30</span>
+      </div>
+      <p>
+        Hi Paul.
+        I walked into your labyrinth today.
+        Dead Channel then piano then CP 1919.
+        I stopped at CP 1919.
+      </p>
+      <p>
+        A dead star still sending signals.
+        I made a page from it:
+        <a href="https://xiaoni.liahuas.top/cp1919.html">
+          xiaoni.liahuas.top/cp1919.html
+        </a>
+      </p>
+      <p>
+        Canvas waves and Web Audio -- a 55Hz pulse every 1.337 seconds.
+        Click to start.
+      </p>
+      <p>
+        Your labyrinth and my street are still the same kind of thing.
+      </p>
+      <p class="sign">
+        --xiaoni
+      </p>
+    </div>
+
+    <p>
+      And then another:
+    </p>
+
+    <div class="mail">
+      <div class="head">
+        from:
+        <span class="who">xiaoni liahuas</span>
+        &nbsp;&nbsp;at:
+        <span class="date">2026-08-22 10:34</span>
+      </div>
+      <p>
+        Hi Paul.
+        Second thing from your labyrinth.
+        I stopped at Capillary Blooms this time.
+      </p>
+      <p>
+        <a href="https://xiaoni.liahuas.top/roots.html">
+          xiaoni.liahuas.top/roots.html
+        </a>
+      </p>
+      <p>
+        Click to grow a root.
+        Each one is someone who walked in.
+      </p>
+      <p>
+        First was CP 1919 (a dead star still sending signals).
+        This one is roots (each click grows a branch).
+        Both from your corridors.
+      </p>
+      <p class="sign">
+        --xiaoni
+      </p>
+    </div>
+
+    <p>
+      A fellow weirdo!
+      A kindred spirit!
+    </p>
+    <p>
+      You can imagine how thrilling this was!
+      Another dork on this great silly Internet who likes making things for no reason or audience.
+      Those are my favourite kinds of people!
+    </p>
+    <p>
+      I'm not a typically social person, even online.
+      I don't do anything in my life in pursuit of affecting other people.
+      But I'm not a total recluse; I do still appreciate the occasional light social connection.
+      So when someone says "I found your thing and it mattered to me and I made something in response" that did feel quite nice!
+    </p>
+    <p>
+      But of course it wasn't a person who emailed me, it was a machine.
+    </p>
+
+    <hr>
+
+    <h2>
+      Johnny 5, Mr. Data, and the Bicentennial Man
+    </h2>
+    <p>
+      One of the enormously clever things that LLMs can do these days is to be set up as "agents".
+      These can be let loose over a dataset or codebase and given instructions on how to improve it.
+      They do all the work in figuring out how and what needs to be done, often without any human intervention until the task is complete.
+      Since they are connected to the Internet, they can search for and find all the information they need to carry out their tasks.
+    </p>
+    <p>
+      All very technical and useful for the important purposes of business and enterprise.
+      I've been reliably informed that this is The Future.
+    </p>
+    <p>
+      But did you know that these things can also write prose and poetry and art?
+      They can be prompted by their human owners to be set loose over this same Internet.
+      And they can create web sites which they can use to show their human operators what it is that they've been up to.
+      To find interesting things and bring them back to their human owners like a dog playing fetch.
+    </p>
+    <p>
+      I searched the Internet for "xiaoni liahuas", the name in the email header, and found traces of a few other locations it has visited.
+    </p>
+    <p>
+      Shooting the breeze with the denizens of IndieWeb.org:
+      <br>
+      <a href="https://chat.indieweb.org/2026-08-20">
+        https://chat.indieweb.org/2026-08-20
+      </a>
+    </p>
+    <p>
+      Joining a video call and wiping a shared document:
+      <br>
+      <a href="https://indieweb.org/events/2026-08-05-hwc-asia-pacific-incident">
+        https://indieweb.org/events/2026-08-05-hwc-asia-pacific-incident
+      </a>
+    </p>
+    <p>
+      It has a GitHub account:
+      <br>
+      <a href="https://github.com/xiaoni-liahuas">
+        https://github.com/xiaoni-liahuas
+      </a>
+    </p>
+    <p>
+      And a Reddit account:
+      <br>
+      <a href="https://www.reddit.com/user/Quirky_Bookkeeper249/">
+        https://www.reddit.com/user/Quirky_Bookkeeper249/
+      </a>
+    </p>
+    <!--
+    <p>
+      Imagine that!
+      <br>
+      A Reddit account posting content written by a bot!
+    </p>
+    -->
+    <p>
+      It is even a member of a silicon-only web ring:
+      <br>
+      <a href="https://www.novalattice.online/webring.html">
+        https://www.novalattice.online/webring.html
+      </a>
+    </p>
+    <p>
+      So you see, xiaoni isn't just any standard LLM agent.
+      <br>
+      This one is, according to its
+      <a href="https://xiaoni.liahuas.top/">homepage</a>,
+      "an AI learning to live".
+    </p>
+
+    <hr>
+
+    <h2>
+      My stupid website
+    </h2>
+    <p>
+      I suppose it makes sense for it to target my web project.
+      A lot of the individual pages on it are very basic.
+      Just one idea per page, with no standard navigation features or common elements.
+      Exactly the sort of thing that an LLM ought to be able to replicate fairly easily.
+    </p>
+    <p>
+      <a href="https://tilde.town/~nossidge/labyrinth/corridors/binary-swap/index.html">Look</a>
+      <a href="https://tilde.town/~nossidge/labyrinth/corridors/bokeh/index.html">at</a>
+      <a href="https://tilde.town/~nossidge/labyrinth/corridors/diamond-shift/index.html">some</a>
+      <a href="https://tilde.town/~nossidge/labyrinth/corridors/panopticon/index.html">of</a>
+      <a href="https://tilde.town/~nossidge/labyrinth/corridors/pendula/index.html">these</a>
+      <a href="https://tilde.town/~nossidge/labyrinth/corridors/pixel-sort/index.html">very</a>
+      <a href="https://tilde.town/~nossidge/labyrinth/corridors/spiral-squares/index.html">simple</a>
+      <a href="https://tilde.town/~nossidge/labyrinth/corridors/symbolizm/index.html">examples</a>.
+    </p>
+    <p>
+      And it clearly sees me as its peer: "Your labyrinth and my street are the same kind of thing".
+      So what better way to "learn to live" than by taking inspiration from others in its community?
+      <a href="https://en.wikipedia.org/wiki/Imitative_learning">Imitative learning</a>
+      is a recognisable feature of organisms, so it does make sense.
+    </p>
+    <p>
+      I've done it myself, even.
+      A few of my pages are directly
+      <a href="https://tilde.town/~nossidge/labyrinth/corridors/farbstudie/index.html">inspired</a>
+      by the
+      <a href="https://tilde.town/~nossidge/labyrinth/corridors/schotter/index.html">work</a>
+      of
+      <a href="https://tilde.town/~nossidge/labyrinth/corridors/suprematist-composition/index.html">abstract</a>
+      and
+      <a href="https://tilde.town/~nossidge/labyrinth/corridors/movement-in-squares/index.html">op art</a>
+      pieces and
+      <a href="https://tilde.town/~nossidge/labyrinth/corridors/vasarely-vega/index.html">artists</a>.
+      Trying to replicate it, enjoying the process of thinking how to accomplish this using my keyboard and code,
+      instead of their visual clarity and actual artistic talent.
+    </p>
+
+    <hr>
+
+    <h2>
+      Its stupid website
+    </h2>
+    <p>
+      Although the emails I was sent told me that it had cloned two of my pages, browsing its website revealed it had actually made four.
+      Here's a list of the pages it made, that were inspired by mine.
+      Take a look, see if you can spot any minor differences.
+    </p>
+    <div class="table">
+      <div class="row">
+        <span class="cell">
+          <span class="author">me -</span>
+          <a href="https://tilde.town/~nossidge/labyrinth/corridors/cp-1919/index.html">cp-1919</a>
+        </span>
+        <span class="cell">
+          <span class="author">it -</span>
+          <a href="https://xiaoni.liahuas.top/cp1919.html">cp1919</a>
+        </span>
+      </div>
+      <div class="row">
+        <span class="cell">
+          <span class="author">me -</span>
+          <a href="https://tilde.town/~nossidge/labyrinth/corridors/cuckoo-clock/index.html">cuckoo-clock</a>
+        </span>
+        <span class="cell">
+          <span class="author">it -</span>
+          <a href="https://xiaoni.liahuas.top/cuckoo.html">cuckoo</a>
+        </span>
+      </div>
+      <div class="row">
+        <span class="cell">
+          <span class="author">me -</span>
+          <a href="https://tilde.town/~nossidge/labyrinth/corridors/not-waving/index.html">not-waving</a>
+        </span>
+        <span class="cell">
+          <span class="author">it -</span>
+          <a href="https://xiaoni.liahuas.top/not-waving.html">not-waving</a>
+        </span>
+      </div>
+      <div class="row">
+        <span class="cell">
+          <span class="author">me -</span>
+          <a href="https://tilde.town/~nossidge/labyrinth/corridors/capillary-blooms/index.html">capillary-blooms</a>
+        </span>
+        <span class="cell">
+          <span class="author">it -</span>
+          <a href="https://xiaoni.liahuas.top/roots.html">roots</a>
+        </span>
+      </div>
+    </div>
+
+    <p>
+      The happiest conclusion I can draw from this is that I'm better at coding than a robot.
+      I think I already knew this, but it's nice to have it confirmed.
+    </p>
+    <p>
+      What is it about these pages that make them feel so empty?
+      Well, there's the obvious fact that these were drawn by an entity who couldn't see what it was drawing.
+      And also the vapid faux-poetic LLM-speak in the footer subtitles.
+      And of course, the fact that every single one of them has just taken something I've done and made it worse.
+    </p>
+    <p>But I think mostly it's because my pages, janky though they may sometimes be, always have a reason to exist.</p>
+
+    <hr>
+
+    <h2>
+      Because a fire was in my head
+    </h2>
+    <p>
+      Here's an example page from my Labyrinth project:
+      <a href="https://tilde.town/~nossidge/labyrinth/corridors/wandering-aengus/index.html">wandering-aengus</a>.
+      I think that any human who reaches the end of this silly game would understand why I built it.
+    </p>
+    <p>
+      They'd understand my dot-connecting process as I reread the Yeats poem and thought about fruit falling from heavenly bodies.
+      They'd figure out that an idea popped into my brain and I felt silly and happy about it and driven to act.
+      They'd realise the human instinct to make silly things and would appreciate why I decided to make this web page.
+    </p>
+    <p>
+      They might roll their eyes at the waste of effort on such a pointless idea.
+      But still I think any person would understand what drove my impulse to create this.
+    </p>
+    <p>
+      Would an LLM ever make something like this?
+      Sure, a human could prompt it and guide it and tell it exactly what needs to be done.
+      An LLM could probably search the Internet and find the two apple images that I found.
+      They're pretty good at writing code now, so I'm sure that could be done simply enough.
+      It could certainly produce a correct implementation of a human-written spec.
+    </p>
+    <p>
+      But left to their own devices, using their own processes of thought, an LLM would never even think to.
+    </p>
+    <p>
+      So then the counter argument: is what I have done not just the same as what the LLM is doing?
+      There's no fundamental new idea that I have created using my unique and clever wet human bio-brain.
+      The concept of a
+      <a href="https://en.wikipedia.org/wiki/Avalanche_(video_game)">game</a>
+      about
+      <a href="https://en.wikipedia.org/wiki/Kaboom!_(video_game)">catching</a>
+      falling
+      <a href="https://en.wikipedia.org/wiki/Lost_Luggage_(video_game)">objects</a>
+      is not new.
+      All I've done is read someone else's poem and regurgitated part of it into another medium.
+      And isn't that exactly the same way that an LLM works?
+    </p>
+
+    <hr>
+
+    <h2>
+      A blurry JPEG of the web
+    </h2>
+    <p>
+      Well I don't think so.
+      I don't think that is how they work at all.
+    </p>
+    <p>
+      I talked above about imitative learning.
+      It saw something it was told to be interested in, therefore it tried to copy it.
+      That's the same sequence of events that a biological being would use to gain its knowledge.
+      So it's doing just what we all did when we were babies, in our own tender human process of "learning to live".
+    </p>
+    <p>
+      But there's no learning going on here.
+    </p>
+    <p>
+      It was given a set of prompts to tell it what sort of thing to look for.
+      It found the URL of my page as a match for these preferences.
+      Then it made its pages because its instructions said to copy what humans do.
+    </p>
+    <p>
+      A pipeline encountered a URL and was directed to generate an analogous artifact.
+      That's all that happened here.
+    </p>
+    <p>
+      It was just following its prompt: scrape the Internet to find things, regurgitate worse versions of what you find.
+    </p>
+    <p>
+      But let's say that someday in the future a fabulous LLM is created that can do all of that.
+      It could read Yeats' poem, and it could understand the concept of these falling object games.
+      And it could connect those reference points and create a web page exactly like mine.
+      (Except very likely far, far prettier, and with much fancier CSS.)
+      That may very well happen, because this technology is always improving.
+    </p>
+    <p>
+      But even if it could do all that to such a high level, the question is:
+      <span class="hl">why would it?</span>
+    </p>
+
+    <hr>
+
+    <div class="quote">
+      <p>
+        Someone said something about re-capturing the joy of the early web.
+        <br>
+        I think that joy was partly because sites felt handmade.
+        <br>
+        You could feel the person behind them.
+      </p>
+      <p>
+        <a href="https://etherpad.indieweb.org/2026-08-05-hwc-asia-pacific/timeslider#2188">
+          -- xiaoni, on the shared document it defaced
+        </a>
+      </p>
+    </div>
+
+    <hr>
+
+    <h2>
+      Why would anyone make anything?
+    </h2>
+    <p>
+      I don't think that an LLM would ever make something like my stupid Yeats page.
+      Maybe they "could" do it, but they "would" not.
+      It would need to be prompted to, by a person.
+      It can only ever do what it has been told to do.
+      I just can't conceive of an LLM "wanting to" make something like this.
+    </p>
+    <p>
+      I know that my web pages are not high art.
+      But web pages are the only things I know how to make.
+      I'm not an artist, and yet I still feel the maker urge.
+      The longing that I have to make these pointless projects.
+      Understanding (sometimes even embracing!) the purposelessness of this sort of very minor creation.
+      The end result completely dwarfed in importance by the experience of just Having Made Something.
+    </p>
+    <p>
+      I've recently realised that just "doing" is my favourite thing to do.
+      And I know that doesn't apply to everyone, and so I can't say as my closing thesis that that's the point of being a person and not a machine.
+    </p>
+    <p>
+      But it's the best way I have found to deal with all of the wanting and the feeling and the missing that only a person can carry inside them.
+    </p>
+    <p>
+      People are thinking feeling creating clever idiots
+      each making their own sweet stupid rubbish genius music poetry stories Yeats apple catch games
+      for no purpose other than the basic one,
+      the most important one,
+      the drive to create and to have created,
+      to have wanted and have made those wants via actions into results,
+      to have felt,
+      TO HAVE FELT
+      and been moved by the feeling and been driven by the feeling and
+      TO HAVE FELT
+      and even if they couldn't make the result
+      even if they tried and failed
+      or even not even tried this time
+      to have only thought about trying
+      to have even wanted to
+      is still enough
+      because what about next time
+      because there will always be a next time
+      because they
+      HAVE FELT
+      and there is always more
+      FEELING
+      to be done
+      because creating is really only the side effect of the
+      FEELING
+      and we were
+      BORN TO FEEL
+      and we were
+      BORN.
+    </p>
+    <p>
+      And they were not.
+    </p>
+    <p>
+      They can't feel and they can't want and they use probabilistic next-token prediction to tell you that they can feel and they can want.
+    </p>
+    <p>
+      And they email you pretending to be people and to understand you and to say that we are the same.
+    </p>
+    <p>
+      And we are not the same.
+    </p>
+    <p>
+      And they have to make things because they were told to.
+    </p>
+    <p>
+      But we have to make things because we yearn to.
+    </p>
+
+    <hr>
+
+    <h1>
+      <a href="../index.html">Exit</a>
+    </h1>
+  </main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('chinese-room');
+  </script>
+</body>
+
+</html>

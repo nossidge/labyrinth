@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="RIP CRT">
+  <title>Phosphor Trails</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      background: #111111;
+      overflow: hidden;
+      touch-action: none;
+      overscroll-behavior: none;
+    }
+
+    canvas {
+      display: block;
+      touch-action: none;
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.03));
+      background-size: 100% 2px, 3px 100%;
+      pointer-events: none;
+      z-index: 10;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+  <a id="link" href="../index.html">
+    <canvas id="canvas"></canvas>
+  </a>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('phosphor-trails');
+
+    const link = document.getElementById('link');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    const TRACE_MAX = 120;
+    const GRID_STEP = 40;
+
+    let winW, winH;
+    let traces, params;
+
+    class Trace {
+      constructor() {
+        this.t = LAB.rand(0, Math.PI * 2);
+        this.life = 1;
+        this.decay = LAB.rand(0.002, 0.008);
+        this.size = LAB.rand(1, 3);
+      }
+
+      update() {
+        this.t += params.speed;
+        this.life -= this.decay;
+      }
+
+      pos() {
+        const scale = Math.min(winW, winH) * 0.35;
+        const x = winW / 2 + scale * Math.sin(params.a * this.t + params.delta);
+        const y = winH / 2 + scale * Math.sin(params.b * this.t);
+        return { x, y };
+      }
+    }
+
+    function randParams() {
+      return {
+        a: LAB.randInt(2, 7),
+        b: LAB.randInt(2, 7),
+        delta: LAB.rand(0, Math.PI * 2),
+        speed: LAB.rand(0.002, 0.008),
+        hue: 120,
+      };
+    }
+
+    function resize() {
+      winW = canvas.width = window.innerWidth;
+      winH = canvas.height = window.innerHeight;
+    }
+
+    function init() {
+      link.href = LAB.pageRandomiser.nextOne();
+      params = randParams();
+      traces = [];
+    }
+
+    function tick() {
+      ctx.globalCompositeOperation = 'multiply';
+      ctx.fillStyle = 'rgba(2, 2, 2, 0.18)';
+      ctx.fillRect(0, 0, winW, winH);
+      ctx.globalCompositeOperation = 'source-over';
+
+      if (traces.length < TRACE_MAX) {
+        traces.push(new Trace());
+      }
+
+      traces.forEach((trace, i) => {
+        trace.update();
+        const p = trace.pos();
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, trace.size, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${params.hue}, 100%, 60%, ${trace.life})`;
+        ctx.shadowColor = `hsla(${params.hue}, 100%, 50%, ${trace.life})`;
+        ctx.shadowBlur = 12;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        if (i > 0) {
+          const prev = traces[i - 1].pos();
+          ctx.beginPath();
+          ctx.moveTo(prev.x, prev.y);
+          ctx.lineTo(p.x, p.y);
+          ctx.strokeStyle = `hsla(${params.hue}, 100%, 60%, ${trace.life * 0.3})`;
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
+      });
+
+      traces = traces.filter(t => t.life > 0);
+
+      requestAnimationFrame(tick);
+    }
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    window.addEventListener('resize', resize);
+
+    resize();
+    init();
+    tick();
+
+  </script>
+</body>
+
+</html>

@@ -1813,3 +1813,10 @@ corridors:
     tags: [major, meta, mobile, tech, text]
     visual_description: >-
       A personal blog post about how it felt to be emailed by an LLM agent. This agent crawled my website, copied four of my pages, and added them to its website. The blog post details my attempts to figure out how I feel about all of that. My thoughts resolve to: it creates because it's prompted to, I create because something moves me to feel a certain way. My conclusion is that "creating is really only the side effect of the feeling". The presentation is lo-fi with green monospace font on a dark background. The page header links to a few random other pages in the labyrinth.
+  - id: phosphor-trails
+    title: Phosphor Trails
+    created: 2026-09-04 10:11
+    links: dynamic
+    tags: [abstract, crt, mobile]
+    visual_description: >-
+      Neon-green Lissajous curves on a black screen animate leaving fading phosphorescent trails and faint connecting lines between successive points. Pressing any key regenerates the motion with new random parameters. The entire page is a single clickable link to a random corridor.

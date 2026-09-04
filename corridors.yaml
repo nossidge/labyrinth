@@ -1820,3 +1820,10 @@ corridors:
     tags: [abstract, crt, mobile]
     visual_description: >-
       Neon-green Lissajous curves on a black screen animate leaving fading phosphorescent trails and faint connecting lines between successive points. Pressing any key regenerates the motion with new random parameters. The entire page is a single clickable link to a random corridor.
+  - id: phosphor-snakes
+    title: Phosphor Snakes
+    created: 2026-09-05 00:01
+    links: dynamic
+    tags: [abstract, crt, mobile]
+    visual_description: >-
+      Neon snakes crawl across a shared grid, moving like the snake in the Nokia game from my youth. They move randomly, and die when trapped with nowhere to move, and a new snake is generated in a random open cell. Hovering over a snake highlights it, and each snake links to a random corridor. When the grid is nearly exhausted the field fades out, all links are cleared, and a fresh crawl begins.

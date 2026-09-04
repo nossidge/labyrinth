@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="So Solid Crew">
+  <title>Crawling in my screen</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      background: #000000;
+      overflow: hidden;
+    }
+
+    canvas {
+      display: block;
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      background: #000000;
+      transition: opacity 1.2s;
+    }
+
+    #links {
+      --cell: 22px;
+      position: fixed;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .link {
+      position: absolute;
+      width: var(--cell);
+      height: var(--cell);
+      border: 1px solid transparent;
+      border-radius: 4px;
+      background: transparent;
+      pointer-events: auto;
+      transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .link.lit {
+      background: hsla(var(--hue), 100%, 58%, 0.22);
+      box-shadow: 0 0 7px hsla(var(--hue), 100%, 65%, 0.45), inset 0 0 6px hsla(var(--hue), 100%, 65%, 0.3);
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      inset: 0;
+      background:
+        linear-gradient(rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0.3) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.035), rgba(0, 255, 0, 0.015), rgba(0, 0, 255, 0.035));
+      background-size: 100% 3px, 4px 100%;
+      pointer-events: none;
+      z-index: 3;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+  <canvas id="canvas"></canvas>
+  <div id="links"></div>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('phosphor-snakes');
+
+    const linksContainer = document.getElementById('links');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    const cellSize = 22;
+    const directions = [[0, -1], [1, 0], [0, 1], [-1, 0]];
+
+    let columns = 0;
+    let rows = 0;
+    let visited = new Set();
+    let snakes = [];
+    let links = [];
+    let generation = 0;
+    let hueCount = LAB.rand(0, 360);
+    let resetting = false;
+    let litSnake = null;
+    let winW, winH;
+
+    function keyFor(x, y) {
+      return y * columns + x;
+    }
+
+    function centerOf(cell) {
+      return {
+        x: (cell.x + 0.5) * cellSize,
+        y: (cell.y + 0.5) * cellSize
+      };
+    }
+
+    function nextHue() {
+      hueCount = (hueCount + 137.5 + LAB.rand(-12, 12)) % 360;
+      return hueCount;
+    }
+
+    function findOpenCell() {
+      const total = columns * rows;
+      if (visited.size >= total) {
+        return null;
+      }
+
+      for (let tries = 0; tries < 80; tries++) {
+        const cell = {
+          x: LAB.randInt(0, columns - 1),
+          y: LAB.randInt(0, rows - 1)
+        };
+        if (!visited.has(keyFor(cell.x, cell.y))) {
+          return cell;
+        }
+      }
+
+      const start = LAB.randInt(0, total - 1);
+      for (let offset = 0; offset < total; offset++) {
+        const index = (start + offset) % total;
+        const cell = { x: index % columns, y: Math.floor(index / columns) };
+        if (!visited.has(keyFor(cell.x, cell.y))) {
+          return cell;
+        }
+      }
+      return null;
+    }
+
+    function drawHead(cell, hue, final = false) {
+      const point = centerOf(cell);
+      ctx.save();
+      ctx.fillStyle = `hsl(${hue}, 100%, ${final ? 88 : 74}%)`;
+      ctx.shadowColor = `hsl(${hue}, 100%, 60%)`;
+      ctx.shadowBlur = final ? 22 : 12;
+      ctx.beginPath();
+      ctx.arc(point.x, point.y, final ? 6 : 4.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function drawStep(from, to, hue) {
+      const start = centerOf(from);
+      const end = centerOf(to);
+      ctx.save();
+      ctx.strokeStyle = `hsl(${hue}, 100%, 60%)`;
+      ctx.lineWidth = 8;
+      ctx.lineCap = 'round';
+      ctx.shadowColor = `hsl(${hue}, 100%, 55%)`;
+      ctx.shadowBlur = 13;
+      ctx.beginPath();
+      ctx.moveTo(start.x, start.y);
+      ctx.lineTo(end.x, end.y);
+      ctx.stroke();
+      ctx.restore();
+      drawHead(to, hue);
+    }
+
+    function addLinkCell(snake, cell) {
+      const link = document.createElement('a');
+      link.className = 'link';
+      link.href = snake.href;
+      link.setAttribute('aria-label', 'A way out');
+      link.style.left = `${cell.x * cellSize}px`;
+      link.style.top = `${cell.y * cellSize}px`;
+      link.style.setProperty('--hue', snake.hue);
+      link._snake = snake;
+      if (snake === litSnake) {
+        link.classList.add('lit');
+      }
+      linksContainer.appendChild(link);
+      links.push(link);
+      snake.links.push(link);
+    }
+
+    function setLitSnake(snake) {
+      if (litSnake === snake) return;
+      if (litSnake) {
+        litSnake.links.forEach(link => link.classList.remove('lit'));
+      }
+      litSnake = snake;
+      if (snake) {
+        snake.links.forEach(link => link.classList.add('lit'));
+      }
+    }
+
+    function spawnSnakeAtCell(cell) {
+      const snake = {
+        cell,
+        links: [],
+        hue: nextHue(),
+        href: LAB.pageRandomiser.nextOne(),
+        rate: LAB.randInt(80, 140),
+        token: generation
+      };
+      visited.add(keyFor(cell.x, cell.y));
+      snakes.push(snake);
+      drawHead(cell, snake.hue);
+      addLinkCell(snake, cell);
+      setTimeout(() => moveSnake(snake), snake.rate);
+      return snake;
+    }
+
+    function spawnSnake(token) {
+      const cell = findOpenCell();
+      if (!cell || token !== generation) return;
+      spawnSnakeAtCell(cell);
+    }
+
+    function moveSnake(snake) {
+      if (snake.token !== generation || resetting) return;
+
+      const choices = directions.map(direction => ({
+        x: snake.cell.x + direction[0],
+        y: snake.cell.y + direction[1]
+      })).filter(cell => cell.x >= 0 && cell.x < columns && cell.y >= 0 && cell.y < rows &&
+        !visited.has(keyFor(cell.x, cell.y)));
+
+      if (!choices.length) {
+        drawHead(snake.cell, snake.hue, true);
+        snakes = snakes.filter(item => item !== snake);
+        spawnSnake(generation);
+        return;
+      }
+
+      const next = LAB.sample(choices);
+      visited.add(keyFor(next.x, next.y));
+      drawStep(snake.cell, next, snake.hue);
+      snake.cell = next;
+      addLinkCell(snake, next);
+
+      if (visited.size / (columns * rows) > 0.85) {
+        exhaustedReset();
+        return;
+      }
+      setTimeout(() => moveSnake(snake), snake.rate);
+    }
+
+    function clearLinks() {
+      links.forEach(link => link.remove());
+      links = [];
+      litSnake = null;
+    }
+
+    function init() {
+      generation++;
+      resetting = false;
+      snakes = [];
+      visited.clear();
+      canvas.style.opacity = '1';
+      ctx.clearRect(0, 0, winW, winH);
+      clearLinks();
+      spawnSnake(generation);
+    }
+
+    function exhaustedReset() {
+      if (resetting) return;
+      resetting = true;
+      generation++;
+      canvas.style.opacity = '0';
+      setTimeout(() => init(), 1000);
+    }
+
+    function resize() {
+      winW = window.innerWidth;
+      winH = window.innerHeight;
+      const ratio = window.devicePixelRatio || 1;
+      canvas.width = Math.floor(winW * ratio);
+      canvas.height = Math.floor(winH * ratio);
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+      columns = Math.max(1, Math.ceil(winW / cellSize));
+      rows = Math.max(1, Math.ceil(winH / cellSize));
+      init();
+    }
+
+    function spawnSnakeAt(clientX, clientY) {
+      if (resetting) return;
+      const cell = {
+        x: Math.min(columns - 1, Math.max(0, Math.floor(clientX / cellSize))),
+        y: Math.min(rows - 1, Math.max(0, Math.floor(clientY / cellSize)))
+      };
+      if (visited.has(keyFor(cell.x, cell.y))) return;
+      spawnSnakeAtCell(cell);
+    }
+
+    // Highlight the full snake when hovering over one of its links
+    linksContainer.addEventListener('mouseover', event => {
+      const link = event.target.closest('.link');
+      if (link) setLitSnake(link._snake);
+    });
+
+    // Stop the highlight
+    linksContainer.addEventListener('mouseout', event => {
+      const link = event.target.closest('.link');
+      if (!link) return;
+      const next = event.relatedTarget && event.relatedTarget.closest
+        ? event.relatedTarget.closest('.link')
+        : null;
+      if (!next || next._snake !== link._snake) {
+        setLitSnake(null);
+      }
+    });
+
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(resize, 100);
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) {
+        spawnSnakeAt(e.clientX, e.clientY);
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, () => {
+        spawnSnake(generation);
+      });
+    });
+
+    // Gradually fade out the snakes
+    setInterval(() => {
+      if (resetting || document.hidden) return;
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.01)';
+      ctx.fillRect(0, 0, winW, winH);
+    }, 1000);
+
+    resize();
+
+  </script>
+</body>
+
+</html>

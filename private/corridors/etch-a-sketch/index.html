@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+Originally, this was going to simulate a pen moving and running out of ink.
+But with the 90° angle turns, it looked more like a coloured Etch A Sketch.
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="shake it off">
+  <title>making etch happen</title>
+  <style>
+    :root {
+      --paper: 248, 243, 231;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body,
+    html {
+      width: 100%;
+      height: 100%;
+      background-color: rgb(var(--paper));
+      overflow: hidden;
+    }
+
+    canvas {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    #main {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <a id="main" href="../index.html">
+    <canvas id="canvas"></canvas>
+  </a>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('etch-a-sketch');
+
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    const CSS_STYLE = getComputedStyle(document.documentElement);
+    const PAPER = CSS_STYLE.getPropertyValue('--paper').trim();
+    const FADE = `rgba(${PAPER}, 0.06)`;
+
+    const DIRS = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+    const TURNS = DIRS.map((_, i) => [0, 1, 2, 3].filter(j => j !== (i ^ 1)));
+    const COLOURS = ['#1b3a8f', '#a3262b', '#1f6b3a', '#6b2f8f', '#b25a1b', '#12666b'];
+    const MAX_WALKERS = Infinity;
+    const STARTING_WALKERS = 50;
+    const STEP = 7;
+
+    // I'd experimented with making them die after a minute or so, using a random range.
+    // Playing around, I realised it's best if they're all eternal.
+    // But! 1% of the time, let's make them all really short lived.
+    const STARTING_LIFE = LAB.chance(0.99) ? Infinity : 1;
+
+    let winH, winW;
+    let tickCount = 0;
+    let walkers = [];
+
+    function addWalker(x, y) {
+      if (walkers.length >= MAX_WALKERS) return;
+      walkers.push({
+        x: x !== undefined ? x : LAB.rand(winW * 0.1, winW * 0.9),
+        y: y !== undefined ? y : LAB.rand(winH * 0.1, winH * 0.9),
+        dir: LAB.randIndex(DIRS),
+        ink: LAB.sample(COLOURS),
+        life: STARTING_LIFE,
+      });
+    }
+
+    function init() {
+      winW = canvas.width = window.innerWidth;
+      winH = canvas.height = window.innerHeight;
+
+      ctx.lineWidth = 1.4;
+      ctx.lineCap = 'round';
+
+      walkers.length = 0;
+      ctx.clearRect(0, 0, winW, winH);
+      for (let i = 0; i < STARTING_WALKERS; i++) addWalker();
+    }
+
+    // Animation wrapper to allow for FPS throttling
+    function handleTickWithFPS(tickFunction, fps = 60) {
+      const targetFrameMs = 1000 / fps;
+      let previousTime = 0;
+      function tick(now) {
+        const dt = now - previousTime;
+        if (previousTime !== 0 && dt < targetFrameMs) {
+          requestAnimationFrame(tick);
+          return;
+        }
+        previousTime = now;
+        tickFunction(now);
+        requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    }
+
+    function tick() {
+      if (document.hidden) return;
+
+      const segments = {};
+
+      for (let i = walkers.length - 1; i >= 0; i--) {
+        const walker = walkers[i];
+
+        // Mostly keep going but sometimes turn left or right
+        if (LAB.chance(0.35)) {
+          walker.dir = LAB.sample(TURNS[walker.dir]);
+        }
+
+        const origX = walker.x;
+        const origY = walker.y;
+        walker.x += DIRS[walker.dir][0] * STEP;
+        walker.y += DIRS[walker.dir][1] * STEP;
+
+        // If it's going to hit the edge of the canvas, force a turn
+        if ((walker.dir === 0 && walker.x > winW - 10) || (walker.dir === 1 && walker.x < 10)) {
+          walker.dir = LAB.sample(TURNS[walker.dir]);
+          walker.x = origX;
+        }
+        if ((walker.dir === 2 && walker.y > winH - 10) || (walker.dir === 3 && walker.y < 10)) {
+          walker.dir = LAB.sample(TURNS[walker.dir]);
+          walker.y = origY;
+        }
+
+        (segments[walker.ink] = segments[walker.ink] || []).push(origX, origY, walker.x, walker.y);
+
+        // Kill this one and spawn another
+        walker.life--;
+        if (walker.life <= 0) {
+          walkers.splice(i, 1);
+          addWalker();
+        }
+      }
+
+      for (const ink of Object.keys(segments)) {
+        const pts = segments[ink];
+        ctx.strokeStyle = ink;
+        ctx.globalAlpha = 0.8;
+        ctx.beginPath();
+        for (let p = 0; p < pts.length; p += 4) {
+          ctx.moveTo(pts[p], pts[p + 1]);
+          ctx.lineTo(pts[p + 2], pts[p + 3]);
+        }
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+
+      // Over time, fade the walker paths
+      if (tickCount++ % 30 === 0) {
+        ctx.fillStyle = FADE;
+        ctx.fillRect(0, 0, winW, winH);
+      }
+    }
+
+    // Hold a modifier key and click the canvas to create a new walker
+    canvas.addEventListener('click', (e) => {
+      if (e.ctrlKey || e.altKey || e.shiftKey || e.metaKey) {
+        e.preventDefault();
+        addWalker(e.clientX, e.clientY);
+      }
+    });
+
+    // Pressing a key draws a walker at a random point
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, () => {
+        addWalker(LAB.rand(0, winW), LAB.rand(0, winH));
+      });
+    });
+
+    window.addEventListener('resize', init);
+
+    init();
+    handleTickWithFPS(tick, 30);
+
+  </script>
+</body>
+
+</html>

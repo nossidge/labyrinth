@@ -1827,3 +1827,10 @@ corridors:
     tags: [abstract, crt, mobile]
     visual_description: >-
       Neon snakes crawl across a shared grid, moving like the snake in the Nokia game from my youth. They move randomly, and die when trapped with nowhere to move, and a new snake is generated in a random open cell. Hovering over a snake highlights it, and each snake links to a random corridor. When the grid is nearly exhausted the field fades out, all links are cleared, and a fresh crawl begins.
+  - id: etch-a-sketch
+    title: Etch A Sketch
+    created: 2026-09-06 14:53
+    links: dynamic
+    tags: [abstract, mobile]
+    visual_description: >-
+      A canvas simulation of an Etch A Sketch. Dozens of pastel coloured walkers move in straight lines at 90-degree angles, leaving trails of ink in six distinct hues (navy, crimson, forest green, purple, amber, and teal). The walkers mostly continue in their current direction but occasionally turn left or right, at 90° angles. The canvas gently fades over time. The entire canvas is a link to a random corridor.

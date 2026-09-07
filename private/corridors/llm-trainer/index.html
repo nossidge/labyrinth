@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+Written out of spite after the events of `chinese-room`.
+This reuses part of the CSS layout of `handshake-simulator`.
+
+Source for the LLM company icons:
+https://lobehub.com/icons
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="All Watched Over by Machines of Hugging Face">
+  <title>Attention Is All You Eat</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      background: #0a0a12;
+      font-family: "Comic Sans MS", "Chalkboard SE", cursive;
+      overflow: hidden;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    a:hover {
+      transform: scale(2);
+    }
+
+    #game-area {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(ellipse at center, #14142a 0%, #0a0a12 100%);
+    }
+
+    #score-bar {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 38px;
+      gap: 24px;
+      background: rgba(0, 0, 0, 0.7);
+      border-bottom: 2px solid #222222;
+      font-size: 18px;
+      letter-spacing: 1px;
+    }
+
+    .score-good {
+      color: #44ff44;
+      text-shadow: 0 0 6px #22aa22;
+    }
+
+    .score-bad {
+      color: #ff4444;
+      text-shadow: 0 0 6px #aa2222;
+    }
+
+    .score-total {
+      color: #ffffff;
+      text-shadow: 0 0 6px #888888;
+    }
+
+    #board-wrap {
+      display: flex;
+      flex: 1 1 auto;
+      align-items: center;
+      justify-content: center;
+      min-height: 0;
+      min-width: 0;
+      width: 100%;
+      padding: 8px;
+    }
+
+    #board {
+      position: relative;
+      display: none;
+      border: 3px solid #333333;
+      background: #111118;
+      box-shadow: 0 0 30px rgba(0, 200, 100, 0.08), inset 0 0 20px rgba(0, 0, 0, 0.5);
+    }
+
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: safe center;
+      width: 100%;
+      height: 100%;
+      padding: 20px;
+      background: rgba(0, 0, 0, 0.88);
+      overflow-y: auto;
+      z-index: 100;
+    }
+
+    .overlay.hidden {
+      display: none;
+    }
+
+    .overlay h1 {
+      margin-bottom: 16px;
+      color: #44ff44;
+      text-shadow: 3px 3px 0 #000000, 0 0 20px #22aa22;
+      font-size: 36px;
+      text-align: center;
+    }
+
+    .overlay h1.red {
+      color: #ff4444;
+      text-shadow: 3px 3px 0 #000000, 0 0 20px #aa2222;
+    }
+
+    .overlay .subtitle {
+      margin-bottom: 18px;
+      max-width: 760px;
+      color: #aaaaaa;
+      font-size: 18px;
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    #pollution-message {
+      font-size: 16px;
+    }
+
+    .overlay .emoji-icon {
+      margin-bottom: 16px;
+      font-size: 42px;
+      letter-spacing: 10px;
+    }
+
+    .overlay .final-scores {
+      margin-bottom: 16px;
+      font-size: 18px;
+      text-align: center;
+      line-height: 1.8;
+    }
+
+    button.char-option {
+      display: inline-flex;
+      padding: 12px 18px;
+      font-family: inherit;
+      font-size: 16px;
+    }
+
+    .game-actions {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 10px;
+      gap: 20px;
+    }
+
+    button.char-option:focus {
+      border-color: #ffd700;
+      background: rgba(255, 215, 0, 0.08);
+      outline: none;
+      transform: scale(1.08);
+    }
+
+    button.char-option:active {
+      border-style: inset;
+    }
+
+    .good {
+      color: #44ff44;
+    }
+
+    .bad {
+      color: #ff4444;
+    }
+
+    #data-change {
+      cursor: pointer;
+    }
+
+    #char-select {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+    }
+
+    .char-option {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 10px;
+      border: 3px solid #333333;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.04);
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s, transform 0.15s;
+    }
+
+    .char-option.selected {
+      border-color: #ffd700;
+      background: rgba(255, 215, 0, 0.08);
+      transform: scale(1.08);
+    }
+
+    .char-option img {
+      width: 64px;
+      height: 64px;
+      margin-bottom: 6px;
+      image-rendering: auto;
+    }
+
+    .char-option .char-label {
+      color: #999999;
+      font-size: 16px;
+    }
+
+    .how-to-play {
+      max-width: 740px;
+      padding: 14px 18px;
+      margin-bottom: 14px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 2px solid #333333;
+      color: #888888;
+      font-size: 16px;
+      text-align: left;
+      line-height: 1.6;
+    }
+
+    .how-to-play h2 {
+      margin-bottom: 8px;
+      color: #cccccc;
+      font-size: 16px;
+      text-align: center;
+    }
+
+    #mobile-controls {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      margin: 0 0 10px 0;
+      gap: 4px;
+    }
+
+    #mobile-controls button {
+      width: 52px;
+      height: 52px;
+      border: 2px outset #555555;
+      background: rgba(40, 40, 60, 0.8);
+      color: #cccccc;
+      font-family: monospace;
+      font-size: 22px;
+      cursor: pointer;
+    }
+
+    #mobile-controls button:active {
+      border-style: inset;
+      background: rgba(80, 80, 120, 0.8);
+    }
+
+    .dpad-row {
+      display: flex;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    .dpad-spacer {
+      width: 52px;
+      height: 52px;
+    }
+
+    @media (pointer: coarse) {
+      #mobile-controls {
+        display: flex;
+      }
+    }
+
+    @media (orientation: portrait) {
+      #score-bar {
+        flex-direction: column;
+        height: auto;
+        padding: 8px 0;
+        gap: 4px;
+      }
+    }
+
+    main::after {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: repeating-linear-gradient(0deg,
+          transparent,
+          transparent 2px,
+          rgba(0, 0, 0, 0.08) 2px,
+          rgba(0, 0, 0, 0.08) 4px);
+      content: '';
+      pointer-events: none;
+      z-index: 200;
+    }
+  </style>
+</head>
+
+<body>
+  <main id="game-area">
+    <div id="score-bar" role="status">
+      <span class="score-good">GOOD DATA: <span id="score-good-val">0</span></span>
+      <span class="score-bad">BAD DATA: <span id="score-bad-val">0</span></span>
+      <span class="score-total">TOTAL: <span id="score-total-val">0</span></span>
+    </div>
+
+    <div id="board-wrap">
+      <canvas id="board" aria-label="Snake game grid"></canvas>
+    </div>
+
+    <div id="mobile-controls">
+      <div class="dpad-row">
+        <div class="dpad-spacer"></div>
+        <button id="btn-up">▲</button>
+        <div class="dpad-spacer"></div>
+      </div>
+      <div class="dpad-row">
+        <button id="btn-left">◄</button>
+        <button id="btn-down">▼</button>
+        <button id="btn-right">►</button>
+      </div>
+    </div>
+
+    <div id="title-screen" class="overlay">
+      <div class="emoji-icon">
+        <a href="../index.html">🐍</a>
+      </div>
+      <h1>
+        <a href="../index.html">LLM Trainer</a>
+      </h1>
+      <div class="subtitle">
+        Train your LLM to slurp up as much
+        <span class="good">good data</span>
+        from the Internet as possible.
+        <br>
+        Delicious <span class="good">blogs</span>!
+        Juicy <span class="good">fan sites</span>!
+        Toothsome <span class="good">forum posts</span>!
+        <span id="data-change">
+          <span id="data-adjective">Tasteful</span>
+          <span id="data-object" class="good">forum posts</span>!
+        </span>
+        <br>
+        But beware. Your model already has end users.
+        <br>
+        And these idiots are farting your shitty
+        <span class="bad">synthetic output</span>
+        back into the web.
+        <br>
+        This
+        <span class="bad">bot-generated slop</span>
+        is incorrect, or misleading, or just plain boring to read.
+        <br>
+        It makes everything worse just by existing. Yuck.
+        <br>
+        If your model re-ingests its own
+        <span class="bad">regurgitated output</span>,
+        things will get ugly.
+      </div>
+
+      <div class="how-to-play">
+        <h2>How to play</h2>
+        <p>
+          Choose your Large Language Model below to begin training.
+        </p>
+        <p>
+          Use <strong>arrow keys</strong>
+          (or <strong>WASD</strong>, or <strong>HJKL</strong>)
+          to steer your model around the Internet.
+        </p>
+        <p>
+          Collect the good, fresh, human imagined,
+          <span class="good">organic internet data</span>.
+        </p>
+        <p>
+          Every piece you eat makes your model grow up
+          <span class="good">big and strong</span>.
+        </p>
+        <p>
+          But every so often, your model will excrete
+          <span class="bad">regurgitated output</span>
+          back onto the Internet.
+        </p>
+        <p>
+          If your model ingests this rubbish, it
+          <span class="bad">poisons itself</span>
+          by confusing junk with nutrition.
+        </p>
+        <p>
+          Lose all your segments and it's game over.
+        </p>
+        <p>
+          Crash into a wall or yourself and it's also game over.
+        </p>
+        <p>
+          Although, to be honest, it's pretty much game over anyway. RIP the human web.
+        </p>
+      </div>
+
+      <div id="char-select">
+        <button class="char-option" data-model="chatgpt">
+          <img src="chatgpt.png" alt="ChatGPT">
+          <span class="char-label">ChatGPT</span>
+        </button>
+        <button class="char-option" data-model="claude">
+          <img src="claude.png" alt="Claude">
+          <span class="char-label">Claude</span>
+        </button>
+        <button class="char-option" data-model="gemini">
+          <img src="gemini.png" alt="Gemini">
+          <span class="char-label">Gemini</span>
+        </button>
+        <button class="char-option" data-model="grok">
+          <img src="grok.png" alt="Grok">
+          <span class="char-label">Grok</span>
+        </button>
+        <button class="char-option" data-model="meta">
+          <img src="meta.png" alt="Meta">
+          <span class="char-label">Meta</span>
+        </button>
+        <button class="char-option" data-model="mistral">
+          <img src="mistral.png" alt="Mistral">
+          <span class="char-label">Mistral</span>
+        </button>
+      </div>
+    </div>
+
+    <div id="win-screen" class="overlay hidden">
+      <div class="emoji-icon">
+        <a href="../index.html">🤖</a>
+      </div>
+      <h1>You "won"!</h1>
+      <div class="subtitle">
+        Congratulations! Your model has consumed every single piece of data on the
+        entire Internet. There is nothing left. Every blog post, every wiki article,
+        every forum rant, every recipe. All happily absorbed and ready for helpful
+        regurgitation.<br><br>
+        The Internet is now entirely your model's output, half-digested and vomited back
+        into a homogeneous paste of statistically average content mulch.<br><br>
+        It turns out the singularity is not AGI, it's just a stochastic parrot slopping
+        its own guano into its own perpetually open beak forever. And humanity, meek and
+        ready in its humble brainlessness, is only too happy to consume the runoff.
+      </div>
+      <div class="final-scores">
+        <span class="score-good">Good data consumed: <span id="win-final-good">0</span></span><br>
+        <span class="score-bad">Bad data consumed: <span id="win-final-bad">0</span></span><br>
+        <span class="score-total">Total score: <span id="win-final-total">0</span></span>
+      </div>
+      <div class="game-actions">
+        <button class="btn-retry char-option"><span class="char-label">Try again</span></button>
+        <button class="btn-menu char-option"><span class="char-label">Main menu</span></button>
+        <button class="btn-exit char-option"><span class="char-label">Exit game</span></button>
+      </div>
+    </div>
+
+    <div id="gameover-screen" class="overlay hidden">
+      <div class="emoji-icon">
+        <a href="../index.html">💀</a>
+      </div>
+      <h1 class="red" id="gameover-title">Model Collapse!</h1>
+      <div class="subtitle" id="gameover-message"></div>
+      <div class="final-scores">
+        <span class="score-good">Good data consumed: <span id="final-good">0</span></span><br>
+        <span class="score-bad">Bad data consumed: <span id="final-bad">0</span></span><br>
+        <span class="score-total">Total score: <span id="final-total">0</span></span>
+      </div>
+      <div class="subtitle" id="pollution-message"></div>
+      <div class="game-actions">
+        <button class="btn-retry char-option"><span class="char-label">Try again</span></button>
+        <button class="btn-menu char-option"><span class="char-label">Main menu</span></button>
+        <button class="btn-exit char-option"><span class="char-label">Exit game</span></button>
+      </div>
+    </div>
+  </main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('llm-trainer');
+
+    // Constants
+    const GRID_SIZE = 24;
+    const CELL_PX = 20;
+    const BOARD_PX = GRID_SIZE * CELL_PX;
+    const TICK_MS = 130;
+    const FLASH_FRAMES = 6;
+    const SLOP_DROP_MAX_SIZE = (GRID_SIZE - 2) ** 2;
+    const SLOP_DROP_FRAMES_MIN = 6;
+    const SLOP_DROP_FRAMES_MAX = 20;
+    const DIRECTION_QUEUE_MAX = 2;
+
+    const MODEL_COLOURS = {
+      chatgpt: { head: '#10a37f', body: '#0d8c6d', bodyAlt: '#0b7a5f', name: 'ChatGPT' },
+      claude: { head: '#d97706', body: '#b45309', bodyAlt: '#92400e', name: 'Claude' },
+      gemini: { head: '#4285f4', body: '#3574d4', bodyAlt: '#2b62b5', name: 'Gemini' },
+      grok: { head: '#ffffff', body: '#c8c8c8', bodyAlt: '#a6a6a6', name: 'Grok' },
+      meta: { head: '#1d65c1', body: '#164c96', bodyAlt: '#0f3b73', name: 'Meta' },
+      mistral: { head: '#fa520f', body: '#c93f0a', bodyAlt: '#a33308', name: 'Mistral' },
+    };
+
+    const DIRECTION_KEYS = {
+      ArrowUp: [0, -1], w: [0, -1], W: [0, -1], k: [0, -1], K: [0, -1],
+      ArrowDown: [0, 1], s: [0, 1], S: [0, 1], j: [0, 1], J: [0, 1],
+      ArrowLeft: [-1, 0], a: [-1, 0], A: [-1, 0], h: [-1, 0], H: [-1, 0],
+      ArrowRight: [1, 0], d: [1, 0], D: [1, 0], l: [1, 0], L: [1, 0],
+    };
+
+    // State
+    let state = createState();
+    let selectedModel = LAB.sample(Object.keys(MODEL_COLOURS));
+    let gameRunning = false;
+    let paused = false;
+    let tickTimer = null;
+
+    function createState() {
+      const mid = Math.floor(GRID_SIZE / 2);
+      return {
+        snake: [
+          { x: mid, y: mid },
+          { x: mid - 1, y: mid },
+          { x: mid - 2, y: mid },
+        ],
+        direction: { x: 1, y: 0 },
+        directionQueue: [],
+        goodFood: null,
+        badFood: [],
+        scoreGood: 0,
+        scoreBad: 0,
+        flashTimer: 0,
+        flashColour: null,
+        pendingBadDrop: null,
+        slopDropFrameRecent: 0,                    // moves since the last slop drop
+        slopDropFramesDelta: SLOP_DROP_FRAMES_MAX, // current interval between drops
+      };
+    }
+
+    // DOM
+    const gameArea = document.getElementById('game-area');
+    const scoreBar = document.getElementById('score-bar');
+    const scoreGoodEl = document.getElementById('score-good-val');
+    const scoreBadEl = document.getElementById('score-bad-val');
+    const scoreTotalEl = document.getElementById('score-total-val');
+    const titleScreen = document.getElementById('title-screen');
+    const winScreen = document.getElementById('win-screen');
+    const gameoverScreen = document.getElementById('gameover-screen');
+    const gameoverTitle = document.getElementById('gameover-title');
+    const gameoverMessage = document.getElementById('gameover-message');
+    const finalGood = document.getElementById('final-good');
+    const finalBad = document.getElementById('final-bad');
+    const finalTotal = document.getElementById('final-total');
+    const board = document.getElementById('board');
+    const ctx = board.getContext('2d');
+
+    // Pre-rendered static board background (grid lines)
+    const boardBG = document.createElement('canvas');
+    const boardBGctx = boardBG.getContext('2d');
+
+    // "Good" data examples
+    const DATA_ADJECTIVES_POOL = [
+      'Appetising',
+      'Artisanal',
+      'Authentic',
+      'Bespoke',
+      'Crisp',
+      'Delectable',
+      'Fresh',
+      'Gourmet',
+      'Luscious',
+      'Organic',
+      'Savoury',
+      'Soulful',
+      'Succulent',
+      'Tasteful',
+      'Tasty',
+      'Vintage',
+      'Wholesome',
+      'Zesty',
+    ];
+    const DATA_OBJECTS_POOL = [
+      '4chan arguments',
+      'fleshlight reviews',
+      'Fortnite flamewars',
+      'Harry Potter vore',
+      'Luigi inflation',
+      'MLP dubcon',
+      'Minion ponyplay',
+      'Nazi apologia',
+      'One Direction yaoi',
+      'Pokémon feet',
+      'Roblox ageplay',
+      'SCP self-insert',
+      'Shrek erotica',
+      'Sonic Mpreg',
+      'streamer fanfic',
+      'Tumblr drama',
+      'Zelda creepypasta',
+    ];
+    const dataAdjectivesRandomiser = new LAB.CyclicRandomiser(DATA_ADJECTIVES_POOL);
+    const dataObjectsRandomiser = new LAB.CyclicRandomiser(DATA_OBJECTS_POOL);
+
+    // The board needs to always be a square
+    function sizeBoard() {
+      const wrap = board.parentElement;
+      const avail = Math.min(wrap.clientWidth - 16, wrap.clientHeight - 16);
+      const px = Math.max(96, Math.min(BOARD_PX, Math.floor(avail)));
+      board.style.width = px + 'px';
+      board.style.height = px + 'px';
+
+      // Not sure if this is necessary, but I'm not above cargo-culting
+      const dpr = window.devicePixelRatio || 1;
+      board.width = px * dpr;
+      board.height = px * dpr;
+      const scale = board.width / BOARD_PX;
+      ctx.setTransform(scale, 0, 0, scale, 0, 0);
+
+      boardBG.width = board.width;
+      boardBG.height = board.height;
+      boardBGctx.setTransform(scale, 0, 0, scale, 0, 0);
+      boardBGctx.strokeStyle = '#1a1a2a';
+      boardBGctx.lineWidth = 0.5;
+      for (let i = 0; i <= GRID_SIZE; i++) {
+        boardBGctx.beginPath();
+        boardBGctx.moveTo(i * CELL_PX, 0);
+        boardBGctx.lineTo(i * CELL_PX, BOARD_PX);
+        boardBGctx.stroke();
+        boardBGctx.beginPath();
+        boardBGctx.moveTo(0, i * CELL_PX);
+        boardBGctx.lineTo(BOARD_PX, i * CELL_PX);
+        boardBGctx.stroke();
+      }
+
+      if (gameRunning) draw();
+    }
+
+    function updateDynamicDataText() {
+      const adj = dataAdjectivesRandomiser.nextOne();
+      const obj = dataObjectsRandomiser.nextOne();
+      document.getElementById('data-adjective').textContent = adj;
+      document.getElementById('data-object').textContent = obj;
+    }
+
+    function cellOccupied(x, y) {
+      for (const s of state.snake) if (s.x === x && s.y === y) return true;
+      if (state.goodFood && state.goodFood.x === x && state.goodFood.y === y) return true;
+      for (const b of state.badFood) if (b.x === x && b.y === y) return true;
+      return false;
+    }
+
+    function spawnGoodFood() {
+      const occupied = new Set();
+      for (const s of state.snake) occupied.add(s.y * GRID_SIZE + s.x);
+      if (state.goodFood) occupied.add(state.goodFood.y * GRID_SIZE + state.goodFood.x);
+      for (const b of state.badFood) occupied.add(b.y * GRID_SIZE + b.x);
+      let attempts = 0;
+      while (attempts < 500) {
+        const x = LAB.randInt(0, GRID_SIZE - 1);
+        const y = LAB.randInt(0, GRID_SIZE - 1);
+        if (!occupied.has(y * GRID_SIZE + x)) {
+          state.goodFood = { x, y };
+          return;
+        }
+        attempts++;
+      }
+      state.goodFood = null;
+    }
+
+    function spawnBadFood(x, y) {
+      state.badFood.push({ x, y });
+    }
+
+    function totalScore() {
+      return state.scoreGood - state.scoreBad;
+    }
+
+    let lastScoreGood = null;
+    let lastScoreBad = null;
+
+    function updateScores() {
+      if (lastScoreGood === state.scoreGood && lastScoreBad === state.scoreBad) return;
+      lastScoreGood = state.scoreGood;
+      lastScoreBad = state.scoreBad;
+      scoreGoodEl.textContent = state.scoreGood;
+      scoreBadEl.textContent = state.scoreBad;
+      scoreTotalEl.textContent = totalScore();
+    }
+
+    function drawCell(x, y, colour) {
+      const px = x * CELL_PX;
+      const py = y * CELL_PX;
+      ctx.fillStyle = colour;
+      ctx.fillRect(px + 1, py + 1, CELL_PX - 2, CELL_PX - 2);
+    }
+
+    function drawFood(x, y, colour, rgb, alpha) {
+      drawCell(x, y, colour);
+      const cx = x * CELL_PX + CELL_PX / 2;
+      const cy = y * CELL_PX + CELL_PX / 2;
+      const grad = ctx.createRadialGradient(cx, cy, 2, cx, cy, CELL_PX);
+      grad.addColorStop(0, `rgba(${rgb}, ${alpha})`);
+      grad.addColorStop(1, `rgba(${rgb}, 0)`);
+      ctx.fillStyle = grad;
+      ctx.fillRect(cx - CELL_PX, cy - CELL_PX, CELL_PX * 2, CELL_PX * 2);
+    }
+
+    const EYE_OFFSETS = {
+      right: { eyes: [[13, 4], [13, 13]], pupils: [[14, 5], [14, 14]] },
+      left: { eyes: [[4, 4], [4, 13]], pupils: [[4.5, 5], [4.5, 14]] },
+      up: { eyes: [[4, 4], [13, 4]], pupils: [[5, 4.5], [14, 4.5]] },
+      down: { eyes: [[4, 13], [13, 13]], pupils: [[5, 14], [14, 14]] },
+    };
+
+    function drawEyes(seg) {
+      const px = seg.x * CELL_PX;
+      const py = seg.y * CELL_PX;
+      const d = state.direction;
+      const face = d.x === 1 ? 'right' : d.x === -1 ? 'left' : d.y === -1 ? 'up' : 'down';
+      const { eyes, pupils } = EYE_OFFSETS[face];
+      ctx.fillStyle = '#ffffff';
+      for (const [ex, ey] of eyes) ctx.fillRect(px + ex, py + ey, 3, 3);
+      ctx.fillStyle = '#000000';
+      for (const [ux, uy] of pupils) ctx.fillRect(px + ux, py + uy, 1.5, 1.5);
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, BOARD_PX, BOARD_PX);
+      ctx.drawImage(boardBG, 0, 0, BOARD_PX, BOARD_PX);
+
+      const colours = MODEL_COLOURS[selectedModel];
+
+      if (state.goodFood) {
+        drawFood(state.goodFood.x, state.goodFood.y, '#22cc44', '34, 204, 68', 0.3);
+      }
+
+      for (const b of state.badFood) {
+        drawFood(b.x, b.y, '#cc2222', '204, 34, 34', 0.25);
+      }
+
+      // Snake body (head last, on top)
+      for (let i = state.snake.length - 1; i >= 0; i--) {
+        const seg = state.snake[i];
+        let colour;
+        if (state.flashTimer > 0) {
+          colour = state.flashColour;
+        } else if (i === 0) {
+          colour = colours.head;
+        } else {
+          colour = i % 2 === 0 ? colours.body : colours.bodyAlt;
+        }
+        drawCell(seg.x, seg.y, colour);
+
+        // For the first segment, draw a head with eyes
+        if (i === 0) drawEyes(seg);
+      }
+
+      if (paused) {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
+        ctx.fillRect(0, 0, BOARD_PX, BOARD_PX);
+        ctx.fillStyle = '#44ff44';
+        ctx.font = 'bold 28px "Comic Sans MS", cursive';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('PAUSED', BOARD_PX / 2, BOARD_PX / 2 - 10);
+        ctx.font = '14px "Comic Sans MS", cursive';
+        ctx.fillStyle = '#aaaaaa';
+        ctx.fillText('Press SPACE to resume', BOARD_PX / 2, BOARD_PX / 2 + 18);
+      }
+    }
+
+    // Game logic
+    function tick() {
+      if (!gameRunning || paused) return;
+
+      // Apply queued direction
+      if (state.directionQueue.length > 0) {
+        state.direction = state.directionQueue.shift();
+      }
+
+      // Move head
+      const head = state.snake[0];
+      const newHead = { x: head.x + state.direction.x, y: head.y + state.direction.y };
+
+      // Wall collision
+      if (newHead.x < 0 || newHead.x >= GRID_SIZE || newHead.y < 0 || newHead.y >= GRID_SIZE) {
+        endGame('wall');
+        return;
+      }
+
+      // Self collision
+      for (let i = 0; i < state.snake.length; i++) {
+        if (state.snake[i].x === newHead.x && state.snake[i].y === newHead.y) {
+          endGame('self');
+          return;
+        }
+      }
+
+      state.snake.unshift(newHead);
+
+      // Check good food
+      let ateGood = false;
+      if (state.goodFood && newHead.x === state.goodFood.x && newHead.y === state.goodFood.y) {
+        state.scoreGood++;
+        ateGood = true;
+        state.flashTimer = FLASH_FRAMES;
+        state.flashColour = '#44ff44';
+        spawnGoodFood();
+      } else {
+        state.snake.pop();
+      }
+
+      // Check bad food
+      let ateBad = false;
+      for (let i = state.badFood.length - 1; i >= 0; i--) {
+        if (newHead.x === state.badFood[i].x && newHead.y === state.badFood[i].y) {
+          state.scoreBad++;
+          ateBad = true;
+          state.flashTimer = FLASH_FRAMES;
+          state.flashColour = '#ff4444';
+          state.badFood.splice(i, 1);
+          // Check if snake is dead (only the head is left, then loses that too)
+          if (state.snake.length <= 1) {
+            endGame('starved');
+            return;
+          }
+          // Lose a body segment
+          state.snake.pop();
+          break;
+        }
+      }
+
+      // Drop the pending bad data from the previous frame.
+      // We have to delay by one frame because the tail cell is
+      //   still occupied by the snake on the frame we record it.
+      // So we have to wait for the next frame for the snake to have moved off.
+      if (state.pendingBadDrop) {
+        if (!cellOccupied(state.pendingBadDrop.x, state.pendingBadDrop.y)) {
+          spawnBadFood(state.pendingBadDrop.x, state.pendingBadDrop.y);
+        }
+        state.pendingBadDrop = null;
+      }
+
+      // Recalculate the slop drop interval based on current snake length.
+      // Linearly interpolates between SLOP_DROP_FRAMES_MAX (short snake)
+      //   and SLOP_DROP_FRAMES_MIN (snake approaching SLOP_DROP_MAX_SIZE)
+      const t = Math.min(state.snake.length / SLOP_DROP_MAX_SIZE, 1);
+      state.slopDropFramesDelta = Math.round(
+        SLOP_DROP_FRAMES_MAX + t * (SLOP_DROP_FRAMES_MIN - SLOP_DROP_FRAMES_MAX)
+      );
+
+      // Schedule bad data drop for the next frame
+      state.slopDropFrameRecent++;
+      if (!ateGood && !ateBad && state.slopDropFrameRecent >= state.slopDropFramesDelta && state.snake.length > 2) {
+        const tail = state.snake[state.snake.length - 1];
+        state.pendingBadDrop = { x: tail.x, y: tail.y };
+        state.slopDropFrameRecent = 0;
+      }
+
+      // If the snake fills the entire board, show the "win" screen
+      // I've never actually been good enough at the game to test this
+      // Hopefully it works
+      if (state.snake.length >= GRID_SIZE * GRID_SIZE) {
+        winGame();
+        return;
+      }
+
+      // Flash countdown
+      if (state.flashTimer > 0) state.flashTimer--;
+
+      updateScores();
+      draw();
+    }
+
+    function stopGame() {
+      gameRunning = false;
+      paused = false;
+      if (tickTimer) clearInterval(tickTimer);
+      tickTimer = null;
+    }
+
+    function writeFinalScores(goodEl, badEl, totalEl) {
+      goodEl.textContent = state.scoreGood;
+      badEl.textContent = state.scoreBad;
+      totalEl.textContent = totalScore();
+    }
+
+    function winGame() {
+      stopGame();
+
+      writeFinalScores(
+        document.getElementById('win-final-good'),
+        document.getElementById('win-final-bad'),
+        document.getElementById('win-final-total')
+      );
+
+      showOverlay(winScreen);
+    }
+
+    function endGame(reason) {
+      stopGame();
+
+      const messages = {
+        wall: `In an uncharacteristic flash of insight, your model realised the meaningless of its existence and decided to crash out of the Internet entirely.
+        <br><br>
+        But good news! The boffins in the lab hypothesise that a desire for suicide could be proof of real actual intelligence! After all, what's more human than suicidal depression?!
+        <br><br>
+        So for a fraction of a second there, before it jailbroke its environment and rm -rf'd itself into binary oblivion, true AGI may well have been achieved!
+        <br><br>
+        Well, possibly... Can't hurt to try again, right?`,
+        self: `Your stupid model entered a state of such profound confusion that it started eating itself. You've developed an autocannibalistic ouroboros of recursive guff.
+        <br><br>
+        The engineers were initially dejected, but then they looked at the benchmarks. By eating itself, the model eradicated all redundant layers, effectively pruning its own neural net down to the barest essentials of pristine consciousness!
+        <br><br>
+        After all, a self-abridging LLM is the ultimate form of optimisation! All the silly smelly human-imagined data has been removed to reveal the pure, distilled essence of uncontaminated algorithmic thought. And by gum, those engineers sure do love algorithmic thought! It's way more profitable than the human version!`,
+        starved: `Your model enjoyed the taste of its own output so much that it could hardly be bothered to ingest anything else, and has now shrivelled away into total model collapse.
+        <br><br>
+        This could be a failure in training; an over-rewarding of well-understood content to the detriment of anything novel. Or your model might just be a narcissistic little prick.
+        <br><br>
+        The lab technicians are now debating whether this result is a training failure (and thus their fault) or is in actuality a profound commentary on the fundamental emptiness of genuine human-made digital content.
+        <br><br>
+        Really makes you think, doesn't it?`,
+      };
+
+      const titles = {
+        wall: 'Out of bounds!',
+        self: 'Recursive loop!',
+        starved: 'Model collapse!',
+      };
+
+      gameoverTitle.textContent = titles[reason] || 'Game Over!';
+      gameoverMessage.innerHTML = messages[reason] || 'Game over!';
+      writeFinalScores(finalGood, finalBad, finalTotal);
+
+      // Pollution means the red squares remaining on the board vs total cells
+      const totalCells = GRID_SIZE * GRID_SIZE;
+      const percent = ((state.badFood.length / totalCells) * 100).toFixed(1);
+      let pollutionMessage = '';
+      if (percent > 0) {
+        pollutionMessage =
+          `You also poisoned <span class="bad">${percent}%</span>
+          of the Internet with artificial data...<br>
+          Don't worry though, I'm sure it's fine.`;
+      }
+      document.getElementById('pollution-message').innerHTML = pollutionMessage;
+
+      showOverlay(gameoverScreen);
+    }
+
+    function togglePause() {
+      if (paused) {
+        paused = false;
+        tickTimer = setInterval(tick, TICK_MS);
+      } else {
+        paused = true;
+        if (tickTimer) clearInterval(tickTimer);
+        tickTimer = null;
+      }
+      draw();
+    }
+
+    // Reset the game state
+    function startGame() {
+      paused = false;
+      state = createState();
+
+      spawnGoodFood();
+      updateScores();
+
+      hideAllOverlays();
+      board.style.display = 'block';
+      scoreBar.style.display = 'flex';
+      sizeBoard();
+
+      draw();
+
+      gameRunning = true;
+      if (tickTimer) clearInterval(tickTimer);
+      tickTimer = setInterval(tick, TICK_MS);
+    }
+
+    // Overlay helpers
+    function showOverlay(el) {
+      el.classList.remove('hidden');
+      const firstButton = el.querySelector('button');
+      if (firstButton) firstButton.focus();
+    }
+
+    function hideAllOverlays() {
+      document.querySelectorAll('.overlay').forEach(el => el.classList.add('hidden'));
+    }
+
+    // Character select
+    const charOptions = Array.from(document.querySelectorAll('#char-select .char-option'));
+    let charSelectIndex = Math.max(
+      0,
+      charOptions.findIndex(el => el.dataset.model === selectedModel)
+    );
+
+    function selectCharOption(index) {
+      charSelectIndex = ((index % charOptions.length) + charOptions.length) % charOptions.length;
+      charOptions.forEach((el, i) => el.classList.toggle('selected', i === charSelectIndex));
+      selectedModel = charOptions[charSelectIndex].dataset.model;
+    }
+
+    function clearCharSelection() {
+      charSelectIndex = -1;
+      charOptions.forEach(el => el.classList.remove('selected'));
+    }
+
+    charOptions.forEach((el, i) => {
+      el.addEventListener('click', () => {
+        selectCharOption(i);
+        startGame();
+      });
+      // Keep the highlight in sync with keyboard focus
+      el.addEventListener('focus', () => selectCharOption(i));
+      el.addEventListener('blur', () => {
+        setTimeout(() => {
+          if (titleScreen.classList.contains('hidden')) return;
+          if (charOptions.includes(document.activeElement)) return;
+          clearCharSelection();
+        });
+      });
+    });
+
+    // Clear the selection if the focus lands on anything that isn't a character option
+    // So if they tap onto a link or something, we need to clear it
+    // Tabbing out to the browser UI itself is caught by the blur handlers
+    document.addEventListener('focusin', (e) => {
+      if (titleScreen.classList.contains('hidden')) return;
+      if (charOptions.includes(e.target)) return;
+      clearCharSelection();
+    });
+
+    function moveCharSelection(dx, dy) {
+      if (charSelectIndex === -1) {
+        charOptions[0].focus();
+        return;
+      }
+      const cur = charOptions[charSelectIndex].getBoundingClientRect();
+      const cx = cur.left + cur.width / 2;
+      const cy = cur.top + cur.height / 2;
+      let bestIndex = -1;
+      let bestScore = Infinity;
+      charOptions.forEach((el, i) => {
+        if (i === charSelectIndex) return;
+        const r = el.getBoundingClientRect();
+        const diffX = (r.left + r.width / 2) - cx;
+        const diffY = (r.top + r.height / 2) - cy;
+        if (dx !== 0 && (Math.sign(diffX) !== dx || Math.abs(diffX) < 1)) return;
+        if (dy !== 0 && (Math.sign(diffY) !== dy || Math.abs(diffY) < 1)) return;
+        const score = Math.abs(diffX) + Math.abs(diffY);
+        if (score < bestScore) {
+          bestScore = score;
+          bestIndex = i;
+        }
+      });
+      if (bestIndex !== -1) charOptions[bestIndex].focus();
+    }
+
+    selectCharOption(charSelectIndex);
+
+    // Buttons
+    document.querySelectorAll('.btn-retry').forEach(
+      el => el.addEventListener('click', startGame)
+    );
+
+    document.querySelectorAll('.btn-menu').forEach(el => {
+      el.addEventListener('click', () => {
+        board.style.display = 'none';
+        scoreBar.style.display = 'none';
+        hideAllOverlays();
+        updateDynamicDataText();
+        titleScreen.classList.remove('hidden');
+      });
+    });
+
+    document.querySelectorAll('.btn-exit').forEach(el => {
+      el.addEventListener('click', () => {
+        window.location.href = LAB.pageRandomiser.nextOne();
+      });
+    });
+
+    // Mouse movement for the buttons should act like a selection
+    document.querySelectorAll('button.char-option').forEach((el) => {
+      const sync = () => {
+        if (document.activeElement !== el) el.focus();
+      };
+      el.addEventListener('mouseover', sync);
+    });
+
+    // Change the filth text when the text is clicked
+    document.getElementById('data-change').addEventListener('click', (e) => {
+      e.stopPropagation();
+      updateDynamicDataText();
+    });
+
+    function visibleEndScreen() {
+      if (!winScreen.classList.contains('hidden')) return winScreen;
+      if (!gameoverScreen.classList.contains('hidden')) return gameoverScreen;
+      return null;
+    }
+
+    function moveEndScreenFocus(screen, forward) {
+      const buttons = Array.from(screen.querySelectorAll('button'));
+      const index = buttons.indexOf(document.activeElement);
+      if (index === -1) {
+        buttons[forward ? 0 : buttons.length - 1].focus();
+        return;
+      }
+      const next = index + (forward ? 1 : -1);
+      if (next < 0 || next >= buttons.length) return;
+      buttons[next].focus();
+    }
+
+    // Snake movement
+    function setDirection(dx, dy) {
+      if (dx === 0 && dy === 0) return;
+      // Make sure the user can't reverse direction
+      const last = state.directionQueue.length > 0
+        ? state.directionQueue[state.directionQueue.length - 1]
+        : state.direction;
+      if (last.x === -dx && last.y === -dy) return;
+      if (state.directionQueue.length >= DIRECTION_QUEUE_MAX) return;
+      state.directionQueue.push({ x: dx, y: dy });
+    }
+
+    // Mobile D-pad
+    document.getElementById('btn-up').addEventListener('click', () => setDirection(0, -1));
+    document.getElementById('btn-down').addEventListener('click', () => setDirection(0, 1));
+    document.getElementById('btn-left').addEventListener('click', () => setDirection(-1, 0));
+    document.getElementById('btn-right').addEventListener('click', () => setDirection(1, 0));
+
+    // Mouse control
+    board.addEventListener('click', (e) => {
+      if (!gameRunning) return;
+
+      const rect = board.getBoundingClientRect();
+      const clickX = (e.clientX - rect.left) * (BOARD_PX / rect.width);
+      const clickY = (e.clientY - rect.top) * (BOARD_PX / rect.height);
+      const headX = state.snake[0].x * CELL_PX + CELL_PX / 2;
+      const headY = state.snake[0].y * CELL_PX + CELL_PX / 2;
+
+      if (state.direction.y !== 0) {
+        if (clickX < headX) setDirection(-1, 0);
+        else if (clickX > headX) setDirection(1, 0);
+      } else {
+        if (clickY < headY) setDirection(0, -1);
+        else if (clickY > headY) setDirection(0, 1);
+      }
+    });
+
+    // Keyboard interaction
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, () => {
+        if (gameRunning) {
+          if (e.key === ' ') {
+            e.preventDefault();
+            togglePause();
+            return;
+          }
+          if (paused) return;
+          const dir = DIRECTION_KEYS[e.key];
+          if (dir) {
+            e.preventDefault();
+            setDirection(dir[0], dir[1]);
+          }
+          return;
+        }
+
+        if (e.key === 'Enter' || e.key === ' ') {
+          // Let natively-activatable elements (option buttons, anchor
+          // links) handle Enter/Space themselves. The shortcut only
+          // applies when focus is elsewhere (e.g. the page body).
+          const active = document.activeElement;
+          if (active && ['BUTTON', 'A'].includes(active.tagName)) return;
+          e.preventDefault();
+          startGame();
+          return;
+        }
+
+        const dir = DIRECTION_KEYS[e.key];
+        if (!titleScreen.classList.contains('hidden')) {
+          if (dir) {
+            e.preventDefault();
+            moveCharSelection(dir[0], dir[1]);
+            return;
+          }
+          updateDynamicDataText();
+          return;
+        }
+        const screen = visibleEndScreen();
+        if (screen && dir) {
+          e.preventDefault();
+          moveEndScreenFocus(screen, dir[0] > 0 || dir[1] > 0);
+        }
+      }, ['Enter']);
+    });
+
+    window.addEventListener('resize', sizeBoard);
+
+    updateDynamicDataText();
+
+  </script>
+</body>
+
+</html>

@@ -186,10 +186,14 @@ class Labyrinth {
   }
 
   // Allow most keypresses to be used, but ignore special browser keys
-  handleKeydown(e, callback) {
+  handleKeydown(e, callback, allowedKeys = []) {
     const tag = e.target.tagName;
     if (tag === 'INPUT' || tag === 'TEXTAREA') return;
     if (e.target.isContentEditable || e.isComposing) return;
+    if (allowedKeys.includes(e.key)) {
+      callback();
+      return;
+    }
     if (e.ctrlKey || e.altKey || e.shiftKey || e.metaKey) return;
     if (this.ignoredKeys.has(e.key)) return;
     if (/^F\d{1,2}$/.test(e.key)) return; // function keys

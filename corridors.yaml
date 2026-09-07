@@ -1834,3 +1834,10 @@ corridors:
     tags: [abstract, mobile]
     visual_description: >-
       A canvas simulation of an Etch A Sketch. Dozens of pastel coloured walkers move in straight lines at 90-degree angles, leaving trails of ink in six distinct hues (navy, crimson, forest green, purple, amber, and teal). The walkers mostly continue in their current direction but occasionally turn left or right, at 90° angles. The canvas gently fades over time. The entire canvas is a link to a random corridor.
+  - id: llm-trainer
+    title: LLM Trainer
+    created: 2026-09-07 18:10
+    links: 6
+    tags: [crt, game, humour, images, major, mobile, tech]
+    visual_description: >-
+      A snake game framed as an LLM training run. The title screen offers a character-select of the major LLM logos (ChatGPT, Claude, Gemini, Grok, Meta, and Mistral), and the chosen one colours the snake. The game board represents the Internet, where eating a glowing green cell of "good, human-made data" makes it grow, but the snake periodically excretes red cells of its own "regurgitated output", and ingesting one of these shaves off a body segment. Colliding with a wall or itself, or shrinking to nothing, triggers a game-over screen with an epilogue and a final tally of how much of the Internet has been polluted with synthetic data. Filling the entire grid triggers a "win" screen. An on-screen D-pad appears on touch devices for steering. Emojis in the headers and an "Exit game" button link to a random corridor.

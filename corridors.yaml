@@ -1841,3 +1841,10 @@ corridors:
     tags: [crt, game, humour, images, major, mobile, tech]
     visual_description: >-
       A snake game framed as an LLM training run. The title screen offers a character-select of the major LLM logos (ChatGPT, Claude, Gemini, Grok, Meta, and Mistral), and the chosen one colours the snake. The game board represents the Internet, where eating a glowing green cell of "good, human-made data" makes it grow, but the snake periodically excretes red cells of its own "regurgitated output", and ingesting one of these shaves off a body segment. Colliding with a wall or itself, or shrinking to nothing, triggers a game-over screen with an epilogue and a final tally of how much of the Internet has been polluted with synthetic data. Filling the entire grid triggers a "win" screen. An on-screen D-pad appears on touch devices for steering. Emojis in the headers and an "Exit game" button link to a random corridor.
+  - id: spinning-tops
+    title: Spinning Tops
+    created: 2026-09-08 15:34
+    links: 1
+    tags: [abstract, crt, mobile]
+    visual_description: >-
+      A 3D wireframe simulation of spinning tops rendered on canvas against a black background. Up to ten tops can exist simultaneously, each built from layered polygonal vertices connected by edges. The tops rotate on all three axes, with hues shifting across layers from blue to violet. New tops spawn on key press, at random positions and scales. The entire canvas is a clickable link to a random corridor.

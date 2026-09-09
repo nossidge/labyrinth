@@ -1848,3 +1848,10 @@ corridors:
     tags: [abstract, crt, mobile]
     visual_description: >-
       A 3D wireframe simulation of spinning tops rendered on canvas against a black background. Up to ten tops can exist simultaneously, each built from layered polygonal vertices connected by edges. The tops rotate on all three axes, with hues shifting across layers from blue to violet. New tops spawn on key press, at random positions and scales. The entire canvas is a clickable link to a random corridor.
+  - id: halftone-wave
+    title: Halftone Wave
+    created: 2026-09-09 07:56
+    links: dynamic
+    tags: [abstract, crt, mobile]
+    visual_description: >-
+      A dense, screen-filling grid of black halftone dots on an off-white background. Each dot's radius is modulated by a travelling sine wave, so the dots swell and shrink in parallel bands that seem to move across the screen. The wave's direction of travel drifts slowly over time. Every dot is a clickable link to a random corridor.

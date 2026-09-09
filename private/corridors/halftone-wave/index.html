@@ -2,14 +2,14 @@
 <html lang="en">
 
 <!--
-Also see `halftone-wave`
+Also see `halftone-pulse`
 -->
 
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Halftone Pulse">
-  <title>Halftone Pulse</title>
+  <meta name="description" content="Halftone Wave">
+  <title>Halftone Wave</title>
   <style>
     * {
       margin: 0;
@@ -54,17 +54,23 @@ Also see `halftone-wave`
 
   <script src="../../common/labyrinth.js"></script>
   <script>
-    const LAB = new Labyrinth('halftone-pulse');
+    const LAB = new Labyrinth('halftone-wave');
 
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     const SPACING = 18;
+    const MIN_R = 1;
 
     let dots = [];
     let mouseX = -1;
     let mouseY = -1;
     let hoverEl = null;
     let hoveredDot = null;
+
+    // Wave parameters that shift over time
+    let waveAngle = LAB.rand(0, Math.PI * 2);
+    let waveFreq = 0.08;
+    let waveSpeed = 2.5;
 
     function init() {
       canvas.width = window.innerWidth;
@@ -84,6 +90,8 @@ Also see `halftone-wave`
           dots.push({
             x: cx + ix * SPACING,
             y: cy + iy * SPACING,
+            ix: ix,
+            iy: iy,
             maxR: SPACING * 0.42,
             url: LAB.pageRandomiser.nextOne()
           });
@@ -115,28 +123,35 @@ Also see `halftone-wave`
     }
 
     function tick(time) {
-      const t = time * 0.001;
-      const cx = canvas.width / 2;
-      const cy = canvas.height / 2;
+      const t = time * 0.0005;
 
       ctx.fillStyle = '#f0f0e8';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = '#222222';
 
+      // Slowly drift the wave direction
+      waveAngle += 0.003;
+      const dirX = Math.cos(waveAngle);
+      const dirY = Math.sin(waveAngle);
+
       let hovered = null;
 
       for (let i = 0; i < dots.length; i++) {
         const d = dots[i];
-        const dx = d.x - cx;
-        const dy = d.y - cy;
-        const dist = Math.sqrt(dx * dx + dy * dy);
 
-        // Oscillating dot radius based on distance from the central dot + time
-        const wave = Math.sin(dist * 0.04 - t * 2.5) * 0.5 + 0.5;
-        const wave2 = Math.cos(dist * 0.06 + t * 1.8) * 0.3 + 0.7;
-        const r = d.maxR * wave * wave2;
+        // Project position onto wave direction, then sample a travelling sine
+        const proj = d.ix * dirX + d.iy * dirY;
+        const wave = Math.sin(proj * waveFreq - t * waveSpeed);
+
+        // Map sine (-1..1) to a dot radius between MIN_R and maxR
+        const normalised = (wave + 1) / 2; // 0..1
+        const r = MIN_R + normalised * (d.maxR - MIN_R);
 
         if (r > 0.5) {
+          // Uncomment this back in to add an alpha to the colour
+          // This looks good, but it kind of ruins the halftone effect
+          // ctx.globalAlpha = 0.3 + normalised * 0.7;
+
           ctx.beginPath();
           ctx.arc(d.x, d.y, r, 0, Math.PI * 2);
           ctx.fill();
@@ -148,6 +163,9 @@ Also see `halftone-wave`
           hovered = d;
         }
       }
+
+      // See above for why this is commented out
+      // ctx.globalAlpha = 1;
 
       // Create or destroy the hover link anchor element
       if (hovered) {

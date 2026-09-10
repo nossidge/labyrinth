@@ -98,10 +98,18 @@ class Labyrinth {
     return Array.from({ length: end - start + 1 }, (_, i) => start + i);
   }
 
+  // e.g. To make a link in an SVG:
+  // const link = LAB.svgElement('a', { 'xlink:href': LAB.pageRandomiser.nextOne() });
   svgElement(name, attributes = [], parent = null) {
     const ns = 'http://www.w3.org/2000/svg';
     const node = document.createElementNS(ns, name);
-    Object.entries(attributes).forEach(([key, value]) => node.setAttribute(key, value));
+    for (let key in attributes) {
+      if (key.startsWith('xlink:')) {
+        node.setAttributeNS('http://www.w3.org/1999/xlink', key, attributes[key]);
+      } else {
+        node.setAttribute(key, attributes[key]);
+      }
+    }
     if (parent) parent.appendChild(node);
     return node;
   }

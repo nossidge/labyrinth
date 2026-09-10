@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+My first draft of this had massive CPU problems initially.
+So there's a bunch of code in here to cache a bunch of stuff.
+And to make sure we throttle FPS and don't render when we don't need to.
+
+https://en.wikipedia.org/wiki/Voronoi_diagram
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="where we lay our scene">
+  <title>Two Gentlemen</title>
+  <style>
+    :root {
+      --bg: #08080c;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body,
+    html {
+      width: 100%;
+      height: 100%;
+      background-color: var(--bg);
+      overflow: hidden;
+    }
+
+    svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .voronoi-cell:hover {
+      filter: brightness(1.06);
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0.12) 50%);
+      background-size: 100% 3px;
+      pointer-events: none;
+      z-index: 10;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+  <svg id="svg"></svg>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('fair-voronoi');
+
+    const svg = document.getElementById('svg');
+
+    const numPoints = 50;
+    const cellSize = 6;
+
+    const colours = [
+      '#6b8299', '#719a81', '#7c80a2', '#889cb0', '#88a49c',
+      '#8a829c', '#8ba17a', '#9a6b8a', '#a088a4', '#a09878',
+      '#a4a878', '#a8948a', '#a8b4a0', '#b08898', '#b8a882',
+      '#c49480', '#d08068', '#d4a488', '#d99a94',
+    ];
+
+    let points = [];
+    let mouseX = window.innerWidth / 2;
+    let mouseY = window.innerHeight / 2;
+
+    // Persistent buffer cache stuff
+    // Only reallocated only when the grid size changes
+    // I'm trying to save some CPU use
+    let cols = 0;
+    let rows = 0;
+    let pxs = null;
+    let pys = null;
+    let grid = null;
+    let prevWinner = null;
+    let cellU = null;
+    let cellL = null;
+    let lastRender = 0;
+    let cellPaths = [];
+
+    const xs = new Float64Array(numPoints);
+    const ys = new Float64Array(numPoints);
+    const prevPointsX = new Float64Array(numPoints);
+    const prevPointsY = new Float64Array(numPoints);
+    const buckets = new Array(numPoints).fill('');
+    const lastDs = new Array(numPoints).fill('');
+
+    const fps = 30;
+    const targetFrameMs = 1000 / fps;
+    const influence = 30;
+
+    function computeGridDims() {
+      cols = Math.ceil(window.innerWidth / cellSize);
+      rows = Math.ceil(window.innerHeight / cellSize);
+
+      pxs = new Float64Array(cols);
+      for (let cx = 0; cx < cols; cx++) {
+        pxs[cx] = cx * cellSize + cellSize / 2;
+      }
+      pys = new Float64Array(rows);
+      for (let cy = 0; cy < rows; cy++) {
+        pys[cy] = cy * cellSize + cellSize / 2;
+      }
+
+      const cells = cols * rows;
+      grid = new Int32Array(cells);
+      prevWinner = new Int32Array(cells).fill(-1);
+      cellU = new Float64Array(cells);
+      cellL = new Float64Array(cells);
+    }
+
+    function init() {
+      points = [];
+      for (let i = 0; i < numPoints; i++) {
+        points.push({
+          baseX: LAB.rand(50, window.innerWidth - 50),
+          baseY: LAB.rand(50, window.innerHeight - 50),
+          colour: LAB.sample(colours),
+          href: LAB.pageRandomiser.nextOne(),
+        });
+      }
+      fixAdjacentColours();
+      buildCells();
+      computeGridDims();
+    }
+
+    // Reduce the chance of colours being next to each other
+    function fixAdjacentColours() {
+      const lenPoints = points.length;
+      let totalNearest = 0;
+      for (let i = 0; i < lenPoints; i++) {
+        let best = Infinity;
+        for (let j = 0; j < lenPoints; j++) {
+          if (j === i) continue;
+          const dx = points[i].baseX - points[j].baseX;
+          const dy = points[i].baseY - points[j].baseY;
+          const d = dx * dx + dy * dy;
+          if (d < best) best = d;
+        }
+        totalNearest += Math.sqrt(best);
+      }
+      const t = (2 * totalNearest / lenPoints) * 2.5;
+      const tt = t * t;
+      for (let i = 0; i < lenPoints; i++) {
+        for (let j = i + 1; j < lenPoints; j++) {
+          const dx = points[i].baseX - points[j].baseX;
+          const dy = points[i].baseY - points[j].baseY;
+          if (dx * dx + dy * dy > tt) continue;
+          if (points[i].colour !== points[j].colour) continue;
+          const forbidden = new Set([points[i].colour]);
+          for (let k = 0; k < lenPoints; k++) {
+            if (k === j) continue;
+            const ex = points[j].baseX - points[k].baseX;
+            const ey = points[j].baseY - points[k].baseY;
+            if (ex * ex + ey * ey <= tt) forbidden.add(points[k].colour);
+          }
+          const options = colours.filter(c => !forbidden.has(c));
+          points[j].colour = options.length
+            ? LAB.sample(options)
+            : LAB.sample(colours.filter(c => c !== points[i].colour));
+        }
+      }
+    }
+
+    function updatePoints() {
+      points.forEach(p => {
+        const dx = p.baseX - mouseX;
+        const dy = p.baseY - mouseY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist > 0) {
+          const factor = Math.min(influence, dist * 0.15);
+          p.x = p.baseX + (dx / dist) * factor;
+          p.y = p.baseY + (dy / dist) * factor;
+        } else {
+          p.x = p.baseX;
+          p.y = p.baseY;
+        }
+      });
+    }
+
+    function buildCells() {
+      svg.innerHTML = '';
+      cellPaths = [];
+      for (let i = 0; i < points.length; i++) {
+        const path = LAB.svgElement('path', {
+          d: '',
+          fill: points[i].colour,
+          stroke: points[i].colour,
+        });
+        path.classList.add('voronoi-cell');
+        const link = LAB.svgElement('a', { 'xlink:href': points[i].href });
+        link.appendChild(path);
+        svg.appendChild(link);
+        cellPaths.push(path);
+      }
+    }
+
+    function updateVoronoi() {
+      const lenPoints = points.length;
+
+      for (let i = 0; i < lenPoints; i++) {
+        xs[i] = points[i].x;
+        ys[i] = points[i].y;
+      }
+
+      let maxMove = 0;
+      for (let i = 0; i < lenPoints; i++) {
+        const dx = xs[i] - prevPointsX[i];
+        const dy = ys[i] - prevPointsY[i];
+        const m = Math.sqrt(dx * dx + dy * dy);
+        if (m > maxMove) maxMove = m;
+      }
+
+      for (let cy = 0; cy < rows; cy++) {
+        const py = pys[cy];
+        let idx = cy * cols;
+        for (let cx = 0; cx < cols; cx++, idx++) {
+          const px = pxs[cx];
+
+          const w = prevWinner[idx];
+          if (w >= 0) {
+            cellU[idx] += maxMove;
+            cellL[idx] = Math.max(0, cellL[idx] - maxMove);
+            if (cellU[idx] < cellL[idx]) {
+              grid[idx] = w;
+              continue;
+            }
+          }
+
+          let minDist = Infinity;
+          let minIdx = 0;
+          let secondDist = Infinity;
+          for (let i = 0; i < lenPoints; i++) {
+            const dx = px - xs[i];
+            const dy = py - ys[i];
+            const d = dx * dx + dy * dy;
+            if (d < minDist) {
+              secondDist = minDist;
+              minDist = d;
+              minIdx = i;
+            } else if (d < secondDist) {
+              secondDist = d;
+            }
+          }
+          prevWinner[idx] = minIdx;
+          cellU[idx] = Math.sqrt(minDist);
+          cellL[idx] = Math.sqrt(secondDist);
+          grid[idx] = minIdx;
+        }
+      }
+
+      for (let i = 0; i < lenPoints; i++) {
+        buckets[i] = '';
+      }
+
+      for (let cy = 0; cy < rows; cy++) {
+        const y = cy * cellSize;
+        const rowStart = cy * cols;
+        let cx = 0;
+        while (cx < cols) {
+          const owner = grid[rowStart + cx];
+          let p = cx + 1;
+          while (p < cols && grid[rowStart + p] === owner) p++;
+          const w = (p - cx) * cellSize;
+          buckets[owner] += `M${cx * cellSize},${y}h${w}v${cellSize}h-${w}Z`;
+          cx = p;
+        }
+      }
+
+      for (let i = 0; i < lenPoints; i++) {
+        if (buckets[i] !== lastDs[i]) {
+          cellPaths[i].setAttribute('d', buckets[i]);
+          lastDs[i] = buckets[i];
+        }
+      }
+
+      for (let i = 0; i < lenPoints; i++) {
+        prevPointsX[i] = xs[i];
+        prevPointsY[i] = ys[i];
+      }
+    }
+
+    function render() {
+      updatePoints();
+      updateVoronoi();
+    }
+
+    function scheduleRender() {
+      const now = performance.now();
+      if (now - lastRender < targetFrameMs) return;
+      lastRender = now;
+      render();
+    }
+
+    document.addEventListener('mousemove', (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+      scheduleRender();
+    });
+
+    document.addEventListener('touchmove', (e) => {
+      const t = e.touches[0];
+      if (!t) return;
+      mouseX = t.clientX;
+      mouseY = t.clientY;
+      scheduleRender();
+    });
+
+    // Clever resize: fancy but kinda broken
+    function cleverResize() {
+      const minX = 50;
+      const minY = 50;
+      const maxX = window.innerWidth - 50;
+      const maxY = window.innerHeight - 50;
+      points.forEach(p => {
+        if (p.baseX < minX) p.baseX = minX;
+        if (p.baseX > maxX) p.baseX = maxX;
+        if (p.baseY < minY) p.baseY = minY;
+        if (p.baseY > maxY) p.baseY = maxY;
+      });
+      computeGridDims();
+      render();
+    }
+
+    // Basic resize: always works, but refreshes all cells
+    function basicResize() {
+      init();
+      render();
+    }
+
+    // I'm using this for now
+    window.addEventListener('resize', basicResize);
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, () => {
+        init();
+        scheduleRender();
+      });
+    });
+
+    init();
+    render();
+
+  </script>
+</body>
+
+</html>

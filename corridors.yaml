@@ -1855,3 +1855,10 @@ corridors:
     tags: [abstract, crt, mobile]
     visual_description: >-
       A dense, screen-filling grid of black halftone dots on an off-white background. Each dot's radius is modulated by a travelling sine wave, so the dots swell and shrink in parallel bands that seem to move across the screen. The wave's direction of travel drifts slowly over time. Every dot is a clickable link to a random corridor.
+  - id: fair-voronoi
+    title: Fair Voronoi
+    created: 2026-09-10 17:37
+    links: dynamic
+    tags: [abstract, crt, maths, mobile]
+    visual_description: >-
+      A screen-filling Voronoi diagram rendered in SVG against a dark background. A scattering of seed points divides the viewport into polygonal cells, each filled with a muted, earthy colour (slate blue, sage green, dusty mauve, and warm ochre), with adjacent cells given distinct shades. Moving the mouse or a finger pushes the nearby seed points aside, so the cells part and reflow around the cursor in real time. Pressing any key reseeds the points into a fresh arrangement. Each cell is a clickable link to a random corridor.

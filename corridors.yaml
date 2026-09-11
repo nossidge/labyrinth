@@ -1862,3 +1862,10 @@ corridors:
     tags: [abstract, crt, maths, mobile]
     visual_description: >-
       A screen-filling Voronoi diagram rendered in SVG against a dark background. A scattering of seed points divides the viewport into polygonal cells, each filled with a muted, earthy colour (slate blue, sage green, dusty mauve, and warm ochre), with adjacent cells given distinct shades. Moving the mouse or a finger pushes the nearby seed points aside, so the cells part and reflow around the cursor in real time. Pressing any key reseeds the points into a fresh arrangement. Each cell is a clickable link to a random corridor.
+  - id: chainmail
+    title: Chainmail
+    created: 2026-09-11 13:07
+    links: dynamic
+    tags: [mobile, skeuomorphic]
+    visual_description: >-
+      A full-screen mesh of interlocking chainmail rings over a dark background. The rings are ellipses in varying steel-grey tones, arranged in staggered rows with alternating tilts and slight positional jitter. Hovering over a ring makes it glow gold. Clicking the background or pressing a key regenerates the mesh. Every ring is a clickable link to a random corridor.

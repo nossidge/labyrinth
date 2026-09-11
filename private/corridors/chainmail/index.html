@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Chainmail and I">
+  <title>Hauberk</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      background-color: #17181c;
+    }
+
+    svg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    .ring {
+      fill: none;
+      transition: all 0.25s ease;
+    }
+
+    a:hover .ring {
+      stroke: #ffd766 !important;
+      filter: drop-shadow(0 0 6px #ffd766);
+    }
+
+    #ring-controls {
+      position: fixed;
+      display: flex;
+      align-items: center;
+      bottom: 12px;
+      left: 50%;
+      gap: 8px;
+      padding: 6px 10px;
+      background-color: #101114;
+      border: 2px ridge #6a707a;
+      color: #9aa0aa;
+      font-family: monospace;
+      font-size: 13px;
+      transform: translateX(-50%);
+    }
+
+    #ring-controls[hidden] {
+      display: none;
+    }
+
+    #ring-size-slider {
+      width: 160px;
+    }
+  </style>
+</head>
+
+<body>
+  <svg id="svg"></svg>
+
+  <div id="ring-controls" hidden>
+    <label for="ring-size-slider">size</label>
+    <input type="range" id="ring-size-slider" min="10" max="30" step="1">
+    <span id="ring-size-value"></span>
+  </div>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('chainmail');
+
+    const svg = document.getElementById('svg');
+    const ringControls = document.getElementById('ring-controls');
+    const ringSizeSlider = document.getElementById('ring-size-slider');
+    const ringSizeValue = document.getElementById('ring-size-value');
+
+    const STEEL = ['#9aa0aa', '#7b818c', '#b9bec6', '#6a707a', '#8a919c'];
+    const GOLD = '#c9a227';
+    const WORD = '123456';
+    const COLS = 5;
+    const ROWS = 10;
+    const GAP = 1;
+    const FONT = {
+      1: ['10000', '10000', '10000', '11110', '10001', '10001', '10001', '10001', '11110', '00000'],
+      2: ['00000', '00000', '00000', '10001', '10001', '01010', '00100', '00100', '01000', '10000'],
+      3: ['00000', '00000', '10000', '11110', '10001', '10000', '10000', '10000', '10000', '00000'],
+      4: ['00000', '00000', '10000', '11110', '10001', '10001', '10001', '10001', '10001', '00000'],
+      5: ['00000', '00100', '00000', '00100', '00100', '00100', '00100', '00100', '01110', '00000'],
+      6: ['00000', '00000', '00000', '01110', '10001', '11111', '10000', '10001', '01110', '00000'],
+    };
+
+    let rings = [];
+    let revealed = false;
+    let ringRadius = LAB.randInt(20, 24);
+
+    function init() {
+      svg.replaceChildren();
+      rings = [];
+      const winW = window.innerWidth;
+      const winH = window.innerHeight;
+      svg.setAttribute('viewBox', `0 0 ${winW} ${winH}`);
+
+      if (!revealed) ringRadius = LAB.randInt(20, 24);
+
+      const dx = ringRadius * 1.75;
+      const dy = ringRadius * 0.95;
+      const strokeWidth = ringRadius * 0.3;
+
+      let row = 0;
+      for (let y = -ringRadius; y < winH + ringRadius; y += dy) {
+        const offset = (row % 2) * (dx / 2);
+        const tilt = (row % 2 === 0) ? 1 : -1;
+
+        for (let x = -ringRadius + offset; x < winW + ringRadius; x += dx) {
+          const link = LAB.svgElement('a');
+          link.setAttribute('href', LAB.pageRandomiser.nextOne());
+
+          const cx = x + LAB.rand(-2, 2);
+          const cy = y + LAB.rand(-2, 2);
+          const stroke = LAB.sample(STEEL);
+
+          const ring = LAB.svgElement('ellipse', {
+            class: 'ring',
+            cx: cx,
+            cy: cy,
+            rx: ringRadius,
+            ry: ringRadius * 0.82,
+            stroke: stroke,
+            'stroke-width': strokeWidth,
+            transform: `rotate(${tilt * LAB.rand(8, 16)} ${x} ${y})`,
+          });
+
+          link.appendChild(ring);
+          svg.appendChild(link);
+          rings.push({ x: cx, y: cy, el: ring, orig: stroke });
+        }
+        row++;
+      }
+
+      displayWord();
+    }
+
+    function layout() {
+      const winW = window.innerWidth;
+      const winH = window.innerHeight;
+      const totalCols = WORD.length * COLS + (WORD.length - 1) * GAP;
+      const pitch = Math.min((winW * 0.9) / totalCols, (winH * 0.55) / ROWS);
+      return {
+        pitch: pitch,
+        originX: (winW - totalCols * pitch) / 2,
+        originY: (winH - ROWS * pitch) / 2,
+      };
+    }
+
+    function reveal() {
+      const { pitch, originX, originY } = layout();
+      const cellDim = COLS + GAP;
+      for (const ring of rings) {
+        const col = Math.floor((ring.x - originX) / pitch);
+        const row = Math.floor((ring.y - originY) / pitch);
+        if (row < 0 || row >= ROWS) continue;
+        const letterIdx = Math.floor(col / cellDim);
+        if (letterIdx < 0 || letterIdx >= WORD.length) continue;
+        const localCol = col - letterIdx * cellDim;
+        if (localCol < 0 || localCol >= COLS) continue;
+        if (FONT[WORD[letterIdx]][row][localCol] === '1') {
+          ring.el.setAttribute('stroke', GOLD);
+          ring.el.style.filter = `drop-shadow(0 0 ${Math.round(pitch * 0.12)}px ${GOLD})`;
+        }
+      }
+    }
+
+    function conceal() {
+      for (const ring of rings) {
+        ring.el.setAttribute('stroke', ring.orig);
+        ring.el.style.filter = '';
+      }
+    }
+
+    function displayWord() {
+      ringControls.hidden = !revealed;
+      if (revealed) {
+        reveal();
+        syncRingControls();
+      } else {
+        conceal();
+      }
+    }
+
+    // The point of this control is that on smaller monitors it's not easy to see the golden word
+    // So if the user can shrink down the rings, there are more "pixels" to use to make up the word
+    function syncRingControls() {
+      ringSizeSlider.value = ringRadius;
+      ringSizeValue.textContent = ringRadius;
+    }
+
+    ringSizeSlider.addEventListener('input', () => {
+      ringRadius = Number(ringSizeSlider.value);
+      ringSizeValue.textContent = ringRadius;
+      init();
+    });
+
+    window.addEventListener('resize', init);
+
+    document.body.addEventListener('click', (e) => {
+      if (e.target.closest('a')) return;
+      if (e.target.closest('#ring-controls')) return;
+      init();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === '`' || e.key === '~') {
+        revealed = !revealed;
+        displayWord();
+      } else {
+        LAB.handleKeydown(e, init);
+      }
+    });
+
+    init();
+
+  </script>
+</body>
+
+</html>

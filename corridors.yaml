@@ -1869,3 +1869,10 @@ corridors:
     tags: [mobile, skeuomorphic]
     visual_description: >-
       A full-screen mesh of interlocking chainmail rings over a dark background. The rings are ellipses in varying steel-grey tones, arranged in staggered rows with alternating tilts and slight positional jitter. Hovering over a ring makes it glow gold. Clicking the background or pressing a key regenerates the mesh. Every ring is a clickable link to a random corridor.
+  - id: equal-lefts
+    title: Equal Lefts
+    created: 2026-09-12 15:24
+    links: dynamic
+    tags: [abstract, mobile]
+    visual_description: >-
+      A full-screen grid of equal signs on a cream background. Each sign is two parallel bars whose orientation, horizontal or vertical, is driven by a travelling sine wave, so the whole grid ripples between the two forms over time. The bars are deep blue on one orientation and terracotta on the other. Hovering over a sign inverts its colours. Clicking the background or pressing any key regenerates the grid with new random cell size and wave parameters. Every sign is a clickable link to a random corridor.

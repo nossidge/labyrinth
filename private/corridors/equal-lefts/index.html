@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+A grid of equal signs moving toward the left side of the page.
+Sometimes I just come up with a bad pun before I know what I'm going to do with it...
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="left here left now">
+  <title>=||=</title>
+  <style>
+    :root {
+      --colour-background: #ede4cf;
+      --colour-horizontal: #b3502a;
+      --colour-vertical: #2c3e6b;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body,
+    html {
+      width: 100%;
+      height: 100%;
+      background: var(--colour-background);
+      overflow: hidden;
+    }
+
+    #main {
+      position: fixed;
+      inset: 0;
+    }
+
+    .sign {
+      position: absolute;
+      display: block;
+      background-color: var(--colour-background);
+      background-image: linear-gradient(90deg,
+          var(--colour-background) 0 22%, var(--colour-vertical) 22% 40%,
+          var(--colour-background) 40% 60%, var(--colour-vertical) 60% 78%,
+          var(--colour-background) 78% 100%);
+      text-decoration: none;
+      transition: filter .15s ease;
+    }
+
+    .sign.vertical {
+      background-image: linear-gradient(0deg,
+          var(--colour-background) 0 22%, var(--colour-horizontal) 22% 40%,
+          var(--colour-background) 40% 60%, var(--colour-horizontal) 60% 78%,
+          var(--colour-background) 78% 100%);
+    }
+
+    .sign:hover {
+      filter: invert(0.92);
+      z-index: 5;
+    }
+
+    /* Embiggen to remove dead space between links for mouse */
+    .sign::before {
+      position: absolute;
+      inset: -1px;
+      content: '';
+    }
+  </style>
+</head>
+
+<body>
+  <main id="main"></main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('equal-lefts');
+
+    const main = document.getElementById('main');
+
+    let equalSigns = [];
+    let cellSize, fx, fy;
+
+    function init() {
+      main.replaceChildren();
+      equalSigns.length = 0;
+
+      cellSize = LAB.rand(30, 50);
+      fx = LAB.rand(0.5, 1.3);
+      fy = fx + LAB.randNegToPos(0.7);
+
+      const cols = Math.ceil(window.innerWidth / cellSize) + 1;
+      const rows = Math.ceil(window.innerHeight / cellSize) + 1;
+
+      for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+          const a = document.createElement('a');
+          a.className = 'sign';
+          a.href = LAB.pageRandomiser.nextOne();
+          a.style.width = (cellSize - 2) + 'px';
+          a.style.height = (cellSize - 2) + 'px';
+          a.style.left = (x * cellSize + 1) + 'px';
+          a.style.top = (y * cellSize + 1) + 'px';
+          main.appendChild(a);
+          equalSigns.push({ el: a, x, y, state: null });
+        }
+      }
+    }
+
+    function tick() {
+      const wave = performance.now() * 0.0011;
+      equalSigns.forEach((sign) => {
+        const value = Math.sin(sign.x * fx + sign.y * fy + wave * 1.7);
+        const state = value > 0 ? 'horizontal' : 'vertical';
+        if (sign.state !== state) {
+          sign.el.classList.toggle('vertical', state === 'vertical');
+          sign.state = state;
+        }
+      });
+      requestAnimationFrame(tick);
+    }
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    window.addEventListener('resize', init);
+
+    init();
+    tick();
+
+  </script>
+</body>
+
+</html>

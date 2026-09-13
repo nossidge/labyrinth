@@ -99,23 +99,6 @@ But with the 90° angle turns, it looked more like a coloured Etch A Sketch.
       for (let i = 0; i < STARTING_WALKERS; i++) addWalker();
     }
 
-    // Animation wrapper to allow for FPS throttling
-    function handleTickWithFPS(tickFunction, fps = 60) {
-      const targetFrameMs = 1000 / fps;
-      let previousTime = 0;
-      function tick(now) {
-        const dt = now - previousTime;
-        if (previousTime !== 0 && dt < targetFrameMs) {
-          requestAnimationFrame(tick);
-          return;
-        }
-        previousTime = now;
-        tickFunction(now);
-        requestAnimationFrame(tick);
-      }
-      requestAnimationFrame(tick);
-    }
-
     function tick() {
       if (document.hidden) return;
 
@@ -192,7 +175,7 @@ But with the 90° angle turns, it looked more like a coloured Etch A Sketch.
     window.addEventListener('resize', init);
 
     init();
-    handleTickWithFPS(tick, 30);
+    LAB.handleTickWithFPS(tick, 30);
 
   </script>
 </body>

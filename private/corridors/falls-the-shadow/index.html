@@ -182,23 +182,6 @@ https://poets.org/poem/hollow-men
       });
     }
 
-    // Animation wrapper to allow for FPS throttling
-    function handleTickWithFPS(tickFunction, fps = 60) {
-      const targetFrameMs = 1000 / fps;
-      let previousTime = 0;
-      function tick(now) {
-        const dt = now - previousTime;
-        if (previousTime !== 0 && dt < targetFrameMs) {
-          requestAnimationFrame(tick);
-          return;
-        }
-        previousTime = now;
-        tickFunction(now);
-        requestAnimationFrame(tick);
-      }
-      requestAnimationFrame(tick);
-    }
-
     // Background of television static
     function tickStatic() {
       const imageData = ctx.createImageData(winW, winH);
@@ -259,7 +242,7 @@ https://poets.org/poem/hollow-men
 
     resize();
     tickWords();
-    handleTickWithFPS(tickStatic, 16);
+    LAB.handleTickWithFPS(tickStatic, 16);
 
   </script>
 </body>

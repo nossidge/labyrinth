@@ -1876,3 +1876,10 @@ corridors:
     tags: [abstract, mobile]
     visual_description: >-
       A full-screen grid of equal signs on a cream background. Each sign is two parallel bars whose orientation, horizontal or vertical, is driven by a travelling sine wave, so the whole grid ripples between the two forms over time. The bars are deep blue on one orientation and terracotta on the other. Hovering over a sign inverts its colours. Clicking the background or pressing any key regenerates the grid with new random cell size and wave parameters. Every sign is a clickable link to a random corridor.
+  - id: symbol-entanglement
+    title: Symbol Entanglement
+    created: 2026-09-13 12:01
+    links: dynamic
+    tags: [abstract, crt, mobile, unicode]
+    visual_description: >-
+      A full-screen grid of small neon-green squares on a near-black background, most containing a random character drawn from 0, 1, ~, $, #, @, %, & and *. Each cell slowly drifts away from its original grid position over time. Hovering over a cell's original spot highlights the cell wherever it has drifted to in magenta, since every cell stays "entangled" with its home position. Cells occasionally flash cyan. Clicking the background or pressing any key gives all cells a jiggle. Each cell is a clickable link to a random corridor.

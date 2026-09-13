@@ -193,6 +193,23 @@ class Labyrinth {
     }
   }
 
+  // Animation wrapper to allow for FPS throttling
+  handleTickWithFPS(callback, fps = 60) {
+    const targetFrameMs = 1000 / fps;
+    let previousTime = 0;
+    function tick(now) {
+      const dt = now - previousTime;
+      if (previousTime !== 0 && dt < targetFrameMs) {
+        requestAnimationFrame(tick);
+        return;
+      }
+      previousTime = now;
+      callback(now);
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+
   // Allow most keypresses to be used, but ignore special browser keys
   handleKeydown(e, callback, allowedKeys = []) {
     const tag = e.target.tagName;

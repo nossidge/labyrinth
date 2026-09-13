@@ -147,23 +147,6 @@
       }
     }
 
-    // Animation wrapper to allow for FPS throttling
-    function handleTickWithFPS(tickFunction, fps = 60) {
-      const targetFrameMs = 1000 / fps;
-      let previousTime = 0;
-      function tick(now) {
-        const dt = now - previousTime;
-        if (previousTime !== 0 && dt < targetFrameMs) {
-          requestAnimationFrame(tick);
-          return;
-        }
-        previousTime = now;
-        tickFunction(now);
-        requestAnimationFrame(tick);
-      }
-      requestAnimationFrame(tick);
-    }
-
     // Animate like music equaliser bars
     function tick() {
       groups.forEach(g => {
@@ -196,7 +179,7 @@
     });
 
     init();
-    handleTickWithFPS(tick, 10);
+    LAB.handleTickWithFPS(tick, 10);
 
   </script>
 </body>

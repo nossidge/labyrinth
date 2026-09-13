@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+Draw a bunch of squares containing symbols to a canvas.
+The cells gradually move away from their original position.
+But the mouse hover corresponds to the cell's original position.
+So hovering over the initial positions will highlight a cell that might be quite far away by then.
+Essentially, no matter where the cell ends up, it's always entangled to its original position.
+You know, because of Quantum.
+
+I had major CPU issues with this initially, when I was using DOM elements.
+Switching to the canvas made everything way more performant.
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Quantum of Nossidge">
+  <title>Spukhafte Fernwirkung</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body,
+    html {
+      width: 100%;
+      height: 100%;
+      background-color: #050505;
+      font-family: monospace;
+      overflow: hidden;
+    }
+
+    main {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      z-index: 1;
+    }
+
+    canvas {
+      display: block;
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+      background-size: 100% 2px;
+      pointer-events: none;
+      z-index: 100;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+  <canvas id="canvas"></canvas>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('symbol-entanglement');
+
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    // 60 cols at 2400px wide, 40 rows at 960px tall
+    const BASE_WIDTH = 2400, BASE_COLS = 60;
+    const BASE_HEIGHT = 960, BASE_ROWS = 40;
+    const W = 12, H = 12;
+    const FONT = '8px monospace';
+    const BG = '#050505';
+    const CELL = '#00ff41';
+    const HOVER = '#ff00ff';
+    const GLOW = '#00ffff';
+    const GLYPH = '#050505';
+    const CHARS = '01~$#@%&*';
+
+    let COLS = 0, ROWS = 0;
+    let OFFSET_X = 0, OFFSET_Y = 0;
+    let dpr = 1;
+    let pixels = [];
+    let sprites = {};
+    let hoverIdx = -1;
+    let hoverEl = null;
+    let hoverAnchorIdx = -1;
+
+    // Pre-render each symbol once, then blit to the OG canvas context using drawImage
+    // This seems to be way better for the CPU
+    function makeSprite(ch) {
+      const c = document.createElement('canvas');
+      c.width = Math.round(W * dpr);
+      c.height = Math.round(H * dpr);
+      const g = c.getContext('2d');
+      g.scale(dpr, dpr);
+      g.fillStyle = GLYPH;
+      g.font = FONT;
+      g.textAlign = 'center';
+      g.textBaseline = 'middle';
+      g.fillText(ch, W / 2, H / 2);
+      return c;
+    }
+
+    // Do this on resize
+    function calculateDimensions() {
+      COLS = Math.max(1, Math.round(window.innerWidth / (BASE_WIDTH / BASE_COLS)));
+      ROWS = Math.max(1, Math.round(window.innerHeight / (BASE_HEIGHT / BASE_ROWS)));
+      OFFSET_X = (window.innerWidth - COLS * W) / 2;
+      OFFSET_Y = (window.innerHeight - ROWS * H) / 2;
+      dpr = window.devicePixelRatio || 1;
+      canvas.width = Math.round(window.innerWidth * dpr);
+      canvas.height = Math.round(window.innerHeight * dpr);
+      canvas.style.width = window.innerWidth + 'px';
+      canvas.style.height = window.innerHeight + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    function init() {
+      calculateDimensions();
+
+      sprites = {};
+      for (let i = 0; i < CHARS.length; i++) {
+        sprites[CHARS[i]] = makeSprite(CHARS[i]);
+      }
+
+      pixels.length = 0;
+      for (let y = 0; y < ROWS; y++) {
+        for (let x = 0; x < COLS; x++) {
+          pixels.push({
+            x: OFFSET_X + x * W + LAB.rand(-1, 1),
+            y: OFFSET_Y + y * H + LAB.rand(-1, 1),
+            vx: 0,
+            vy: 0,
+            ch: LAB.sample(CHARS),
+            dim: LAB.chance(0.08),
+            href: LAB.pageRandomiser.nextOne(),
+            glowUntil: 0,
+          });
+        }
+      }
+      hoverIdx = -1;
+
+      // Put the focusable anchor somewhere sensible (the centre cell)
+      // So keyboard-only users can tab to it and press enter to follow it immediately
+      const mid = Math.floor(ROWS / 2) * COLS + Math.floor(COLS / 2);
+      pointHoverElAt(mid);
+    }
+
+    // Randomly jiggle a cell around a bit
+    function jiggle() {
+      for (let i = 0; i < pixels.length; i++) {
+        pixels[i].vx += LAB.rand(-0.5, 0.5);
+        pixels[i].vy += LAB.rand(-0.5, 0.5);
+      }
+    }
+
+    // Find the cell at the screen position
+    function cellAt(cx, cy) {
+      const col = Math.floor((cx - OFFSET_X) / W);
+      const row = Math.floor((cy - OFFSET_Y) / H);
+      if (col < 0 || col >= COLS || row < 0 || row >= ROWS) return -1;
+      return row * COLS + col;
+    }
+
+    // The hover target for a cell is its original grid position
+    function cellHomeRect(idx) {
+      const col = idx % COLS;
+      const row = Math.floor(idx / COLS);
+      return { x: OFFSET_X + col * W, y: OFFSET_Y + row * H };
+    }
+
+    // Create a temporary anchor at the point where the user is hovering
+    // This is so that the browser's status bar will show the redirect URL
+    function getHoverEl() {
+      if (hoverEl) return hoverEl;
+      hoverEl = document.createElement('a');
+      hoverEl.style.position = 'fixed';
+      hoverEl.style.zIndex = '90';
+      hoverEl.style.width = W + 'px';
+      hoverEl.style.height = H + 'px';
+      hoverEl.style.border = '0';
+      // When a keyboard user tabs to the link, light up the matching cell
+      hoverEl.addEventListener('focus', () => {
+        if (hoverAnchorIdx >= 0) hoverIdx = hoverAnchorIdx;
+      });
+      document.body.appendChild(hoverEl);
+      return hoverEl;
+    }
+
+    // Move the focusable anchor onto the given cell and point it at that cell's page
+    // Called on hover, and also on load so it always exists for keyboard tabbing
+    function pointHoverElAt(idx) {
+      if (idx < 0) return;
+      const el = getHoverEl();
+      const rect = cellHomeRect(idx);
+      el.href = pixels[idx].href;
+      el.style.left = rect.x + 'px';
+      el.style.top = rect.y + 'px';
+      hoverAnchorIdx = idx;
+    }
+
+    // Use a few translucent squares instead of shadowBlur
+    // Cheaper computationally and makes it a bit more nicely lo-fi
+    function glowRect(x, y, w, h, color) {
+      ctx.fillStyle = color;
+      ctx.globalAlpha = 0.16;
+      ctx.fillRect(x - 8, y - 8, w + 16, h + 16);
+      ctx.globalAlpha = 0.34;
+      ctx.fillRect(x - 4, y - 4, w + 8, h + 8);
+      ctx.globalAlpha = 1;
+      ctx.fillRect(x, y, w, h);
+    }
+
+    function draw() {
+      ctx.fillStyle = BG;
+      ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+
+      const now = performance.now();
+      for (let i = 0; i < pixels.length; i++) {
+        const p = pixels[i];
+        if (now < p.glowUntil) {
+          glowRect(p.x, p.y, W, H, GLOW);
+        } else {
+          ctx.fillStyle = CELL;
+          ctx.fillRect(p.x, p.y, W, H);
+        }
+        if (!p.dim) ctx.drawImage(sprites[p.ch], p.x, p.y, W, H);
+      }
+
+      if (hoverIdx >= 0) {
+        const p = pixels[hoverIdx];
+        const s = W * 2.5;
+        const cx = p.x + W / 2;
+        const cy = p.y + H / 2;
+        glowRect(cx - s / 2, cy - s / 2, s, s, HOVER);
+        if (!p.dim) ctx.drawImage(sprites[p.ch], cx - W / 2, cy - H / 2, W, H);
+      }
+    }
+
+    function tickMovePixels() {
+      for (let i = 0; i < pixels.length; i++) {
+        const p = pixels[i];
+        p.vx = (p.vx + LAB.rand(-0.05, 0.05)) * 0.98;
+        p.vy = (p.vy + LAB.rand(-0.05, 0.05)) * 0.98;
+        p.x += p.vx * 2;
+        p.y += p.vy * 2;
+        if (LAB.chance(0.001)) p.ch = LAB.sample(CHARS);
+      }
+      draw();
+    }
+
+    function tickGlowPixels() {
+      const time = performance.now() + 900;
+      for (let i = 0; i < pixels.length; i++) {
+        if (LAB.chance(0.04)) pixels[i].glowUntil = time;
+      }
+    }
+
+    let resizeTimeout = null;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(init, 200);
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      const idx = cellAt(e.clientX, e.clientY);
+      hoverIdx = idx;
+      if (idx >= 0) pointHoverElAt(idx);
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) jiggle();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, jiggle);
+    });
+
+    init();
+    LAB.handleTickWithFPS(tickMovePixels, 60);
+    LAB.handleTickWithFPS(tickGlowPixels, 1);
+
+  </script>
+</body>
+
+</html>

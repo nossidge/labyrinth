@@ -1883,3 +1883,10 @@ corridors:
     tags: [abstract, crt, mobile, unicode]
     visual_description: >-
       A full-screen grid of small neon-green squares on a near-black background, most containing a random character drawn from 0, 1, ~, $, #, @, %, & and *. Each cell slowly drifts away from its original grid position over time. Hovering over a cell's original spot highlights the cell wherever it has drifted to in magenta, since every cell stays "entangled" with its home position. Cells occasionally flash cyan. Clicking the background or pressing any key gives all cells a jiggle. Each cell is a clickable link to a random corridor.
+  - id: symbol-drift
+    title: Symbol Drift
+    created: 2026-09-14 12:35
+    links: dynamic
+    tags: [abstract, crt, mobile, unicode]
+    visual_description: >-
+      A handful of rectangular grids of unicode symbols (triangles, diamonds, circles, card suits, and stars) float as near the top-center of a near-black background. Each grid is framed by a faint magenta border and drifts slowly in a random direction, bouncing gently. Thin vertical magenta lines run between the grids. Half the cells are clickable links to random corridors that flash bright magenta on hover.

@@ -1890,3 +1890,10 @@ corridors:
     tags: [abstract, crt, mobile, unicode]
     visual_description: >-
       A handful of rectangular grids of unicode symbols (triangles, diamonds, circles, card suits, and stars) float as near the top-center of a near-black background. Each grid is framed by a faint magenta border and drifts slowly in a random direction, bouncing gently. Thin vertical magenta lines run between the grids. Half the cells are clickable links to random corridors that flash bright magenta on hover.
+  - id: symbol-rotate
+    title: Symbol Rotate
+    created: 2026-09-15 18:15
+    links: dynamic
+    tags: [abstract, crt, mobile, unicode]
+    visual_description: >-
+      Three overlapping square grids of unicode math symbols, 7x7 red, 9x9 green, and 11x11 blue spin slowly around a shared centre on a near-black background, some clockwise and some anticlockwise. Clicking the background randomises all three rotation speeds. The grids scale with the viewport. The coloured cells are clickable links to random corridors that glow magenta on hover.

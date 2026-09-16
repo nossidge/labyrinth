@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="To shreds, you say?">
+  <title>rip torn</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      min-height: 100%;
+      background: #000000;
+      overflow: hidden;
+    }
+
+    main {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      height: 100vh;
+      padding: 2vh 0;
+    }
+
+    .strip {
+      display: block;
+      position: relative;
+      flex: 1;
+      left: -8%;
+      width: 116%;
+      margin: .35vh 0;
+      background: var(--colour);
+      clip-path: polygon(0 12%, 4% 3%, 9% 16%, 15% 1%, 21% 10%, 28% 0, 35% 14%, 43% 4%, 51% 17%, 59% 2%, 68% 13%, 76% 0, 84% 15%, 92% 4%, 100% 12%, 100% 89%, 94% 98%, 87% 85%, 78% 100%, 69% 87%, 61% 97%, 53% 84%, 44% 99%, 35% 88%, 27% 100%, 18% 86%, 10% 98%, 0 88%);
+      box-shadow: inset 0 3px rgba(255, 255, 255, .25);
+      animation: vacillate var(--speed) ease-in-out infinite alternate;
+    }
+
+    .strip:hover {
+      background: #ffffff;
+      filter: grayscale(1);
+      animation-play-state: paused;
+    }
+
+    .strip::before,
+    .strip::after {
+      position: absolute;
+      top: 35%;
+      color: rgba(0, 0, 0, .55);
+      font: bold 11px Courier, monospace;
+      letter-spacing: 8px;
+      content: attr(data-content);
+    }
+
+    .strip::before {
+      left: 10%;
+    }
+
+    .strip::after {
+      right: 10%;
+    }
+
+    @keyframes vacillate {
+      from {
+        transform: translateX(var(--vacillate-from));
+      }
+
+      to {
+        transform: translateX(var(--vacillate-to));
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main id="main"></main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('rainbow-ribbons');
+
+    const main = document.getElementById('main');
+
+    const colours = [
+      '#ed1524', '#ff5a00', '#ffd900', '#24e347', '#00d8d8', '#165cff',
+      '#7024de', '#f0009c', '#e7ff00', '#ff3a62', '#00a86b', '#583cff',
+    ];
+
+    colours.forEach((colour, i) => {
+      const strip = document.createElement('a');
+      strip.className = 'strip';
+      strip.href = LAB.pageRandomiser.nextOne();
+      strip.dataset.content = colour.toUpperCase();
+      strip.style.setProperty('--colour', colour);
+      strip.style.setProperty('--speed', `${LAB.rand(7, 17)}s`);
+      strip.style.setProperty('--vacillate-from', `${LAB.rand(-3, 0)}%`);
+      strip.style.setProperty('--vacillate-to', `${LAB.rand(0, 4)}%`);
+      strip.style.animationDelay = `${LAB.rand(-12, 0)}s`;
+      main.append(strip);
+    });
+
+  </script>
+</body>
+
+</html>

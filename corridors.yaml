@@ -1897,3 +1897,10 @@ corridors:
     tags: [abstract, crt, mobile, unicode]
     visual_description: >-
       Three overlapping square grids of unicode math symbols, 7x7 red, 9x9 green, and 11x11 blue spin slowly around a shared centre on a near-black background, some clockwise and some anticlockwise. Clicking the background randomises all three rotation speeds. The grids scale with the viewport. The coloured cells are clickable links to random corridors that glow magenta on hover.
+  - id: rainbow-ribbons
+    title: Rainbow Ribbons
+    created: 2026-09-16 11:07
+    links: dynamic
+    tags: [abstract, mobile]
+    visual_description: >-
+      Twelve horizontal ribbons in bright rainbow hues stretch across a black background edge to edge, each cut with a jagged, torn edge and oscillating slowly left to right. Each ribbon has its own hex colour code printed along its length at both ends. Hovering over a ribbon turns it white and pauses its movement. Every ribbon is a clickable link to a random corridor.

@@ -1904,3 +1904,10 @@ corridors:
     tags: [abstract, mobile]
     visual_description: >-
       Twelve horizontal ribbons in bright rainbow hues stretch across a black background edge to edge, each cut with a jagged, torn edge and oscillating slowly left to right. Each ribbon has its own hex colour code printed along its length at both ends. Hovering over a ribbon turns it white and pauses its movement. Every ribbon is a clickable link to a random corridor.
+  - id: superellipses
+    title: Superellipses
+    created: 2026-09-17 13:06
+    links: dynamic
+    tags: [abstract, crt, mobile]
+    visual_description: >-
+      A full-screen grid of superellipse outlines on a near-black background. Each shape morphs between a star, a circle, and a square as its exponent oscillates over time, with neighbouring cells slightly out of phase. The outlines are pale purple and glow pink on hover. Every cell is a clickable link to a random corridor.

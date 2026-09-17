@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+https://en.wikipedia.org/wiki/Superellipse
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Squircle => Warsquorcle => Blasquoise">
+  <title>Circling the Square</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      background: #0a0710;
+      overflow: hidden;
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, 96px);
+      grid-template-rows: repeat(auto-fill, 96px);
+      justify-content: center;
+      align-content: center;
+      gap: 4px;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    .cell {
+      display: block;
+      width: 96px;
+      height: 96px;
+      text-decoration: none;
+      transition: transform 0.25s ease, filter 0.25s ease;
+    }
+
+    .cell svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .cell path {
+      fill: none;
+      stroke: #c69bff;
+      stroke-width: 2.4;
+      opacity: 0.65;
+      transition: stroke 0.25s ease, opacity 0.25s ease;
+    }
+
+    .cell:hover {
+      filter: drop-shadow(0 0 8px rgba(255, 120, 220, 0.8));
+      transform: scale(1.25);
+      z-index: 10;
+    }
+
+    .cell:hover path {
+      stroke: #ff5ec8;
+      opacity: 1;
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 255, 0, 0.03));
+      background-size: 100% 2px, 3px 100%;
+      pointer-events: none;
+      z-index: 100;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+  <main id="main"></main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('squircles');
+
+    const main = document.getElementById('main');
+    const CENTER = 48;
+    const RADIUS = 40;
+    const STEPS = 48;
+
+    const cells = [];
+    let time = 0;
+
+    // Superellipse outline for a given exponent, as an SVG "d" path string
+    function superellipse(exp) {
+      let d = '';
+      for (let s = 0; s <= STEPS; s++) {
+        const t = (s / STEPS) * Math.PI * 2;
+        const ct = Math.cos(t);
+        const st = Math.sin(t);
+        const x = CENTER + RADIUS * Math.sign(ct) * Math.pow(Math.abs(ct), 2 / exp);
+        const y = CENTER + RADIUS * Math.sign(st) * Math.pow(Math.abs(st), 2 / exp);
+        d += (s === 0 ? 'M' : 'L') + x.toFixed(2) + ' ' + y.toFixed(2) + ' ';
+      }
+      return d + 'Z';
+    }
+
+    function init() {
+      main.replaceChildren();
+      cells.length = 0;
+
+      const cols = Math.floor(window.innerWidth / 100);
+      const rows = Math.floor(window.innerHeight / 100);
+      const count = Math.max(1, cols) * Math.max(1, rows);
+
+      for (let i = 0; i < count; i++) {
+        const a = document.createElement('a');
+        a.href = LAB.pageRandomiser.nextOne();
+        a.className = 'cell';
+
+        const svg = LAB.svgElement('svg', { viewBox: '0 0 96 96' });
+        const path = LAB.svgElement('path');
+        svg.appendChild(path);
+        a.appendChild(svg);
+        main.appendChild(a);
+
+        const col = i % Math.max(1, cols);
+        const row = Math.floor(i / Math.max(1, cols));
+        cells.push({ path, phase: (col + row) * 0.45 });
+      }
+    }
+
+    // The exponent creates: star (<1) | circle (2) | square (large)
+    function tick() {
+      time += 0.012;
+      for (const c of cells) {
+
+        const exponent = Math.pow(2, 2.1 * Math.sin(time + c.phase) + 0.9);
+        c.path.setAttribute('d', superellipse(exponent));
+      }
+      requestAnimationFrame(tick);
+    }
+
+    window.addEventListener('resize', init);
+
+    init();
+    tick();
+
+  </script>
+</body>
+
+</html>

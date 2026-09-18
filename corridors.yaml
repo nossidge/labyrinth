@@ -1911,3 +1911,10 @@ corridors:
     tags: [abstract, crt, mobile]
     visual_description: >-
       A full-screen grid of superellipse outlines on a near-black background. Each shape morphs between a star, a circle, and a square as its exponent oscillates over time, with neighbouring cells slightly out of phase. The outlines are pale purple and glow pink on hover. Every cell is a clickable link to a random corridor.
+  - id: four-corners
+    title: Four Corners
+    created: 2026-09-18 09:53
+    links: dynamic
+    tags: [abstract, crt, mobile]
+    visual_description: >-
+      A grid of small cells on a black background. Each cell holds a single amber dot that glides from one corner of the cell to the next in sequence, stepping once per second in a slow line dance, with neighbouring cells moving in alternating directions. Hovering over a cell turns its dot white and gives it a soft glow. The grid dimensions adapt to fill the full viewport. Every cell is a clickable link to a random corridor.

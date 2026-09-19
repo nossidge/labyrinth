@@ -1918,3 +1918,10 @@ corridors:
     tags: [abstract, crt, mobile]
     visual_description: >-
       A grid of small cells on a black background. Each cell holds a single amber dot that glides from one corner of the cell to the next in sequence, stepping once per second in a slow line dance, with neighbouring cells moving in alternating directions. Hovering over a cell turns its dot white and gives it a soft glow. The grid dimensions adapt to fill the full viewport. Every cell is a clickable link to a random corridor.
+  - id: moon-phases
+    title: Moon Phases
+    created: 2026-09-19 15:40
+    links: dynamic
+    tags: [crt, mobile, nature]
+    visual_description: >-
+      A full-screen grid of pale moon discs on a near-black background. Each moon has a dark shadow band sweeping across it, and the staggered delays make the phases drift in a wave across the rows and columns. Hovering over a moon makes it glow and grow slightly. Every moon is a clickable link to a random corridor.

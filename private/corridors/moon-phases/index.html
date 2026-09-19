@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Ruby Wax">
+  <title>The Funky Gibbous</title>
+  <style>
+    :root {
+      --bg: #0c0c16;
+      --moon: #e9e9f2;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      display: flex;
+      min-height: 100vh;
+      background-color: var(--bg);
+      overflow: hidden;
+      justify-content: center;
+      align-items: center;
+    }
+
+    main {
+      display: grid;
+      gap: 10px;
+    }
+
+    .moon {
+      position: relative;
+      display: block;
+      border-radius: 50%;
+      background-color: var(--moon);
+      text-decoration: none;
+      transition: transform 0.3s ease, filter 0.3s ease;
+      overflow: hidden;
+    }
+
+    .moon .shadow {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background-color: var(--bg);
+      animation: eclipse 7s linear infinite;
+    }
+
+    @keyframes eclipse {
+      0% {
+        transform: translateX(-102%);
+      }
+
+      100% {
+        transform: translateX(102%);
+      }
+    }
+
+    .moon:hover {
+      filter: drop-shadow(0 0 10px rgba(233, 233, 242, 0.85));
+      transform: scale(1.18);
+      z-index: 5;
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.05), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.05));
+      background-size: 100% 2px, 3px 100%;
+      pointer-events: none;
+      z-index: 100;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+  <main id="main"></main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('moon-phases');
+
+    const main = document.getElementById('main');
+
+    const moonSize = 60;
+    const gap = 10;
+
+    function init() {
+      main.replaceChildren();
+
+      const cols = Math.max(3, Math.floor((window.innerWidth - 20) / (moonSize + gap)));
+      const rows = Math.max(3, Math.floor((window.innerHeight - 20) / (moonSize + gap)));
+      main.style.gridTemplateColumns = `repeat(${cols}, ${moonSize}px)`;
+
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const moon = document.createElement('a');
+          moon.href = LAB.pageRandomiser.nextOne();
+          moon.className = 'moon';
+          moon.style.width = `${moonSize}px`;
+          moon.style.height = `${moonSize}px`;
+
+          const shadow = document.createElement('div');
+          shadow.className = 'shadow';
+          shadow.style.animationDelay = `${-((r + c) * 0.35)}s`;
+          moon.appendChild(shadow);
+
+          main.appendChild(moon);
+        }
+      }
+    }
+
+    window.addEventListener('resize', init);
+
+    init();
+
+  </script>
+</body>
+
+</html>

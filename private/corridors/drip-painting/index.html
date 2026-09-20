@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+https://en.wikipedia.org/wiki/Drip_painting
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Young Man Intrigued by the Flight of a Non-Euclidean Fly">
+  <title>I am nature</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      background-color: #ece5d3;
+    }
+
+    canvas {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    #link {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <a id="link" href="../index.html">
+    <canvas id="canvas"></canvas>
+  </a>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('drip-painting');
+
+    const link = document.getElementById('link');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    const PAINTS = [
+      { colour: '#16130e', weight: 5 },
+      { colour: '#5c6670', weight: 3 },
+      { colour: '#7a4a21', weight: 3 },
+      { colour: '#8b2500', weight: 2 },
+      { colour: '#b8860b', weight: 2 },
+      { colour: '#274b6d', weight: 1 },
+    ];
+
+    function pickPaint() {
+      const total = PAINTS.reduce((sum, p) => sum + p.weight, 0);
+      let roll = LAB.rand(0, total);
+      for (const paint of PAINTS) {
+        roll -= paint.weight;
+        if (roll <= 0) return paint.colour;
+      }
+      return PAINTS[0].colour;
+    }
+
+    // Little dots of splashed paint
+    function splatter(x, y, colour) {
+      const dots = LAB.randInt(2, 5);
+      for (let i = 0; i < dots; i++) {
+        ctx.beginPath();
+        ctx.arc(x + LAB.rand(-25, 25), y + LAB.rand(-25, 25), LAB.rand(0.5, 3), 0, Math.PI * 2);
+        ctx.fillStyle = colour;
+        ctx.fill();
+      }
+    }
+
+    // Drip some paint onto the floor
+    function drip(w, h, colour) {
+      let x = LAB.rand(0, w);
+      let y = LAB.rand(0, h);
+      let angle = LAB.rand(0, Math.PI * 2);
+      const steps = LAB.randInt(60, 220);
+      let width = LAB.rand(2, 7);
+
+      ctx.strokeStyle = colour;
+      ctx.lineCap = 'round';
+
+      for (let i = 0; i < steps; i++) {
+        angle += LAB.rand(-0.4, 0.4);
+        const speed = LAB.rand(5, 14);
+        const nx = x + Math.cos(angle) * speed;
+        const ny = y + Math.sin(angle) * speed;
+
+        // Start thick then get thinner
+        width = Math.min(Math.max(width + LAB.rand(-0.8, 0.8), 0.5), 8);
+        ctx.lineWidth = width;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(nx, ny);
+        ctx.stroke();
+
+        if (LAB.chance(0.1)) splatter(nx, ny, colour);
+
+        x = nx;
+        y = ny;
+      }
+    }
+
+    function init() {
+      link.href = LAB.pageRandomiser.nextOne();
+
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      canvas.width = w;
+      canvas.height = h;
+
+      ctx.fillStyle = '#ece5d3';
+      ctx.fillRect(0, 0, w, h);
+
+      const strokes = [];
+      const strokeCount = 360;
+      for (let i = 0; i < strokeCount; i++) {
+        strokes.push(pickPaint());
+      }
+
+      // Half the time, bring one colour to the front
+      if (LAB.chance(0.5)) {
+        const mainColour = LAB.sample(PAINTS).colour;
+        strokes.sort((a, b) => (a === mainColour) - (b === mainColour));
+      }
+
+      strokes.forEach(colour => drip(w, h, colour));
+    }
+
+    canvas.addEventListener('click', init);
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    window.addEventListener('resize', init);
+
+    init();
+
+  </script>
+</body>
+
+</html>

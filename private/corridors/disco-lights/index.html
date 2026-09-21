@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="And Disco was his name-o">
+  <title>Disco Stu</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    canvas {
+      display: block;
+      position: fixed;
+      top: 0;
+      left: 0;
+    }
+  </style>
+</head>
+
+<body>
+  <a href="../index.html">
+    <canvas id="canvas"></canvas>
+  </a>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('disco-lights');
+
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    // 24 cols at 2400px wide, 16 rows at 960px tall
+    const BASE_WIDTH = 2400, BASE_COLS = 24;
+    const BASE_HEIGHT = 960, BASE_ROWS = 16;
+
+    let COLS, ROWS;
+    let winW, winH;
+    let cells = [];
+    let time = 0;
+    let mouseX = -1;
+    let mouseY = -1;
+    let hoverEl = null;
+    let hoveredCell = null;
+
+    function init() {
+      winW = canvas.width = window.innerWidth;
+      winH = canvas.height = window.innerHeight;
+
+      COLS = Math.max(1, Math.round(window.innerWidth / (BASE_WIDTH / BASE_COLS)));
+      ROWS = Math.max(1, Math.round(window.innerHeight / (BASE_HEIGHT / BASE_ROWS)));
+
+      hideHoverLink();
+      ctx.fillStyle = 'rgba(0, 0, 0)';
+      ctx.fillRect(0, 0, winW, winH);
+
+      // Grid of cells with a disco light in the middle of each cell
+      const cw = winW / COLS;
+      const ch = winH / ROWS;
+      cells.length = 0;
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          cells.push({
+            col: c,
+            row: r,
+            x: c * cw + cw / 2,
+            y: r * ch + ch / 2,
+            phase: LAB.rand(0, Math.PI * 2),
+            baseHue: LAB.rand(0, 360),
+            url: LAB.pageRandomiser.nextOne()
+          });
+        }
+      }
+    }
+
+    // Create a temporary anchor at the cell where the user is hovering
+    // This is so that the browser's status bar will show the redirect URL
+    function showHoverLink(cell) {
+      if (hoveredCell === cell) return;
+      if (hoverEl) hoverEl.remove();
+      hoveredCell = cell;
+      const cw = winW / COLS;
+      const ch = winH / ROWS;
+      hoverEl = document.createElement('a');
+      hoverEl.href = cell.url;
+      hoverEl.style.position = 'fixed';
+      hoverEl.style.zIndex = '90';
+      hoverEl.style.left = (cell.x - cw / 2) + 'px';
+      hoverEl.style.top = (cell.y - ch / 2) + 'px';
+      hoverEl.style.width = cw + 'px';
+      hoverEl.style.height = ch + 'px';
+      document.body.appendChild(hoverEl);
+    }
+
+    function hideHoverLink() {
+      if (hoverEl) hoverEl.remove();
+      hoverEl = null;
+      hoveredCell = null;
+    }
+
+    function hoveredCellAt(mx, my) {
+      if (mx < 0 || my < 0 || mx >= winW || my >= winH) return null;
+      const col = Math.floor(mx / (winW / COLS));
+      const row = Math.floor(my / (winH / ROWS));
+      return cells[row * COLS + col] || null;
+    }
+
+    function tick() {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+      ctx.fillRect(0, 0, winW, winH);
+
+      const cw = winW / COLS;
+      const ch = winH / ROWS;
+      const maxR = Math.min(cw, ch) * 0.35;
+      const hovered = hoveredCellAt(mouseX, mouseY);
+
+      cells.forEach(function (cell) {
+        // Wave is based on distance from centre + time
+        const dx = cell.col - COLS / 2;
+        const dy = cell.row - ROWS / 2;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const wave = Math.sin(dist * 0.4 - time * 0.04 + cell.phase);
+
+        const radius = maxR * (0.2 + 0.8 * (wave * 0.5 + 0.5));
+
+        if (cell === hovered) {
+          ctx.fillStyle = '#ffffff';
+        } else {
+          const hue = (cell.baseHue + time * 0.3) % 360;
+          const lightness = 30 + wave * 25;
+          const alpha = 0.3 + wave * 0.3;
+          ctx.fillStyle = `hsla(${hue}, 70%, ${lightness}%, ${alpha})`;
+        }
+
+        ctx.beginPath();
+        ctx.arc(cell.x, cell.y, radius, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // Create or destroy the hover link anchor element
+      if (hovered) {
+        showHoverLink(hovered);
+      } else {
+        hideHoverLink();
+      }
+
+      time++;
+      requestAnimationFrame(tick);
+    }
+
+    window.addEventListener('mousemove', function (e) {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+    });
+
+    document.addEventListener('mouseleave', function () {
+      mouseX = -1;
+      mouseY = -1;
+    });
+
+    window.addEventListener('resize', init);
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    init();
+    tick();
+
+  </script>
+</body>
+
+</html>

@@ -1932,3 +1932,10 @@ corridors:
     tags: [art, mobile]
     visual_description: >-
       A generative homage to drip painting, with hundreds of randomly-walked strokes splashed across a cream canvas in earthy tones of near-black, grey-blue, rust, dark red, ochre, and muted blue. Each stroke starts thick and tapers as it wanders, occasionally leaving small splatter dots in its wake. Clicking, pressing a key, or resizing the window regens the painting. The entire page is a single clickable link to a random corridor.
+  - id: disco-lights
+    title: Disco Lights
+    created: 2026-09-21 02:50
+    links: dynamic
+    tags: [abstract, mobile]
+    visual_description: >-
+      A full-screen grid of coloured circles on a black background, like the lights of a disco ball. Each circle pulses in size, brightness, and hue in a wave that ripples outward from the centre of the screen, leaving faint afterimages in its wake. Hovering over a circle turns it pure white. Every circle is a clickable link to a random corridor.

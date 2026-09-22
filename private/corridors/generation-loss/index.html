@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+Draw a shape.
+Then trace over that shape.
+Then trace over that shape.
+Then trace over that shape...
+Eventually it looks nothing like the original.
+
+https://glitchology.com/generational-loss/
+https://en.wikipedia.org/wiki/Generation_loss
+
+https://en.wikipedia.org/wiki/Loss_(Ctrl%2BAlt%2BDel)
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="B^y">
+  <title>Generation Loss</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      height: 100vh;
+      background-color: #fbf9f2;
+      font-family: Arial, Helvetica, sans-serif;
+      overflow: hidden;
+    }
+
+    main {
+      display: grid;
+      gap: 18px;
+    }
+
+    .gen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+      transition: transform 0.2s;
+    }
+
+    .gen:hover {
+      transform: translateY(-6px);
+    }
+
+    .gen svg {
+      display: block;
+      border: 1px solid #e3ddcb;
+      background-color: #ffffff;
+    }
+
+    .gen:hover svg {
+      border-color: #9a8f6b;
+    }
+
+    .gen-label {
+      color: #8b8465;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+
+<body>
+  <main id="main"></main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('generation-loss');
+
+    const main = document.getElementById('main');
+
+    const FRAME_SIZE = 90;
+    const LABEL_SPACE = 18;
+    const PAGE_PADDING = 20
+    const GAP = 18;
+
+    let COLS = 0;
+    let ROWS = 0;
+    let GENERATIONS = ROWS * COLS;
+
+    // Useful helper
+    function clamp(value, low, high) {
+      return Math.max(low, Math.min(high, value));
+    }
+
+    // How many units of `unit` pixels fit into `space` pixels, given a gap
+    function fitCount(space, unit) {
+      return Math.max(1, Math.floor((space + GAP) / (unit + GAP)));
+    }
+
+    function resize() {
+      const oldCols = COLS;
+      const oldRows = ROWS;
+
+      const cols = fitCount(window.innerWidth, FRAME_SIZE + 2 + PAGE_PADDING);
+      const rows = fitCount(window.innerHeight, FRAME_SIZE + 2 + LABEL_SPACE);
+      COLS = clamp(cols, 2, 8);
+      ROWS = clamp(rows, 2, 4);
+
+      if (oldCols === COLS && oldRows === ROWS) return;
+
+      GENERATIONS = COLS * ROWS;
+      init();
+    }
+
+    // Interpolate between two hex colours
+    // `progress` is from 0.0 to 1.0
+    function interpolateColour(hex1, hex2, progress) {
+      const ah = hex1.match(/\w\w/g).map(x => parseInt(x, 16));
+      const bh = hex2.match(/\w\w/g).map(x => parseInt(x, 16));
+      const rgb = ah.map((v, i) => Math.round(v + (bh[i] - v) * progress));
+      return `#${rgb.map(x => x.toString(16).padStart(2, '0')).join('')}`;
+    }
+
+    // The base ancestor shape
+    // Originally I procedurally generated this so it was different every time
+    // But I think it's more interesting to see where it ends up from the same ancestor
+    // And then, of course, I thought of a bad pun, and had to run with it
+    function ancestorPoints() {
+      return [
+        [4.4, 49.8], [92.5, 49.8],
+        [20.6, 34.2], [20.6, 66.8],
+        [33.0, 50.8], [33.0, 66.8],
+        [50.0, 16.9], [50.0, 83.1],
+        [69.5, 34.2], [69.5, 61.8],
+        [58.9, 63.5], [92.5, 63.5],
+        [81.2, 41.2], [81.2, 48.8],
+      ];
+    }
+
+    // Each generation's trace wobbles a little more than the previous
+    // I'm not actually using the drift any more, but I'll keep it here just in case
+    function traceTheShape(previous, jitter, drift = [0, 0]) {
+      return previous.map(([x, y]) => [
+        x + LAB.randNegToPos(jitter, jitter * 0.3) + drift[0],
+        y + LAB.randNegToPos(jitter, jitter * 0.3) + drift[1],
+      ]);
+    }
+
+    function drawTheShape(svg, points, colour) {
+      let d = '';
+      for (let i = 0; i < points.length; i += 2) {
+        const [x1, y1] = points[i];
+        const [x2, y2] = points[i + 1];
+        d += `M${x1.toFixed(1)} ${y1.toFixed(1)} L${x2.toFixed(1)} ${y2.toFixed(1)} `;
+      }
+      LAB.svgElement('path', {
+        d: d.trim(),
+        fill: 'none',
+        stroke: colour,
+        'stroke-width': 1.6,
+        'stroke-linejoin': 'round',
+        'stroke-linecap': 'round',
+      }, svg);
+    }
+
+    function init() {
+      main.replaceChildren();
+      main.style.gridTemplateColumns = 'repeat(' + COLS + ', auto)';
+
+      let currentShape = ancestorPoints();
+      const drift = [0, 0];
+
+      for (let gen = 0; gen < GENERATIONS; gen++) {
+        const a = document.createElement('a');
+        a.className = 'gen';
+        a.href = LAB.pageRandomiser.nextOne();
+
+        const svg = LAB.svgElement('svg', {
+          width: FRAME_SIZE,
+          height: FRAME_SIZE,
+          viewBox: '0 0 100 100',
+        });
+
+        // Colour gets paler as the generations progress
+        const startColour = '#1f1d18';
+        const endColour = '#c8c1a4';
+        const progress = GENERATIONS > 1 ? gen / (GENERATIONS - 1) : 0;
+        const colour = interpolateColour(startColour, endColour, progress);
+
+        drawTheShape(svg, currentShape, colour);
+
+        a.appendChild(svg);
+
+        const label = document.createElement('span');
+        label.className = 'gen-label';
+        label.textContent = 'gen ' + (gen + 1);
+        a.appendChild(label);
+
+        main.appendChild(a);
+
+        // Draw a new shape with a bit more jitter than the last
+        const jitter = 0.6 + gen * 0.15;
+        currentShape = traceTheShape(currentShape, jitter);
+      }
+    }
+
+    window.addEventListener('resize', resize);
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    resize();
+
+  </script>
+</body>
+
+</html>

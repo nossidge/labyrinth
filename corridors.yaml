@@ -1939,3 +1939,10 @@ corridors:
     tags: [abstract, mobile]
     visual_description: >-
       A full-screen grid of coloured circles on a black background, like the lights of a disco ball. Each circle pulses in size, brightness, and hue in a wave that ripples outward from the centre of the screen, leaving faint afterimages in its wake. Hovering over a circle turns it pure white. Every circle is a clickable link to a random corridor.
+  - id: generation-loss
+    title: Generation Loss
+    created: 2026-09-22 06:14
+    links: dynamic
+    tags: [abstract, mobile, pop]
+    visual_description: >-
+      A grid of small framed shapes on a cream background. The first contains a straight line representation of the bad web comic "Loss". Each subsequent one is a traced copy of the generation before it. Every generation adds a little more jitter to the trace, and the outline fades from black to pale tan as the generations progress. Clicking the background or pressing any key regenerates the sequence. Every shape is a clickable link to a random corridor.

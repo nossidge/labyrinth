@@ -2,16 +2,16 @@
 <html lang="en">
 
 <!--
-https://en.wikipedia.org/wiki/Harmonograph
+https://en.wikipedia.org/wiki/Spirolateral
 
-See also `spirolaterals`
+See also `harmonograph`
 -->
 
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Watch it fly by as the pendulum swings">
-  <title>Harmonography</title>
+  <meta name="description" content="I Like Turtles">
+  <title>Spirolaterals</title>
   <style>
     :root {
       --cell-size: 220px;
@@ -53,10 +53,17 @@ See also `spirolaterals`
       box-shadow: 0 0 20px rgba(255, 204, 102, 0.4);
     }
 
-    canvas {
+    svg {
       width: 100%;
       height: 100%;
       display: block;
+    }
+
+    polyline {
+      fill: none;
+      stroke-width: 1;
+      stroke-linecap: square;
+      stroke-linejoin: miter;
     }
 
     /* On narrow screens, hide the 3rd column: cells 3, 6, 9 */
@@ -115,7 +122,7 @@ See also `spirolaterals`
 
   <script src="../../common/labyrinth.js"></script>
   <script>
-    const LAB = new Labyrinth('harmonography');
+    const LAB = new Labyrinth('spirolaterals');
 
     const main = document.getElementById('main');
 
@@ -129,108 +136,79 @@ See also `spirolaterals`
     const NUMBERS = [0, 1, 2, 3, 4, 5, 6, 7, 8];
     const numbersRandomiser = new LAB.CyclicRandomiser(NUMBERS);
 
-    const SIZE = parseInt(
-      getComputedStyle(document.documentElement).getPropertyValue('--cell-size')
-    );
-
-    const cx = SIZE / 2, cy = SIZE / 2;
-    const step = 0.05;
-    const limit = 600;
-    const lineWidth = 0.7;
-    const globalAlpha = 0.85;
     const cells = [];
 
-    // Each amplitude can be set to a different value, if you want.
-    // But I think uniform values produce the prettiest results.
-    // It's always best to set them no more than quarter of the size of the cell.
-    const quarter = SIZE / 4;
-    const A = [quarter, quarter, quarter, quarter];
+    // Not multiples of 18°, because those are really boring.
+    const angles = Array
+      .from({ length: 360 }, (_, i) => i)
+      .filter(a => a % 18 !== 0);
 
-    // Build a single cell (anchor + canvas) once and return a controller
-    // that can blank and redraw a fresh harmonograph onto the same canvas.
+    // Walk 1, 2, 3... n steps, turning by the same angle after each.
+    // Repeat until the path closes, or until we give up.
+    function spiroPoints(n, angleDeg) {
+      const pts = [[0, 0]];
+      let x = 0;
+      let y = 0;
+      let heading = 0;
+      for (let rep = 0; rep < 40; rep++) {
+        for (let i = 1; i <= n; i++) {
+          const rad = heading * Math.PI / 180;
+          x += Math.cos(rad) * i * 10;
+          y += Math.sin(rad) * i * 10;
+          pts.push([x, y]);
+          heading = ((heading + angleDeg) % 360 + 360) % 360;
+        }
+        if (Math.abs(x) < 0.001 && Math.abs(y) < 0.001 && heading === 0) break;
+      }
+      return pts;
+    }
+
+    // Build a single cell (anchor + SVG) once and return a controller
+    // that can blank and redraw a fresh spirolateral on the same SVG.
     function createCell() {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      canvas.width = SIZE;
-      canvas.height = SIZE;
+      const svg = LAB.svgElement('svg');
+      const line = LAB.svgElement('polyline', { 'vector-effect': 'non-scaling-stroke' });
+      svg.appendChild(line);
 
       const a = document.createElement('a');
       a.href = LAB.pageRandomiser.nextOne();
       a.className = 'square';
-      a.appendChild(canvas);
+      a.appendChild(svg);
       main.appendChild(a);
 
-      let rafId = null;
-      let t = 0;
-
       function draw() {
-        // Stop any in-progress animation so we never run two loops on one canvas.
-        cancelAnimationFrame(rafId);
-        t = 0;
+        const number = 20;
+        const angle = LAB.sample(angles);
+        const pts = spiroPoints(number, angle);
 
-        const f = [
-          LAB.randInt(1, 4) + LAB.rand(-0.02, 0.02),
-          LAB.randInt(1, 4) + LAB.rand(-0.02, 0.02),
-          LAB.randInt(1, 4) + LAB.rand(-0.02, 0.02),
-          LAB.randInt(1, 4) + LAB.rand(-0.02, 0.02),
-        ];
-        const p = [
-          LAB.rand(0, Math.PI * 2),
-          LAB.rand(0, Math.PI * 2),
-          LAB.rand(0, Math.PI * 2),
-          LAB.rand(0, Math.PI * 2),
-        ];
-        const d = [
-          LAB.rand(0.002, 0.008),
-          LAB.rand(0.002, 0.008),
-          LAB.rand(0.002, 0.008),
-          LAB.rand(0.002, 0.008),
-        ];
+        const xs = pts.map(p => p[0]);
+        const ys = pts.map(p => p[1]);
+        const minX = Math.min(...xs);
+        const minY = Math.min(...ys);
+        const w = Math.max(...xs) - minX;
+        const h = Math.max(...ys) - minY;
+        const pad = Math.max(w, h, 10) * 0.1;
 
-        ctx.clearRect(0, 0, SIZE, SIZE);
-        ctx.strokeStyle = paletteRandomiser.nextOne();
-        ctx.lineWidth = lineWidth;
-        ctx.globalAlpha = globalAlpha;
+        const box = Math.max(w, h) + pad * 2;
+        const cx = minX + w / 2;
+        const cy = minY + h / 2;
+        svg.setAttribute('viewBox', `${cx - box / 2} ${cy - box / 2} ${box} ${box}`);
 
-        // Track the last plotted point so each animation frame continues the
-        // line from exactly where the previous frame left off. Without this,
-        // each frame began a new sub-path one step ahead, leaving tiny gaps.
-        let prevX = null, prevY = null;
+        line.setAttribute('points', pts.map(p => p.join(',')).join(' '));
+        line.setAttribute('stroke', paletteRandomiser.nextOne());
 
-        function pointAt(tt) {
-          const x = cx
-            + A[0] * Math.sin(f[0] * tt + p[0]) * Math.exp(-d[0] * tt)
-            + A[1] * Math.sin(f[1] * tt + p[1]) * Math.exp(-d[1] * tt);
-          const y = cy
-            + A[2] * Math.sin(f[2] * tt + p[2]) * Math.exp(-d[2] * tt)
-            + A[3] * Math.sin(f[3] * tt + p[3]) * Math.exp(-d[3] * tt);
-          return [x, y];
-        }
-
-        function frame() {
-          ctx.beginPath();
-          if (prevX === null) {
-            const [x, y] = pointAt(t);
-            ctx.moveTo(x, y);
-            prevX = x; prevY = y;
-            t += step;
-          } else {
-            ctx.moveTo(prevX, prevY);
-          }
-          for (let i = 0; i < 60; i++) {
-            const [x, y] = pointAt(t);
-            ctx.lineTo(x, y);
-            prevX = x; prevY = y;
-            t += step;
-          }
-          ctx.stroke();
-          if (t < limit) rafId = requestAnimationFrame(frame);
-        }
-        frame();
+        // Draw the turtle walking path.
+        const len = line.getTotalLength();
+        line.style.transition = 'none';
+        line.style.strokeDasharray = len;
+        line.style.strokeDashoffset = len;
+        line.getBoundingClientRect();
+        line.style.transition = `stroke-dashoffset ${LAB.rand(1.5, 3.5)}s ease-out`;
+        line.style.strokeDashoffset = 0;
       }
 
-      // Hovering a canvas redraws it as a new harmonograph.
-      canvas.addEventListener('mouseenter', draw);
+      // Draw a new one on hover.
+      svg.addEventListener('mouseenter', draw);
 
       return { draw };
     }

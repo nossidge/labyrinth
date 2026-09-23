@@ -1946,3 +1946,10 @@ corridors:
     tags: [abstract, mobile, pop]
     visual_description: >-
       A grid of small framed shapes on a cream background. The first contains a straight line representation of the bad web comic "Loss". Each subsequent one is a traced copy of the generation before it. Every generation adds a little more jitter to the trace, and the outline fades from black to pale tan as the generations progress. Clicking the background or pressing any key regenerates the sequence. Every shape is a clickable link to a random corridor.
+  - id: spirolaterals
+    title: Spirolaterals
+    created: 2026-09-23 17:29
+    links: 9
+    tags: [crt, maths, mobile]
+    visual_description: >-
+      A 3x3 grid of small dark framed tiles, each animating a procedurally generated spirolateral - the angular path traced by a turtle that walks 1, 2, 3... n steps, turning by a fixed angle after each one, until the shape closes on itself. Each tile draws its line progressively in a randomly chosen neon colour. Pressing any number key from 1 to 9 regenerates that particular tile, and hovering over any tile redraws it as a brand new spirolateral. On narrow or short screens the grid sheds whole columns and rows of tiles to stay tidy. Every tile is a clickable link to a random corridor.

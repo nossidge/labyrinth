@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+https://en.wikipedia.org/wiki/Caustic_(mathematics)
+https://en.wikipedia.org/wiki/String_art
+
+See also `harmonography` and `spirolaterals`
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="There's strings attached to every single lover">
+  <title>Caustics</title>
+  <style>
+    :root {
+      --cell-size: 220px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #050507;
+      display: grid;
+      place-items: center;
+      min-height: 100vh;
+      padding: 16px;
+      font-family: monospace;
+    }
+
+    #main {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .square {
+      width: var(--cell-size);
+      height: var(--cell-size);
+      background: #0c0c0c;
+      border: 1px solid #1f1f2a;
+      text-decoration: none;
+      display: block;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .square:hover {
+      border-color: #ffcc66;
+      box-shadow: 0 0 20px rgba(255, 204, 102, 0.4);
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* On narrow screens, hide the 3rd column: cells 3, 6, 9 */
+    @media (max-width: 760px) {
+      #main {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .square:nth-child(3n) {
+        display: none;
+      }
+    }
+
+    /* On very narrow screens, hide the 2nd column: cells 2, 5, 8 */
+    @media (max-width: 520px) {
+      #main {
+        grid-template-columns: 1fr;
+      }
+
+      .square:nth-child(3n - 1) {
+        display: none;
+      }
+    }
+
+    /* On short screens, hide the 3rd row: cells 7, 8, 9 */
+    @media (max-height: 760px) {
+      .square:nth-child(n + 7) {
+        display: none;
+      }
+    }
+
+    /* On very short screens, also hide the 2nd row: cells 4, 5, 6 */
+    @media (max-height: 520px) {
+      .square:nth-child(n + 4) {
+        display: none;
+      }
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 100;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%);
+      background-size: 100% 2px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+  <main id="main"></main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('caustics');
+
+    const main = document.getElementById('main');
+
+    const PALETTE = [
+      '#ff66cc', '#66ffcc', '#ffcc66',
+      '#cc66ff', '#66ccff', '#ff8866',
+      '#aaff66', '#66ff88', '#ffaaff',
+    ];
+    const paletteRandomiser = new LAB.CyclicRandomiser(PALETTE);
+
+    const NUMBERS = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+    const numbersRandomiser = new LAB.CyclicRandomiser(NUMBERS);
+
+    const SIZE = parseInt(
+      getComputedStyle(document.documentElement).getPropertyValue('--cell-size')
+    );
+
+    const cx = SIZE / 2, cy = SIZE / 2;
+    const padding = 16;
+    const RADIUS = (SIZE / 2) - padding;
+    const cells = [];
+
+    // Circle times-table caustic (Cardioid m=2, Nephroid m=3, Epicycloids)
+    function generateCircleCaustic() {
+      const lineList = [];
+      const N = LAB.randInt(90, 160);
+      const multChoices = [2, 3, 4, 5, 6, 7, 2.5, 3.5, 4.5];
+      const m = LAB.sample(multChoices);
+      for (let i = 0; i < N; i++) {
+        const a1 = (i / N) * Math.PI * 2;
+        const a2 = (((i * m) % N) / N) * Math.PI * 2;
+        lineList.push({
+          x1: cx + RADIUS * Math.cos(a1),
+          y1: cy + RADIUS * Math.sin(a1),
+          x2: cx + RADIUS * Math.cos(a2),
+          y2: cy + RADIUS * Math.sin(a2),
+        });
+      }
+      return lineList;
+    }
+
+    // Regular polygon curve stitching (3, 4, 5, 6, 8-fold rotational/dihedral symmetry)
+    function generatePolygonStitching() {
+      const lineList = [];
+      const sideCount = LAB.sample([3, 4, 5, 6, 8]);
+      const stepsPerSide = LAB.randInt(18, 30);
+      const vertices = [];
+      const rotOffset = LAB.rand(0, Math.PI);
+      for (let s = 0; s < sideCount; s++) {
+        const a = rotOffset + (s / sideCount) * Math.PI * 2;
+        vertices.push({ x: cx + RADIUS * Math.cos(a), y: cy + RADIUS * Math.sin(a) });
+      }
+      for (let s = 0; s < sideCount; s++) {
+        const V0 = vertices[s];
+        const V1 = vertices[(s + 1) % sideCount];
+        const V2 = vertices[(s + 2) % sideCount];
+        for (let i = 0; i <= stepsPerSide; i++) {
+          const t = i / stepsPerSide;
+          const p1x = V1.x + (V0.x - V1.x) * t;
+          const p1y = V1.y + (V0.y - V1.y) * t;
+          const p2x = V1.x + (V2.x - V1.x) * (1 - t);
+          const p2y = V1.y + (V2.y - V1.y) * (1 - t);
+          lineList.push({ x1: p1x, y1: p1y, x2: p2x, y2: p2y });
+        }
+      }
+      return lineList;
+    }
+
+    // Rotational rosette star chords (N-fold rotational symmetry with step skip)
+    function generateRosetteChords() {
+      const lineList = [];
+      const N = LAB.randInt(48, 96);
+      const skip1 = LAB.randInt(2, Math.floor(N / 4));
+      const skip2 = LAB.randInt(Math.floor(N / 3), Math.floor(N / 2) - 1);
+      const skips = [skip1, skip2];
+      for (let k = 0; k < skips.length; k++) {
+        const skip = skips[k];
+        for (let i = 0; i < N; i++) {
+          const a1 = (i / N) * Math.PI * 2;
+          const a2 = (((i + skip) % N) / N) * Math.PI * 2;
+          lineList.push({
+            x1: cx + RADIUS * Math.cos(a1),
+            y1: cy + RADIUS * Math.sin(a1),
+            x2: cx + RADIUS * Math.cos(a2),
+            y2: cy + RADIUS * Math.sin(a2),
+          });
+        }
+      }
+      return lineList;
+    }
+
+    // Multi-axis astroid / deltoid envelopes (3, 4, 6, 8 radial axes)
+    function generateAxisEnvelopes() {
+      const lineList = [];
+      const axes = LAB.sample([3, 4, 6, 8]);
+      const density = LAB.randInt(16, 26);
+      const rotation = LAB.rand(0, Math.PI / axes);
+      for (let a = 0; a < axes; a++) {
+        const angle1 = rotation + (a / axes) * Math.PI * 2;
+        const angle2 = rotation + ((a + 1) / axes) * Math.PI * 2;
+        for (let i = 0; i <= density; i++) {
+          const t = i / density;
+          const p1x = cx + RADIUS * Math.cos(angle1) * t;
+          const p1y = cy + RADIUS * Math.sin(angle1) * t;
+          const p2x = cx + RADIUS * Math.cos(angle2) * (1 - t);
+          const p2y = cy + RADIUS * Math.sin(angle2) * (1 - t);
+          lineList.push({ x1: p1x, y1: p1y, x2: p2x, y2: p2y });
+        }
+      }
+      return lineList;
+    }
+
+    // Light ray reflection caustics (point source inside circular mirror)
+    function generateReflectionCaustics() {
+      const lineList = [];
+      const rays = LAB.randInt(100, 160);
+      const sourceDist = LAB.sample([0.3, 0.5, 0.7, 0.9]) * RADIUS;
+      const sourceAngle = LAB.rand(0, Math.PI * 2);
+      const lx = cx + sourceDist * Math.cos(sourceAngle);
+      const ly = cy + sourceDist * Math.sin(sourceAngle);
+
+      for (let i = 0; i < rays; i++) {
+        const angle = (i / rays) * Math.PI * 2;
+        const px = cx + RADIUS * Math.cos(angle);
+        const py = cy + RADIUS * Math.sin(angle);
+        const normalAngle = Math.atan2(py - cy, px - cx);
+        const incidentAngle = Math.atan2(py - ly, px - lx);
+        const reflectedAngle = 2 * normalAngle - incidentAngle + Math.PI;
+
+        const rx2 = px + 2 * RADIUS * Math.cos(reflectedAngle);
+        const ry2 = py + 2 * RADIUS * Math.sin(reflectedAngle);
+        lineList.push({ x1: px, y1: py, x2: rx2, y2: ry2 });
+      }
+      return lineList;
+    }
+
+    // Maurer rose chords (k-fold rotational rose curve chords)
+    function generateMaurerRose() {
+      const lineList = [];
+      const petalCount = LAB.randInt(2, 7);
+      const degree = LAB.randInt(29, 89);
+      const points = 360;
+      for (let i = 0; i < points; i++) {
+        const k1 = i * degree;
+        const k2 = (i + 1) * degree;
+        const r1 = RADIUS * Math.sin((petalCount * k1 * Math.PI) / 180);
+        const r2 = RADIUS * Math.sin((petalCount * k2 * Math.PI) / 180);
+        const a1 = (k1 * Math.PI) / 180;
+        const a2 = (k2 * Math.PI) / 180;
+        lineList.push({
+          x1: cx + r1 * Math.cos(a1),
+          y1: cy + r1 * Math.sin(a1),
+          x2: cx + r2 * Math.cos(a2),
+          y2: cy + r2 * Math.sin(a2),
+        });
+      }
+      return lineList;
+    }
+
+    // Select the string-art pattern, depending on cell position
+    const GENERATORS = [
+      generateCircleCaustic,
+      generatePolygonStitching,
+      generateCircleCaustic,
+      generateAxisEnvelopes,
+      generateReflectionCaustics,
+      generateAxisEnvelopes,
+      generateRosetteChords,
+      generateMaurerRose,
+      generateRosetteChords,
+    ];
+
+    function createCell() {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = SIZE;
+      canvas.height = SIZE;
+
+      const a = document.createElement('a');
+      a.href = LAB.pageRandomiser.nextOne();
+      a.className = 'square';
+      a.appendChild(canvas);
+      main.appendChild(a);
+
+      let rafId = null;
+
+      function draw(forcedModeIndex) {
+        cancelAnimationFrame(rafId);
+
+        const modeIndex = (forcedModeIndex !== undefined)
+          ? (forcedModeIndex % GENERATORS.length)
+          : LAB.randInt(0, GENERATORS.length - 1);
+        const lines = GENERATORS[modeIndex]();
+
+        ctx.clearRect(0, 0, SIZE, SIZE);
+        ctx.strokeStyle = paletteRandomiser.nextOne();
+        ctx.lineWidth = 0.7;
+        ctx.globalAlpha = 0.75;
+
+        let lineIdx = 0;
+        const linesPerFrame = Math.max(2, Math.floor(lines.length / 40));
+
+        function frame() {
+          ctx.beginPath();
+          const end = Math.min(lineIdx + linesPerFrame, lines.length);
+          for (let i = lineIdx; i < end; i++) {
+            const l = lines[i];
+            ctx.moveTo(l.x1, l.y1);
+            ctx.lineTo(l.x2, l.y2);
+          }
+          ctx.stroke();
+          lineIdx = end;
+
+          if (lineIdx < lines.length) {
+            rafId = requestAnimationFrame(frame);
+          }
+        }
+        frame();
+      }
+
+      canvas.addEventListener('mouseenter', () => draw());
+
+      return { draw };
+    }
+
+    function init() {
+      main.replaceChildren();
+      cells.length = 0;
+      for (let i = 0; i < 9; i++) cells.push(createCell());
+      cells.forEach((cell, i) => cell.draw(i));
+    }
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, () => {
+        const n = parseInt(e.key, 10);
+        if (n >= 1 && n <= 9) cells[n - 1].draw();
+        else cells[numbersRandomiser.nextOne()].draw();
+      });
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    init();
+
+  </script>
+</body>
+
+</html>

@@ -1953,3 +1953,10 @@ corridors:
     tags: [crt, maths, mobile]
     visual_description: >-
       A 3x3 grid of small dark framed tiles, each animating a procedurally generated spirolateral - the angular path traced by a turtle that walks 1, 2, 3... n steps, turning by a fixed angle after each one, until the shape closes on itself. Each tile draws its line progressively in a randomly chosen neon colour. Pressing any number key from 1 to 9 regenerates that particular tile, and hovering over any tile redraws it as a brand new spirolateral. On narrow or short screens the grid sheds whole columns and rows of tiles to stay tidy. Every tile is a clickable link to a random corridor.
+  - id: caustics
+    title: Caustics
+    created: 2026-09-24 16:21
+    links: 9
+    tags: [crt, maths, mobile]
+    visual_description: >-
+      A 3x3 grid of small dark framed tiles, each animating procedurally generated string art and caustics with varied rotational, dihedral, and axial symmetries. Modes include times-table circle caustics (cardioids, nephroids), regular polygon curve stitching, rosette star chords, multi-axis envelopes, and light reflection caustics. Each tile draws its lines progressively in neon colours. Pressing number keys 1-9 or hovering over any tile redraws it with a new pattern. Every tile is a clickable link to a random corridor.

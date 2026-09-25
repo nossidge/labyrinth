@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Poor little beastie, it was odd how much I loved you">
+  <title>👾 Invaders Must Die 👾</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body,
+    html {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      height: 100%;
+      background-color: #0b0b14;
+      overflow: hidden;
+    }
+
+    main {
+      display: grid;
+      gap: 26px;
+    }
+
+    .beast {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      grid-template-rows: repeat(8, 1fr);
+      gap: 1px;
+      padding: 8px;
+      background-color: #0b0b14;
+      text-decoration: none;
+      transition: background-color 0.2s ease;
+    }
+
+    .beast:hover {
+      background-color: var(--beast-colour);
+    }
+
+    .beast:hover .bit.on {
+      background-color: #0b0b14;
+    }
+
+    .bit {
+      width: 7px;
+      height: 7px;
+    }
+
+    .bit.on {
+      background-color: var(--beast-colour);
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+      background-size: 100% 2px;
+      pointer-events: none;
+      z-index: 100;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+  <main id="main"></main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('bit-beasties');
+
+    const main = document.getElementById('main');
+
+    const COLOURS = [
+      '#00ff41', '#ff2079', '#00e5ff', '#ffb800',
+      '#b967ff', '#ff5c33', '#7fff62', '#ff7ad9',
+    ];
+
+    let cols = 3, rows = 2;
+
+    // Make an 8x8 sprite
+    // Draw 4 columns, and then just mirror them
+    function generatePattern() {
+      const pattern = [];
+      for (let r = 0; r < 8; r++) {
+        const half = [];
+        for (let c = 0; c < 4; c++) {
+          // Make the edges of the body more sparse than the centre
+          const density = (r === 0 || r === 7) ? 0.25 : 0.5;
+          half.push(LAB.chance(density) ? 1 : 0);
+        }
+        pattern.push([...half, ...[...half].reverse()]);
+      }
+      return pattern;
+    }
+
+    // Draw a beast pattern within a beast container
+    function drawBeast(beast) {
+      const pattern = generatePattern();
+      beast.style.setProperty('--beast-colour', LAB.sample(COLOURS));
+
+      const bits = beast.querySelectorAll('.bit');
+      bits.forEach((bit, i) => {
+        const r = Math.floor(i / 8);
+        const c = i % 8;
+        bit.classList.toggle('on', pattern[r][c] === 1);
+      });
+    }
+
+    // Figure out the size of the grid
+    function resize() {
+      const beastSize = 90;
+      cols = Math.max(3, Math.min(8, Math.floor(window.innerWidth / beastSize) - 1));
+      rows = Math.max(2, Math.min(5, Math.floor(window.innerHeight / beastSize) - 1));
+      main.style.gridTemplateColumns = `repeat(${cols}, auto)`;
+      init();
+    }
+
+    // Fit a grid of beasties to the viewport
+    function init() {
+      main.replaceChildren();
+
+      for (let i = 0; i < cols * rows; i++) {
+        const beast = document.createElement('a');
+        beast.className = 'beast';
+        beast.href = LAB.pageRandomiser.nextOne();
+
+        // Create an 8x8 grid of elements
+        // This will always be there, we'll just use CSS class to show/hide the pixels
+        for (let j = 0; j < 64; j++) {
+          const bit = document.createElement('div');
+          bit.className = 'bit';
+          beast.appendChild(bit);
+        }
+
+        drawBeast(beast);
+        main.appendChild(beast);
+      }
+    }
+
+    window.addEventListener('resize', resize);
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    resize();
+
+  </script>
+</body>
+
+</html>

@@ -1960,3 +1960,10 @@ corridors:
     tags: [crt, maths, mobile]
     visual_description: >-
       A 3x3 grid of small dark framed tiles, each animating procedurally generated string art and caustics with varied rotational, dihedral, and axial symmetries. Modes include times-table circle caustics (cardioids, nephroids), regular polygon curve stitching, rosette star chords, multi-axis envelopes, and light reflection caustics. Each tile draws its lines progressively in neon colours. Pressing number keys 1-9 or hovering over any tile redraws it with a new pattern. Every tile is a clickable link to a random corridor.
+  - id: bit-beasties
+    title: Bit Beasties
+    created: 2026-09-25 18:41
+    links: dynamic
+    tags: [crt, mobile, pop, tech]
+    visual_description: >-
+      A responsive grid of randomly generated 8x8 pixel-art sprites in neon colours on a black background, each one mirrored left to right with sparser pixels near the top and bottom edges. Designed to look like Space Invader sprites. Hovering over a sprite inverts it, so the lit pixels go dark against the coloured background. Clicking the background or pressing any key regenerates all the sprites. Each sprite is a clickable link to a random corridor.

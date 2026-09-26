@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+I wanted to make this a pseudo-real crossword, but I just didn't have time.
+It was going to generate nonsense words that looked like they could be real.
+With somewhat correct consonant and vowel positions and such.
+I've got to pump these things out every day, so I can't always spent too long on them.
+So I switched out the western alphabet for Cyrillic.
+It still looks nonsensical, but realistically nonsensical.
+Because most of the people who visit this website won't speak Russian.
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Russian Orthodox Crossword">
+  <title>This angry exchange (9)</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      width: 100vw;
+      height: 100vh;
+      background-color: #e8e3d5;
+      font-family: Georgia, 'Times New Roman', serif;
+      overflow: hidden;
+    }
+
+    #puzzle {
+      display: grid;
+      gap: 1px;
+      border: 3px solid #111111;
+      background-color: #111111;
+    }
+
+    .cell {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #fdfcf6;
+      color: #222222;
+      font-family: 'Courier New', Courier, monospace;
+      font-weight: bold;
+      text-decoration: none;
+    }
+
+    .cell.block {
+      background-color: #111111;
+    }
+
+    .cell .num {
+      position: absolute;
+      top: 1px;
+      left: 2px;
+      color: #555555;
+      font-size: 8px;
+      font-family: Georgia, serif;
+      font-weight: normal;
+    }
+
+    .cell.circled::after {
+      position: absolute;
+      inset: 2px;
+      border: 1.5px solid #888888;
+      border-radius: 50%;
+      content: "";
+      pointer-events: none;
+    }
+
+    .cell.circled:hover {
+      background-color: #a32020;
+      color: #ffffff;
+    }
+
+    .cell.circled:hover::after {
+      border-color: #ffffff;
+    }
+  </style>
+</head>
+
+<body>
+  <main id="puzzle"></main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('red-word-square');
+
+    const puzzle = document.getElementById('puzzle');
+    const letters = 'АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЬЮЯ';
+
+    let size, grid, linkLetters;
+
+    function init() {
+      // Grid size adapts to the viewport, always odd for symmetry.
+      const px = Math.min(window.innerWidth, window.innerHeight) * 0.72;
+      size = Math.min(17, Math.max(9, Math.floor(px / 34)));
+      if (size % 2 === 0) size--;
+      const cellPx = Math.floor(px / size);
+
+      // Generate blocks with 180-degree rotational symmetry, like a real crossword.
+      // Discard and retry if any open cell ends up with no open neighbours.
+      do {
+        grid = [];
+        for (let i = 0; i < size * size; i++) grid.push(false);
+        const half = Math.ceil(size * size / 2);
+        for (let i = 0; i < half; i++) {
+          if (LAB.chance(0.22)) {
+            grid[i] = true;
+            grid[size * size - 1 - i] = true;
+          }
+        }
+      } while (hasIsolatedCell());
+
+      // Draw eight letters on the grid in a circle, as the links.
+      // Needs to have the same 180-degree rotational symmetry.
+      const word = 'ТЕХТВООК';
+      const total = size * size;
+      const pairs = [];
+      for (let i = 0; i < total / 2; i++) {
+        const j = total - 1 - i;
+        if (i === j) continue;
+        if (!grid[i] && !grid[j]) pairs.push([i, j]);
+      }
+      const chosen = LAB.shuffle(pairs).slice(0, word.length / 2);
+      const cells = chosen.flatMap(p => p).sort((a, b) => a - b);
+      linkLetters = {};
+      cells.forEach((i, n) => { linkLetters[i] = word[n]; });
+
+      render(cellPx);
+    }
+
+    function hasIsolatedCell() {
+      for (let r = 0; r < size; r++) {
+        for (let c = 0; c < size; c++) {
+          if (grid[r * size + c]) continue;
+          const open = (nr, nc) => !isBlock(nr, nc);
+          if (!open(r - 1, c) && !open(r + 1, c) && !open(r, c - 1) && !open(r, c + 1)) {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+
+    function isBlock(r, c) {
+      if (r < 0 || r >= size || c < 0 || c >= size) return true;
+      return grid[r * size + c];
+    }
+
+    function render(cellPx) {
+      puzzle.innerHTML = '';
+      puzzle.style.gridTemplateColumns = `repeat(${size}, ${cellPx}px)`;
+      puzzle.style.gridTemplateRows = `repeat(${size}, ${cellPx}px)`;
+
+      let clueNumber = 0;
+      for (let r = 0; r < size; r++) {
+        for (let c = 0; c < size; c++) {
+          if (isBlock(r, c)) {
+            const div = document.createElement('div');
+            div.className = 'cell block';
+            puzzle.appendChild(div);
+            continue;
+          }
+
+          // Crossword numbering for the clues (which I'm not going to create)
+          const startsAcross = isBlock(r, c - 1) && !isBlock(r, c + 1);
+          const startsDown = isBlock(r - 1, c) && !isBlock(r + 1, c);
+          const numbered = startsAcross || startsDown;
+          if (numbered) clueNumber++;
+
+          const index = r * size + c;
+          const letter = linkLetters[index];
+          const cell = document.createElement(letter !== undefined ? 'a' : 'div');
+          cell.className = 'cell' + (letter !== undefined ? ' circled' : '');
+          cell.style.fontSize = Math.floor(cellPx * 0.55) + 'px';
+          if (letter !== undefined) cell.href = LAB.pageRandomiser.nextOne();
+
+          if (numbered) {
+            const num = document.createElement('span');
+            num.className = 'num';
+            num.innerText = clueNumber;
+            cell.appendChild(num);
+          }
+
+          // Hovering over a square permanently solves it
+          const letterSpan = document.createElement('span');
+          cell.appendChild(letterSpan);
+          cell.addEventListener('mouseenter', () => {
+            if (!letterSpan.innerText) {
+              letterSpan.innerText = letter !== undefined ? letter : LAB.sample(letters);
+            }
+          });
+
+          puzzle.appendChild(cell);
+        }
+      }
+    }
+
+    window.addEventListener('resize', init);
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    init();
+
+  </script>
+</body>
+
+</html>

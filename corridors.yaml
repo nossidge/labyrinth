@@ -1967,3 +1967,10 @@ corridors:
     tags: [crt, mobile, pop, tech]
     visual_description: >-
       A responsive grid of randomly generated 8x8 pixel-art sprites in neon colours on a black background, each one mirrored left to right with sparser pixels near the top and bottom edges. Designed to look like Space Invader sprites. Hovering over a sprite inverts it, so the lit pixels go dark against the coloured background. Clicking the background or pressing any key regenerates all the sprites. Each sprite is a clickable link to a random corridor.
+  - id: red-word-square
+    title: Red Word Square
+    created: 2026-09-26 17:00
+    links: 8
+    tags: [mobile, text, unicode]
+    visual_description: >-
+      A crossword-style grid of white squares arranged with 180-degree rotational symmetry. Small clue numbers sit in the corner of each cell that begins an entry. Hovering over an empty cell permanently fills it with a random Cyrillic letter, as if solving the puzzle. Clicking a non-link cell or pressing a key regenerates the puzzle. Eight of the open cells are circled, serving as a clickable link to a random corridor.

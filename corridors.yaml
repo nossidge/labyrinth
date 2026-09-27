@@ -1974,3 +1974,10 @@ corridors:
     tags: [mobile, text, unicode]
     visual_description: >-
       A crossword-style grid of white squares arranged with 180-degree rotational symmetry. Small clue numbers sit in the corner of each cell that begins an entry. Hovering over an empty cell permanently fills it with a random Cyrillic letter, as if solving the puzzle. Clicking a non-link cell or pressing a key regenerates the puzzle. Eight of the open cells are circled, serving as a clickable link to a random corridor.
+  - id: paper-marbling
+    title: Paper Marbling
+    created: 2026-09-27 09:29
+    links: dynamic
+    tags: [art, mobile]
+    visual_description: >-
+      A proc-gen interpretation of the paper marbling tradition. A portrait-oriented canvas is centred on a dark brown background. Blobs of colours are dropped onto a light beige surface, and then combed through with a series of strokes dragged alternately up and down (and sometimes a second pass of horizontal strokes). The page uses a deterministic, seeded random generation algorithm so that users can navigate back and forth through variations using side arrows. The canvas acts as a portal linking to a random corridor.

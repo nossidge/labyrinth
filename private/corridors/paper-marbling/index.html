@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+https://en.wikipedia.org/wiki/Paper_marbling
+
+Calculations are adapted from Aubrey Jaffer:
+https://people.csail.mit.edu/jaffer/Marbling/Mathematics
+
+More inspiration:
+https://github.com/kfahn22/marbling
+https://pstricks.blogspot.com/2018/09/the-marbled-paper-with-pstricks.html
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="No carbs before Marbs">
+  <title>Marbling Madness</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #2a2118;
+    }
+
+    #link {
+      display: block;
+      box-shadow: 0 0 60px rgba(0, 0, 0, 0.8);
+    }
+
+    #canvas {
+      display: block;
+    }
+
+    .nav-panel {
+      position: fixed;
+      top: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 120px;
+      height: 100%;
+      z-index: 5;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    #nav-left {
+      left: 0;
+      background: linear-gradient(to right, rgba(255, 255, 255, 0.02), transparent);
+    }
+
+    #nav-left:hover {
+      background: linear-gradient(to right, rgba(255, 255, 255, 0.06), transparent);
+    }
+
+    #nav-right {
+      right: 0;
+      background: linear-gradient(to left, rgba(255, 255, 255, 0.02), transparent);
+    }
+
+    #nav-right:hover {
+      background: linear-gradient(to left, rgba(255, 255, 255, 0.06), transparent);
+    }
+
+    .nav-button {
+      background: none;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: rgba(255, 255, 255, 0.25);
+      padding: 12px 16px;
+      font-size: 28px;
+      line-height: 1;
+      pointer-events: none;
+    }
+
+    .nav-panel:hover .nav-button {
+      border-color: rgba(255, 255, 255, 0.5);
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    @media (max-width: 600px) {
+      .nav-panel {
+        top: auto;
+        bottom: 0;
+        width: 50%;
+        height: 60px;
+        background: none;
+      }
+
+      .nav-button {
+        border: none;
+      }
+    }
+
+    /*
+      For my reference, the URI encodings:
+      "%3C" => "<"
+      "%3E" => ">"
+      "%23" => "#"
+    */
+    #grain {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.12'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 10;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="nav-left" class="nav-panel">
+    <button class="nav-button">&larr;</button>
+  </div>
+
+  <div id="grain"></div>
+  <a id="link" href="../index.html">
+    <canvas id="canvas"></canvas>
+  </a>
+
+  <div id="nav-right" class="nav-panel">
+    <button class="nav-button">&rarr;</button>
+  </div>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('paper-marbling');
+
+    const link = document.getElementById('link');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    const COLOURS = [
+      '#1d3557', '#457b9d', '#e63946', '#f1faee',
+      '#d4a017', '#2a9d8f', '#800e13', '#3d2b56',
+    ];
+    const BG_COLOUR = '#e8dcc0';
+
+    // Draw the pattern to a fixed size virtual canvas
+    // Otherwise the seeded stuff is different depending on window dimensions
+    const VIRTUAL_W = 750;
+    const VIRTUAL_H = 1000;
+
+    // type Drop = {
+    //   colour: string,
+    //   points: { x: number, y: number }[]
+    // };
+    let drops = [];
+
+    let rng;
+
+    function mulberry32(seed) {
+      return function () {
+        seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+        let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+        t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+      };
+    }
+
+    function seededRand(min, max) { return rng() * (max - min) + min; }
+    function seededRandInt(min, max) { return Math.floor(seededRand(min, max + 1)); }
+    function seededChance(probability) { return seededRand(0, 1) < probability; }
+    function seededSample(array) { return array[Math.floor(seededRand(0, array.length))]; }
+    function seededShuffle(array) {
+      const shuffled = [...array];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(seededRand(0, i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      return shuffled;
+    }
+
+    // Dropping ink pushes every older drop outward
+    function addDrop(cx, cy, r, colour) {
+      const rr = r * r;
+      for (const drop of drops) {
+        for (const point of drop.points) {
+          const dx = point.x - cx;
+          const dy = point.y - cy;
+          const l2 = dx * dx + dy * dy;
+          if (l2 === 0) continue;
+          const scale = Math.sqrt(1 + rr / l2);
+          point.x = cx + dx * scale;
+          point.y = cy + dy * scale;
+        }
+      }
+
+      const points = [];
+      const pointCount = 90;
+      for (let i = 0; i < pointCount; i++) {
+        const a = (i / pointCount) * Math.PI * 2;
+        points.push({ x: cx + Math.cos(a) * r, y: cy + Math.sin(a) * r });
+      }
+      drops.push({ colour, points });
+    }
+
+    // Drag a comb through the colour blobs
+    function comb(x0, y0, dirX, dirY, strength, sharpness) {
+      const nx = -dirY;
+      const ny = dirX;
+      for (const drop of drops) {
+        for (const point of drop.points) {
+          const dist = Math.abs((point.x - x0) * nx + (point.y - y0) * ny);
+          const factor = strength * sharpness / (sharpness + dist);
+          point.x += dirX * factor;
+          point.y += dirY * factor;
+        }
+      }
+    }
+
+    function render(w, h) {
+      const sx = w / VIRTUAL_W;
+      const sy = h / VIRTUAL_H;
+      ctx.fillStyle = BG_COLOUR;
+      ctx.fillRect(0, 0, w, h);
+
+      for (const drop of drops) {
+        ctx.beginPath();
+        ctx.moveTo(drop.points[0].x * sx, drop.points[0].y * sy);
+        for (const point of drop.points) {
+          ctx.lineTo(point.x * sx, point.y * sy);
+        }
+        ctx.closePath();
+        ctx.fillStyle = drop.colour;
+        ctx.fill();
+      }
+    }
+
+    // Each "scene" is a seed value and random href
+    function makeScene(forcedSeed) {
+      const validSeed = (forcedSeed !== undefined && !isNaN(forcedSeed));
+      const seed = validSeed ? forcedSeed : LAB.randInt(1, 1000000000);
+      return {
+        seed: seed,
+        href: LAB.pageRandomiser.nextOne(),
+      };
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlSeed = urlParams.has('seed') ? parseInt(urlParams.get('seed'), 10) : undefined;
+    let history = [makeScene(urlSeed)];
+    let historyIndex = 0;
+
+    function scene() { return history[historyIndex]; }
+
+    // Rebuild the drop pattern deterministically from the scene's seed
+    function buildPattern() {
+      rng = mulberry32(scene().seed);
+
+      drops = [];
+      const colours = seededShuffle(COLOURS).slice(0, seededRandInt(3, 5));
+
+      // Make the pattern by dropping lots of colour blobs
+      const dropCount = seededRandInt(70, 120);
+      for (let i = 0; i < dropCount; i++) {
+        addDrop(
+          seededRand(0, VIRTUAL_W),
+          seededRand(0, VIRTUAL_H),
+          seededRand(VIRTUAL_W * 0.02, VIRTUAL_W * 0.1),
+          seededSample(colours)
+        );
+      }
+
+      // Sometimes leave as blobs
+      // Sometimes drag a comb line through it top-to-bottom
+      if (seededChance(0.75)) {
+        const lineGap = seededRandInt(40, 90);
+        const sharpness = seededRand(20, 45);
+        let flip = 1;
+        for (let x = lineGap / 2; x < VIRTUAL_W; x += lineGap) {
+          comb(x, 0, 0, flip, seededRand(VIRTUAL_H * 0.2, VIRTUAL_H * 0.5), sharpness);
+          flip *= -1;
+        }
+
+        // Sometimes comb again horizontally
+        if (seededChance(0.5)) {
+          for (let y = lineGap; y < VIRTUAL_H; y += lineGap * 2) {
+            comb(0, y, seededChance(0.5) ? 1 : -1, 0, seededRand(VIRTUAL_W * 0.1, VIRTUAL_W * 0.3), sharpness);
+          }
+        }
+      }
+    }
+
+    function init() {
+      const w = Math.floor(Math.min(window.innerWidth * 0.92, window.innerHeight * 0.92 * 0.75));
+      const h = Math.floor(Math.min(window.innerHeight * 0.92, w / 0.75));
+      canvas.width = w;
+      canvas.height = h;
+
+      link.href = scene().href;
+
+      buildPattern();
+      render(w, h);
+
+      const newUrl = new URL(window.location);
+      newUrl.searchParams.set('seed', scene().seed);
+      window.history.replaceState({}, '', newUrl);
+    }
+
+    function next() {
+      if (historyIndex < history.length - 1) historyIndex++;
+      else { history.push(makeScene()); historyIndex = history.length - 1; }
+      init();
+    }
+
+    function prev() {
+      if (historyIndex > 0) historyIndex--;
+      else { history.unshift(makeScene()); historyIndex = 0; }
+      init();
+    }
+
+    window.addEventListener('resize', init);
+
+    document.addEventListener('click', (e) => {
+      if (e.target.closest('a') || e.target.closest('.nav-panel')) return;
+      next();
+    });
+
+    const LEFT = new Set(['ArrowLeft', 'ArrowDown', 'h', 'j', 'a', 's']);
+    const RIGHT = new Set(['ArrowRight', 'ArrowUp', 'k', 'l', 'd', 'w']);
+    document.addEventListener('keydown', (e) => {
+      if (LEFT.has(e.key)) { e.preventDefault(); prev(); }
+      else if (RIGHT.has(e.key)) { e.preventDefault(); next(); }
+    });
+
+    document.getElementById('nav-left').addEventListener('click', prev);
+    document.getElementById('nav-right').addEventListener('click', next);
+
+    init();
+
+  </script>
+</body>
+
+</html>

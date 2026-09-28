@@ -1981,3 +1981,10 @@ corridors:
     tags: [art, mobile]
     visual_description: >-
       A proc-gen interpretation of the paper marbling tradition. A portrait-oriented canvas is centred on a dark brown background. Blobs of colours are dropped onto a light beige surface, and then combed through with a series of strokes dragged alternately up and down (and sometimes a second pass of horizontal strokes). The page uses a deterministic, seeded random generation algorithm so that users can navigate back and forth through variations using side arrows. The canvas acts as a portal linking to a random corridor.
+  - id: plasma-clouds
+    title: Plasma Clouds
+    created: 2026-09-28 11:33
+    links: dynamic
+    tags: [abstract, crt, mobile]
+    visual_description: >-
+      A square canvas of plasma clouds centred on a black background. The clouds are generated procedurally with the diamond-square algorithm and a randomised two-hue palette, giving each variation a stormy blend of dark and bright tones. The page uses a deterministic, seeded random generation algorithm so that users can navigate back and forth through variations using side arrows. The canvas acts as a portal linking to a random corridor.

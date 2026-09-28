@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="The Cloud of Unknowing">
+  <title>with a chance of plasma</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body,
+    html {
+      display: flex;
+      width: 100%;
+      height: 100%;
+      background-color: #02020a;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    body::after {
+      display: block;
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.18) 50%);
+      background-size: 100% 2px;
+      content: " ";
+      z-index: 100;
+      pointer-events: none;
+    }
+
+    #link {
+      display: block;
+    }
+
+    canvas {
+      display: block;
+    }
+
+    .nav-panel {
+      position: fixed;
+      top: 0;
+      display: flex;
+      width: 120px;
+      height: 100%;
+      justify-content: center;
+      align-items: center;
+      z-index: 5;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    #nav-left {
+      left: 0;
+      background: linear-gradient(to right, rgba(255, 255, 255, 0.02), transparent);
+    }
+
+    #nav-left:hover {
+      background: linear-gradient(to right, rgba(255, 255, 255, 0.06), transparent);
+    }
+
+    #nav-right {
+      right: 0;
+      background: linear-gradient(to left, rgba(255, 255, 255, 0.02), transparent);
+    }
+
+    #nav-right:hover {
+      background: linear-gradient(to left, rgba(255, 255, 255, 0.06), transparent);
+    }
+
+    .nav-button {
+      background: none;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: rgba(255, 255, 255, 0.25);
+      padding: 12px 16px;
+      font-size: 28px;
+      line-height: 1;
+      pointer-events: none;
+    }
+
+    .nav-panel:hover .nav-button {
+      border-color: rgba(255, 255, 255, 0.5);
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    @media (max-width: 600px) {
+      .nav-panel {
+        top: auto;
+        bottom: 0;
+        width: 50%;
+        height: 60px;
+        background: none;
+      }
+
+      .nav-button {
+        border: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="nav-left" class="nav-panel">
+    <button class="nav-button">&larr;</button>
+  </div>
+
+  <a id="link" href="../index.html">
+    <canvas id="canvas"></canvas>
+  </a>
+
+  <div id="nav-right" class="nav-panel">
+    <button class="nav-button">&rarr;</button>
+  </div>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('plasma-clouds');
+
+    const link = document.getElementById('link');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    const DETAIL = 10;
+    const GRID_SIZE = 2 ** DETAIL + 1;
+
+    let CANVAS_SIZE = 0, dpr = 1;
+    let heightMap;
+    let palette = [];
+    let plasmaCanvas = null;
+    let rng;
+
+    function mulberry32(seed) {
+      return function () {
+        seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+        let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+        t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+      };
+    }
+
+    function seededRand(min, max) { return rng() * (max - min) + min; }
+    function seededRandInt(min, max) { return Math.floor(seededRand(min, max + 1)); }
+
+    // Fill the palette with plasma colours based on a random initial hue
+    function generatePalette() {
+      const hue1 = seededRandInt(0, 360);
+      const hue2 = (hue1 + seededRandInt(0, 360)) % 360;
+      palette = [];
+      for (let i = 0; i < 256; i++) {
+        const t = i / 255;
+        const hue = hue1 + (hue2 - hue1) * t;
+        const sat = 55 + 35 * Math.sin(t * Math.PI);
+
+        // Mess about with these values to change how dark and stormy it looks
+        const light = 10 + 34 * t;
+
+        palette.push({ h: hue, s: sat, l: light });
+      }
+    }
+
+    // https://en.wikipedia.org/wiki/Diamond-square_algorithm
+    function diamondSquare() {
+      heightMap = new Float32Array(GRID_SIZE * GRID_SIZE);
+      const set = (x, y, v) => { heightMap[y * GRID_SIZE + x] = v; };
+      set(0, 0, seededRand(0, 1));
+      set(GRID_SIZE - 1, 0, seededRand(0, 1));
+      set(0, GRID_SIZE - 1, seededRand(0, 1));
+      set(GRID_SIZE - 1, GRID_SIZE - 1, seededRand(0, 1));
+
+      let stepSize = GRID_SIZE - 1;
+      let roughness = 0.7;
+
+      while (stepSize > 1) {
+        const half = stepSize / 2;
+
+        for (let y = 0; y < GRID_SIZE - 1; y += stepSize) {
+          for (let x = 0; x < GRID_SIZE - 1; x += stepSize) {
+            const tl = heightMap[y * GRID_SIZE + x];
+            const tr = heightMap[y * GRID_SIZE + (x + stepSize)];
+            const bl = heightMap[(y + stepSize) * GRID_SIZE + x];
+            const br = heightMap[(y + stepSize) * GRID_SIZE + (x + stepSize)];
+            const avg = (tl + tr + bl + br) / 4;
+            const offset = seededRand(-1, 1) * roughness;
+            heightMap[(y + half) * GRID_SIZE + (x + half)] = Math.max(0, Math.min(1, avg + offset));
+          }
+        }
+
+        for (let y = 0; y < GRID_SIZE; y += half) {
+          for (let x = (y + half) % stepSize; x < GRID_SIZE; x += stepSize) {
+            const top = y - half >= 0 ? heightMap[(y - half) * GRID_SIZE + x] : null;
+            const bottom = y + half < GRID_SIZE ? heightMap[(y + half) * GRID_SIZE + x] : null;
+            const left = x - half >= 0 ? heightMap[y * GRID_SIZE + (x - half)] : null;
+            const right = x + half < GRID_SIZE ? heightMap[y * GRID_SIZE + (x + half)] : null;
+            let sum = 0, count = 0;
+            if (top !== null) { sum += top; count++; }
+            if (bottom !== null) { sum += bottom; count++; }
+            if (left !== null) { sum += left; count++; }
+            if (right !== null) { sum += right; count++; }
+            if (count > 0) {
+              const avg = sum / count;
+              const offset = seededRand(-1, 1) * roughness;
+              heightMap[y * GRID_SIZE + x] = Math.max(0, Math.min(1, avg + offset));
+            }
+          }
+        }
+
+        stepSize = half;
+        roughness *= 0.55;
+      }
+
+      let min = 1, max = 0;
+      for (let i = 0; i < heightMap.length; i++) {
+        if (heightMap[i] < min) min = heightMap[i];
+        if (heightMap[i] > max) max = heightMap[i];
+      }
+      for (let i = 0; i < heightMap.length; i++) {
+        heightMap[i] = (heightMap[i] - min) / (max - min || 1);
+      }
+    }
+
+    function renderPlasma() {
+      if (!plasmaCanvas) {
+        plasmaCanvas = document.createElement('canvas');
+        plasmaCanvas.width = GRID_SIZE;
+        plasmaCanvas.height = GRID_SIZE;
+      }
+      const context = plasmaCanvas.getContext('2d');
+      const imgData = context.createImageData(GRID_SIZE, GRID_SIZE);
+      const data = imgData.data;
+      for (let y = 0; y < GRID_SIZE; y++) {
+        for (let x = 0; x < GRID_SIZE; x++) {
+          const height = heightMap[y * GRID_SIZE + x];
+          const col = palette[Math.min(255, Math.floor(height * 255))];
+          const c = (1 - Math.abs(2 * (col.l / 100) - 1)) * (col.s / 100);
+          const hue = col.h / 60;
+          const xc = c * (1 - Math.abs((hue % 2) - 1));
+          const m = col.l / 100 - c / 2;
+          let r1, g1, b1;
+          if (hue < 1) { r1 = c; g1 = xc; b1 = 0; }
+          else if (hue < 2) { r1 = xc; g1 = c; b1 = 0; }
+          else if (hue < 3) { r1 = 0; g1 = c; b1 = xc; }
+          else if (hue < 4) { r1 = 0; g1 = xc; b1 = c; }
+          else if (hue < 5) { r1 = xc; g1 = 0; b1 = c; }
+          else { r1 = c; g1 = 0; b1 = xc; }
+
+          const pi = (y * GRID_SIZE + x) * 4;
+          data[pi] = Math.floor((r1 + m) * 255);
+          data[pi + 1] = Math.floor((g1 + m) * 255);
+          data[pi + 2] = Math.floor((b1 + m) * 255);
+          data[pi + 3] = 255;
+        }
+      }
+      context.putImageData(imgData, 0, 0);
+    }
+
+    function render() {
+      if (!plasmaCanvas) return;
+      ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(plasmaCanvas, 0, 0, CANVAS_SIZE, CANVAS_SIZE);
+    }
+
+    // Rebuild the palette + height map deterministically from the scene's seed
+    function buildPattern() {
+      rng = mulberry32(scene().seed);
+      generatePalette();
+      diamondSquare();
+      renderPlasma();
+    }
+
+    // Each "scene" is a seed value and random href
+    function makeScene(forcedSeed) {
+      const validSeed = (forcedSeed !== undefined && !isNaN(forcedSeed));
+      const seed = validSeed ? forcedSeed : LAB.randInt(1, 1000000000);
+      return {
+        seed: seed,
+        href: LAB.pageRandomiser.nextOne(),
+      };
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlSeed = urlParams.has('seed') ? parseInt(urlParams.get('seed'), 10) : undefined;
+    let history = [makeScene(urlSeed)];
+    let historyIndex = 0;
+
+    function scene() { return history[historyIndex]; }
+
+    function init() {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      CANVAS_SIZE = Math.min(window.innerWidth, window.innerHeight, 760);
+      canvas.width = Math.round(CANVAS_SIZE * dpr);
+      canvas.height = Math.round(CANVAS_SIZE * dpr);
+      canvas.style.width = CANVAS_SIZE + 'px';
+      canvas.style.height = CANVAS_SIZE + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      link.href = scene().href;
+
+      buildPattern();
+      render();
+
+      const newUrl = new URL(window.location);
+      newUrl.searchParams.set('seed', scene().seed);
+      window.history.replaceState({}, '', newUrl);
+    }
+
+    function next() {
+      if (historyIndex < history.length - 1) historyIndex++;
+      else { history.push(makeScene()); historyIndex = history.length - 1; }
+      init();
+    }
+
+    function prev() {
+      if (historyIndex > 0) historyIndex--;
+      else { history.unshift(makeScene()); historyIndex = 0; }
+      init();
+    }
+
+    window.addEventListener('resize', init);
+
+    document.addEventListener('click', (e) => {
+      if (e.target.closest('a') || e.target.closest('.nav-panel')) return;
+      next();
+    });
+
+    const LEFT = new Set(['ArrowLeft', 'ArrowDown', 'h', 'j', 'a', 's']);
+    const RIGHT = new Set(['ArrowRight', 'ArrowUp', 'k', 'l', 'd', 'w']);
+    document.addEventListener('keydown', (e) => {
+      if (LEFT.has(e.key)) { e.preventDefault(); prev(); }
+      else if (RIGHT.has(e.key)) { e.preventDefault(); next(); }
+    });
+
+    document.getElementById('nav-left').addEventListener('click', prev);
+    document.getElementById('nav-right').addEventListener('click', next);
+
+    init();
+
+  </script>
+</body>
+
+</html>

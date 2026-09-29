@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Home Taping Is Killing Movies">
+  <title>neVertHeleSs</title>
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --link-cols: 1;
+      --link-rows: 10;
+      --padding-v: 20px;
+      --padding-h: 30px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body,
+    html {
+      width: 100%;
+      height: 100%;
+      background-color: var(--bg);
+      overflow: hidden;
+    }
+
+    #canvas {
+      width: 100vw;
+      height: 100vh;
+    }
+
+    #links {
+      position: absolute;
+      top: 0;
+      left: 0;
+      display: grid;
+      width: 100%;
+      height: 100%;
+      grid-template-columns: repeat(var(--link-cols), 1fr);
+      grid-template-rows: repeat(var(--link-rows), 1fr);
+      z-index: 50;
+    }
+
+    .link-cell {
+      border: 1px solid rgba(255, 255, 255, 0.02);
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+
+    .link-cell:hover {
+      background-color: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .text {
+      color: white;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+      font-family: monospace;
+      font-size: 38px;
+      z-index: 100;
+      pointer-events: none;
+    }
+
+    #timestamp {
+      position: fixed;
+      top: var(--padding-v);
+      right: var(--padding-h);
+      letter-spacing: 2px;
+    }
+
+    #status-icon {
+      position: fixed;
+      top: var(--padding-v);
+      left: var(--padding-h);
+    }
+
+    #date-display {
+      position: fixed;
+      bottom: var(--padding-v);
+      left: var(--padding-h);
+      letter-spacing: 2px;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="canvas"></canvas>
+  <div class="text" id="timestamp">--:--</div>
+  <div class="text" id="status-icon">PLAY ▶</div>
+  <div class="text" id="date-display">
+    <div id="clock-time">--:--</div>
+    <div id="clock-date">-- --- ----</div>
+  </div>
+  <div id="links"></div>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('vhs-tracking');
+
+    const links = document.getElementById('links');
+    const timestamp = document.getElementById('timestamp');
+    const statusIcon = document.getElementById('status-icon');
+    const clockTime = document.getElementById('clock-time');
+    const clockDate = document.getElementById('clock-date');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    const CSS_STYLE = getComputedStyle(document.documentElement);
+    const LINK_COLS = Number(CSS_STYLE.getPropertyValue('--link-cols'));
+    const LINK_ROWS = Number(CSS_STYLE.getPropertyValue('--link-rows'));
+
+    let winW, winH;
+    let time = 0;
+    let paused = false;
+    let elapsedMs = 0;
+    let playStart = Date.now();
+
+    const smallBars = [];
+    const largeBars = [];
+
+    const numSmallBars = 50;
+    const numLargeBars = 8;
+
+    function resize() {
+      winW = canvas.width = window.innerWidth;
+      winH = canvas.height = window.innerHeight;
+      init();
+      // Draw one frame if paused
+      if (paused) drawVHSEffect();
+    }
+
+    function drawVHSEffect() {
+      ctx.fillStyle = '#0a0a0a';
+      ctx.fillRect(0, 0, winW, winH);
+
+      const imageData = ctx.getImageData(0, 0, winW, winH);
+      const data = imageData.data;
+
+      for (let y = 0; y < winH; y++) {
+        const wave = Math.sin(y * 0.05 + time * 2) * 3;
+        const wave2 = Math.cos(y * 0.03 + time * 1.5) * 2;
+
+        for (let x = 0; x < winW; x++) {
+          const idx = (y * winW + x) * 4;
+
+          const noise = LAB.rand(0, 15);
+          const rgb = 10 + noise;
+
+          const scanlineEffect = Math.sin(y * 0.8) * 5;
+
+          data[idx] = rgb + scanlineEffect;
+          data[idx + 1] = rgb + scanlineEffect;
+          data[idx + 2] = rgb + scanlineEffect + 5;
+          data[idx + 3] = 255;
+        }
+      }
+
+      ctx.putImageData(imageData, 0, 0);
+
+      smallBars.forEach(line => {
+        line.y += line.speed;
+        if (line.y > winH) line.y = -line.height;
+
+        ctx.fillStyle = `rgba(255, 255, 255, ${line.intensity})`;
+        ctx.fillRect(0, line.y, winW, line.height);
+      });
+
+      largeBars.forEach(error => {
+        error.y += error.speed;
+        if (error.y > winH + error.height) error.y = -error.height;
+
+        ctx.save();
+        ctx.translate(error.distortion * Math.sin(time + error.y * 0.01), 0);
+        const slice = ctx.getImageData(0, error.y, winW, error.height);
+        ctx.putImageData(slice, 0, error.y);
+        ctx.restore();
+
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+        ctx.fillRect(0, error.y, winW, error.height);
+      });
+    }
+
+    const MONTHS = [
+      'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
+      'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC',
+    ];
+
+    function updateClock() {
+      if (paused) return;
+
+      const now = new Date();
+      const then = new Date(now);
+      then.setFullYear(now.getFullYear());
+
+      let hour = then.getHours();
+      const meridiem = hour >= 12 ? 'PM' : 'AM';
+      hour = hour % 12 || 12;
+
+      clockTime.innerText =
+        meridiem + ' ' +
+        String(hour).padStart(2, '0') + ':' +
+        String(then.getMinutes()).padStart(2, '0');
+      clockDate.innerText =
+        String(then.getDate()).padStart(2, '0') + ' ' +
+        MONTHS[then.getMonth()] + ' ' + then.getFullYear();
+    }
+
+    function updateTimestamp() {
+      const totalMs = elapsedMs + (paused ? 0 : Date.now() - playStart);
+      const elapsed = totalMs / 1000;
+      const timestampStr =
+        String(Math.floor(elapsed / 60)).padStart(2, '0') + ':' +
+        String(Math.floor(elapsed % 60)).padStart(2, '0');
+      if (timestamp.innerText !== timestampStr) {
+        timestamp.innerText = timestampStr;
+      }
+    }
+
+    function init() {
+      smallBars.length = 0;
+      largeBars.length = 0;
+      links.replaceChildren();
+
+      for (let i = 0; i < numSmallBars; i++) {
+        smallBars.push({
+          y: LAB.rand(0, winH),
+          height: LAB.rand(1, 4),
+          speed: LAB.rand(0.5, 2.5),
+          intensity: LAB.rand(0.1, 0.4),
+          offset: LAB.rand(-10, 10),
+        });
+      }
+
+      for (let i = 0; i < numLargeBars; i++) {
+        largeBars.push({
+          y: LAB.rand(0, winH),
+          height: LAB.rand(10, 50),
+          speed: LAB.rand(0.1, 0.6),
+          distortion: LAB.rand(10, 40),
+        });
+      }
+
+      for (let r = 0; r < LINK_ROWS; r++) {
+        for (let c = 0; c < LINK_COLS; c++) {
+          const cell = document.createElement('a');
+          cell.href = LAB.pageRandomiser.nextOne();
+          cell.className = 'link-cell';
+          links.appendChild(cell);
+        }
+      }
+    }
+
+    function tick() {
+      if (!paused) {
+        time += 0.016;
+        drawVHSEffect();
+      }
+      requestAnimationFrame(tick);
+    }
+
+    function togglePause() {
+      paused = !paused;
+      if (paused) {
+        elapsedMs += Date.now() - playStart;
+      } else {
+        playStart = Date.now();
+      }
+      statusIcon.innerText = paused ? 'PAUSE ⏸' : 'PLAY ▶';
+      updateClock();
+    }
+
+    window.addEventListener('resize', resize);
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, togglePause);
+    });
+
+    setInterval(() => {
+      updateClock();
+      updateTimestamp();
+    }, 1000);
+
+    updateClock();
+    updateTimestamp();
+    resize();
+    tick();
+
+  </script>
+</body>
+
+</html>

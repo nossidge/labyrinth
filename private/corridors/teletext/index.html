@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Page 888 for subtitles">
+  <title>CEEFAX 100</title>
+  <style>
+    :root {
+      --black: #000000;
+      --red: #ff0000;
+      --green: #00ff00;
+      --yellow: #ffff00;
+      --blue: #0000ff;
+      --magenta: #ff00ff;
+      --cyan: #00ffff;
+      --white: #ffffff;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      background: #000000;
+      overflow: hidden;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: var(--white);
+      font-family: "Courier New", Courier, monospace;
+      font-weight: bold;
+      font-size: min(4.1667vw, 4vh);
+      line-height: 1;
+    }
+
+    #screen {
+      position: relative;
+      width: 24em;
+      height: 25em;
+      background: #000000;
+    }
+
+    .row {
+      display: block;
+      height: 1em;
+      white-space: pre;
+      overflow: hidden;
+    }
+
+    .row.double {
+      height: 2em;
+      line-height: 1em;
+      transform: scaleY(2);
+      transform-origin: top left;
+    }
+
+    .row.double span {
+      display: inline-block;
+      height: 1em;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    a:hover {
+      background: var(--white);
+      color: var(--black);
+    }
+
+    a:hover span {
+      color: var(--black);
+    }
+
+    .red {
+      color: var(--red);
+    }
+
+    .green {
+      color: var(--green);
+    }
+
+    .yellow {
+      color: var(--yellow);
+    }
+
+    .blue {
+      color: var(--blue);
+    }
+
+    .magenta {
+      color: var(--magenta);
+    }
+
+    .cyan {
+      color: var(--cyan);
+    }
+
+    .white {
+      color: var(--white);
+    }
+
+    .bg-red {
+      background: var(--red);
+    }
+
+    .bg-green {
+      background: var(--green);
+    }
+
+    .bg-yellow {
+      background: var(--yellow);
+    }
+
+    .bg-blue {
+      background: var(--blue);
+    }
+
+    .bg-magenta {
+      background: var(--magenta);
+    }
+
+    .bg-cyan {
+      background: var(--cyan);
+    }
+
+    .bg-white {
+      background: var(--white);
+    }
+
+    .bg-blue.white,
+    .bg-red.white {
+      color: var(--white);
+    }
+
+    .bg-yellow.blue,
+    .bg-cyan.blue,
+    .bg-green.blue {
+      color: var(--blue);
+    }
+
+    #landscape {
+      display: block;
+      width: 24em;
+      height: 6em;
+      image-rendering: pixelated;
+    }
+
+    .fastext {
+      display: flex;
+    }
+
+    .fastext a {
+      display: inline-block;
+      width: 6em;
+      height: 1em;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    .fastext a:hover {
+      background: var(--white);
+      color: var(--black);
+    }
+
+    .flash {
+      animation: flash 1s steps(1) infinite;
+    }
+
+    @keyframes flash {
+      50% {
+        visibility: hidden;
+      }
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0.22) 50%);
+      background-size: 100% 3px, 100% 100%;
+      pointer-events: none;
+      z-index: 10;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+  <main id="screen">
+    <div class="row" id="header"></div>
+    <div class="row double" id="title"></div>
+    <canvas id="landscape" width="80" height="18"></canvas>
+    <div id="body"></div>
+    <div class="row fastext" id="fastext"></div>
+  </main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('teletext');
+
+    const COLOURS = ['red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'white'];
+    const HEX = {
+      black: '#000000', red: '#ff0000', green: '#00ff00', yellow: '#ffff00',
+      blue: '#0000ff', magenta: '#ff00ff', cyan: '#00ffff', white: '#ffffff',
+    };
+    const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const MONTHS = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    ];
+
+    const header = document.getElementById('header');
+    const title = document.getElementById('title');
+    const bodyEl = document.getElementById('body');
+    const fastext = document.getElementById('fastext');
+    const landscape = document.getElementById('landscape');
+    const ctx = landscape.getContext('2d');
+
+    const pad = (n, w = 2) => String(n).padStart(w, '0');
+    const fit = (s, w) => (s.length > w ? s.slice(0, w) : s.padEnd(w, ' '));
+
+    const SECTIONS = [
+      'LOTTERY', 'MONEY', 'NEWS', 'SPORT', 'SUBTITLES', 'TRAVEL', 'TV', 'WEATHER',
+    ];
+
+    // Returns a random page index, but not from `tailExclusion` numbers from the end
+    function randomCorridorIndex(tailExclusion = 0) {
+      const maxIndex = corridorsData.length - 1;
+      return LAB.randInt(0, Math.max(0, maxIndex - tailExclusion));
+    }
+
+    const listItemCount = 12;
+    let startPage = randomCorridorIndex(listItemCount) + 1;
+    let searching = null;
+
+    function drawHeader() {
+      const now = new Date();
+      const clock = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+      const date = `${DAYS[now.getDay()]} ${pad(now.getDate())} ${MONTHS[now.getMonth()]}`;
+      const pageString = startPage.toString().padStart(3, '0');
+      const page = searching ? searching : `P${pageString}`;
+      document.title = `CEEFAX ${pageString}`;
+      header.innerHTML =
+        `<span class="white">${fit(page, 6)}</span>` +
+        `<span class="white">CEEFAX ${pageString}  </span>` +
+        `<span class="white">   ${fit(date, 11)}</span>` +
+        `<span class="white">${clock}</span>`;
+    }
+
+    function drawTitle() {
+      const section = LAB.sample(SECTIONS);
+      const bg = LAB.sample(['blue', 'red', 'magenta']);
+      title.innerHTML =
+        `<span class="bg-${bg} white">${fit(' ' + section + ' ', 16)}</span>` +
+        `<span class="yellow">           THE LABYRINTH</span>`;
+    }
+
+    // Draw a pretty-ish lo-fi landscape image
+    function drawLandscape() {
+      const W = 80, H = 18; // 2x3 sixels per character cell, 40 cells wide, 6 rows tall
+      const img = ctx.createImageData(W, H);
+      const sky = HEX[LAB.sample(['blue', 'black', 'magenta'])];
+      const hill = HEX[LAB.sample(['green', 'yellow', 'cyan', 'red'])];
+      const sun = HEX[LAB.sample(['yellow', 'red', 'white'])];
+      const sunX = LAB.randInt(6, W - 6), sunY = LAB.randInt(3, 8), sunR = LAB.randInt(2, 4);
+
+      let h = LAB.randInt(8, 14);
+      const skyline = [];
+      for (let x = 0; x < W; x++) {
+        h += LAB.randInt(-1, 1);
+        h = Math.max(6, Math.min(H - 2, h));
+        skyline.push(h);
+      }
+
+      const putData = (x, y, hex) => {
+        const i = (y * W + x) * 4;
+        img.data[i] = parseInt(hex.slice(1, 3), 16);
+        img.data[i + 1] = parseInt(hex.slice(3, 5), 16);
+        img.data[i + 2] = parseInt(hex.slice(5, 7), 16);
+        img.data[i + 3] = 255;
+      };
+
+      for (let y = 0; y < H; y++) {
+        for (let x = 0; x < W; x++) {
+          let colour = sky;
+          if (Math.hypot(x - sunX, (y - sunY) * 1.5) <= sunR) colour = sun;
+          if (y >= skyline[x]) colour = hill;
+          if (y >= skyline[x] && (x + y) % 7 === 0) colour = HEX.black;
+          putData(x, y, colour);
+        }
+      }
+      ctx.putImageData(img, 0, 0);
+    }
+
+    function drawBody() {
+      // Blank row
+      bodyEl.innerHTML = '<div class="row"></div>';
+
+      const maxPageNumber = corridorsData.length;
+      const corridors = corridorsData.slice(startPage - 1, startPage - 1 + listItemCount);
+      const colours = LAB.shuffle(['cyan', 'green', 'yellow']);
+
+      corridors.forEach((c, i) => {
+        const row = document.createElement('a');
+        row.href = c.url;
+        row.className = `row ${colours[Math.floor(i / 4) % colours.length]}`;
+        const label = fit(c.title.toUpperCase(), 37);
+        const dots = label.replace(/ (?= )/g, '.').replace(/\s+$/, m => '.'.repeat(m.length));
+        const pageNumber = (startPage + i).toString().padStart(3, '0');
+        row.innerHTML = `${dots}<span class="white">${pageNumber}</span>`;
+        bodyEl.appendChild(row);
+      });
+
+      const recentPage = corridorsData.at(-1);
+      const recentRow = document.createElement('div');
+      recentRow.className = 'row';
+      recentRow.innerHTML = `<a href="${recentPage.url}" class="white">RECENTLY UPDATED${'.'.repeat(21)}${maxPageNumber}</a>`;
+      bodyEl.appendChild(recentRow);
+
+      // Blank row
+      const row = document.createElement('div');
+      row.className = 'row';
+      bodyEl.appendChild(row);
+    }
+
+    function drawFastext() {
+      fastext.replaceChildren();
+      const navItems = {
+        red: 'Weather   ',
+        green: '  Sport   ',
+        yellow: '    News   ',
+        cyan: ' Main Menu',
+      };
+      Object.entries(navItems).forEach(([colour, label]) => {
+        const a = document.createElement('a');
+        a.href = LAB.pageRandomiser.nextOne();
+        a.className = colour;
+        a.textContent = label;
+        fastext.appendChild(a);
+      });
+    }
+
+    function redraw() {
+      drawTitle();
+      drawLandscape();
+      drawBody();
+      drawFastext();
+      drawHeader();
+    }
+
+    // Randomly choose a new teletext page
+    // Simulates a person pressing the digits on their remote one at a time
+    function changePage() {
+      const target = randomCorridorIndex(listItemCount) + 1;
+      const digits = String(target).padStart(3, '0');
+      let k = 0;
+      const type = () => {
+        k++;
+        searching = `P${digits.slice(0, k).padStart(3, ' ')}`;
+        drawHeader();
+        if (k < digits.length) {
+          setTimeout(type, LAB.randInt(250, 450));
+        } else {
+          setTimeout(() => {
+            searching = null;
+            startPage = target;
+            redraw();
+          }, LAB.randInt(300, 600));
+        }
+      };
+      setTimeout(type, LAB.randInt(250, 450));
+    }
+
+    redraw();
+    setInterval(drawHeader, 100);
+    setInterval(changePage, 12000);
+
+  </script>
+</body>
+
+</html>

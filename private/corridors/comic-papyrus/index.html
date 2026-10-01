@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+The idea for this page was to use a custom font.
+It would be Comic Sans, but every second glyph is Papyrus.
+Here's the online generator, and the site I found it on:
+- https://bastardica.mitpit.com
+- https://www.metafilter.com/214662/Times-New-Roman-but-every-7th-glyph-is-Arial
+
+But the font package came out to half a megabyte.
+Which is a little bit too much I think, to ask people to download.
+So I've made it use the real fonts, since many people already have those installed.
+It should pick up locally installed fonts and then fall back to the CDN.
+
+https://undertale.fandom.com/wiki/Papyrus
+https://www.onlinewebfonts.com/download/107eaa009712278feeb98175016a8a81
+
+https://undertale.fandom.com/wiki/Sans
+https://www.onlinewebfonts.com/download/5ae07497b996d58e10e32df50b805bbe
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="it's still you.">
+  <title>Despite everything,</title>
+  <style>
+    @import url(https://db.onlinewebfonts.com/c/5ae07497b996d58e10e32df50b805bbe?family=Comic+Sans+Pro+W99+Regular);
+    @import url(https://db.onlinewebfonts.com/c/107eaa009712278feeb98175016a8a81?family=Papyrus);
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg-colour: #000000;
+      --link-colour: #ffffff;
+      --link-hover: #b962b9;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background-color: var(--bg-colour);
+      text-align: center;
+      font-size: 8vh;
+      font-weight: bold;
+      line-height: 90%;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    .comic {
+      font-family: 'ComicSansMS', 'Comic Sans MS', 'Comic Sans Pro W99 Regular';
+    }
+
+    .papyrus {
+      font-family: 'Papyrus';
+    }
+
+    a {
+      color: var(--link-colour);
+      text-decoration: none;
+    }
+
+    a:hover {
+      color: var(--link-hover);
+      text-transform: uppercase;
+    }
+
+    #sans-face {
+      margin-bottom: 18px;
+    }
+
+    #papyrus-face {
+      margin-top: 4px;
+    }
+
+    @media (max-height: 499px) {
+      body {
+        flex-direction: row;
+        font-size: 12vh;
+      }
+
+      #sans-face,
+      #papyrus-face {
+        margin: 0 30px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <img id="sans-face" src="sans-face.webp" alt="sans face">
+  <main>
+    <div><a href="../index.html">the</a></div>
+    <div><a href="../index.html">best</a></div>
+    <div><a href="../index.html">of</a></div>
+    <div><a href="../index.html">both</a></div>
+    <div><a href="../index.html">worlds</a></div>
+  </main>
+  <img id="papyrus-face" src="papyrus-face.webp" alt="papyrus face">
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('comic-papyrus');
+
+    function init() {
+      let fonts = ['comic', 'papyrus'];
+      document.querySelectorAll('main a').forEach((link) => {
+        fonts = LAB.shuffle(fonts);
+        const text = link.textContent;
+        link.setAttribute('aria-label', text);
+        link.textContent = '';
+        [...text].forEach((char, i) => {
+          const span = document.createElement('span');
+          span.textContent = char;
+          span.className = i % 2 === 0 ? fonts[0] : fonts[1];
+          span.setAttribute('aria-hidden', 'true');
+          link.appendChild(span);
+        });
+      });
+    }
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    init();
+
+  </script>
+</body>
+
+</html>

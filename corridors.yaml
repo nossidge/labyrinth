@@ -2002,3 +2002,10 @@ corridors:
     tags: [crt, meta, mobile, tech]
     visual_description: >-
       A simulation of a BBC CEEFAX teletext page. A header row shows the page number, CEEFAX number, date and a live clock, followed by a coloured title bar with a random section (NEWS, SPORT, WEATHER and so on) beside yellow "THE LABYRINTH" text. A small block-graphics landscape depicts a randomised sky, hill and sun, above a list of corridor titles with dotted leaders and page numbers, a "Recently updated" line, and a coloured fastext row (Newsround, Sport, Weather, Main Menu). Every few seconds a new page number is typed out digit by digit, as if keyed into a remote control, before a fresh page loads. Each list row is a clickable link to a corridor and the fastext buttons link to random pages.
+  - id: comic-papyrus
+    title: Comic Papyrus
+    created: 2026-10-01 13:20
+    links: 5
+    tags: [images, mobile, pop, text, vendor]
+    visual_description: >-
+      An Undertale homage. The phrase "the best of both worlds" is set in large bold white type on a black background, flanked by the faces of spooky skeletons Sans and Papyrus. Every second glyph alternates between Comic Sans and Papyrus, the two best fonts in existence. Hovering over a word turns it pink and uppercases it. Clicking the background or pressing any key reshuffles which font each glyph falls into. Each word links to a random corridor.

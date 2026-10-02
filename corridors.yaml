@@ -2009,3 +2009,10 @@ corridors:
     tags: [images, mobile, pop, text, vendor]
     visual_description: >-
       An Undertale homage. The phrase "the best of both worlds" is set in large bold white type on a black background, flanked by the faces of spooky skeletons Sans and Papyrus. Every second glyph alternates between Comic Sans and Papyrus, the two best fonts in existence. Hovering over a word turns it pink and uppercases it. Clicking the background or pressing any key reshuffles which font each glyph falls into. Each word links to a random corridor.
+  - id: sedimentary
+    title: Sedimentary
+    created: 2026-10-02 13:39
+    links: dynamic
+    tags: [nature, science, mobile]
+    visual_description: >-
+      Grains of sand are poured in from above and settle into wavy strata of earthy ochres, tans, and terracottas against a dark brown background, building up from the bottom of the screen. Each layer's thickness is shaped by a gentle sine wave so its top edge undulates, and each grain is given a slight colour offset so it reads as sand. Every so often a stratum is laid down in a muted accent of sage green, slate blue, or dusty red. Once the grains reach the top the screen clears and a fresh sequence of layers begins. The whole canvas is a single clickable link to a random corridor.

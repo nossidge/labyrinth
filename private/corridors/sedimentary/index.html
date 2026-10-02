@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Geodudes and geodudettes">
+  <title>Darude</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body,
+    html {
+      width: 100%;
+      height: 100%;
+      background-color: #171310;
+      overflow: hidden;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="canvas"></canvas>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('sedimentary');
+
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    // Normal earthy sandy colours
+    const COLOURS = [
+      '#c2703d', '#a85632', '#d9a05b', '#e0c084', '#8a5a3b',
+      '#b78d5e', '#96552c', '#dab173', '#7d4b2a', '#c98a4b',
+    ];
+
+    // A bit of colour variation
+    const ACCENTS = ['#4e8d7c', '#5b7ea3', '#a34e5b'];
+
+    const GRAIN = 3;    // Pixel size of one grain
+    let columns = 0;    // Number of grain columns
+    let heights = [];   // Current fill height (in grains) per column
+    let strata = [];    // Every stratum laid down so far, bottom to top
+    let hoverEl = null; // Temporary anchor over the hovered stratum
+    let stratum = null;
+    let hoverStratum = null;
+    let hoverRect = null;
+    let pouring = false;
+
+    function init() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      columns = Math.ceil(canvas.width / GRAIN);
+      heights = new Array(columns).fill(0);
+      ctx.fillStyle = '#171310';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      strata = [];
+      newStratum();
+      hideHoverLink();
+      pouring = true;
+    }
+
+    // Use a few random sine waves to create a random shape for the stratum
+    function thicknessTarget() {
+      const base = LAB.randInt(6, 18);
+      const waves = [];
+      const target = [];
+      for (let i = 0; i < 3; i++) {
+        waves.push({
+          amp: LAB.rand(1, 7),
+          freq: LAB.rand(0.005, 0.03),
+          phase: LAB.rand(0, Math.PI * 2),
+        });
+      }
+      for (let x = 0; x < columns; x++) {
+        let t = base;
+        waves.forEach(wv => {
+          t += wv.amp * Math.sin(x * wv.freq * GRAIN + wv.phase);
+        });
+        target.push(Math.max(2, Math.round(t)));
+      }
+      return target;
+    }
+
+    function newStratum() {
+      stratum = {
+        colour: LAB.chance(0.12) ? LAB.sample(ACCENTS) : LAB.sample(COLOURS),
+        target: thicknessTarget(),
+        added: new Array(columns).fill(0),
+        start: Uint16Array.from(heights), // Where this stratum begins in each column
+        href: LAB.pageRandomiser.nextOne(),
+      };
+      strata.push(stratum);
+    }
+
+    // Find the stratum under a point
+    function covers(s, x, row) {
+      return row >= s.start[x] && row < s.start[x] + s.added[x];
+    }
+
+    function stratumAt(x, row) {
+      if (x < 0 || x >= columns || row < 0) return null;
+      for (const s of strata) {
+        if (covers(s, x, row)) return s;
+      }
+      return null;
+    }
+
+    // Create a temporary anchor at the point where the user is hovering.
+    // This is so that the browser's status bar will show the redirect URL.
+    // Spans a few columns around the pointer, with the vertical extent shared by all of them.
+    // So it never overlaps a neighbouring stratum.
+    const MAX_SPAN = 10; // Columns either side of the pointer
+    function showHoverLink(s, x, row) {
+      let lo = x, hi = x;
+      let bottom = s.start[x];
+      let top = s.start[x] + s.added[x];
+      const grow = (c) => {
+        bottom = Math.max(bottom, s.start[c]);
+        top = Math.min(top, s.start[c] + s.added[c]);
+      };
+      while (lo > 0 && x - lo < MAX_SPAN && covers(s, lo - 1, row)) grow(--lo);
+      while (hi < columns - 1 && hi - x < MAX_SPAN && covers(s, hi + 1, row)) grow(++hi);
+
+      hideHoverLink();
+      hoverStratum = s;
+      hoverRect = {
+        left: lo * GRAIN,
+        top: canvas.height - top * GRAIN,
+        width: (hi - lo + 1) * GRAIN,
+        height: (top - bottom) * GRAIN,
+      };
+      hoverEl = document.createElement('a');
+      hoverEl.href = s.href;
+      hoverEl.style.position = 'fixed';
+      hoverEl.style.zIndex = '90';
+      hoverEl.style.left = hoverRect.left + 'px';
+      hoverEl.style.top = hoverRect.top + 'px';
+      hoverEl.style.width = hoverRect.width + 'px';
+      hoverEl.style.height = hoverRect.height + 'px';
+      document.body.appendChild(hoverEl);
+    }
+
+    function hideHoverLink() {
+      if (hoverEl) hoverEl.remove();
+      hoverEl = null;
+      hoverStratum = null;
+      hoverRect = null;
+    }
+
+    function updateHover(e) {
+      const px = e.clientX, py = e.clientY;
+      const x = Math.floor(px / GRAIN);
+      const row = Math.floor((canvas.height - py) / GRAIN);
+      const s = stratumAt(x, row);
+      if (!s) {
+        hideHoverLink();
+        return;
+      }
+      // Keep the current anchor while the pointer is still inside it
+      if (hoverStratum === s && hoverRect &&
+        px >= hoverRect.left && px < hoverRect.left + hoverRect.width &&
+        py >= hoverRect.top && py < hoverRect.top + hoverRect.height) return;
+      showHoverLink(s, x, row);
+    }
+
+    // Colour with some offset, so each grain is different and it looks like sand
+    function grainColour(hex) {
+      const offset = LAB.randInt(-14, 14);
+      const r = Math.min(255, Math.max(0, parseInt(hex.slice(1, 3), 16) + offset));
+      const g = Math.min(255, Math.max(0, parseInt(hex.slice(3, 5), 16) + offset));
+      const b = Math.min(255, Math.max(0, parseInt(hex.slice(5, 7), 16) + offset));
+      return `rgb(${r},${g},${b})`;
+    }
+
+    function pour() {
+      const maxGrains = Math.floor(canvas.height / GRAIN);
+
+      // Add some grains to a random batch of columns each frame
+      for (let i = 0; i < columns * 0.4; i++) {
+        const x = LAB.randIndex(heights);
+        if (stratum.added[x] >= stratum.target[x]) continue;
+        if (heights[x] >= maxGrains) continue;
+
+        ctx.fillStyle = grainColour(stratum.colour);
+        ctx.fillRect(
+          x * GRAIN,
+          canvas.height - (heights[x] + 1) * GRAIN,
+          GRAIN, GRAIN
+        );
+        heights[x]++;
+        stratum.added[x]++;
+      }
+
+      // A column is done when its stratum is complete or it has hit the top
+      const stratumDone = heights.every((hgt, x) =>
+        stratum.added[x] >= stratum.target[x] || hgt >= maxGrains
+      );
+
+      if (stratumDone) {
+        const fullColumns = heights.filter(hgt => hgt >= maxGrains).length;
+        if (fullColumns >= columns * 0.99) {
+          // The sand has reached the top, so reset
+          pouring = false;
+          setTimeout(init, 4000);
+          return;
+        }
+        newStratum();
+      }
+    }
+
+    function tick() {
+      if (pouring) pour();
+      requestAnimationFrame(tick);
+    }
+
+    window.addEventListener('pointermove', updateHover);
+    window.addEventListener('pointerdown', updateHover);
+    document.addEventListener('mouseleave', hideHoverLink);
+
+    window.addEventListener('resize', init);
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    init();
+    tick();
+
+  </script>
+</body>
+
+</html>

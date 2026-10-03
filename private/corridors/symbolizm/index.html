@@ -8,8 +8,8 @@
   <title>symbolizm</title>
   <style>
     :root {
-      --bg-color: #050505;
-      --text-color: #00ff41;
+      --bg-colour: #050505;
+      --text-colour: #00ff41;
       --highlight: #ff00ff;
       --flicker-speed: 0.12s;
     }
@@ -20,62 +20,50 @@
       box-sizing: border-box;
     }
 
-    body,
-    html {
+    html,
+    body {
       width: 100%;
       height: 100%;
-      background-color: var(--bg-color);
-      color: var(--text-color);
+      background-color: var(--bg-colour);
+      color: var(--text-colour);
       font-family: monospace;
       overflow: hidden;
+      user-select: none;
     }
 
-    /* CRT Scanline Effect */
-    body::before {
-      content: " ";
-      display: block;
-      position: absolute;
-      top: 0;
-      left: 0;
-      bottom: 0;
-      right: 0;
-      background:
-        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
-        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-      z-index: 2;
-      background-size: 100% 2px, 3px 100%;
-      pointer-events: none;
+    body {
+      animation: flicker var(--flicker-speed) infinite alternate;
     }
 
-    #grid {
+    main {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
       grid-template-rows: repeat(auto-fill, minmax(80px, 1fr));
+      position: relative;
       width: 100vw;
       height: 100vh;
-      position: relative;
       z-index: 1;
     }
 
     .cell {
-      border: 1px solid rgba(0, 255, 65, 0.1);
       display: flex;
       justify-content: center;
       align-items: center;
-      font-size: 16px;
-      transition: all 0.4s ease;
-      text-decoration: none;
-      color: var(--text-color);
       position: relative;
+      border: 1px solid rgba(0, 255, 65, 0.1);
+      color: var(--text-colour);
+      font-size: 16px;
+      text-decoration: none;
+      transition: all 0.4s ease;
       overflow: hidden;
     }
 
     .cell:hover {
-      background-color: var(--text-color);
-      color: var(--bg-color);
+      background-color: var(--text-colour);
+      color: var(--bg-colour);
+      border: none;
       transform: scale(0.9) rotate(2deg);
       z-index: 10;
-      border: none;
     }
 
     .cell.tilde {
@@ -89,10 +77,9 @@
     .cell.tilde.flash {
       background-color: var(--highlight);
       box-shadow: 0 0 20px var(--highlight);
-      color: var(--bg-color);
+      color: var(--bg-colour);
     }
 
-    /* Glitch Animation */
     @keyframes flicker {
       0% {
         opacity: 0.8;
@@ -107,34 +94,50 @@
       }
     }
 
-    .flicker {
-      animation: flicker var(--flicker-speed) infinite alternate;
-    }
-
-    .inverted {
-      filter: invert(1);
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+      background-size: 100% 2px, 3px 100%;
+      pointer-events: none;
+      z-index: 100;
     }
   </style>
 </head>
 
-<body class="flicker">
-  <div id="grid"></div>
+<body>
+  <div id="crt-scanlines"></div>
+  <main id="main"></main>
 
   <script src="../../common/labyrinth.js"></script>
   <script>
     const LAB = new Labyrinth('symbolizm');
 
-    const grid = document.getElementById('grid');
-    const characters = "01$!@#%^&*()_+-=[]{}|;:,.<>?/\\";
+    const main = document.getElementById('main');
 
-    // Large number to fill most screens (not perfect, but it's fine)
-    const cellCount = 420;
+    const characters = "01$!@#%^&*()_+-=[]{}|;:,.<>?/\\";
+    const cellSize = 80;
+
+    let cellCount = 0;
+
+    // Work out how many cells actually fit in the current viewport
+    function resize() {
+      const cols = Math.max(1, Math.floor(window.innerWidth / cellSize));
+      const rows = Math.max(1, Math.floor(window.innerHeight / cellSize));
+      cellCount = cols * rows;
+      init();
+    }
 
     // Make a bunch of cells, with tildes and non-tilde cells
     // Tildes are hyperlinks to other pages
     // Non-tilde cells are random characters
-    function createCells() {
-      grid.innerHTML = "";
+    function init() {
+      main.replaceChildren();
       for (let _i = 0; _i < cellCount; _i++) {
         let cell;
 
@@ -150,29 +153,28 @@
           cell = document.createElement('div');
           cell.innerText = characters[LAB.randIndex(characters)];
           cell.style.cursor = 'pointer';
-
-          // On click, change background color to something dark and recreate cells
-          cell.onclick = () => {
-            const min = 0;
-            const max = 50;
-            const r = LAB.randInt(min, max - 1);
-            const g = LAB.randInt(min, max - 1);
-            const b = LAB.randInt(min, max - 1);
-            document.documentElement.style.setProperty('--bg-color', `rgb(${r},${g},${b})`);
-
-            createCells();
-            flashTildes();
-          };
         }
 
         cell.className += ' cell';
         cell.style.animationDelay = LAB.rand(0, 1) + 's';
-        grid.appendChild(cell);
+        main.appendChild(cell);
       }
     }
 
+    // Change background colour to something dark and recreate cells
+    function recreate() {
+      const min = 0;
+      const max = 50;
+      const r = LAB.randInt(min, max - 1);
+      const g = LAB.randInt(min, max - 1);
+      const b = LAB.randInt(min, max - 1);
+      document.documentElement.style.setProperty('--bg-colour', `rgb(${r},${g},${b})`);
+      init();
+      flashTildes();
+    }
+
     // Random cell updates
-    function glitchCells() {
+    function glitch() {
       const cells = document.querySelectorAll('.cell:not(.tilde)');
       const luckyCell = LAB.sample(cells);
       if (luckyCell) {
@@ -182,7 +184,7 @@
         const randomValue = LAB.rand(min, max);
         luckyCell.style.opacity = randomValue;
       }
-      setTimeout(glitchCells, 50);
+      setTimeout(glitch, 50);
     }
 
     // Flash tilde cells, to hint to the user that these are special cells
@@ -195,8 +197,18 @@
       }, 340);
     }
 
-    createCells();
-    glitchCells();
+    window.addEventListener('resize', resize);
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) recreate();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, recreate);
+    });
+
+    resize();
+    glitch();
 
   </script>
 </body>

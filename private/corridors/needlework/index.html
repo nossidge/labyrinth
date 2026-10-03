@@ -8,72 +8,25 @@
   <title>Homespun</title>
   <style>
     body {
+      display: flex;
       margin: 0;
       min-height: 100vh;
       box-sizing: border-box;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       background: #efe5d0;
       color: #4f3c2f;
       font-family: "Courier New", Courier, monospace;
+      align-items: center;
+      justify-content: center;
       overflow: hidden;
+      user-select: none;
     }
 
-    .frame {
+    main {
       position: relative;
-      z-index: 1;
       padding: 16px;
       border: 3px double #9f8d74;
       background: #f8f1e4;
-    }
-
-    .nav-panel {
-      position: fixed;
-      top: 0;
-      height: 100%;
-      width: 96px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      z-index: 2;
-    }
-
-    #nav-left {
-      left: 0;
-      background: linear-gradient(to right, rgba(159, 141, 116, 0.2), transparent);
-    }
-
-    #nav-left:hover {
-      background: linear-gradient(to right, rgba(159, 141, 116, 0.32), transparent);
-    }
-
-    #nav-right {
-      right: 0;
-      background: linear-gradient(to left, rgba(159, 141, 116, 0.2), transparent);
-    }
-
-    #nav-right:hover {
-      background: linear-gradient(to left, rgba(159, 141, 116, 0.32), transparent);
-    }
-
-    .nav-button {
-      min-width: 48px;
-      padding: 8px 10px;
-      border: 2px outset #c6b392;
-      background: #f8f1e4;
-      color: #6f5845;
-      font: inherit;
-      font-size: 26px;
-      line-height: 1;
-      pointer-events: none;
-    }
-
-    .nav-panel:hover .nav-button {
-      color: #4f3c2f;
-      border-color: #9f8d74;
-      background: #fbf6ed;
+      z-index: 1;
     }
 
     table {
@@ -83,11 +36,11 @@
     td {
       width: 24px;
       height: 24px;
-      text-align: center;
-      vertical-align: middle;
-      font-size: 24px;
-      line-height: 1;
       border: 1px dotted #ccbda4;
+      text-align: center;
+      font-size: 24px;
+      vertical-align: middle;
+      line-height: 1;
     }
 
     .cross {
@@ -103,74 +56,25 @@
       text-decoration: none;
     }
 
-    td.live a:hover {
+    td.live a:hover,
+    td.live a:focus {
       color: #0b1d7c;
-      text-decoration: underline;
-    }
-
-    @media (max-width: 700px) {
-      body {
-        padding-bottom: 78px;
-      }
-
-      .frame {
-        padding: 10px;
-      }
-
-      .nav-panel {
-        top: auto;
-        bottom: 0;
-        height: 78px;
-        width: 50%;
-        align-items: flex-start;
-        padding-top: 12px;
-      }
-
-      #nav-left {
-        background: linear-gradient(to top, rgba(159, 141, 116, 0.2), transparent);
-      }
-
-      #nav-left:hover {
-        background: linear-gradient(to top, rgba(159, 141, 116, 0.32), transparent);
-      }
-
-      #nav-right {
-        background: linear-gradient(to top, rgba(159, 141, 116, 0.2), transparent);
-      }
-
-      #nav-right:hover {
-        background: linear-gradient(to top, rgba(159, 141, 116, 0.32), transparent);
-      }
-
-      .nav-button {
-        font-size: 22px;
-      }
-
-      td {
-        width: 18px;
-        height: 18px;
-        font-size: 18px;
-      }
+      font-weight: bold;
+      outline: none;
     }
   </style>
 </head>
 
 <body>
-  <div id="nav-left" class="nav-panel">
-    <button class="nav-button" aria-hidden="true">&larr;</button>
-  </div>
-
-  <main class="frame">
-    <table id="art"></table>
+  <main>
+    <table id="table"></table>
   </main>
-
-  <div id="nav-right" class="nav-panel">
-    <button class="nav-button" aria-hidden="true">&rarr;</button>
-  </div>
 
   <script src="../../common/labyrinth.js"></script>
   <script>
     const LAB = new Labyrinth('needlework');
+
+    const table = document.getElementById('table');
 
     const gridSizes = [9, 11, 13, 15, 17];
 
@@ -179,11 +83,6 @@
       'o': { char: 'o', className: 'loop' },
       'O': { char: 'o', className: 'loop', link: true }
     };
-
-    const art = document.getElementById('art');
-
-    let history = [];
-    let historyIndex = -1;
 
     function mirroredPositions(row, col, rowsCount, colsCount) {
       const seen = new Set();
@@ -356,7 +255,10 @@
     }
 
     function createEntry() {
-      const rows = createPatternRows(LAB.sample(gridSizes), LAB.sample(gridSizes));
+      const smallSizes = gridSizes.filter(size => size <= 9);
+      const rowSizes = window.innerHeight <= 360 ? smallSizes : gridSizes;
+      const colSizes = window.matchMedia('(orientation: portrait)').matches ? smallSizes : gridSizes;
+      const rows = createPatternRows(LAB.sample(rowSizes), LAB.sample(colSizes));
       const links = [];
 
       rows.forEach(row => {
@@ -370,8 +272,8 @@
       return { rows, links };
     }
 
-    function drawFromHistory(entry) {
-      art.replaceChildren();
+    function draw(entry) {
+      table.replaceChildren();
       let linkIndex = 0;
 
       entry.rows.forEach(row => {
@@ -397,61 +299,22 @@
           tr.appendChild(td);
         });
 
-        art.appendChild(tr);
+        table.appendChild(tr);
       });
     }
 
-    function goToNext() {
-      if (historyIndex < history.length - 1) {
-        historyIndex++;
-      } else {
-        history.push(createEntry());
-        historyIndex = history.length - 1;
-      }
-
-      drawFromHistory(history[historyIndex]);
-    }
-
-    function goToPrev() {
-      if (historyIndex > 0) {
-        historyIndex--;
-      } else {
-        history.unshift(createEntry());
-        historyIndex = 0;
-      }
-
-      drawFromHistory(history[historyIndex]);
-    }
-
     function init() {
-      const first = createEntry();
-      history.push(first);
-      historyIndex = 0;
-      drawFromHistory(first);
+      draw(createEntry());
     }
 
-    document.getElementById('nav-left').addEventListener('click', goToPrev);
-    document.getElementById('nav-right').addEventListener('click', goToNext);
+    window.matchMedia('(orientation: portrait)').addEventListener('change', init);
 
-    document.body.addEventListener('click', event => {
-      if (event.target.closest('a, .nav-panel, table')) return;
-
-      goToNext();
+    document.addEventListener('click', e => {
+      if (!e.target.closest('a')) init();
     });
 
-    const LEFT_OR_DOWN = new Set(['ArrowLeft', 'ArrowDown', 'h', 'j', 'a', 's']);
-    const RIGHT_OR_UP = new Set(['ArrowRight', 'ArrowUp', 'k', 'l', 'd', 'w']);
-    function keyLeftOrDown(key) { return LEFT_OR_DOWN.has(key); }
-    function keyRightOrUp(key) { return RIGHT_OR_UP.has(key); }
-
     document.addEventListener('keydown', e => {
-      if (keyLeftOrDown(e.key)) {
-        e.preventDefault();
-        goToPrev();
-      } else if (keyRightOrUp(e.key)) {
-        e.preventDefault();
-        goToNext();
-      }
+      LAB.handleKeydown(e, init);
     });
 
     init();

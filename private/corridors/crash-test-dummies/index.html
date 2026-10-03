@@ -14,43 +14,41 @@
     }
 
     * {
+      margin: 0;
+      padding: 0;
       box-sizing: border-box;
     }
 
     body {
-      margin: 0;
-      padding: 0;
+      display: flex;
+      min-height: 100vh;
       background-color: var(--yellow);
       background-image:
         linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px),
         linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
       background-size: 20px 20px;
       color: var(--black);
-      min-height: 100vh;
-      display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       overflow: hidden;
     }
 
-    .container {
+    main {
       position: absolute;
-      top: 0;
-      left: 0;
       width: 100%;
       height: 100%;
       overflow: hidden;
       pointer-events: none;
     }
 
-    .container * {
+    main * {
       pointer-events: auto;
     }
 
     .symbol-link {
-      text-decoration: none;
       display: block;
+      text-decoration: none;
       transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
@@ -98,90 +96,101 @@
       animation: wobble 3s ease-in-out infinite;
     }
 
-    /* Scanline effect */
-    body::after {
-      content: " ";
-      display: block;
+    #crt-scanlines {
       position: fixed;
       top: 0;
       left: 0;
-      bottom: 0;
-      right: 0;
+      width: 100vw;
+      height: 100vh;
       background:
         linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.03) 50%),
         linear-gradient(90deg, rgba(255, 0, 0, 0.01), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.01));
-      z-index: 20;
       background-size: 100% 4px, 3px 100%;
       pointer-events: none;
+      z-index: 100;
     }
   </style>
 </head>
 
 <body>
-  <div class="container" id="grid">
-    <!-- Symbols and noise will be injected here -->
-  </div>
+  <div id="crt-scanlines"></div>
+  <main id="main"></main>
 
   <script src="../../common/labyrinth.js"></script>
   <script>
     const LAB = new Labyrinth('crash-test-dummies');
 
-    const grid = document.getElementById('grid');
+    const main = document.getElementById('main');
     const symbolCount = 40;
 
-    // Add some faded "dead" symbols that aren't links
-    for (let i = 0; i < 20; i++) {
-      const deco = document.createElement('div');
-      deco.className = 'symbol small';
-      deco.style.position = 'absolute';
-      deco.style.left = LAB.rand(0, 100) + '%';
-      deco.style.top = LAB.rand(0, 100) + '%';
-      deco.style.opacity = '0.1';
-      deco.style.pointerEvents = 'none';
-      deco.style.transform = `translate(-50%, -50%) rotate(${LAB.rand(0, 360)}deg)`;
-      document.body.appendChild(deco);
-    }
+    function init() {
+      main.replaceChildren();
 
-    // These things look like those markings on a crash test dummy
-    // Scattered, overlapping, varying scales
-    for (let i = 0; i < symbolCount; i++) {
-      const wrapper = document.createElement('div');
-      wrapper.style.position = 'absolute';
-      wrapper.style.left = LAB.rand(0, 95) + '%';
-      wrapper.style.top = LAB.rand(0, 95) + '%';
-      wrapper.style.zIndex = LAB.randInt(0, 9);
-      wrapper.style.transform = `translate(-50%, -50%) rotate(${LAB.rand(0, 360)}deg)`;
+      // Add some faded background symbols that aren't links
+      for (let i = 0; i < 20; i++) {
+        const deco = document.createElement('div');
+        deco.className = 'symbol small';
+        deco.style.position = 'absolute';
+        deco.style.left = LAB.rand(0, 100) + '%';
+        deco.style.top = LAB.rand(0, 100) + '%';
+        deco.style.opacity = '0.1';
+        deco.style.pointerEvents = 'none';
+        deco.style.transform = `translate(-50%, -50%) rotate(${LAB.rand(0, 360)}deg)`;
+        main.appendChild(deco);
+      }
 
-      const link = document.createElement('a');
-      link.href = LAB.pageRandomiser.nextOne();
-      link.className = 'symbol-link';
+      // These things look like those markings on a crash test dummy
+      for (let i = 0; i < symbolCount; i++) {
+        const wrapper = document.createElement('div');
+        wrapper.style.position = 'absolute';
+        wrapper.style.left = LAB.rand(0, 95) + '%';
+        wrapper.style.top = LAB.rand(0, 95) + '%';
+        wrapper.style.zIndex = LAB.randInt(0, 9);
+        wrapper.style.transform = `translate(-50%, -50%) rotate(${LAB.rand(0, 360)}deg)`;
 
-      const symbol = document.createElement('div');
-      symbol.className = 'symbol';
+        const link = document.createElement('a');
+        link.href = LAB.pageRandomiser.nextOne();
+        link.className = 'symbol-link';
 
-      const size = LAB.rand(20, 170);
-      symbol.style.width = size + 'px';
-      symbol.style.height = size + 'px';
-      symbol.style.borderWidth = (size / 15) + 'px';
+        const symbol = document.createElement('div');
+        symbol.className = 'symbol';
 
-      if (LAB.chance(0.2)) {
-        // Rectangular test plates
-        symbol.style.borderRadius = '0';
-        if (LAB.chance(0.5)) {
-          // Checkerboard pattern is only halved, not quartered
-          symbol.style.background = 'linear-gradient(45deg, var(--black) 50%, var(--white) 50%)';
+        const size = LAB.rand(20, 170);
+        symbol.style.width = size + 'px';
+        symbol.style.height = size + 'px';
+        symbol.style.borderWidth = (size / 15) + 'px';
+
+        if (LAB.chance(0.2)) {
+          // Rectangular test plates
+          symbol.style.borderRadius = '0';
+          if (LAB.chance(0.5)) {
+            // Checkerboard pattern is only halved, not quartered
+            symbol.style.background = 'linear-gradient(45deg, var(--black) 50%, var(--white) 50%)';
+          }
         }
-      }
 
-      // Invert colors randomly
-      if (LAB.chance(0.1)) {
-        symbol.style.filter = 'invert(1)';
-      }
+        // Invert colours randomly
+        if (LAB.chance(0.1)) {
+          symbol.style.filter = 'invert(1)';
+        }
 
-      link.appendChild(symbol);
-      wrapper.appendChild(link);
-      grid.appendChild(wrapper);
+        link.appendChild(symbol);
+        wrapper.appendChild(link);
+        main.appendChild(wrapper);
+      }
     }
+
+    window.addEventListener('resize', init);
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    init();
 
   </script>
 </body>

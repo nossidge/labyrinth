@@ -223,6 +223,14 @@
       }, 1650);
     });
 
+    // Crosshair cursor over the ground/horizon (lower half of the screen)
+    // Ideally we'd do this in CSS, but the z-index stuff is a bit messy
+    clickArea.addEventListener('mousemove', function (e) {
+      const rect = document.body.getBoundingClientRect();
+      const y = ((e.clientY - rect.top) / rect.height) * 100;
+      clickArea.style.cursor = y >= 50 ? 'crosshair' : 'default';
+    });
+
     // Arrow keys, WASD keys, HJKL keys
     const KEY_LEFT = new Set(['ArrowLeft', 'h', 'a']);
     const KEY_RIGHT = new Set(['ArrowRight', 'l', 'd']);

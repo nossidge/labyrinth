@@ -18,6 +18,7 @@ Edits made:
 - Made the timestamp accurate to the time of page load
 - Added hover effects for the icons
 - Added the internal labyrinth links
+- Implemented mobile responsiveness
 
 I've also removed the non-source link to the web tool in the HTML. I know that's not super cool,
 but I'm trying to keep this stupid labyrinth theming as clean as possible, with no outside links.
@@ -614,6 +615,10 @@ Hi dorks.
         float: none
       }
 
+      .md\:overflow-hidden {
+        overflow: hidden
+      }
+
       .md\:text-3xl {
         font-size: 1.875rem
       }
@@ -628,6 +633,11 @@ Hi dorks.
 
       .md\:mb-2 {
         margin-bottom: .5rem
+      }
+
+      .md\:my-8 {
+        margin-top: 2rem;
+        margin-bottom: 2rem
       }
 
       .md\:p-0 {
@@ -739,9 +749,9 @@ Hi dorks.
       </header>
       <div class="my-8 bg-gradient-gray">
         <div class="w-240 lg:w-full mx-auto">
-          <div class="clearfix md:px-8">
+          <div class="clearfix md:px-8 md:overflow-hidden">
             <a id="cf-browser-status" href="../index.html"
-              class="relative w-1/3 md:w-full py-15 md:p-0 md:py-8 md:text-left md:border-solid md:border-0 md:border-b md:border-gray-400 overflow-hidden float-left md:float-none text-center">
+              class="relative w-1/3 md:w-full py-15 md:p-0 md:text-left md:border-solid md:border-0 md:border-gray-400 overflow-hidden float-left md:float-none md:block md:my-8 text-center">
               <div class="relative mb-10 md:m-0">
                 <span
                   class="cf-icon-interaction cf-icon-browser block md:hidden h-20 bg-center bg-no-repeat"></span>
@@ -749,37 +759,35 @@ Hi dorks.
                   class="cf-icon-ok w-12 h-12 absolute left-1/2 md:left-auto md:right-0 md:top-0 -ml-6 -bottom-4"></span>
               </div>
               <span class="md:block w-full truncate">You</span>
-              <h3
-                class="md:inline-block mt-3 md:mt-0 text-2xl text-gray-600 font-light leading-1.3">
+              <h3 class="md:block mt-3 md:mt-0 text-2xl text-gray-600 font-light leading-1.3">
                 Browser</h3>
-              <span class="leading-1.3 text-2xl" style="color: #9bca3e">Working</span>
+              <span class="md:block leading-1.3 text-2xl" style="color: #9bca3e">Working</span>
             </a>
             <a id="cf-cloudflare-status" href="../index.html"
-              class="cf-error-source relative w-1/3 md:w-full py-15 md:p-0 md:py-8 md:text-left md:border-solid md:border-0 md:border-b md:border-gray-400 overflow-hidden float-left md:float-none text-center">
+              class="cf-error-source relative w-1/3 md:w-full py-15 md:p-0 md:text-left md:border-solid md:border-0 md:border-gray-400 overflow-hidden float-left md:float-none md:block md:my-8 text-center">
               <div class="relative mb-10 md:m-0">
                 <span
                   class="cf-icon-interaction cf-icon-cloud block md:hidden h-20 bg-center bg-no-repeat"></span>
                 <span
                   class="cf-icon-error w-12 h-12 absolute left-1/2 md:left-auto md:right-0 md:top-0 -ml-6 -bottom-4"></span>
               </div>
-              <span class="md:block w-full truncate">London</span>
-              <h3 class="md:inline-block mt-3 md:mt-0 text-2xl text-gray-600 font-light leading-1.3"
+              <span class="md:block w-full truncate">Cloud</span>
+              <h3 class="md:block mt-3 md:mt-0 text-2xl text-gray-600 font-light leading-1.3"
                 style="color: #2f7bbf;">Cloudflare</h3>
-              <span class="leading-1.3 text-2xl" style="color: #bd2426">Error</span>
+              <span class="md:block leading-1.3 text-2xl" style="color: #bd2426">Error</span>
             </a>
             <a id="cf-host-status" href="../index.html"
-              class="relative w-1/3 md:w-full py-15 md:p-0 md:py-8 md:text-left md:border-solid md:border-0 md:border-b md:border-gray-400 overflow-hidden float-left md:float-none text-center">
+              class="relative w-1/3 md:w-full py-15 md:p-0 md:text-left md:border-solid md:border-0 md:border-gray-400 overflow-hidden float-left md:float-none md:block md:my-8 text-center">
               <div class="relative mb-10 md:m-0">
                 <span
                   class="cf-icon-interaction cf-icon-server block md:hidden h-20 bg-center bg-no-repeat"></span>
                 <span
                   class="cf-icon-ok w-12 h-12 absolute left-1/2 md:left-auto md:right-0 md:top-0 -ml-6 -bottom-4"></span>
               </div>
-              <span class="md:block w-full truncate">Website</span>
-              <h3
-                class="md:inline-block mt-3 md:mt-0 text-2xl text-gray-600 font-light leading-1.3">
+              <span class="md:block w-full truncate">Labyrinth</span>
+              <h3 class="md:block mt-3 md:mt-0 text-2xl text-gray-600 font-light leading-1.3">
                 Host</h3>
-              <span class="leading-1.3 text-2xl" style="color: #9bca3e">Working</span>
+              <span class="md:block leading-1.3 text-2xl" style="color: #9bca3e">Working</span>
             </a>
           </div>
         </div>

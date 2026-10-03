@@ -34,9 +34,9 @@ But she is in her grave, and O
     body {
       width: 100%;
       height: 100%;
-      overflow: hidden;
       background: #000000;
       font-family: monospace;
+      overflow: hidden;
     }
 
     body {
@@ -46,73 +46,73 @@ But she is in her grave, and O
 
     #sky {
       position: fixed;
-      top: 0;
-      left: 0;
       width: 100%;
       height: 58%;
       background: linear-gradient(to bottom,
-          #020010 0%,
-          #060828 40%,
-          #0c1638 60%,
-          #162044 80%,
-          #1e2a50 100%);
+          #050028 0%,
+          #0f1464 40%,
+          #1e378c 60%,
+          #3750aa 80%,
+          #4b69c8 100%);
+      top: 0;
+      left: 0;
       z-index: 0;
     }
 
     #star {
       position: fixed;
-      right: 15%;
-      top: 12%;
       width: 6px;
       height: 6px;
+      right: 15%;
+      top: 12%;
       z-index: 2;
       pointer-events: none;
     }
 
     #star-link {
       position: fixed;
-      right: calc(15% - 40px);
-      top: calc(12% - 40px);
+      display: block;
       width: 86px;
       height: 86px;
-      z-index: 60;
-      display: block;
       border-radius: 50%;
+      right: calc(15% - 40px);
+      top: calc(12% - 40px);
+      z-index: 60;
     }
 
     #violet-link {
       position: fixed;
-      z-index: 60;
       display: block;
+      z-index: 60;
     }
 
     .star-core {
       position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
       width: 4px;
       height: 4px;
       background: #ffffff;
       border-radius: 50%;
       box-shadow:
         0 0 6px 2px rgba(255, 255, 255, 0.9),
-        0 0 15px 5px rgba(200, 210, 255, 0.6),
-        0 0 30px 10px rgba(180, 190, 255, 0.3),
-        0 0 60px 20px rgba(160, 170, 255, 0.15);
+        0 0 15px 5px rgba(255, 255, 255, 0.6),
+        0 0 30px 10px rgba(255, 255, 255, 0.3),
+        0 0 60px 20px rgba(255, 255, 255, 0.15);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
       animation: star-pulse 4s ease-in-out infinite;
       transition: box-shadow 0.4s ease;
     }
 
     .star-ray {
       position: absolute;
+      height: 1px;
+      background: linear-gradient(to right,
+          rgba(255, 255, 255, 0.5) 0%,
+          rgba(255, 255, 255, 0) 100%);
       top: 50%;
       left: 50%;
-      background: linear-gradient(to right,
-          rgba(220, 225, 255, 0.5) 0%,
-          rgba(220, 225, 255, 0) 100%);
       transform-origin: 0 50%;
-      height: 1px;
       animation: ray-pulse 4s ease-in-out infinite;
       transition: opacity 0.4s ease;
     }
@@ -185,39 +185,39 @@ But she is in her grave, and O
 
     #hills {
       position: fixed;
-      bottom: 0;
-      left: 0;
       width: 100%;
       height: 50%;
+      bottom: 0;
+      left: 0;
       z-index: 2;
     }
 
     #stream-container {
       position: fixed;
-      bottom: 0;
-      left: 0;
       width: 100%;
       height: 50%;
+      bottom: 0;
+      left: 0;
       z-index: 3;
       pointer-events: none;
     }
 
     #grass-container {
       position: fixed;
-      bottom: 0;
-      left: 0;
       width: 100%;
       height: 45%;
+      bottom: 0;
+      left: 0;
       z-index: 4;
       pointer-events: none;
     }
 
     #foreground-container {
       position: fixed;
-      bottom: 0;
-      left: 0;
       width: 100%;
       height: 50%;
+      bottom: 0;
+      left: 0;
       z-index: 5;
       pointer-events: none;
     }
@@ -227,15 +227,15 @@ But she is in her grave, and O
     }
 
     #cluster-group.hover-glow {
-      filter: drop-shadow(0 0 6px rgba(120, 80, 180, 0.3)) drop-shadow(0 0 12px rgba(120, 80, 180, 0.15));
+      filter: drop-shadow(0 0 6px rgba(170, 120, 255, 0.4)) drop-shadow(0 0 12px rgba(170, 120, 255, 0.2));
     }
 
     #star.hover-glow .star-core {
       box-shadow:
         0 0 8px 3px rgba(255, 255, 255, 1),
-        0 0 20px 8px rgba(200, 210, 255, 0.8),
-        0 0 40px 15px rgba(180, 190, 255, 0.5),
-        0 0 80px 30px rgba(160, 170, 255, 0.25);
+        0 0 20px 8px rgba(255, 255, 255, 0.8),
+        0 0 40px 15px rgba(255, 255, 255, 0.5),
+        0 0 80px 30px rgba(255, 255, 255, 0.25);
     }
 
     #star.hover-glow .star-ray {
@@ -248,8 +248,8 @@ But she is in her grave, and O
 
     .grass-blade {
       position: absolute;
-      bottom: 0;
       width: 2px;
+      bottom: 0;
       transform-origin: bottom center;
       animation: sway var(--sway-dur) ease-in-out infinite;
       animation-delay: var(--sway-delay);
@@ -268,40 +268,28 @@ But she is in her grave, and O
       }
     }
 
-    #crt-scanlines {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      pointer-events: none;
-      z-index: 100;
-      background:
-        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%),
-        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 255, 0, 0.03));
-      background-size: 100% 2px, 3px 100%;
-    }
-
     #horizon-svg {
       position: fixed;
-      top: 0;
-      left: 0;
       width: 100%;
       height: 100%;
+      top: 0;
+      left: 0;
       z-index: 1;
       pointer-events: none;
     }
 
-    #brightness-indicator {
+    #crt-scanlines {
       position: fixed;
-      bottom: 12px;
-      right: 12px;
-      color: #aaaaaa;
-      font: 14px monospace;
-      z-index: 200;
+      width: 100vw;
+      height: 100vh;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 255, 0, 0.03));
+      background-size: 100% 2px, 3px 100%;
+      top: 0;
+      left: 0;
       pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.4s ease;
+      z-index: 100;
     }
   </style>
 </head>
@@ -333,7 +321,6 @@ But she is in her grave, and O
   <a id="violet-link" href="../index.html"></a>
   <svg id="horizon-svg" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"></svg>
 
-  <div id="brightness-indicator"></div>
 
   <script src="../../common/labyrinth.js"></script>
   <script>
@@ -346,39 +333,38 @@ But she is in her grave, and O
     const starEl = document.getElementById('star');
     const starLink = document.getElementById('star-link');
     const violetLink = document.getElementById('violet-link');
-    const brightnessIndicator = document.getElementById('brightness-indicator');
 
     // Colour palettes
     const HILL_COLOURS = [
-      '#0a1a0a', '#0d1f0d', '#0f2410', '#112811', '#0b1e0e',
-      '#101d14', '#0e2212', '#132a15'
+      '#194119', '#204e20', '#265a28', '#2a642a', '#1c4b23',
+      '#284832', '#23552d', '#306934'
     ];
     const GRASS_COLOURS = [
-      '#1a3a1a', '#1e3e1e', '#224422', '#1b3b1b', '#203d20',
-      '#183618', '#264a26', '#1c3c1c', '#2a4e2a', '#1f4020',
-      '#143014', '#284c28', '#0f280f', '#324e32', '#2c502c'
+      '#419141', '#4b9b4b', '#55aa55', '#449444', '#509850',
+      '#3c873c', '#5fb95f', '#469646', '#69c369', '#4ea050',
+      '#327832', '#64be64', '#266426', '#7dc37d', '#6ec86e'
     ];
-    const ROCK_BASE = ['#3a3a38', '#4a4840', '#35352f', '#504e45', '#42403a', '#585550'];
-    const MOSS_COLOURS = ['#2a4a20', '#1e3a16', '#3a5a2a', '#2e4e22', '#1a3612'];
-    const LICHEN_COLOURS = ['#8a9a70', '#a0ab80', '#7a8a60', '#92a272', '#6a7a58'];
+    const ROCK_BASE = ['#91918c', '#b9b4a0', '#848476', '#c8c3ac', '#a5a091', '#dcd4c8'];
+    const MOSS_COLOURS = ['#69b950', '#4b9137', '#91e169', '#73c355', '#41872d'];
+    const LICHEN_COLOURS = ['#ffffff', '#ffffff', '#fffff0', '#ffffff', '#ffffdc'];
 
     function drawHills(w, h) {
       hillsSvg.setAttribute('viewBox', `0 0 ${w} ${h}`);
       hillsSvg.innerHTML = '';
 
       // Background fill
-      const bgRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      const bgRect = LAB.svgElement('rect');
       bgRect.setAttribute('width', w);
       bgRect.setAttribute('height', h);
-      bgRect.setAttribute('fill', '#0a0f0a');
+      bgRect.setAttribute('fill', '#192619');
       hillsSvg.appendChild(bgRect);
 
       // Draw 4 layers of rolling hills, back to front
       const layers = [
-        { yBase: 0.15, amplitude: 0.10, segments: 5, colour: '#0a160a' },
-        { yBase: 0.28, amplitude: 0.08, segments: 6, colour: '#0d1c0d' },
-        { yBase: 0.40, amplitude: 0.07, segments: 7, colour: '#10220f' },
-        { yBase: 0.55, amplitude: 0.06, segments: 8, colour: '#142814' },
+        { yBase: 0.15, amplitude: 0.10, segments: 5, colour: '#193719' },
+        { yBase: 0.28, amplitude: 0.08, segments: 6, colour: '#204620' },
+        { yBase: 0.40, amplitude: 0.07, segments: 7, colour: '#285526' },
+        { yBase: 0.55, amplitude: 0.06, segments: 8, colour: '#326432' },
       ];
 
       layers.forEach(layer => {
@@ -398,18 +384,18 @@ But she is in her grave, and O
           }
         }
         d += ` L ${w} ${h} Z`;
-        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        const path = LAB.svgElement('path');
         path.setAttribute('d', d);
         path.setAttribute('fill', layer.colour);
         hillsSvg.appendChild(path);
       });
 
       // Ground plane - lower portion
-      const ground = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      const ground = LAB.svgElement('rect');
       ground.setAttribute('y', h * 0.55);
       ground.setAttribute('width', w);
       ground.setAttribute('height', h * 0.45);
-      ground.setAttribute('fill', '#142814');
+      ground.setAttribute('fill', '#326432');
       hillsSvg.appendChild(ground);
     }
 
@@ -417,35 +403,31 @@ But she is in her grave, and O
       streamSvg.setAttribute('viewBox', `0 0 ${w} ${h}`);
       streamSvg.innerHTML = '';
 
-      const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+      const defs = LAB.svgElement('defs');
 
       // Stream gradient
-      const grad = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+      const grad = LAB.svgElement('linearGradient');
       grad.setAttribute('id', 'stream-grad');
       grad.setAttribute('x1', '0'); grad.setAttribute('y1', '0');
       grad.setAttribute('x2', '1'); grad.setAttribute('y2', '0');
       const stops = [
-        { offset: '0%', colour: 'rgba(30,50,80,0.6)' },
-        { offset: '50%', colour: 'rgba(40,65,100,0.7)' },
-        { offset: '100%', colour: 'rgba(30,50,80,0.6)' },
+        { offset: '0%', colour: 'rgba(75, 125, 200,0.6)' },
+        { offset: '50%', colour: 'rgba(100, 162, 250,0.7)' },
+        { offset: '100%', colour: 'rgba(75, 125, 200,0.6)' },
       ];
       stops.forEach(s => {
-        const stop = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+        const stop = LAB.svgElement('stop');
         stop.setAttribute('offset', s.offset);
         stop.setAttribute('stop-color', s.colour);
         grad.appendChild(stop);
       });
       defs.appendChild(grad);
 
-      // Seamless stream flow using tiled turbulence noise.
-      // A 200x200 fixed tile size makes the loop short and seamless,
-      // without leaving a hole in the offset when sliding across screen.
+      // Stream surface
       const tileW = 200;
       const tileH = 200;
-      const flowSpeed = 25;
-      const cycleDur = tileW / flowSpeed;
 
-      const filter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
+      const filter = LAB.svgElement('filter');
       filter.setAttribute('id', 'stream-shimmer');
       filter.setAttribute('filterUnits', 'userSpaceOnUse');
       filter.setAttribute('x', String(-w * 0.2));
@@ -453,7 +435,7 @@ But she is in her grave, and O
       filter.setAttribute('width', String(w * 1.4));
       filter.setAttribute('height', String(h * 1.4));
 
-      const turb = document.createElementNS('http://www.w3.org/2000/svg', 'feTurbulence');
+      const turb = LAB.svgElement('feTurbulence');
       turb.setAttribute('type', 'fractalNoise');
       turb.setAttribute('baseFrequency', '0.02 0.05');
       turb.setAttribute('numOctaves', '1');
@@ -466,7 +448,7 @@ But she is in her grave, and O
       turb.setAttribute('result', 'noise');
       filter.appendChild(turb);
 
-      const tile = document.createElementNS('http://www.w3.org/2000/svg', 'feTile');
+      const tile = LAB.svgElement('feTile');
       tile.setAttribute('in', 'noise');
 
       // Provide a large enough buffer area so offset doesn't drag transparency into view
@@ -477,21 +459,9 @@ But she is in her grave, and O
       tile.setAttribute('result', 'tiledNoise');
       filter.appendChild(tile);
 
-      const offset = document.createElementNS('http://www.w3.org/2000/svg', 'feOffset');
-      offset.setAttribute('in', 'tiledNoise');
-      offset.setAttribute('result', 'movedNoise');
-      const offsetAnim = document.createElementNS('http://www.w3.org/2000/svg', 'animate');
-      offsetAnim.setAttribute('attributeName', 'dx');
-      offsetAnim.setAttribute('from', '0');
-      offsetAnim.setAttribute('to', String(tileW));
-      offsetAnim.setAttribute('dur', cycleDur + 's');
-      offsetAnim.setAttribute('repeatCount', 'indefinite');
-      offset.appendChild(offsetAnim);
-      filter.appendChild(offset);
-
-      const disp = document.createElementNS('http://www.w3.org/2000/svg', 'feDisplacementMap');
+      const disp = LAB.svgElement('feDisplacementMap');
       disp.setAttribute('in', 'SourceGraphic');
-      disp.setAttribute('in2', 'movedNoise');
+      disp.setAttribute('in2', 'tiledNoise');
       disp.setAttribute('scale', '6');
       filter.appendChild(disp);
       defs.appendChild(filter);
@@ -542,15 +512,15 @@ But she is in her grave, and O
       const fullPath = topPath + botPath + ' Z';
 
       // Dark bank edges
-      const bankPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      const bankPath = LAB.svgElement('path');
       bankPath.setAttribute('d', fullPath);
-      bankPath.setAttribute('fill', '#0a1a12');
-      bankPath.setAttribute('stroke', '#0d1f14');
+      bankPath.setAttribute('fill', '#19412d');
+      bankPath.setAttribute('stroke', '#204e32');
       bankPath.setAttribute('stroke-width', '4');
       streamSvg.appendChild(bankPath);
 
       // Water fill
-      const water = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      const water = LAB.svgElement('path');
       water.setAttribute('d', fullPath);
       water.setAttribute('fill', 'url(#stream-grad)');
       water.setAttribute('filter', 'url(#stream-shimmer)');
@@ -583,7 +553,7 @@ But she is in her grave, and O
     }
 
     function createRock(cx, cy, radiusX, radiusY, rotation) {
-      const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      const g = LAB.svgElement('g');
       const baseColour = LAB.sample(ROCK_BASE);
 
       // Irregular rock shape using a bumpy ellipse
@@ -611,10 +581,10 @@ But she is in her grave, and O
       d += ' Z';
 
       // Rock body
-      const rock = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      const rock = LAB.svgElement('path');
       rock.setAttribute('d', d);
       rock.setAttribute('fill', baseColour);
-      rock.setAttribute('stroke', '#2a2a25');
+      rock.setAttribute('stroke', '#69695c');
       rock.setAttribute('stroke-width', '0.5');
       if (rotation) {
         rock.setAttribute('transform', `rotate(${rotation} ${cx} ${cy})`);
@@ -628,7 +598,7 @@ But she is in her grave, and O
         const dist = LAB.rand(0.3, 0.8);
         const mx = cx + Math.cos(angle) * radiusX * dist;
         const my = cy + Math.sin(angle) * radiusY * dist;
-        const moss = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+        const moss = LAB.svgElement('ellipse');
         moss.setAttribute('cx', mx);
         moss.setAttribute('cy', my);
         moss.setAttribute('rx', LAB.rand(3, radiusX * 0.4));
@@ -648,7 +618,7 @@ But she is in her grave, and O
         const dist = LAB.rand(0.2, 0.7);
         const lx = cx + Math.cos(angle) * radiusX * dist;
         const ly = cy + Math.sin(angle) * radiusY * dist;
-        const lichen = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        const lichen = LAB.svgElement('circle');
         lichen.setAttribute('cx', lx);
         lichen.setAttribute('cy', ly);
         lichen.setAttribute('r', LAB.rand(1.5, 4));
@@ -668,14 +638,14 @@ But she is in her grave, and O
       fgSvg.innerHTML = '';
 
       // Glow filter for the violet
-      const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-      const glowFilter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
+      const defs = LAB.svgElement('defs');
+      const glowFilter = LAB.svgElement('filter');
       glowFilter.setAttribute('id', 'violet-glow');
       glowFilter.setAttribute('x', '-50%');
       glowFilter.setAttribute('y', '-50%');
       glowFilter.setAttribute('width', '200%');
       glowFilter.setAttribute('height', '200%');
-      const blur = document.createElementNS('http://www.w3.org/2000/svg', 'feGaussianBlur');
+      const blur = LAB.svgElement('feGaussianBlur');
       blur.setAttribute('stdDeviation', '4');
       glowFilter.appendChild(blur);
       defs.appendChild(glowFilter);
@@ -699,7 +669,7 @@ But she is in her grave, and O
       });
 
       // Cluster rocks + violet (wrapped in a group for mouse hover interaction)
-      const clusterGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      const clusterGroup = LAB.svgElement('g');
       clusterGroup.setAttribute('id', 'cluster-group');
 
       const clusterX = w * 0.22;
@@ -728,38 +698,38 @@ But she is in her grave, and O
       const vy = clusterY - 3;
 
       // This is the violet flower element
-      const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      const g = LAB.svgElement('g');
       g.setAttribute('id', 'violet');
 
       // Zoom the flower in a bit, since it's a bit small right now
       g.setAttribute('transform', `translate(${vx}, ${vy}) scale(1.4) translate(${-vx}, ${-vy})`);
 
       // Stem
-      const stem = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      const stem = LAB.svgElement('path');
       stem.setAttribute('d', `M ${vx} ${vy} Q ${vx - 2} ${vy + 18} ${vx + 1} ${vy + 30}`);
-      stem.setAttribute('stroke', '#2a5a20');
+      stem.setAttribute('stroke', '#69e150');
       stem.setAttribute('stroke-width', '1.5');
       stem.setAttribute('fill', 'none');
       g.appendChild(stem);
 
       // Small leaf
-      const leaf = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+      const leaf = LAB.svgElement('ellipse');
       leaf.setAttribute('cx', vx + 5);
       leaf.setAttribute('cy', vy + 20);
       leaf.setAttribute('rx', 6);
       leaf.setAttribute('ry', 3);
-      leaf.setAttribute('fill', '#2a5a20');
+      leaf.setAttribute('fill', '#69e150');
       leaf.setAttribute('transform', `rotate(-30 ${vx + 5} ${vy + 20})`);
       leaf.setAttribute('opacity', '0.8');
       g.appendChild(leaf);
 
       // Second leaf, other side
-      const leaf2 = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+      const leaf2 = LAB.svgElement('ellipse');
       leaf2.setAttribute('cx', vx - 4);
       leaf2.setAttribute('cy', vy + 14);
       leaf2.setAttribute('rx', 5);
       leaf2.setAttribute('ry', 2.5);
-      leaf2.setAttribute('fill', '#245218');
+      leaf2.setAttribute('fill', '#5acd3c');
       leaf2.setAttribute('transform', `rotate(25 ${vx - 4} ${vy + 14})`);
       leaf2.setAttribute('opacity', '0.7');
       g.appendChild(leaf2);
@@ -768,13 +738,13 @@ But she is in her grave, and O
       const petalCount = 5;
       const petalLength = 7;
       const petalWidth = 4;
-      const petalColours = ['#6a3d9a', '#7b52ab', '#5e2d91', '#8b6aae', '#7244a0'];
+      const petalColours = ['#8a3fe0', '#9a55ee', '#7a2fd0', '#a66cf2', '#8541dc'];
 
       for (let i = 0; i < petalCount; i++) {
         const angle = (Math.PI * 2 * i) / petalCount - Math.PI / 2;
         const px = vx + Math.cos(angle) * petalLength;
         const py = vy + Math.sin(angle) * petalLength;
-        const petal = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+        const petal = LAB.svgElement('ellipse');
         petal.setAttribute('cx', (vx + px) / 2);
         petal.setAttribute('cy', (vy + py) / 2);
         petal.setAttribute('rx', petalWidth);
@@ -782,25 +752,25 @@ But she is in her grave, and O
         petal.setAttribute('fill', petalColours[i]);
         const rotDeg = (angle * 180) / Math.PI + 90;
         petal.setAttribute('transform', `rotate(${rotDeg} ${(vx + px) / 2} ${(vy + py) / 2})`);
-        petal.setAttribute('opacity', '0.85');
+        petal.setAttribute('opacity', '1');
         g.appendChild(petal);
       }
 
       // Centre of the flower
-      const centre = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      const centre = LAB.svgElement('circle');
       centre.setAttribute('cx', vx);
       centre.setAttribute('cy', vy);
       centre.setAttribute('r', 2.5);
-      centre.setAttribute('fill', '#f0d050');
+      centre.setAttribute('fill', '#ffd02e');
       g.appendChild(centre);
 
       // Subtle glow around the violet
-      const glow = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      const glow = LAB.svgElement('circle');
       glow.setAttribute('cx', vx);
       glow.setAttribute('cy', vy);
       glow.setAttribute('r', 12);
       glow.setAttribute('fill', 'none');
-      glow.setAttribute('stroke', 'rgba(120, 80, 180, 0.15)');
+      glow.setAttribute('stroke', 'rgba(170, 120, 255, 0.2)');
       glow.setAttribute('stroke-width', '8');
       glow.setAttribute('filter', 'url(#violet-glow)');
       g.appendChild(glow);
@@ -866,75 +836,30 @@ But she is in her grave, and O
       d += ` L ${w} ${h} Z`;
 
       // Dark ground colour covering the sky gradient below the horizon
-      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      const path = LAB.svgElement('path');
       path.setAttribute('d', d);
-      path.setAttribute('fill', '#0a0f0a');
+      path.setAttribute('fill', '#192619');
       svg.appendChild(path);
     }
 
     function resize() {
-      const w = window.innerWidth;
-      const h = window.innerHeight;
+      const winW = window.innerWidth;
+      const winH = window.innerHeight;
 
-      drawHorizon(w, h);
-      drawHills(w, h * 0.5);
-      drawStream(w, h * 0.5);
-      drawGrass(w, h * 0.45);
-      drawForeground(w, h * 0.5);
+      drawHorizon(winW, winH);
+      drawHills(winW, winH * 0.5);
+      drawStream(winW, winH * 0.5);
+      drawGrass(winW, winH * 0.45);
+      drawForeground(winW, winH * 0.5);
     }
 
-    resize();
     window.addEventListener('resize', resize);
 
-    // Brightness control: keys 1-9
-    // Level 1 = current darkness, level 9 = brightest
-    // Uses a CSS filter on the scene elements (not the overlay indicator)
-    const brightnessLevels = {
-      '1': 1.0,
-      '2': 1.15,
-      '3': 1.3,
-      '4': 1.45,
-      '5': 1.6,
-      '6': 1.8,
-      '7': 2.0,
-      '8': 2.25,
-      '9': 2.5,
-    };
-
-    let indicatorTimeout = null;
-
-    const sceneEls = [
-      document.getElementById('sky'),
-      document.getElementById('star'),
-      hillsSvg, streamSvg, grassDiv, fgSvg,
-      document.getElementById('horizon-svg'),
-    ];
-
-    function updateBrightnessIndicator(level) {
-      brightnessIndicator.textContent = `brightness: ${level}`;
-      brightnessIndicator.style.opacity = '1';
-      clearTimeout(indicatorTimeout);
-      indicatorTimeout = setTimeout(() => {
-        brightnessIndicator.style.opacity = '0';
-      }, 1500);
-    }
-
-    function setBrightness(level) {
-      const val = brightnessLevels[level];
-      sceneEls.forEach(el => {
-        el.style.filter = val === 1.0 ? '' : `brightness(${val})`;
-      });
-    }
-
     document.addEventListener('keydown', (e) => {
-      if (e.key === '`') resize();
-      if (brightnessLevels[e.key]) {
-        setBrightness(e.key);
-        updateBrightnessIndicator(e.key);
-      };
+      LAB.handleKeydown(e, resize);
     });
 
-    setBrightness(5);
+    resize();
 
   </script>
 </body>

@@ -17,24 +17,34 @@
     body {
       width: 100%;
       height: 100%;
-      overflow: hidden;
       background: #000000;
+      overflow: hidden;
+      overscroll-behavior: none;
+      touch-action: none;
     }
 
-    #grid {
-      position: absolute;
+    canvas {
+      position: fixed;
       top: 0;
       left: 0;
+      z-index: 0;
+    }
+
+    main {
+      position: fixed;
+      display: flex;
       width: 100%;
       height: 100%;
-      display: flex;
+      top: 0;
+      left: 0;
       flex-wrap: wrap;
       align-content: flex-start;
       z-index: 1;
     }
 
-    #grid a {
+    main a {
       display: block;
+      position: relative;
       width: var(--cell-size);
       height: var(--cell-size);
       margin: var(--cell-gap);
@@ -43,46 +53,47 @@
       transition: box-shadow 0.2s ease;
     }
 
-    #grid a:hover {
+    main a:hover {
       background: #ffffff !important;
       box-shadow: 0 0 6px rgba(255, 255, 255, 0.6);
     }
 
-    #canvas {
+    /* Embiggen to remove dead space between links for mouse */
+    main a::before {
       position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 0;
+      inset: calc(var(--cell-gap) * -1);
+      content: '';
     }
 
     #crt-scanlines {
       position: fixed;
-      top: 0;
-      left: 0;
       width: 100vw;
       height: 100vh;
-      pointer-events: none;
-      z-index: 100;
+      top: 0;
+      left: 0;
       background:
         linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%),
         linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 255, 0, 0.03));
       background-size: 100% 2px, 3px 100%;
+      pointer-events: none;
+      z-index: 100;
     }
   </style>
 </head>
 
 <body>
-  <canvas id="canvas"></canvas>
-  <div id="grid"></div>
   <div id="crt-scanlines"></div>
+  <canvas id="canvas"></canvas>
+  <main id="main"></main>
 
   <script src="../../common/labyrinth.js"></script>
   <script>
     const LAB = new Labyrinth('expanding-hoops');
 
-    const grid = document.getElementById('grid');
+    const main = document.getElementById('main');
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
+
     const cellSize = 12;
     const gap = 2;
     const halfGap = gap / 2;
@@ -91,10 +102,15 @@
     document.documentElement.style.setProperty('--cell-size', cellSize + 'px');
     document.documentElement.style.setProperty('--cell-gap', halfGap + 'px');
 
-    let cols, rows, dists, offsetX, offsetY;
+    const speed = 0.0015;
+    const waveFreq = 0.4;
 
-    function buildGrid() {
-      grid.innerHTML = '';
+    let cols, rows, dists, offsetX, offsetY;
+    let time = 0;
+
+    function init() {
+      main.replaceChildren();
+
       cols = Math.floor(window.innerWidth / step);
       rows = Math.floor(window.innerHeight / step);
       dists = new Float32Array(cols * rows);
@@ -105,9 +121,9 @@
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
 
-      grid.style.left = offsetX + 'px';
-      grid.style.top = offsetY + 'px';
-      grid.style.width = (cols * step) + 'px';
+      main.style.left = offsetX + 'px';
+      main.style.top = offsetY + 'px';
+      main.style.width = (cols * step) + 'px';
 
       const centerCol = (cols - 1) / 2;
       const centerRow = (rows - 1) / 2;
@@ -116,7 +132,7 @@
         for (let c = 0; c < cols; c++) {
           const a = document.createElement('a');
           a.href = LAB.pageRandomiser.nextOne();
-          grid.appendChild(a);
+          main.appendChild(a);
 
           const dx = c - centerCol;
           const dy = r - centerRow;
@@ -125,13 +141,7 @@
       }
     }
 
-    buildGrid();
-
-    let time = 0;
-    const speed = 0.0015;
-    const waveFreq = 0.4;
-
-    function animate(timestamp) {
+    function tick(timestamp) {
       time = timestamp * speed;
       ctx.fillStyle = '#000000';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -149,18 +159,19 @@
           i++;
         }
       }
-      requestAnimationFrame(animate);
+      requestAnimationFrame(tick);
     }
-
-    requestAnimationFrame(animate);
 
     // There was a little bit of a CPU hog here
     // This time out should solve it without being too annoying
     let resizeTimeout;
     window.addEventListener('resize', () => {
       clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(buildGrid, 200);
+      resizeTimeout = setTimeout(init, 200);
     });
+
+    init();
+    requestAnimationFrame(tick);
 
   </script>
 </body>

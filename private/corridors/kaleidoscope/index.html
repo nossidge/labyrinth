@@ -23,37 +23,37 @@ But I've finally cracked it with this one!
     body {
       width: 100%;
       height: 100%;
-      overflow: hidden;
       background: #000000;
+      overflow: hidden;
+    }
+
+    main {
+      display: flex;
+      width: 100%;
+      height: 100%;
+      align-items: center;
+      justify-content: center;
     }
 
     canvas {
       display: block;
-      width: 100vw;
-      height: 100vh;
-    }
-
-    #click-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      z-index: 50;
-      text-decoration: none;
     }
   </style>
 </head>
 
 <body>
-  <canvas id="kaleidoscope"></canvas>
-  <a id="click-overlay" href="../index.html"></a>
+  <main>
+    <a id="link" href="../index.html">
+      <canvas id="canvas"></canvas>
+    </a>
+  </main>
 
   <script src="../../common/labyrinth.js"></script>
   <script>
     const LAB = new Labyrinth('kaleidoscope');
 
-    const canvas = document.getElementById('kaleidoscope');
+    const link = document.getElementById('link');
+    const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
 
     const SEGMENTS = 12;
@@ -63,14 +63,14 @@ But I've finally cracked it with this one!
     const shapes = [];
 
     function resize() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+      const baseR = Math.min(window.innerWidth, window.innerHeight) * 0.38;
+      const size = Math.ceil(2 * baseR);
+      canvas.width = size;
+      canvas.height = size;
     }
-    resize();
-    window.addEventListener('resize', resize);
 
     function createShape() {
-      const maxR = Math.min(canvas.width, canvas.height) * 0.42;
+      const maxR = Math.min(canvas.width, canvas.height) / 2 * 0.8;
       return {
         type: LAB.randInt(0, 2),
         r: LAB.rand(30, maxR),
@@ -92,14 +92,14 @@ But I've finally cracked it with this one!
     function drawSlice(time) {
       const cx = canvas.width / 2;
       const cy = canvas.height / 2;
-      const maxR = Math.min(cx, cy) * 0.42;
+      const maxR = Math.min(cx, cy) * 0.8;
 
       ctx.save();
       ctx.translate(cx, cy);
 
       ctx.beginPath();
       ctx.moveTo(0, 0);
-      ctx.arc(0, 0, maxR + 40, 0, SLICE_ANGLE);
+      ctx.arc(0, 0, Math.min(cx, cy), 0, SLICE_ANGLE);
       ctx.closePath();
       ctx.clip();
 
@@ -148,12 +148,15 @@ But I've finally cracked it with this one!
     }
 
     function init() {
+      resize();
+
       shapes.length = 0;
       for (let i = 0; i < SHAPE_COUNT; i++) {
         shapes.push(createShape());
       }
       ctx.fillStyle = '#000000';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
+      link.href = LAB.pageRandomiser.nextOne();
     }
 
     function render(time) {
@@ -183,11 +186,14 @@ But I've finally cracked it with this one!
       requestAnimationFrame(render);
     }
 
-    document.addEventListener('keydown', (e) => {
-      if (e.ctrlKey || e.altKey || e.shiftKey || e.metaKey) return;
-      if (e.key === 'Tab' || e.key === 'F5') return;
+    window.addEventListener('resize', resize);
 
-      init();
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
     });
 
     init();

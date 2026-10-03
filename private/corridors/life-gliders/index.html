@@ -12,7 +12,7 @@ https://en.wikipedia.org/wiki/Glider_(Conway%27s_Game_of_Life)
   <title>Eternal Recurrence</title>
   <style>
     :root {
-      --cell-size: 20px;
+      --cell-size: min(20px, calc((100vw - 80px) / 15), calc((100vh - 80px) / 15));
       --glider-gap: 8px;
       --row-gap: 8px;
     }
@@ -24,15 +24,16 @@ https://en.wikipedia.org/wiki/Glider_(Conway%27s_Game_of_Life)
     }
 
     body {
-      background-color: #000000;
       display: flex;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
-      padding: 20px;
+      padding: var(--row-gap);
+      background-color: #000000;
+      overflow: hidden;
     }
 
-    #glider-container {
+    main {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: var(--row-gap);
@@ -44,8 +45,8 @@ https://en.wikipedia.org/wiki/Glider_(Conway%27s_Game_of_Life)
       grid-template-rows: repeat(5, 1fr);
       gap: 2px;
       padding: 4px;
-      text-decoration: none;
       background-color: #000000;
+      text-decoration: none;
       transition: background-color 0.2s ease;
     }
 
@@ -79,23 +80,23 @@ https://en.wikipedia.org/wiki/Glider_(Conway%27s_Game_of_Life)
       left: 0;
       width: 100vw;
       height: 100vh;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+      background-size: 100% 2px;
       pointer-events: none;
       z-index: 100;
-      background:
-        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
-      background-size: 100% 2px;
     }
   </style>
 </head>
 
 <body>
   <div id="crt-scanlines"></div>
-
-  <main id="glider-container"></main>
+  <main id="main"></main>
 
   <script src="../../common/labyrinth.js"></script>
   <script>
     const LAB = new Labyrinth('life-gliders');
+
+    const main = document.getElementById('main');
 
     const GLIDER_PATTERNS = [
       [
@@ -125,11 +126,10 @@ https://en.wikipedia.org/wiki/Glider_(Conway%27s_Game_of_Life)
       ]
     ];
 
-    const container = document.getElementById('glider-container');
     const gliderStates = [];
 
-    function buildGliders() {
-      container.innerHTML = '';
+    function init() {
+      main.replaceChildren();
       gliderStates.length = 0;
 
       for (let i = 0; i < 9; i++) {
@@ -154,7 +154,7 @@ https://en.wikipedia.org/wiki/Glider_(Conway%27s_Game_of_Life)
           }
         }
 
-        container.appendChild(gliderLink);
+        main.appendChild(gliderLink);
       }
     }
 
@@ -170,9 +170,9 @@ https://en.wikipedia.org/wiki/Glider_(Conway%27s_Game_of_Life)
         const lifeCells = gliderLink.querySelectorAll('.life-cell');
 
         lifeCells.forEach((cell, cellIndex) => {
-          const r = Math.floor(cellIndex / 5);
-          const c = cellIndex % 5;
-          if (pattern[r][c] === 1) {
+          const row = Math.floor(cellIndex / 5);
+          const col = cellIndex % 5;
+          if (pattern[row][col] === 1) {
             cell.classList.add('alive');
           } else {
             cell.classList.remove('alive');
@@ -181,7 +181,7 @@ https://en.wikipedia.org/wiki/Glider_(Conway%27s_Game_of_Life)
       });
     }
 
-    buildGliders();
+    init();
 
     setInterval(updateGliders, 1000);
 

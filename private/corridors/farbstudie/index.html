@@ -40,19 +40,33 @@ https://www.moma.org/interactives/exhibitions/2012/inventingabstraction/?work=12
     }
 
     .cell {
+      position: relative;
       display: block;
+    }
+
+    .cell .inner {
+      display: block;
+      width: 100%;
+      height: 100%;
       overflow: hidden;
     }
 
     .cell svg {
+      display: block;
       width: 100%;
       height: 100%;
-      display: block;
       transition: transform 0.4s ease;
     }
 
     .cell:hover svg {
       transform: scale(1.08);
+    }
+
+    /* Embiggen to remove dead space between links for mouse */
+    .cell::before {
+      position: absolute;
+      inset: -1.5px;
+      content: '';
     }
   </style>
 </head>
@@ -110,7 +124,7 @@ https://www.moma.org/interactives/exhibitions/2012/inventingabstraction/?work=12
         const cell = document.createElement('a');
         cell.href = LAB.pageRandomiser.nextOne();
         cell.className = 'cell';
-        cell.innerHTML = cellSvg();
+        cell.innerHTML = '<span class="inner">' + cellSvg() + '</span>';
         main.appendChild(cell);
       }
     }

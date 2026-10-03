@@ -15,15 +15,15 @@
 
     html,
     body {
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      font-family: monospace;
-      overscroll-behavior: none;
-      touch-action: none;
       position: fixed;
       top: 0;
       left: 0;
+      width: 100%;
+      height: 100%;
+      font-family: monospace;
+      overflow: hidden;
+      overscroll-behavior: none;
+      touch-action: none;
     }
 
     body {
@@ -50,13 +50,13 @@
 </head>
 
 <body>
-  <main id="sky"></main>
+  <main id="main"></main>
 
   <script src="../../common/labyrinth.js"></script>
   <script>
     const LAB = new Labyrinth('luftballons');
 
-    const sky = document.getElementById('sky');
+    const main = document.getElementById('main');
     const balloons = [];
     const COUNT = 99;
 
@@ -80,7 +80,7 @@
       a.className = 'balloon';
       a.href = LAB.pageRandomiser.nextOne();
       a.innerHTML = BALLOON_SVG;
-      sky.appendChild(a);
+      main.appendChild(a);
       return a;
     }
 
@@ -96,7 +96,7 @@
     }
 
     function init() {
-      sky.innerHTML = '';
+      main.replaceChildren();
       for (let i = 0; i < COUNT; i++) {
         const b = { el: makeBalloonEl() };
         spawn(b, false);
@@ -118,6 +118,16 @@
       }
       requestAnimationFrame(tick);
     }
+
+    window.addEventListener('resize', init);
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
 
     init();
     tick();

@@ -32,7 +32,7 @@
       justify-content: center;
     }
 
-    #main {
+    main {
       display: grid;
       grid-template-columns: repeat(var(--cols), 38px);
       grid-auto-rows: 50px;
@@ -75,6 +75,16 @@
   <script>
     const LAB = new Labyrinth('mahjong');
 
+    const main = document.getElementById('main');
+    let cols, rows;
+
+    // Mahjong tiles: U+1F000 to U+1F02B, except for the emoji 🀄
+    const tileGlyphs = [];
+    for (let codePoint = 0x1F000; codePoint <= 0x1F02B; codePoint++) {
+      if (codePoint === 0x1F004) continue;
+      tileGlyphs.push(String.fromCodePoint(codePoint));
+    }
+
     // Use CSS to set these values, as the orientation calculation will be automatic
     function getCssVarCols() {
       return getComputedStyle(document.documentElement).getPropertyValue('--cols');
@@ -84,35 +94,29 @@
       return getComputedStyle(document.documentElement).getPropertyValue('--rows');
     }
 
-    // Mahjong tiles: U+1F000 to U+1F02B, except for the emoji 🀄
-    const tiles = [];
-    for (let codePoint = 0x1F000; codePoint <= 0x1F02B; codePoint++) {
-      if (codePoint === 0x1F004) continue;
-      tiles.push(String.fromCodePoint(codePoint));
-    }
-
-    const main = document.getElementById('main');
-
-    function init() {
-      main.innerHTML = '';
-      const cols = getCssVarCols();
-      const rows = getCssVarRows();
-      for (let i = 0; i < cols * rows; i++) {
-        const char = LAB.sample(tiles);
-        let el;
-        el = document.createElement('a');
-        el.href = LAB.pageRandomiser.nextOne();
-        el.className = 'tile';
-        el.textContent = char;
-        main.appendChild(el);
+    function resize() {
+      const newCols = parseInt(getCssVarCols(), 10);
+      const newRows = parseInt(getCssVarRows(), 10);
+      if (newCols !== cols || newRows !== rows) {
+        cols = newCols;
+        rows = newRows;
+        init();
       }
     }
 
-    let resizeTimeout;
-    window.addEventListener('resize', () => {
-      clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(init, 100);
-    });
+    function init() {
+      main.replaceChildren();
+      for (let i = 0; i < cols * rows; i++) {
+        const char = LAB.sample(tileGlyphs);
+        let tile = document.createElement('a');
+        tile.href = LAB.pageRandomiser.nextOne();
+        tile.className = 'tile';
+        tile.textContent = char;
+        main.appendChild(tile);
+      }
+    }
+
+    window.addEventListener('resize', resize);
 
     document.addEventListener('click', (e) => {
       if (!e.target.closest('a')) init();
@@ -122,7 +126,7 @@
       LAB.handleKeydown(e, init);
     });
 
-    init();
+    resize();
 
   </script>
 </body>

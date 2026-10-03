@@ -13,13 +13,13 @@
       box-sizing: border-box;
     }
 
-    body,
-    html {
+    html,
+    body {
       width: 100%;
       height: 100%;
       background: #0a0a0a;
-      overflow: hidden;
       font-family: monospace;
+      overflow: hidden;
     }
 
     canvas {
@@ -33,8 +33,8 @@
       position: absolute;
       left: 0;
       width: 100%;
-      text-decoration: none;
       background: transparent;
+      text-decoration: none;
       z-index: 10;
     }
 
@@ -44,12 +44,12 @@
       left: 0;
       width: 100vw;
       height: 100vh;
-      pointer-events: none;
-      z-index: 100;
       background:
         linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%),
         linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 255, 0, 0.03));
       background-size: 100% 2px, 3px 100%;
+      pointer-events: none;
+      z-index: 100;
     }
   </style>
 </head>
@@ -209,8 +209,10 @@
     }
 
     function animate() {
+      ctx.globalCompositeOperation = 'multiply';
       ctx.fillStyle = 'rgba(10, 10, 10, 0.15)';
       ctx.fillRect(0, 0, W, H);
+      ctx.globalCompositeOperation = 'source-over';
 
       time += 0.016;
       entropy += 0.0001;

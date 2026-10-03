@@ -17,22 +17,21 @@
     body {
       width: 100%;
       height: 100%;
-      overflow: hidden;
       background: #000000;
+      overflow: hidden;
+    }
+
+    main {
+      position: fixed;
+      inset: 0;
     }
 
     canvas {
       display: block;
-      position: absolute;
-      top: 0;
-      left: 0;
       z-index: 1;
     }
 
     #links {
-      position: absolute;
-      top: 0;
-      left: 0;
       width: 100%;
       height: 100%;
       z-index: 2;
@@ -41,12 +40,12 @@
 
     #links a {
       position: absolute;
+      display: block;
       width: 40px;
       height: 40px;
       border-radius: 50%;
-      pointer-events: all;
-      display: block;
       text-decoration: none;
+      pointer-events: all;
       transform: translate(-50%, -50%);
     }
 
@@ -56,40 +55,42 @@
       cursor: pointer;
     }
 
-    #crt {
+    #crt-scanlines {
       position: fixed;
       top: 0;
       left: 0;
       width: 100vw;
       height: 100vh;
-      pointer-events: none;
-      z-index: 100;
       background:
         linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%),
         linear-gradient(90deg, rgba(255, 0, 0, 0.04), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.04));
       background-size: 100% 2px, 3px 100%;
+      pointer-events: none;
+      z-index: 100;
     }
   </style>
 </head>
 
 <body>
-  <canvas id="canvas"></canvas>
-  <div id="links"></div>
-  <div id="crt"></div>
+  <div id="crt-scanlines"></div>
+  <main>
+    <canvas id="canvas"></canvas>
+    <div id="links"></div>
+  </main>
 
   <script src="../../common/labyrinth.js"></script>
   <script>
     const LAB = new Labyrinth('gravity-well');
 
+    const links = document.getElementById('links');
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
-    const linksContainer = document.getElementById('links');
 
-    let W, H;
+    let winW, winH;
 
     function resize() {
-      W = canvas.width = window.innerWidth;
-      H = canvas.height = window.innerHeight;
+      winW = canvas.width = window.innerWidth;
+      winH = canvas.height = window.innerHeight;
     }
     resize();
     window.addEventListener('resize', resize);
@@ -115,16 +116,16 @@
 
     for (let i = 0; i < wellCount; i++) {
       wells.push({
-        x: LAB.rand(W * 0.2, W * 0.8),
-        y: LAB.rand(H * 0.2, H * 0.8),
+        x: LAB.rand(winW * 0.2, winW * 0.8),
+        y: LAB.rand(winH * 0.2, winH * 0.8),
         mass: calculateWellMass(),
         drift: {
           ax: LAB.rand(0.0001, 0.0004),
           ay: LAB.rand(0.0001, 0.0004),
           px: LAB.rand(0, Math.PI * 2),
           py: LAB.rand(0, Math.PI * 2),
-          rx: LAB.rand(W * 0.05, W * 0.2),
-          ry: LAB.rand(H * 0.05, H * 0.2),
+          rx: LAB.rand(winW * 0.05, winW * 0.2),
+          ry: LAB.rand(winH * 0.05, winH * 0.2),
         },
         ox: 0,
         oy: 0,
@@ -136,7 +137,7 @@
     for (let i = 0; i < wellCount; i++) {
       const a = document.createElement('a');
       a.href = LAB.pageRandomiser.nextOne();
-      linksContainer.appendChild(a);
+      links.appendChild(a);
       wellLinks.push(a);
     }
 
@@ -147,10 +148,10 @@
     function spawnParticle() {
       const edge = LAB.randInt(0, 3);
       let x, y;
-      if (edge === 0) { x = LAB.rand(0, W); y = -10; }
-      else if (edge === 1) { x = W + 10; y = LAB.rand(0, H); }
-      else if (edge === 2) { x = LAB.rand(0, W); y = H + 10; }
-      else { x = -10; y = LAB.rand(0, H); }
+      if (edge === 0) { x = LAB.rand(0, winW); y = -10; }
+      else if (edge === 1) { x = winW + 10; y = LAB.rand(0, winH); }
+      else if (edge === 2) { x = LAB.rand(0, winW); y = winH + 10; }
+      else { x = -10; y = LAB.rand(0, winH); }
 
       return {
         x, y,
@@ -168,8 +169,8 @@
     for (let i = 0; i < particleCount; i++) {
       const p = spawnParticle();
       // Start scattered across screen for initial appearance
-      p.x = LAB.rand(0, W);
-      p.y = LAB.rand(0, H);
+      p.x = LAB.rand(0, winW);
+      p.y = LAB.rand(0, winH);
       particles.push(p);
     }
 
@@ -229,7 +230,7 @@
         p.y += p.vy;
 
         // Kill if far offscreen
-        if (p.x < -100 || p.x > W + 100 || p.y < -100 || p.y > H + 100) {
+        if (p.x < -100 || p.x > winW + 100 || p.y < -100 || p.y > winH + 100) {
           p.alive = false;
         }
       }
@@ -245,7 +246,7 @@
     function draw() {
       // Fade effect - semi-transparent black overlay
       ctx.fillStyle = 'rgba(0, 0, 0, 0.12)';
-      ctx.fillRect(0, 0, W, H);
+      ctx.fillRect(0, 0, winW, winH);
 
       // Draw particles with trails
       for (const p of particles) {
@@ -305,23 +306,33 @@
       }
     }
 
-    function loop() {
+    function tick() {
       update();
       draw();
-      requestAnimationFrame(loop);
+      requestAnimationFrame(tick);
     }
 
-    // Rearrange the wells every 8 seconds
-    setInterval(() => {
+    function randomiseWells() {
       for (let i = 0; i < wells.length; i++) {
-        wells[i].x = LAB.rand(W * 0.15, W * 0.85);
-        wells[i].y = LAB.rand(H * 0.15, H * 0.85);
+        wells[i].x = LAB.rand(winW * 0.15, winW * 0.85);
+        wells[i].y = LAB.rand(winH * 0.15, winH * 0.85);
         wells[i].mass = calculateWellMass();
         wellLinks[i].href = LAB.pageRandomiser.nextOne();
       }
-    }, 8000);
+    }
 
-    loop();
+    // Rearrange the wells every 8 seconds
+    setInterval(randomiseWells, 8000);
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) randomiseWells();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, randomiseWells);
+    });
+
+    tick();
 
   </script>
 </body>

@@ -28,13 +28,13 @@ Forget it Jake, it's Tongaborough
       box-sizing: border-box;
     }
 
-    body,
-    html {
+    html,
+    body {
       height: 100%;
-      overflow: hidden;
       background: var(--bg-colour);
       color: var(--text-colour);
       font-family: var(--font-family);
+      overflow: hidden;
       user-select: none;
     }
 
@@ -68,27 +68,28 @@ Forget it Jake, it's Tongaborough
     }
 
     #content {
-      height: 100%;
+      position: relative;
       display: flex;
       flex-direction: column;
       justify-content: flex-end;
       align-items: center;
+      height: 100%;
       padding-bottom: 14vh;
       text-align: center;
-      position: relative;
       z-index: 5;
     }
 
     #phrase {
-      font-size: clamp(1.5rem, 5vw, 3.5rem);
-      font-weight: 700;
+      max-width: 90%;
       color: var(--subtitle-colour);
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8),
+      text-shadow:
+        2px 2px 4px rgba(0, 0, 0, 0.8),
         -1px -1px 0 rgba(0, 0, 0, 1),
         1px -1px 0 rgba(0, 0, 0, 1),
         -1px 1px 0 rgba(0, 0, 0, 1),
         1px 1px 0 rgba(0, 0, 0, 1);
-      max-width: 90%;
+      font-size: clamp(1.5rem, 5vw, 3.5rem);
+      font-weight: 700;
       line-height: 1.2;
       transition: opacity 0.3s ease-in-out, transform 0.3s ease-out;
       opacity: 1;
@@ -418,29 +419,34 @@ Forget it Jake, it's Tongaborough
 
     // Arrow keys, WASD keys, HJKL keys
     const LEFT_OR_DOWN = new Set(['ArrowLeft', 'ArrowDown', 'h', 'j', 'a', 's']);
-    const RIGHT_OR_UP = new Set(['ArrowRight', 'ArrowUp', 'k', 'l', 'd', 'w']);
     function keyLeftOrDown(key) { return LEFT_OR_DOWN.has(key); }
-    function keyRightOrUp(key) { return RIGHT_OR_UP.has(key); }
 
     document.addEventListener('keydown', (e) => {
-      if (e.ctrlKey || e.altKey || e.shiftKey || e.metaKey) return;
-      if (keyLeftOrDown(e.key)) {
-        e.preventDefault();
-        goToPrev();
-      } else if (keyRightOrUp(e.key)) {
-        e.preventDefault();
-        goToNext();
-      }
-    });
-
-    phraseElement.addEventListener('click', (e) => {
-      e.stopPropagation();
+      LAB.handleKeydown(e, () => {
+        if (keyLeftOrDown(e.key)) {
+          e.preventDefault();
+          goToPrev();
+        } else {
+          e.preventDefault();
+          goToNext();
+        }
+      });
     });
 
     // Click anywhere on the page (except the phrase link) to go forward
-    document.body.addEventListener('click', () => {
-      goToNext();
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) goToNext();
     });
+
+    // New phrase every 6 seconds, until the user's first interaction
+    const autoAdvance = setInterval(goToNext, 6000);
+    function stopAutoAdvance() {
+      clearInterval(autoAdvance);
+      window.removeEventListener('keydown', stopAutoAdvance);
+      window.removeEventListener('mousedown', stopAutoAdvance);
+    }
+    window.addEventListener('keydown', stopAutoAdvance);
+    window.addEventListener('mousedown', stopAutoAdvance);
 
     // Init with the canonical first entry
     history.push({

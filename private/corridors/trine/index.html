@@ -6,11 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="tilde trine">
   <title>tilde trine</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,200..900;1,200..900&display=swap"
-    rel="stylesheet">
   <style>
     :root {
       --bg-color: #0a0a0c;
@@ -21,39 +16,46 @@
       --background-text-accent: rgba(255, 255, 255, 0.08);
     }
 
-    body,
-    html {
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      display: flex;
       margin: 0;
       padding: 0;
       width: 100%;
       height: 100%;
       background-color: var(--bg-color);
       color: var(--accent-color);
-      display: flex;
+      font-family: Georgia, 'Times New Roman', serif;
       justify-content: center;
       align-items: center;
       overflow: hidden;
-      font-family: 'Crimson Pro', serif;
     }
 
-    #container {
+    main {
       position: relative;
+      display: flex;
       width: 100vw;
       height: 100vh;
-      display: flex;
       justify-content: center;
       align-items: center;
+      overflow: hidden;
     }
 
     .tilde {
       position: absolute;
+      display: flex;
+      width: clamp(100px, calc(min(100vw, 100vh) * 0.416667 - 50px), 200px);
+      height: clamp(100px, calc(min(100vw, 100vh) * 0.416667 - 50px), 200px);
       user-select: none;
       transition: all 1.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-      display: flex;
       justify-content: center;
       align-items: center;
-      width: 200px;
-      height: 200px;
       z-index: 10;
     }
 
@@ -77,8 +79,8 @@
 
     .line {
       position: absolute;
-      background: linear-gradient(90deg, transparent, var(--accent-color), transparent);
       height: 4px;
+      background: linear-gradient(90deg, transparent, var(--accent-color), transparent);
       opacity: 0;
       transition: opacity 2s ease-in-out;
       pointer-events: none;
@@ -112,12 +114,12 @@
       transform: translate(-30vmin, 24vmin) rotate(240deg);
     }
 
-    body.pyramid #container::before {
-      content: '';
+    body.pyramid main::before {
       position: absolute;
       width: 80vmin;
       height: 80vmin;
       background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 0%, transparent 70%);
+      content: '';
       z-index: 1;
       animation: pulse 4s ease-in-out infinite;
     }
@@ -147,15 +149,15 @@
 
     #background-text {
       position: absolute;
-      font-size: 0.8rem;
-      color: var(--background-text-color);
-      white-space: pre-wrap;
-      pointer-events: none;
-      z-index: 1;
       padding: 20px;
+      width: 100vmin;
+      color: var(--background-text-color);
+      font-size: 0.8rem;
+      white-space: pre-wrap;
       line-height: 1.2;
       text-align: justify;
-      width: 100vmin;
+      pointer-events: none;
+      z-index: 1;
     }
 
     a {
@@ -166,10 +168,9 @@
 </head>
 
 <body>
-
   <div id="background-text"></div>
 
-  <div id="container">
+  <main id="main">
     <div class="line" id="line12"></div>
     <div class="line" id="line23"></div>
     <div class="line" id="line31"></div>
@@ -183,7 +184,7 @@
     <a href="#" class="tilde tilde-3" id="t3">
       <img src="tilde.png" alt="tilde">
     </a>
-  </div>
+  </main>
 
   <script src="../../common/labyrinth.js"></script>
   <script>
@@ -193,7 +194,7 @@
     const lines = {
       line12: document.getElementById('line12'),
       line23: document.getElementById('line23'),
-      line31: document.getElementById('line31')
+      line31: document.getElementById('line31'),
     };
 
     function updateLines() {

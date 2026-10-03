@@ -29,17 +29,23 @@ https://baudinstudio.gumroad.com/l/gnnego
       box-sizing: border-box;
     }
 
+    html,
     body {
-      background-color: var(--bg-color);
-      color: var(--dot-white);
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
       display: flex;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
-      overflow: hidden;
+      background-color: var(--bg-color);
+      color: var(--dot-white);
     }
 
-    #matrix-container {
+    #main {
       display: grid;
       padding: 20px;
     }
@@ -48,9 +54,9 @@ https://baudinstudio.gumroad.com/l/gnnego
       display: grid;
       grid-template-columns: repeat(var(--group-size, 3), 1fr);
       grid-template-rows: repeat(var(--group-size, 3), 1fr);
-      text-decoration: none;
       padding: 2px;
       border: 1px solid transparent;
+      text-decoration: none;
     }
 
     .dot-group:hover {
@@ -87,48 +93,62 @@ https://baudinstudio.gumroad.com/l/gnnego
       left: 0;
       width: 100vw;
       height: 100vh;
-      pointer-events: none;
-      z-index: 100;
       background:
         linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
         linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
       background-size: 100% 2px, 3px 100%;
+      pointer-events: none;
+      z-index: 100;
     }
   </style>
 </head>
 
 <body>
   <div id="crt-scanlines"></div>
-  <main id="matrix-container"></main>
+  <main id="main"></main>
 
   <script src="../../common/labyrinth.js"></script>
   <script>
     const LAB = new Labyrinth('1-bit-dots');
 
-    const groupSpacing = 1;         // Pixel spacing between groups
-    const groupSquareRoot = 10;     // The number squared of dots per group
-    const dotSpacing = 9;           // Pixel spacing between dots
-    const dotSize = 8;              // Pixel size of dots
-    const dotColumns = 60;          // Should be a multiple of groupSquareRoot
-    const dotRows = 30;             // Should be a multiple of groupSquareRoot
-    const dotPercentageLoss = 1.68; // 100% at col 0, decreasing by percentage per column
+    const main = document.getElementById('main');
 
-    const container = document.getElementById('matrix-container');
+    // 100% at col 0, decreasing by percentage per column
+    const dotPercentageLoss = 1.68;
 
-    // Set CSS variable for dynamic grid layout
-    document.documentElement.style.setProperty('--group-size', groupSquareRoot);
+    let currentLayout = null;
 
-    // Logic for group layout
-    const groupCols = Math.floor(dotColumns / groupSquareRoot);
-    const groupRows = Math.floor(dotRows / groupSquareRoot);
+    // Responsive layouts, smallest first
+    function getLayout() {
+      const w = window.innerWidth;
+      if (w >= 1024) {
+        return { key: 'lg', groupRoot: 10, groupCols: 6, groupRows: 3, dotSize: 8, dotSpacing: 9 };
+      }
+      if (w >= 640) {
+        return { key: 'md', groupRoot: 5, groupCols: 10, groupRows: 5, dotSize: 7, dotSpacing: 5 };
+      }
+      return { key: 'sm', groupRoot: 5, groupCols: 6, groupRows: 3, dotSize: 6, dotSpacing: 5 };
+    }
 
-    // Grid setup
-    container.style.gridTemplateColumns = `repeat(${groupCols}, auto)`;
-    container.style.gridTemplateRows = `repeat(${groupRows}, auto)`;
-    container.style.gap = `${groupSpacing}px`;
+    // Scale the left-to-right fade so it still ends near-black on fewer columns
+    function getDotPercentageLoss(layout) {
+      const dotColumns = layout.groupCols * layout.groupRoot;
+      return (dotPercentageLoss * 60) / dotColumns;
+    }
 
-    function buildMatrix() {
-      container.innerHTML = '';
+    function init() {
+      main.replaceChildren();
+
+      currentLayout = getLayout();
+      const { groupRoot, groupCols, groupRows, dotSize, dotSpacing } = currentLayout;
+      const loss = getDotPercentageLoss(currentLayout);
+
+      // Set CSS variable for dynamic grid layout
+      document.documentElement.style.setProperty('--group-size', groupRoot);
+
+      // Grid setup
+      main.style.gridTemplateColumns = `repeat(${groupCols}, auto)`;
+      main.style.gridTemplateRows = `repeat(${groupRows}, auto)`;
 
       for (let gr = 0; gr < groupRows; gr++) {
         for (let gc = 0; gc < groupCols; gc++) {
@@ -137,37 +157,40 @@ https://baudinstudio.gumroad.com/l/gnnego
           group.className = 'dot-group';
           group.style.gap = `${dotSpacing}px`;
 
-          for (let r = 0; r < groupSquareRoot; r++) {
-            for (let c = 0; c < groupSquareRoot; c++) {
-              const actualCol = gc * groupSquareRoot + c;
-              const actualRow = gr * groupSquareRoot + r;
+          for (let r = 0; r < groupRoot; r++) {
+            for (let c = 0; c < groupRoot; c++) {
+              const actualCol = gc * groupRoot + c;
 
-              if (actualCol < dotColumns && actualRow < dotRows) {
-                const dot = document.createElement('div');
-                dot.className = 'dot';
-                dot.style.width = `${dotSize}px`;
-                dot.style.height = `${dotSize}px`;
+              const dot = document.createElement('div');
+              dot.className = 'dot';
+              dot.style.width = `${dotSize}px`;
+              dot.style.height = `${dotSize}px`;
 
-                const whiteChance = Math.max(0, 100 - (actualCol * dotPercentageLoss));
-                const isWhite = (Math.random() * 100) < whiteChance;
+              const whiteChance = Math.max(0, 100 - (actualCol * loss));
+              const isWhite = (Math.random() * 100) < whiteChance;
 
-                dot.classList.add(isWhite ? 'white' : 'black');
-                group.appendChild(dot);
-              }
+              dot.classList.add(isWhite ? 'white' : 'black');
+              group.appendChild(dot);
             }
           }
-          container.appendChild(group);
+          main.appendChild(group);
         }
       }
     }
 
-    document.addEventListener('click', (e) => {
-      if (!e.target.closest('.dot-group')) {
-        buildMatrix();
-      }
+    window.addEventListener('resize', () => {
+      if (getLayout().key !== currentLayout.key) init();
     });
 
-    buildMatrix();
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    init();
 
   </script>
 </body>

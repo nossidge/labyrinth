@@ -97,10 +97,12 @@
       );
     }
 
-    document.addEventListener('keydown', hingeAll);
-
     document.addEventListener('click', (e) => {
       if (!e.target.closest('a')) hingeAll();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, hingeAll);
     });
 
     init();

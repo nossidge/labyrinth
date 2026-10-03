@@ -15,10 +15,8 @@
       user-select: none;
     }
 
-    #canvas-container {
+    main {
       position: fixed;
-      top: 0;
-      left: 0;
       width: 100vw;
       height: 100vh;
     }
@@ -26,19 +24,28 @@
     canvas {
       image-rendering: pixelated;
     }
+
+    .lily-link {
+      position: fixed;
+      display: block;
+      border-radius: 50%;
+      background: transparent;
+      text-decoration: none;
+      z-index: 90;
+    }
   </style>
 </head>
 
 <body>
-  <div id="canvas-container">
-    <canvas id="liquidCanvas"></canvas>
-  </div>
+  <main>
+    <canvas id="canvas"></canvas>
+  </main>
 
   <script src="../../common/labyrinth.js"></script>
   <script>
     const LAB = new Labyrinth('ripples');
 
-    const canvas = document.getElementById('liquidCanvas');
+    const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
 
     // More pixelation means more lo-fi
@@ -61,6 +68,7 @@
         this.size = LAB.rand(4, 10);
         this.rotation = LAB.rand(0, Math.PI * 2);
         this.color = '#1b4d1b';
+        this.url = LAB.pageRandomiser.nextOne();
       }
 
       update() {
@@ -117,12 +125,6 @@
 
         ctx.restore();
       }
-
-      isClicked(mx, my) {
-        const dx = this.x * scale - mx;
-        const dy = this.y * scale - my;
-        return Math.sqrt(dx * dx + dy * dy) < this.size * scale * 1.5;
-      }
     }
 
     function init() {
@@ -148,6 +150,30 @@
       lilyPads.push(new LilyPad());
     }
 
+    // Give each lily pad an invisible anchor element so that it is a real,
+    // focusable link (Tab + Enter) and the browser can show its URL on hover.
+    lilyPads.forEach((lp) => {
+      const a = document.createElement('a');
+      a.href = lp.url;
+      a.className = 'lily-link';
+      a.setAttribute('aria-label', 'lily pad');
+      document.body.appendChild(a);
+      lp.anchor = a;
+    });
+
+    // Keep the anchors tracking their lily pads
+    function updateAnchors() {
+      for (const lp of lilyPads) {
+        const r = lp.size * scale;
+        const cx = lp.x * scale;
+        const cy = lp.y * scale;
+        lp.anchor.style.left = (cx - r) + 'px';
+        lp.anchor.style.top = (cy - r) + 'px';
+        lp.anchor.style.width = (r * 2) + 'px';
+        lp.anchor.style.height = (r * 2) + 'px';
+      }
+    }
+
     function dropAt(x, y, strength) {
       x = Math.floor(x / scale);
       y = Math.floor(y / scale);
@@ -157,37 +183,15 @@
       }
     }
 
+    // Lily pad navigation is handled by their anchor elements;
+    // the canvas only drops ripples in open water.
     canvas.addEventListener('mousedown', (e) => {
-      const mx = e.clientX;
-      const my = e.clientY;
-
-      // Check lily pad clicks
-      for (const lp of lilyPads) {
-        if (lp.isClicked(mx, my)) {
-          window.location.href = LAB.pageRandomiser.nextOne();
-          return;
-        }
-      }
-
-      dropAt(mx, my, 512);
+      dropAt(e.clientX, e.clientY, 512);
     });
 
     canvas.addEventListener('mousemove', (e) => {
-      const mx = e.clientX;
-      const my = e.clientY;
-
-      let isHovering = false;
-      for (const lp of lilyPads) {
-        if (lp.isClicked(mx, my)) {
-          isHovering = true;
-          break;
-        }
-      }
-
-      canvas.style.cursor = isHovering ? 'pointer' : 'default';
-
       if (e.buttons === 1) {
-        dropAt(mx, my, 256);
+        dropAt(e.clientX, e.clientY, 256);
       }
     });
 
@@ -277,14 +281,15 @@
       ctx.putImageData(imageData, 0, 0);
     }
 
-    function loop() {
+    function tick() {
       update();
       draw();
       lilyPads.forEach(lp => lp.draw(ctx));
-      requestAnimationFrame(loop);
+      updateAnchors();
+      requestAnimationFrame(tick);
     }
 
-    loop();
+    tick();
 
   </script>
 </body>

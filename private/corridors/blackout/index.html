@@ -24,23 +24,23 @@ https://tilde.town/~vilmibm/blog/#blackout
     }
 
     body {
-      background: #000000;
-      min-height: 100vh;
       display: flex;
+      min-height: 100vh;
+      background: #000000;
       justify-content: center;
     }
 
     main {
+      display: flex;
       max-width: 1399px;
       width: 100%;
       padding: 40px;
+      min-height: 100vh;
       background: #090909;
       border-left: 1px solid #1a1a1a;
       border-right: 1px solid #1a1a1a;
       box-shadow: 4px 0 12px rgba(0, 0, 0, 0.6), -4px 0 12px rgba(0, 0, 0, 0.6);
-      display: flex;
       flex-direction: column;
-      min-height: 100vh;
     }
 
     @media (max-width: 1399px) {
@@ -50,18 +50,18 @@ https://tilde.town/~vilmibm/blog/#blackout
     }
 
     #image-area {
-      flex: 1;
       display: flex;
+      padding: 20px 0;
+      flex: 1;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 20px 0;
     }
 
     #link {
       display: block;
-      line-height: 0;
       max-width: 100%;
+      line-height: 0;
     }
 
     #image {
@@ -77,16 +77,16 @@ https://tilde.town/~vilmibm/blog/#blackout
       margin-top: auto;
       padding-top: 24px;
       padding-bottom: 24px;
+      color: #6a6a6a;
       font-size: 14px;
       letter-spacing: 2px;
-      color: #6a6a6a;
       text-align: center;
     }
 
     #caption a {
       color: #8a8a8a;
-      text-decoration: none;
       border-bottom: 1px solid #2a2a2a;
+      text-decoration: none;
     }
 
     #caption a:hover {
@@ -106,13 +106,13 @@ https://tilde.town/~vilmibm/blog/#blackout
     }
 
     #nav button {
-      flex: 1;
+      padding: 14px 12px;
       background: #111111;
       border: 1px solid #1f1f1f;
-      padding: 14px 12px;
+      color: #888888;
       font-size: 14px;
       letter-spacing: 3px;
-      color: #888888;
+      flex: 1;
       transition: background 0.2s, color 0.2s, border-color 0.2s;
       cursor: pointer;
     }
@@ -132,7 +132,7 @@ https://tilde.town/~vilmibm/blog/#blackout
 <body>
   <main>
     <div id="image-area">
-      <a id="link" href="#">
+      <a id="link" href="../index.html">
         <img id="image" alt="">
       </a>
     </div>

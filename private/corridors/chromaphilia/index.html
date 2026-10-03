@@ -8,18 +8,18 @@
   <title>Chromaphilia</title>
   <style>
     body {
-      margin: 0;
-      padding: 0;
-      background: #000;
-      color: #777;
-      font-family: "Courier New", Courier, monospace;
-      overflow: hidden;
-      user-select: none;
-      height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      background: #000000;
+      color: #777777;
+      font-family: "Courier New", Courier, monospace;
+      overflow: hidden;
+      user-select: none;
     }
 
     #mixer {
@@ -35,8 +35,8 @@
       height: 300px;
       border-radius: 50%;
       mix-blend-mode: screen;
-      cursor: grab;
       filter: blur(5px);
+      cursor: grab;
     }
 
     @media (max-width: 1024px) {
@@ -78,35 +78,32 @@
 
     #color-nav {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
       display: grid;
       grid-template-columns: 1fr 1fr 1fr;
       grid-template-rows: 1fr 1fr;
+      width: 100%;
+      height: 100%;
       padding: 10px;
       box-sizing: border-box;
+      pointer-events: none;
       z-index: 100;
     }
 
     .color-btn {
-      pointer-events: auto;
-      width: 50px;
-      height: 50px;
       display: flex;
       align-items: center;
       justify-content: center;
-      text-decoration: none;
-      font-weight: 900;
-      color: #000;
-      transition: transform 0.2s, opacity 0.5s, filter 0.5s, background-color 0.5s, color 0.5s;
+      width: 50px;
+      height: 50px;
       filter: blur(3px);
       border-radius: 50%;
-      font-size: 1.5rem;
       opacity: 0;
+      color: #000000;
+      font-weight: 900;
+      font-size: 1.5rem;
+      text-decoration: none;
       pointer-events: none;
+      transition: transform 0.2s, opacity 0.5s, filter 0.5s, background-color 0.5s, color 0.5s;
     }
 
     .color-btn.visible {
@@ -120,82 +117,78 @@
     }
 
     .color-btn:active {
-      transform: scale(0.9);
       opacity: 0.8;
+      transform: scale(0.9);
     }
 
     #btn-m {
-      background-color: #ff00ff;
       justify-self: start;
       align-self: start;
+      background-color: #ff00ff;
     }
 
     #btn-r {
-      background-color: #ff0000;
       justify-self: center;
       align-self: start;
+      background-color: #ff0000;
     }
 
     #btn-y {
-      background-color: #ffff00;
       justify-self: end;
       align-self: start;
+      background-color: #ffff00;
     }
 
     #btn-b {
-      background-color: #0000ff;
-      color: #fff;
       justify-self: start;
       align-self: end;
+      background-color: #0000ff;
+      color: #fff;
     }
 
     #btn-c {
-      background-color: #00ffff;
       justify-self: center;
       align-self: end;
+      background-color: #00ffff;
     }
 
     #btn-g {
-      background-color: #00ff00;
       justify-self: end;
       align-self: end;
+      background-color: #00ff00;
     }
 
     .color-btn.white-mode {
       background-color: #ffffff !important;
-      color: #000 !important;
+      color: #000000 !important;
     }
 
     #noise {
       position: fixed;
-      top: 0;
-      left: 0;
       width: 100%;
       height: 100%;
-      pointer-events: none;
-      z-index: 50;
       opacity: 0.05;
       background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 50;
     }
 
-    #scanlines {
+    #crt-scanlines {
       position: fixed;
-      top: 0;
-      left: 0;
       width: 100%;
       height: 100%;
-      pointer-events: none;
-      z-index: 60;
       background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
       background-size: 100% 4px;
       opacity: 0.2;
+      pointer-events: none;
+      z-index: 60;
     }
   </style>
 </head>
 
 <body>
   <div id="noise"></div>
-  <div id="scanlines"></div>
+  <div id="crt-scanlines"></div>
 
   <div id="mixer">
     <div id="red" class="circle"></div>
@@ -297,7 +290,7 @@
       const blueHidden = dRB < hideThreshold || dGB < hideThreshold;
 
       // Secondary colors visible when their two circles overlap,
-      // but hidden when the third circle is piled on either component (making white)
+      // but hidden when all three circles are fully on top of both (making white)
       const bNearR = dRB < hideThreshold;
       const bNearG = dGB < hideThreshold;
       const gNearR = dRG < hideThreshold;
@@ -305,22 +298,21 @@
       const rNearG = dRG < hideThreshold;
       const rNearB = dRB < hideThreshold;
 
-      // All three circles merged = white
-      const allMerged = dRG < hideThreshold && dRB < hideThreshold && dGB < hideThreshold;
       const allBtns = [btnR, btnY, btnG, btnM, btnB, btnC];
+      allBtns.forEach(btn => btn.classList.remove('white-mode'));
 
-      if (allMerged) {
+      btnR.classList.toggle('visible', !redHidden);
+      btnG.classList.toggle('visible', !greenHidden);
+      btnB.classList.toggle('visible', !blueHidden);
+      btnY.classList.toggle('visible', redGreen && !bNearR && !bNearG);
+      btnM.classList.toggle('visible', redBlue && !gNearR && !gNearB);
+      btnC.classList.toggle('visible', greenBlue && !rNearG && !rNearB);
+
+      // All three circles merged = white
+      if (redHidden && greenHidden && blueHidden) {
         allBtns.forEach(btn => {
           btn.classList.add('visible', 'white-mode');
         });
-      } else {
-        allBtns.forEach(btn => btn.classList.remove('white-mode'));
-        btnR.classList.toggle('visible', !redHidden);
-        btnG.classList.toggle('visible', !greenHidden);
-        btnB.classList.toggle('visible', !blueHidden);
-        btnY.classList.toggle('visible', redGreen && !bNearR && !bNearG);
-        btnM.classList.toggle('visible', redBlue && !gNearR && !gNearB);
-        btnC.classList.toggle('visible', greenBlue && !rNearG && !rNearB);
       }
     }
 

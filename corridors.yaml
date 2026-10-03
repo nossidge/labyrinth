@@ -37,7 +37,7 @@ corridors:
     title: Withnail
     created: 2026-01-06 23:41
     links: dynamic
-    tags: [images, pop, vendor]
+    tags: [images, mobile, pop]
     visual_description: >-
       This page is based on a quote from the film "Withnail and I":
       > I don't advise a hair cut, man. All hairdressers are in the employment of the government. Hair are your aerials. They pick up signals from the cosmos and transmit them directly into the brain. (This is the reason bald-headed men are uptight.)
@@ -46,7 +46,7 @@ corridors:
     title: Othello
     created: 2026-01-07 00:22
     links: 64
-    tags: [skeuomorphic]
+    tags: [mobile, secret, skeuomorphic]
     visual_description: >-
       A skeuomorphic rendering of a wooden Othello/Reversi board. The board features an 8x8 grid of discs that flip from black to white with a satisfying rotational animation. Hovering over a tile triggers a subtle flip effect, and every few seconds, a random tile flips on its own to simulate an unseen opponent. The board is viewed against a textured dark background with a simulated dust/noise overlay. Every disc on the board is a link to a random corridor.
   - id: bsod
@@ -60,7 +60,7 @@ corridors:
     title: 1-Bit Dots
     created: 2026-01-07 23:02
     links: dynamic
-    tags: [abstract, crt]
+    tags: [abstract, crt, mobile]
     visual_description: >-
       A high-contrast grid of black circles on a white background. The grid demonstrates an intentional "loss of signal" or "bit rot" from left to right, where the dots become increasingly fragmented and irregular. Hovering over any dot causes it to invert its colour and scale up slightly. The entire grid is a dense array of links, with each dot leading to a random destination in the labyrinth.
   - id: dancing-baby
@@ -102,23 +102,23 @@ corridors:
     title: Trine
     created: 2026-01-10 22:38
     links: 3
-    tags: [abstract, tilde, vendor]
+    tags: [abstract, mobile, tilde]
     visual_description: >-
       Three tilde characters arranged in a tight triangular formation at the centre of a dark void, each rotating slowly. Faint connecting lines link the tildes together. Background text of whispered words about "the power of three" drifts behind them. Clicking any tilde triggers a transition: the tildes animate outward into a pyramid formation, glowing lines connect them, and a soft radial pulse emanates from the centre. After the animation completes, each tilde becomes a clickable link to a random corridor in the labyrinth.
   - id: happy
     title: Happy
     created: 2026-01-10 23:41
     links: 5
-    tags: [crt]
+    tags: [crt, mobile]
     visual_description: >-
       A simple, cheerful yellow smiley face centred on a dark background. The face features two dark eyes, pink blush marks on the cheeks, and a curved smile. Hovering over the eyes causes them to glow, hovering over the blush intensifies its colour, and hovering over the mouth highlights it with a white stroke. Each feature of the face is a clickable link to a random corridor in the labyrinth.
   - id: swapping-circles
     title: Swapping Circles
     created: 2026-01-12 22:48
-    links: 49
-    tags: [abstract, crt]
+    links: 64
+    tags: [abstract, crt, mobile]
     visual_description: >-
-      A 7x7 grid of white and black circles on a dark background. Each circle has a designated home position, and circles continuously swap with adjacent cells to move toward their home, creating a shuffling effect. Hovering over a circle makes it scale up with a glowing drop-shadow. Every circle is a clickable link to a random corridor in the labyrinth.
+      A 8x8 grid of white and black circles on a dark background. Each circle has a designated home position, and circles continuously swap with adjacent cells to move toward their home, creating a shuffling effect. Hovering over a circle makes it scale up with a glowing drop-shadow. Every circle is a clickable link to a random corridor.
   - id: professional-help
     title: Professional Help
     created: 2026-01-14 22:19
@@ -130,14 +130,14 @@ corridors:
     title: Zodiac
     created: 2026-01-16 01:15
     links: dynamic
-    tags: [images, major]
+    tags: [images, major, mobile]
     visual_description: >-
       A page that shows the current astrological constellation of the Zodiac. The background is a classic Web 1.0 starry background animated gif. Each star in the constellation is represented as an emoji (✨, ⭐, 🌟). When the user clicks any of the stars, they are redirected to a random destination.
   - id: crash-test-dummies
     title: Crash Test Dummies
     created: 2026-01-17 12:32
     links: 40
-    tags: [abstract]
+    tags: [abstract, mobile]
     visual_description: >-
       A high-impact, warning-themed page featuring a chaotic scattering of black-and-yellow "crash test" symbols. The background is a flat, industrial yellow. The symbols jitter slightly and respond to mouse movements. The density of the symbols creates a sense of imminent impact. Every icon on the page leads to a random corridor.
   - id: cow
@@ -186,9 +186,9 @@ corridors:
     title: Substack
     created: 2026-01-19 22:35
     links: 4
-    tags: [text]
+    tags: [mobile, text]
     visual_description: >-
-      A confrontational typographic page on a neon pink background. Four lines of bold monospace text read "i'm not going / to read your / fucking substack / you fucking nazi". Each line is a link to the corridors index.
+      A confrontational typographic page on a neon pink background. Four lines of bold monospace text read "i'm not going / to read your / fucking substack / you fucking nazi". Each line is a link to a random corridor.
   - id: heart-of-hearts
     title: Heart of Hearts
     created: 2026-01-20 18:19
@@ -200,7 +200,7 @@ corridors:
     title: Ants Marching
     created: 2026-01-20 18:54
     links: dynamic
-    tags: [emoji]
+    tags: [emoji, mobile]
     visual_description: >-
       Ant emojis (🐜) enter from the edges of the screen and walk toward the centre, carrying food emojis (🍎, 🍕, 🍓, etc.). When an ant reaches the centre, it drops its food onto a growing pile. Each carried item and each item in the pile is a link to a random corridor.
   - id: stuntman
@@ -256,7 +256,7 @@ corridors:
     title: Cloudflare
     created: 2026-02-01 03:29
     links: 4
-    tags: [tech]
+    tags: [mobile, tech]
     visual_description: >-
       A clone of the Cloudflare 500 error page that everyone has encountered at some point. It's the exact same code as the real thing, except all links navigate to random corridors within the labyrinth.
   - id: fire-brigade
@@ -284,7 +284,7 @@ corridors:
     title: Parklife
     created: 2026-02-04 21:47
     links: 7
-    tags: [pop, text]
+    tags: [mobile, pop, text, vendor]
     visual_description: >-
       A CSS recreation of Phil Daniels' business card from the Blur "Parklife" music video. Each line of text is a separate link to a random corridor.
   - id: chinatown
@@ -312,7 +312,7 @@ corridors:
     title: Panopticon
     created: 2026-02-06 00:02
     links: 30
-    tags: [abstract]
+    tags: [abstract, mobile]
     visual_description: >-
       Thirty cartoon eyes scattered across a dark purple background, all tracking the user's cursor. Each eye has a black pupil with a white highlight and is randomly sized and positioned. Clicking empty space reshuffles the eyes. Each eye is a link to a random corridor.
   - id: symbolizma
@@ -354,7 +354,7 @@ corridors:
     title: Emoji Map
     created: 2026-02-08 23:56
     links: 625
-    tags: [emoji, map]
+    tags: [emoji, map, mobile]
     visual_description: >-
       A 25x25 grid of emoji terrain tiles on a parchment background. Mountains (⛰️), forests (🌲), deserts (🏜️), rivers (🌊), and oceans (🟦) form logical biomes. Towns (🏘️), castles (🏰), caves (🕳️), and other points of interest are scattered across the map. Every emoji tile is a link to a random corridor.
   - id: bat-country
@@ -487,7 +487,7 @@ corridors:
     title: Tilde Ripples
     created: 2026-02-24 18:06
     links: dynamic
-    tags: [abstract, tilde]
+    tags: [abstract, mobile, tilde]
     visual_description: >-
       A 40x25 grid of tilde characters (~) in light purple on a black background. Hovering over or clicking any tilde triggers a ripple effect that propagates outward to neighbouring cells, scaling them up before they gradually shrink back down. The ripple strength decays with distance. Each tilde is a link to a random corridor.
   - id: soap-bubbles
@@ -557,7 +557,7 @@ corridors:
     title: Brain in a Jar
     created: 2026-03-06 15:43
     links: 1
-    tags: [emoji]
+    tags: [emoji, mobile]
     visual_description: >-
       A brain emoji in a jar emoji, with bubbles floating around it. The jar is clickable and takes you to a random corridor in the labyrinth.
   - id: neon-garden
@@ -578,7 +578,7 @@ corridors:
     title: Life Gliders
     created: 2026-03-08 10:53
     links: 9
-    tags: [crt, maths]
+    tags: [crt, maths, mobile]
     visual_description: >-
       A 3x3 grid of Conway's Game of Life gliders rendered as 5x5 cell grids. Each glider cycles through four distinct rotational states at one-second intervals, creating an illusion of continuous rotation and motion. Live cells are white, dead cells are black. Hovering over a glider group highlights it with a subtle background shift and intensifies the glow on live cells. Each glider group is a clickable link to a random corridor in the labyrinth.
   - id: bart
@@ -690,7 +690,7 @@ corridors:
     title: Gravity Well
     created: 2026-03-22 17:10
     links: 10
-    tags: [abstract, crt]
+    tags: [abstract, crt, mobile]
     visual_description: >-
       An abstract particle simulation on a black canvas. Ten black hole gravity wells drift slowly across the screen, attracting glowing particles that zoom about leaving coloured trails. Particles are consumed when they reach a well's core and respawn from the screen edges. Every eight seconds the wells rearrange to new positions, reshuffling the orbital patterns. Each gravity well core is a clickable link to a random corridor in the labyrinth.
   - id: pride-and-prejudice
@@ -1222,7 +1222,7 @@ corridors:
     title: Dance Dance
     created: 2026-06-07 17:23
     links: 9
-    tags: [images, major, mobile, pop, secret]
+    tags: [images, mobile, pop, secret]
     visual_description: >-
       A 3x3 grid filling the screen with sections of the Dance Dance Revolution dance mat. The nine squares start with randomly shuffled images, and hovering over any square swaps it for a different random image. When every square happens to land on its correct image, a simulated game starts: arrow images rise up from the bottom of the screen in four lanes towards four static grey target arrows near the top, bursting when they hit the targets at the top, to mimic stepping on the beat. Each image is a clickable link to a random corridor in the labyrinth.
   - id: triangular-tesserae
@@ -2001,7 +2001,7 @@ corridors:
     links: dynamic
     tags: [crt, meta, mobile, tech]
     visual_description: >-
-      A simulation of a BBC CEEFAX teletext page. A header row shows the page number, CEEFAX number, date and a live clock, followed by a coloured title bar with a random section (NEWS, SPORT, WEATHER and so on) beside yellow "THE LABYRINTH" text. A small block-graphics landscape depicts a randomised sky, hill and sun, above a list of corridor titles with dotted leaders and page numbers, a "Recently updated" line, and a coloured fastext row (Newsround, Sport, Weather, Main Menu). Every few seconds a new page number is typed out digit by digit, as if keyed into a remote control, before a fresh page loads. Each list row is a clickable link to a corridor and the fastext buttons link to random pages.
+      A simulation of a BBC CEEFAX teletext page. A header row shows the page number, CEEFAX number, date and a live clock, followed by a coloured title bar with a random section (NEWS, SPORT, WEATHER and so on) beside yellow "THE LABYRINTH" text. A small block-graphics landscape depicts a randomised sky, hill and sun, above a list of corridor titles with dotted leaders and page numbers, a "Recently updated" line, and a coloured fastext row (Weather, Sport, News, Main Menu). Every few seconds a new page number is typed out digit by digit, as if keyed into a remote control, before a fresh page loads. Each list row is a clickable link to a corridor and the fastext buttons link to random pages.
   - id: comic-papyrus
     title: Comic Papyrus
     created: 2026-10-01 13:20

@@ -13,8 +13,8 @@
       box-sizing: border-box;
     }
 
-    body,
-    html {
+    html,
+    body {
       width: 100%;
       height: 100%;
       background-color: #111111;
@@ -87,11 +87,11 @@
     }
 
     function computeGrid() {
-      const availW = window.innerWidth - MARGIN * 2;
-      const availH = window.innerHeight - MARGIN * 2;
+      const availableW = window.innerWidth - MARGIN * 2;
+      const availableH = window.innerHeight - MARGIN * 2;
       return {
-        cols: odd(Math.min(MAX_COLS, Math.floor(availW / CELL_PITCH))),
-        rows: odd(Math.min(MAX_ROWS, Math.floor(availH / CELL_PITCH)))
+        cols: odd(Math.min(MAX_COLS, Math.floor(availableW / CELL_PITCH))),
+        rows: odd(Math.min(MAX_ROWS, Math.floor(availableH / CELL_PITCH))),
       };
     }
 

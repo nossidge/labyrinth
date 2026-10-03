@@ -18,6 +18,7 @@ But then I couldn't make a dumb Shakespeare reference.
       --wood-trim: #3d2b1f;
       --piece-white: #f0f0f0;
       --piece-black: #111111;
+      --ui-padding: 40px;
     }
 
     * {
@@ -26,83 +27,88 @@ But then I couldn't make a dumb Shakespeare reference.
       box-sizing: border-box;
     }
 
-    body {
+    html {
       background-color: #0a0a0a;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
       overflow: hidden;
     }
 
-    /* The board */
-    #board-container {
+    body {
+      display: flex;
+      width: 100%;
+      min-height: 100vh;
+      min-height: 100dvh;
+      background-color: #0a0a0a;
+      justify-content: center;
+      align-items: center;
+      overflow: visible;
+    }
+
+    main {
       position: relative;
-      padding: 20px;
+      padding: var(--ui-padding);
       background: var(--wood-trim);
       box-shadow: 0 50px 100px rgba(0, 0, 0, 0.8), inset 0 0 20px rgba(0, 0, 0, 0.5);
       border-radius: 4px;
-      transform: perspective(1000px) rotateX(20deg);
+      transform: translate(var(--dx, 0px), var(--dy, 0px)) perspective(1000px) rotateX(20deg);
       animation: movement 10s ease-in-out infinite alternate;
     }
 
     @keyframes movement {
       from {
-        transform: perspective(1000px) rotateX(15deg) rotateY(-2deg);
+        transform: translate(var(--dx, 0px), var(--dy, 0px)) perspective(1000px) rotateX(15deg) rotateY(-2deg);
       }
 
       to {
-        transform: perspective(1000px) rotateX(25deg) rotateY(2deg);
+        transform: translate(var(--dx, 0px), var(--dy, 0px)) perspective(1000px) rotateX(25deg) rotateY(2deg);
       }
     }
 
     #board {
       display: grid;
+      width: 600px;
+      height: 600px;
+      background-color: var(--piece-black);
+      border: 2px solid var(--piece-black);
       grid-template-columns: repeat(8, 1fr);
       grid-template-rows: repeat(8, 1fr);
       gap: 2px;
-      background-color: var(--piece-black);
-      width: 600px;
-      height: 600px;
-      border: 2px solid var(--piece-black);
     }
 
     .square {
-      background-color: var(--board-green);
       position: relative;
       display: flex;
+      background-color: var(--board-green);
+      background-image: radial-gradient(circle, var(--felt-green) 0%, var(--board-green) 100%);
       justify-content: center;
       align-items: center;
       cursor: pointer;
       overflow: hidden;
-      background-image: radial-gradient(circle, var(--felt-green) 0%, var(--board-green) 100%);
     }
 
-    /* The pieces */
     .piece-anchor {
+      position: relative;
       width: 80%;
       height: 80%;
-      position: relative;
-      perspective: 600px;
       text-decoration: none;
+      perspective: 600px;
     }
 
     .piece {
+      position: absolute;
       width: 100%;
       height: 100%;
-      position: absolute;
-      transform-style: preserve-3d;
-      transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       border-radius: 50%;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      transform-style: preserve-3d;
+      transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
     .piece div {
       position: absolute;
       width: 100%;
       height: 100%;
-      backface-visibility: hidden;
       border-radius: 50%;
+      backface-visibility: hidden;
     }
 
     .side-white {
@@ -118,7 +124,6 @@ But then I couldn't make a dumb Shakespeare reference.
       transform: rotateY(180deg);
     }
 
-    /* Abstract overlay effects */
     #dust {
       position: fixed;
       width: 100%;
@@ -131,35 +136,35 @@ But then I couldn't make a dumb Shakespeare reference.
 
     #vignette {
       position: fixed;
-      top: 0;
-      left: 0;
       width: 100%;
       height: 100%;
       background: radial-gradient(circle, transparent 30%, rgba(0, 0, 0, 0.7) 100%);
+      top: 0;
+      left: 0;
       z-index: 60;
       pointer-events: none;
     }
 
     #ui-overlay {
       position: fixed;
-      top: 0;
-      left: 0;
       width: 100%;
       height: 100%;
+      border: var(--ui-padding) solid #000000;
+      top: 0;
+      left: 0;
       pointer-events: none;
       z-index: 100;
-      border: 40px solid #000000;
     }
 
-    /* Basic responsiveness */
-    @media (max-width: 700px) {
-      #board {
-        width: 320px;
-        height: 320px;
+    @media (max-width: 900px) {
+      :root {
+        --ui-padding: 20px;
       }
+    }
 
-      #ui-overlay {
-        border-width: 10px;
+    @media (max-width: 700px) {
+      :root {
+        --ui-padding: 10px;
       }
     }
   </style>
@@ -170,18 +175,27 @@ But then I couldn't make a dumb Shakespeare reference.
   <div id="vignette"></div>
   <div id="ui-overlay"></div>
 
-  <div id="board-container">
+  <main id="main">
     <div id="board">
       <!-- 64 squares -->
     </div>
-  </div>
+  </main>
 
   <script src="../../common/labyrinth.js"></script>
   <script>
     const LAB = new Labyrinth('othello');
 
     const board = document.getElementById('board');
+    const main = document.getElementById('main');
+    const overlay = document.getElementById('ui-overlay');
     const pieces = [];
+    const boardMaxSize = 600;
+    const screenMargin = 8;
+
+    //  need to match the CSS (perspective() and @keyframes movement)
+    const PERSPECTIVE = 1000;
+    const TILT_X = [15, 25]; // rotateX range in degrees
+    const TILT_Y = [-2, 2];  // rotateY range in degrees
 
     // Initialise board
     for (let i = 0; i < 64; i++) {
@@ -216,6 +230,105 @@ But then I couldn't make a dumb Shakespeare reference.
       pieces.push(piece);
     }
 
+    function checkGoto() {
+      for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+          const isBlack = pieces[row * 8 + col].classList.contains('flipped');
+          if (isBlack !== (row + col >= 8)) return false;
+        }
+      }
+      setTimeout(() => location.assign(LAB.goto()), 800);
+    }
+
+    // Flip every piece to a single colour
+    function flipAll(toBlack) {
+      pieces.forEach((p) => p.classList.toggle('flipped', toBlack));
+    }
+
+    // Re-randomise every piece's colour
+    function randomiseAll() {
+      pieces.forEach((p) => p.classList.toggle('flipped', !LAB.chance(0.5)));
+      checkGoto();
+    }
+
+    // Where the corners of a square of side `m` end up on screen after
+    // perspective(P) rotateX(a) rotateY(b), relative to the square's centre.
+    // CSS applies the functions right to left: rotateY first, then rotateX,
+    // then the perspective divide.
+    function projectedBounds(m, aDeg, bDeg) {
+      const a = aDeg * Math.PI / 180;
+      const b = bDeg * Math.PI / 180;
+      const h = m / 2;
+      let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+
+      for (const [x, y] of [[-h, -h], [h, -h], [h, h], [-h, h]]) {
+        const x1 = x * Math.cos(b);
+        const z1 = -x * Math.sin(b);
+        const y2 = y * Math.cos(a) - z1 * Math.sin(a);
+        const z2 = y * Math.sin(a) + z1 * Math.cos(a);
+        const w = 1 - z2 / PERSPECTIVE;
+        const sx = x1 / w;
+        const sy = y2 / w;
+        minX = Math.min(minX, sx);
+        maxX = Math.max(maxX, sx);
+        minY = Math.min(minY, sy);
+        maxY = Math.max(maxY, sy);
+      }
+      return { minX, maxX, minY, maxY };
+    }
+
+    // The outline swept out by the whole sway animation (it interpolates both
+    // angles together, so sampling along that line covers every frame).
+    // We need this to make sure the board fits on screen responsively.
+    function swayBounds(m) {
+      const steps = 12;
+      let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+      for (let i = 0; i <= steps; i++) {
+        const t = i / steps;
+        const a = TILT_X[0] + (TILT_X[1] - TILT_X[0]) * t;
+        const b = TILT_Y[0] + (TILT_Y[1] - TILT_Y[0]) * t;
+        const bounds = projectedBounds(m, a, b);
+        minX = Math.min(minX, bounds.minX);
+        maxX = Math.max(maxX, bounds.maxX);
+        minY = Math.min(minY, bounds.minY);
+        maxY = Math.max(maxY, bounds.maxY);
+      }
+      return { minX, maxX, minY, maxY };
+    }
+
+    function computeSizes() {
+      // The visible area is the viewport minus the black frame and a small margin
+      const frame = parseFloat(getComputedStyle(overlay).borderTopWidth) || 0;
+      const pad = parseFloat(getComputedStyle(main).paddingLeft) || 0;
+      const availW = Math.max(0, window.innerWidth - 2 * (frame + screenMargin));
+      const availH = Math.max(0, window.innerHeight - 2 * (frame + screenMargin));
+
+      const fits = (m) => {
+        const bounds = swayBounds(m);
+        return (bounds.maxX - bounds.minX) <= availW && (bounds.maxY - bounds.minY) <= availH;
+      };
+
+      // The projected size grows monotonically with m, so bisect for the largest fit
+      let lo = 0;
+      let hi = boardMaxSize + 2 * pad;
+      if (fits(hi)) {
+        lo = hi;
+      } else {
+        for (let i = 0; i < 40; i++) {
+          const mid = (lo + hi) / 2;
+          if (fits(mid)) lo = mid; else hi = mid;
+        }
+      }
+
+      const size = Math.max(0, lo - 2 * pad);
+      board.style.width = `${size}px`;
+      board.style.height = `${size}px`;
+
+      const bounds = swayBounds(size + 2 * pad);
+      main.style.setProperty('--dx', `${-(bounds.minX + bounds.maxX) / 2}px`);
+      main.style.setProperty('--dy', `${-(bounds.minY + bounds.maxY) / 2}px`);
+    }
+
     // Mouse interaction to flip pieces
     board.addEventListener('mousemove', (e) => {
       const rect = board.getBoundingClientRect();
@@ -235,9 +348,31 @@ But then I couldn't make a dumb Shakespeare reference.
         if (!target.lastFlip || (now - target.lastFlip) > cooldown) {
           target.classList.toggle('flipped');
           target.lastFlip = now;
+          checkGoto();
         }
       }
     });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, () => {
+        const k = e.key.toLowerCase();
+        if (k === 'w') {
+          flipAll(false);
+        } else if (k === 'b') {
+          flipAll(true);
+        } else {
+          randomiseAll();
+        }
+      });
+    });
+
+    window.addEventListener('resize', computeSizes);
+    window.addEventListener('orientationchange', computeSizes);
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', computeSizes);
+    }
+
+    computeSizes();
 
   </script>
 </body>

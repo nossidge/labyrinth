@@ -4,7 +4,7 @@
 <!--
 "Um, actually, the site is politically neutral.
 Just because it allows Nazi blogs doesn't mean
-that every one who has a blog there is—"
+that everyone who has a blog there is—"
 
 I don't care, fuck you.
 -->
@@ -22,27 +22,30 @@ I don't care, fuck you.
     }
 
     body {
-      background-color: var(--bg-colour);
-      font-family: 'Courier New', monospace;
-      font-size: 8vh;
-      font-weight: bold;
-      margin: 0;
-      padding: 0;
-      height: 100vh;
-      overflow: hidden;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      background-color: var(--bg-colour);
+      font-family: 'Courier New', monospace;
+      font-size: 8vh;
+      font-weight: bold;
+      overflow: hidden;
     }
 
     a {
-      text-decoration: none;
       color: var(--link-colour);
+      text-decoration: none;
     }
 
-    a:hover {
+    a:hover,
+    a:focus {
       color: var(--link-hover);
+      outline: none;
     }
   </style>
 </head>

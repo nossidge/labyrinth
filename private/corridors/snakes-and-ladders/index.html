@@ -549,25 +549,13 @@ I wanted these to be procedurally generated, but it turns out handcrafted always
       });
     }
 
-    function createSVG(tag, attrs = {}) {
-      const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
-      for (let key in attrs) {
-        if (key.startsWith('xlink:')) {
-          el.setAttributeNS('http://www.w3.org/1999/xlink', key, attrs[key]);
-        } else {
-          el.setAttribute(key, attrs[key]);
-        }
-      }
-      return el;
-    }
-
     function drawLadder(bottomCellNumber, topCellNumber) {
       const bottomPos = getCellCenterPosition(bottomCellNumber);
       const topPos = getCellCenterPosition(topCellNumber);
       if (!bottomPos || !topPos) return;
 
       const svg = document.getElementById('snakesLayer');
-      const group = createSVG('g');
+      const group = LAB.svgElement('g');
 
       const dx = topPos.x - bottomPos.x;
       const dy = topPos.y - bottomPos.y;
@@ -595,7 +583,7 @@ I wanted these to be procedurally generated, but it turns out handcrafted always
       ];
 
       rails.forEach(r => {
-        group.appendChild(createSVG('line', {
+        group.appendChild(LAB.svgElement('line', {
           ...r,
           stroke: '#8b6914',
           'stroke-width': '2',
@@ -608,7 +596,7 @@ I wanted these to be procedurally generated, but it turns out handcrafted always
 
       for (let i = 1; i < numRungs; i++) {
         const t = i / numRungs;
-        group.appendChild(createSVG('line', {
+        group.appendChild(LAB.svgElement('line', {
           x1: bottomPos.x + dx * t + perpX * ladderWidth,
           y1: bottomPos.y + dy * t + perpY * ladderWidth,
           x2: bottomPos.x + dx * t - perpX * ladderWidth,
@@ -955,21 +943,21 @@ I wanted these to be procedurally generated, but it turns out handcrafted always
       if (!headPos || !tailPos) return;
 
       const svg = document.getElementById('snakesLayer');
-      const link = createSVG('a', {
+      const link = LAB.svgElement('a', {
         'xlink:href': LAB.pageRandomiser.nextOne(),
         class: 'snake-link'
       });
 
-      const group = createSVG('g');
-      const defs = createSVG('defs');
+      const group = LAB.svgElement('g');
+      const defs = LAB.svgElement('defs');
       const patternId = `scales-${headCellNumber}-${tailCellNumber}`;
-      const pattern = createSVG('pattern', {
+      const pattern = LAB.svgElement('pattern', {
         id: patternId,
         x: '0', y: '0', width: '10', height: '10',
         patternUnits: 'userSpaceOnUse'
       });
 
-      pattern.appendChild(createSVG('circle', {
+      pattern.appendChild(LAB.svgElement('circle', {
         cx: '5', cy: '5', r: '3',
         fill: colors.light, opacity: '0.4'
       }));
@@ -985,8 +973,8 @@ I wanted these to be procedurally generated, but it turns out handcrafted always
       const controlY = midY + (dx / dist) * 30;
 
       const d = `M ${headPos.x} ${headPos.y} Q ${controlX} ${controlY}, ${tailPos.x} ${tailPos.y}`;
-      group.appendChild(createSVG('path', { d, stroke: colors.dark, 'stroke-width': '10', fill: 'none', 'stroke-linecap': 'round' }));
-      group.appendChild(createSVG('path', { d, stroke: `url(#${patternId})`, 'stroke-width': '10', fill: 'none', 'stroke-linecap': 'round' }));
+      group.appendChild(LAB.svgElement('path', { d, stroke: colors.dark, 'stroke-width': '10', fill: 'none', 'stroke-linecap': 'round' }));
+      group.appendChild(LAB.svgElement('path', { d, stroke: `url(#${patternId})`, 'stroke-width': '10', fill: 'none', 'stroke-linecap': 'round' }));
 
       const angle = Math.atan2(tailPos.y - controlY, tailPos.x - controlX);
       const headSize = 8;
@@ -995,7 +983,7 @@ I wanted these to be procedurally generated, but it turns out handcrafted always
       const hx3 = tailPos.x + headSize * Math.cos(angle - 2.4);
       const hy3 = tailPos.y + headSize * Math.sin(angle - 2.4);
 
-      group.appendChild(createSVG('polygon', {
+      group.appendChild(LAB.svgElement('polygon', {
         points: `${tailPos.x},${tailPos.y} ${hx2},${hy2} ${hx3},${hy3}`,
         fill: colors.dark
       }));

@@ -21,8 +21,8 @@
     }
 
     body {
-      background: #050510;
       position: relative;
+      background: #050510;
       font-family: monospace;
     }
 
@@ -36,11 +36,11 @@
     /* Ground gradient */
     #ground {
       position: absolute;
-      bottom: 0;
-      left: 0;
       width: 100%;
       height: 35%;
       background: linear-gradient(to bottom, transparent 0%, rgba(0, 20, 10, 0.6) 30%, rgba(0, 15, 8, 0.9) 100%);
+      bottom: 0;
+      left: 0;
       pointer-events: none;
       z-index: 1;
     }
@@ -48,9 +48,9 @@
     /* Plant containers */
     .plant {
       position: absolute;
-      cursor: pointer;
-      text-decoration: none;
       display: block;
+      text-decoration: none;
+      cursor: pointer;
       z-index: 10;
       transition: filter 0.4s ease;
     }
@@ -61,28 +61,28 @@
 
     /* Stem styling */
     .stem {
-      opacity: 0;
       position: absolute;
-      bottom: 0;
-      left: 50%;
-      transform: translateX(-50%);
       width: var(--stem-width, 3px);
       height: var(--stem-height, 120px);
       background: var(--stem-color, #0a4a2a);
       border-radius: 2px;
       box-shadow: 0 0 6px var(--glow-color, #00ff88),
         0 0 12px rgba(0, 255, 100, 0.15);
+      opacity: 0;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
       transform-origin: bottom center;
     }
 
     /* Neon flower head - nested inside .stem so it sways with it */
     .flower-head {
       position: absolute;
+      width: var(--flower-size, 24px);
+      height: var(--flower-size, 24px);
       top: 0;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: var(--flower-size, 24px);
-      height: var(--flower-size, 24px);
     }
 
     /* Petal types */
@@ -90,6 +90,7 @@
       position: absolute;
       width: 100%;
       height: 100%;
+      filter: drop-shadow(0 0 8px var(--glow-color, #00ffff));
       animation: pulse var(--pulse-speed, 3s) ease-in-out infinite;
     }
 
@@ -104,12 +105,10 @@
       0%,
       100% {
         opacity: 0.7;
-        filter: drop-shadow(0 0 4px var(--glow-color, #00ffff));
       }
 
       50% {
         opacity: 1;
-        filter: drop-shadow(0 0 12px var(--glow-color, #00ffff)) drop-shadow(0 0 24px var(--glow-color, #00ffff));
       }
     }
 
@@ -118,12 +117,10 @@
       0%,
       100% {
         opacity: 0.5;
-        filter: drop-shadow(0 0 3px var(--glow-color, #00ffff));
       }
 
       50% {
         opacity: 0.9;
-        filter: drop-shadow(0 0 8px var(--glow-color, #00ffff)) drop-shadow(0 0 16px var(--glow-color, #00ffff));
       }
     }
 
@@ -145,18 +142,18 @@
 
     @keyframes grow-in {
       0% {
-        transform: translateX(-50%) scaleY(0);
         opacity: 0;
+        transform: translateX(-50%) scaleY(0);
       }
 
       60% {
-        transform: translateX(-50%) scaleY(1.05);
         opacity: 1;
+        transform: translateX(-50%) scaleY(1.05);
       }
 
       100% {
-        transform: translateX(-50%) scaleY(1);
         opacity: 1;
+        transform: translateX(-50%) scaleY(1);
       }
     }
 
@@ -191,8 +188,8 @@
     /* Vine tendrils */
     .vine {
       position: absolute;
-      z-index: 5;
       pointer-events: none;
+      z-index: 5;
     }
 
     .vine svg {
@@ -258,10 +255,10 @@
     /* Mushroom clusters */
     .mushroom-group {
       position: absolute;
-      z-index: 8;
-      cursor: pointer;
-      text-decoration: none;
       display: block;
+      text-decoration: none;
+      cursor: pointer;
+      z-index: 8;
       transition: filter 0.4s ease;
     }
 
@@ -275,6 +272,7 @@
 
     .mushroom-cap {
       opacity: 0.5;
+      filter: drop-shadow(0 0 6px var(--glow-color, #00ffff));
       animation: pulse-slow var(--pulse-speed, 2.5s) ease-in-out infinite;
     }
 
@@ -282,10 +280,10 @@
     .lotus {
       position: absolute;
       bottom: 0;
-      z-index: 12;
-      cursor: pointer;
-      text-decoration: none;
       display: block;
+      text-decoration: none;
+      cursor: pointer;
+      z-index: 12;
       transition: filter 0.4s ease;
     }
 
@@ -307,10 +305,10 @@
     .hanging-vine {
       position: absolute;
       top: 0;
-      z-index: 6;
-      cursor: pointer;
-      text-decoration: none;
       display: block;
+      text-decoration: none;
+      cursor: pointer;
+      z-index: 6;
       transition: filter 0.4s ease;
     }
 
@@ -366,22 +364,21 @@
     /* Poem box styling */
     #poem-box {
       position: absolute;
+      padding: 40px 70px 40px 40px;
+      max-width: 90vw;
+      width: fit-content;
+      background: rgba(10, 0, 20, 0.94);
+      border: 2px solid #ff00ff;
+      box-shadow: 0 0 25px rgba(255, 0, 255, 0.5),
+        inset 0 0 15px rgba(255, 0, 255, 0.3);
+      border-radius: 30px;
+      color: #cccccc;
+      text-align: left;
+      text-decoration: none;
       top: 45%;
       left: 50%;
       transform: translate(-50%, -50%);
       z-index: 150;
-      padding: 40px 70px 40px 40px;
-      background: rgba(10, 0, 20, 0.85);
-      border: 2px solid #ff00ff;
-      box-shadow: 0 0 25px rgba(255, 0, 255, 0.5),
-        inset 0 0 15px rgba(255, 0, 255, 0.3);
-      text-align: left;
-      max-width: 90vw;
-      width: fit-content;
-      border-radius: 30px;
-      backdrop-filter: blur(3px);
-      color: #cccccc;
-      text-decoration: none;
       transition: border-color 0.3s linear;
       animation: fadeIn 6s ease-in forwards;
       opacity: 0;
@@ -400,30 +397,30 @@
     /* Small decorative corners for that 90s polish */
     #poem-box::before,
     #poem-box::after {
-      content: "";
       position: absolute;
       width: 30px;
       height: 30px;
       border: 2px solid #ff00ff;
+      content: "";
       transition: border-color 0.3s linear;
     }
 
     /* Fancy top left corner */
     #poem-box::before {
-      top: -10px;
-      left: -10px;
       border-right: none;
       border-bottom: none;
       border-top-left-radius: 40px;
+      top: -10px;
+      left: -10px;
     }
 
     /* Fancy bottom right corner */
     #poem-box::after {
-      bottom: -10px;
-      right: -10px;
       border-left: none;
       border-top: none;
       border-bottom-right-radius: 40px;
+      bottom: -10px;
+      right: -10px;
     }
 
     #poem-text {
@@ -448,11 +445,11 @@
 
     .grain {
       position: fixed;
-      top: 0;
-      left: 0;
       width: 100%;
       height: 100%;
       background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48ZmlsdGVyIGlkPSJuIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iMC44NSIgbnVtT2N0YXZlcz0iMyIgc3RpdGNoVGlsZXM9InN0aXRjaCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbHRlcj0idXJsKCNuKSIvPjwvc3ZnPg==');
+      top: 0;
+      left: 0;
       opacity: 0.04;
       z-index: 200;
       pointer-events: none;
@@ -460,8 +457,6 @@
 
     .crt-scanlines {
       position: fixed;
-      top: 0;
-      left: 0;
       width: 100%;
       height: 100%;
       background: repeating-linear-gradient(0deg,
@@ -469,6 +464,8 @@
           transparent 2px,
           rgba(0, 0, 0, 0.08) 2px,
           rgba(0, 0, 0, 0.08) 4px);
+      top: 0;
+      left: 0;
       z-index: 201;
       pointer-events: none;
     }

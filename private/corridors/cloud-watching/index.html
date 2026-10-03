@@ -15,15 +15,13 @@
 
     html,
     body {
+      position: fixed;
       width: 100%;
       height: 100%;
-      overflow: hidden;
       font-family: monospace;
+      overflow: hidden;
       overscroll-behavior: none;
       touch-action: none;
-      position: fixed;
-      top: 0;
-      left: 0;
     }
 
     body {
@@ -31,19 +29,10 @@
       overflow: hidden;
     }
 
-    #sky {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-    }
-
     a {
-      text-decoration: none;
-      color: inherit;
       display: block;
+      color: inherit;
+      text-decoration: none;
     }
 
     .cloud {
@@ -66,15 +55,16 @@
 </head>
 
 <body>
-  <main id="sky"></main>
+  <main id="main"></main>
 
   <script src="../../common/labyrinth.js"></script>
   <script>
     const LAB = new Labyrinth('cloud-watching');
 
-    const sky = document.getElementById('sky');
-    let W = window.innerWidth;
-    let H = window.innerHeight;
+    const main = document.getElementById('main');
+
+    let winH = window.innerHeight;
+    let winW = window.innerWidth;
 
     // Cloud shapes: arrays of blob definitions [xOffset%, yOffset%, size%]
     // These are percentages relative to the cloud container's width/height.
@@ -197,12 +187,11 @@
 
     const clouds = [];
 
-    function buildClouds() {
-      // Clear any existing clouds
-      sky.innerHTML = '';
+    function init() {
+      main.replaceChildren();
       clouds.length = 0;
 
-      const widthRatio = Math.min(1, W / REFERENCE_WIDTH);
+      const widthRatio = Math.min(1, winW / REFERENCE_WIDTH);
       const scaleCount = base => Math.max(3, Math.round(base * widthRatio));
 
       BASE_LAYERS.forEach(layer => {
@@ -230,12 +219,12 @@
             wrapper.appendChild(blob);
           });
 
-          const x = LAB.rand(-cloudW, W);
-          const y = LAB.rand(layer.yMin * H, layer.yMax * H);
+          const x = LAB.rand(-cloudW, winW);
+          const y = LAB.rand(layer.yMin * winH, layer.yMax * winH);
           wrapper.style.left = x + 'px';
           wrapper.style.top = y + 'px';
 
-          sky.appendChild(wrapper);
+          main.appendChild(wrapper);
 
           clouds.push({
             el: wrapper,
@@ -248,41 +237,33 @@
       });
     }
 
-    buildClouds();
-
-    // On resize, rebuild clouds
-    let resizeTimer = null;
-    window.addEventListener('resize', () => {
-      clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(() => {
-        W = window.innerWidth;
-        H = window.innerHeight;
-        buildClouds();
-      }, 200);
-    });
-
-    // Animation loop
-    let tick = 0;
-
-    function animate() {
-      tick++;
-
-      // Move clouds
+    function tick() {
       clouds.forEach(c => {
         c.x += c.speed;
-        if (c.x > W + 20) {
+        if (c.x > winW + 20) {
           c.x = -c.w - 20;
-          c.y = LAB.rand(0.05 * H, 0.75 * H);
+          c.y = LAB.rand(0.05 * winH, 0.75 * winH);
           c.el.href = LAB.pageRandomiser.nextOne();
         }
         c.el.style.left = c.x + 'px';
         c.el.style.top = c.y + 'px';
       });
 
-      requestAnimationFrame(animate);
+      requestAnimationFrame(tick);
     }
 
-    animate();
+    window.addEventListener('resize', init);
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    init();
+    tick();
 
   </script>
 </body>

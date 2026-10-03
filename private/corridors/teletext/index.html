@@ -199,7 +199,8 @@
 <body>
   <div id="crt-scanlines"></div>
   <main id="screen">
-    <div class="row" id="header"></div>
+    <div class="row" id="header"><span class="white">P</span><span class="white"
+        id="header-number"></span><span id="header-rest"></span></div>
     <div class="row double" id="title"></div>
     <canvas id="landscape" width="80" height="18"></canvas>
     <div id="body"></div>
@@ -221,7 +222,8 @@
       'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
     ];
 
-    const header = document.getElementById('header');
+    const headerNumber = document.getElementById('header-number');
+    const headerRest = document.getElementById('header-rest');
     const title = document.getElementById('title');
     const bodyEl = document.getElementById('body');
     const fastext = document.getElementById('fastext');
@@ -242,18 +244,34 @@
     }
 
     const listItemCount = 12;
+    const maxStartPage = corridorsData.length - listItemCount;
     let startPage = randomCorridorIndex(listItemCount) + 1;
     let searching = null;
+    let typingTimer = null;
+    let manualEntry = '';
+    let entryTimer = null;
+    let flashText = '';
+    let flashUntil = 0;
 
     function drawHeader() {
       const now = new Date();
       const clock = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
       const date = `${DAYS[now.getDay()]} ${pad(now.getDate())} ${MONTHS[now.getMonth()]}`;
       const pageString = startPage.toString().padStart(3, '0');
-      const page = searching ? searching : `P${pageString}`;
+      let number;
+      let visible = true;
+      if (Date.now() < flashUntil) {
+        number = flashText;
+        visible = Math.floor(Date.now() / 250) % 2 === 0;
+      } else if (manualEntry !== '') {
+        number = manualEntry;
+      } else {
+        number = searching || pageString;
+      }
       document.title = `CEEFAX ${pageString}`;
-      header.innerHTML =
-        `<span class="white">${fit(page, 6)}</span>` +
+      headerNumber.textContent = number.padEnd(5, ' ');
+      headerNumber.style.visibility = visible ? 'visible' : 'hidden';
+      headerRest.innerHTML =
         `<span class="white">CEEFAX ${pageString}  </span>` +
         `<span class="white">   ${fit(date, 11)}</span>` +
         `<span class="white">${clock}</span>`;
@@ -363,25 +381,58 @@
     // Randomly choose a new teletext page
     // Simulates a person pressing the digits on their remote one at a time
     function changePage() {
+      if (searching !== null || manualEntry !== '' || Date.now() < flashUntil) return;
       const target = randomCorridorIndex(listItemCount) + 1;
       const digits = String(target).padStart(3, '0');
       let k = 0;
       const type = () => {
         k++;
-        searching = `P${digits.slice(0, k).padStart(3, ' ')}`;
+        searching = digits.slice(0, k).padStart(3, ' ');
         drawHeader();
         if (k < digits.length) {
-          setTimeout(type, LAB.randInt(250, 450));
+          typingTimer = setTimeout(type, LAB.randInt(250, 450));
         } else {
-          setTimeout(() => {
+          typingTimer = setTimeout(() => {
             searching = null;
             startPage = target;
             redraw();
           }, LAB.randInt(300, 600));
         }
       };
-      setTimeout(type, LAB.randInt(250, 450));
+      typingTimer = setTimeout(type, LAB.randInt(250, 450));
     }
+
+    function handleDigit(d) {
+      clearTimeout(typingTimer);
+      searching = null;
+      clearTimeout(entryTimer);
+      if (manualEntry.length >= 3) return;
+      manualEntry += d;
+      drawHeader();
+      if (manualEntry.length < 3) {
+        entryTimer = setTimeout(() => {
+          manualEntry = '';
+        }, 3000);
+        return;
+      }
+      const number = parseInt(manualEntry, 10);
+      manualEntry = '';
+      if (number < 1 || number > maxStartPage) {
+        flashText = String(number).padStart(3, '0');
+        flashUntil = Date.now() + 1000;
+      } else {
+        startPage = number;
+        redraw();
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, () => {
+        if (/^[0-9]$/.test(e.key)) {
+          handleDigit(e.key);
+        }
+      });
+    });
 
     redraw();
     setInterval(drawHeader, 100);

@@ -7,7 +7,16 @@
   <meta name="description" content="Under the table and dreaming">
   <title>Red and black antennae waving</title>
   <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
     body {
+      width: 100%;
+      height: 100%;
       background-color: #1a0f0a;
       background-image:
         radial-gradient(#2c1e14 0.5px, transparent 0.5px),
@@ -15,22 +24,25 @@
       background-size: 20px 20px;
       background-position: 0 0, 10px 10px;
       color: #d2b48c;
-      font-family: 'Courier New', Courier, monospace;
-      margin: 0;
-      padding: 0;
       overflow: hidden;
-      width: 100vw;
-      height: 100vh;
+    }
+
+    main {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      pointer-events: none;
     }
 
     #pile {
       position: absolute;
       top: 50%;
       left: 50%;
-      transform: translate(-50%, -50%);
+      display: flex;
       width: 200px;
       height: 200px;
-      display: flex;
+      transform: translate(-50%, -50%);
       align-items: center;
       justify-content: center;
       pointer-events: none;
@@ -38,28 +50,28 @@
 
     .item {
       position: absolute;
+      filter: drop-shadow(2px 2px 2px rgba(0, 0, 0, 0.5));
       font-size: 32px;
       text-decoration: none;
       user-select: none;
       pointer-events: auto;
       transition: transform 0.2s, filter 0.2s, opacity 1s;
-      filter: drop-shadow(2px 2px 2px rgba(0, 0, 0, 0.5));
     }
 
     .item:hover {
-      transform: scale(1.5) rotate(0deg) !important;
       filter: drop-shadow(0 0 5px #ffffff);
+      transform: scale(1.5) rotate(0deg) !important;
       z-index: 1000;
     }
 
     .ant {
       position: absolute;
+      display: flex;
       font-size: 28px;
+      white-space: nowrap;
       user-select: none;
       pointer-events: none;
       z-index: 10;
-      white-space: nowrap;
-      display: flex;
       align-items: center;
       gap: 4px;
     }
@@ -75,17 +87,6 @@
       transform: scale(1.2);
     }
 
-    #colony-status {
-      position: fixed;
-      top: 10px;
-      left: 10px;
-      font-size: 14px;
-      background: rgba(0, 0, 0, 0.5);
-      padding: 5px;
-      border: 1px solid #4a3728;
-      color: #8b4513;
-    }
-
     a {
       color: inherit;
     }
@@ -93,16 +94,18 @@
 </head>
 
 <body>
-  <div id="colony-status" style="display: none;">
-    COLONY STORAGE:
-    <span id="count">0</span>
-  </div>
-
-  <div id="pile"></div>
+  <main id="main">
+    <div id="pile"></div>
+    <div id="ants"></div>
+  </main>
 
   <script src="../../common/labyrinth.js"></script>
   <script>
     const LAB = new Labyrinth('ants-marching');
+
+    const main = document.getElementById('main');
+    const pile = document.getElementById('pile');
+    const ants = document.getElementById('ants');
 
     const ITEMS_POOL = [
       { emoji: '🍎', link: LAB.pageRandomiser.nextOne() },
@@ -125,11 +128,6 @@
       { emoji: '🍁', link: LAB.pageRandomiser.nextOne() },
     ];
     const itemRandomiser = new LAB.CyclicRandomiser(ITEMS_POOL);
-
-    const statusEl = document.getElementById('colony-status');
-    const countEl = document.getElementById('count');
-    const pileEl = document.getElementById('pile');
-    let itemCount = 0;
 
     function createAnt() {
       const antData = {
@@ -159,23 +157,23 @@
         antEl.appendChild(antBody);
       }
 
-      document.body.appendChild(antEl);
+      ants.appendChild(antEl);
 
       let startX, startY;
       const padding = 100;
-      const h = window.innerHeight;
-      const w = window.innerWidth;
+      const winH = window.innerHeight;
+      const winW = window.innerWidth;
 
       switch (antData.side) {
-        case 0: startX = LAB.rand(0, w); startY = -padding; break;
-        case 1: startX = w + padding; startY = LAB.rand(0, h); break;
-        case 2: startX = LAB.rand(0, w); startY = h + padding; break;
-        case 3: startX = -padding; startY = LAB.rand(0, h); break;
+        case 0: startX = LAB.rand(0, winW); startY = -padding; break;
+        case 1: startX = winW + padding; startY = LAB.rand(0, winH); break;
+        case 2: startX = LAB.rand(0, winW); startY = winH + padding; break;
+        case 3: startX = -padding; startY = LAB.rand(0, winH); break;
       }
 
-      // Target is somewhere in the pile area
-      const targetX = w / 2 + LAB.rand(-75, 75);
-      const targetY = h / 2 + LAB.rand(-75, 75);
+      // Each ant has a random offset around the page centre
+      const offsetRadius = LAB.rand(0, 85);
+      const offsetAngle = LAB.rand(0, Math.PI * 2);
 
       let currentX = startX;
       let currentY = startY;
@@ -186,6 +184,10 @@
         frame++;
         const jitterX = Math.sin(frame * 0.2) * 2;
         const jitterY = Math.cos(frame * 0.2) * 2;
+
+        // Always track the current page centre, so resizes stay aligned
+        const targetX = window.innerWidth / 2 + Math.cos(offsetAngle) * offsetRadius;
+        const targetY = window.innerHeight / 2 + Math.sin(offsetAngle) * offsetRadius;
 
         if (!antData.returning) {
           const dx = targetX - currentX;
@@ -238,9 +240,9 @@
       item.style.left = startX + 'px';
       item.style.top = startY + 'px';
       item.style.transition = 'all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-      document.body.appendChild(item);
+      main.appendChild(item);
 
-      // Pile relative centering
+      // Pile relative centring
       const centerX = window.innerWidth / 2;
       const centerY = window.innerHeight / 2;
       const finalX = targetX - centerX;
@@ -253,25 +255,51 @@
 
         setTimeout(() => {
           item.style.transition = 'transform 0.2s, filter 0.2s, opacity 1s';
-          pileEl.appendChild(item);
-          itemCount++;
-          countEl.textContent = itemCount;
+          pile.appendChild(item);
 
           scheduleFadeAway(item);
 
-          if (pileEl.children.length > 60) {
-            const oldest = pileEl.querySelector('.item:not([data-fading])');
+          if (pile.children.length > 60) {
+            const oldest = pile.querySelector('.item:not([data-fading])');
             if (oldest) fadeAndRemove(oldest);
           }
         }, 500);
       }, 10);
     }
 
-    function scheduleFadeAway(el) {
-      const lifetime = LAB.rand(10000, 30000); // 10-30 seconds
-      setTimeout(() => {
+    // Tracks each pending fade so each can be frozen while the tab is hidden
+    const fadeStates = new Map();
+
+    function startFadeAway(el, delay) {
+      const deadline = performance.now() + delay;
+      const timerId = setTimeout(() => {
+        fadeStates.delete(el);
         fadeAndRemove(el);
-      }, lifetime);
+      }, delay);
+      fadeStates.set(el, { deadline, timerId });
+    }
+
+    // Default is 20-30 seconds
+    function scheduleFadeAway(el, min = 20000, max = 30000) {
+      const lifetime = LAB.rand(min, max);
+      startFadeAway(el, lifetime);
+    }
+
+    function pauseFades() {
+      const now = performance.now();
+      for (const [el, state] of fadeStates) {
+        clearTimeout(state.timerId);
+        state.remaining = Math.max(state.deadline - now, 0);
+      }
+    }
+
+    function resumeFades() {
+      for (const [el, state] of fadeStates) {
+        if (state.remaining == null) continue;
+        const delay = state.remaining;
+        state.remaining = null;
+        startFadeAway(el, delay);
+      }
     }
 
     function fadeAndRemove(el) {
@@ -298,24 +326,38 @@
       item.style.top = `calc(50% + ${ty}px)`;
       item.style.transform = `rotate(${LAB.rand(0, 360)}deg)`;
 
-      pileEl.appendChild(item);
-      itemCount++;
-      countEl.textContent = itemCount;
+      pile.appendChild(item);
 
-      scheduleFadeAway(item);
+      scheduleFadeAway(item, i * 1000, i * 1500);
     }
 
-    setInterval(createAnt, 1500);
+    let antTimer = null;
+
+    function startAnts() {
+      if (antTimer !== null) return;
+      antTimer = setInterval(createAnt, 1500);
+    }
+
+    function stopAnts() {
+      if (antTimer === null) return;
+      clearInterval(antTimer);
+      antTimer = null;
+    }
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        startAnts();
+        resumeFades();
+      } else {
+        stopAnts();
+        pauseFades();
+      }
+    });
+
     for (let i = 0; i < 4; i++) {
       setTimeout(createAnt, LAB.rand(0, 3000));
     }
-
-    // Dev mode for those who know the secret key
-    document.addEventListener('keydown', (e) => {
-      if (e.key === '`') {
-        statusEl.style.display = statusEl.style.display === 'none' ? 'block' : 'none';
-      }
-    });
+    startAnts();
 
   </script>
 </body>

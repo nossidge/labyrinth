@@ -7,10 +7,14 @@
   <meta name="description" content="The eyes have it">
   <title>Panopticon</title>
   <style>
-    body,
-    html {
+    * {
       margin: 0;
       padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
       width: 100%;
       height: 100%;
       background-color: #0c0014;
@@ -19,53 +23,50 @@
         linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
       background-size: 100% 4px, 3px 100%;
       overflow: hidden;
-      font-family: 'Courier New', Courier, monospace;
     }
 
-    #eyes-container {
+    main {
       position: absolute;
-      top: 0;
-      left: 0;
       width: 100%;
       height: 100%;
+      overflow: hidden;
+      pointer-events: none;
     }
 
     .eye {
       position: absolute;
+      display: flex;
       width: 40px;
       height: 40px;
       background: #fdfdfd;
       border-radius: 50%;
-      display: flex;
+      box-shadow: 4px 4px 0px #000000;
+      border: 3px solid #000000;
       align-items: center;
       justify-content: center;
       transition: transform 0.1s ease-out;
-      box-shadow: 4px 4px 0px #000000;
-      border: 3px solid #000000;
     }
 
     .pupil {
+      position: relative;
       width: 15px;
       height: 15px;
       background: #000000;
       border-radius: 50%;
-      position: relative;
     }
 
     .reflection {
       position: absolute;
-      top: 2px;
-      left: 2px;
       width: 4px;
       height: 4px;
       background: #ffffff;
       border-radius: 50%;
+      top: 2px;
+      left: 2px;
     }
 
-    #static {
+    #noise {
       position: fixed;
-      top: 0;
-      left: 0;
       width: 100%;
       height: 100%;
       background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48ZmlsdGVyIGlkPSJuIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iMC44NSIgbnVtT2N0YXZlcz0iMyIgc3RpdGNoVGlsZXM9InN0aXRjaCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbHRlcj0idXJsKCNuKSIvPjwvc3ZnPg==');
@@ -77,14 +78,14 @@
 </head>
 
 <body>
-  <div id="static"></div>
-  <div id="eyes-container"></div>
+  <div id="noise"></div>
+  <main id="main"></main>
 
   <script src="../../common/labyrinth.js"></script>
   <script>
     const LAB = new Labyrinth('panopticon');
 
-    const container = document.getElementById('eyes-container');
+    const main = document.getElementById('main');
     const eyes = [];
 
     function createEye() {
@@ -110,7 +111,7 @@
       eye.style.transform = `scale(${scale})`;
       eye.dataset.baseScale = scale;
 
-      container.appendChild(eye);
+      main.appendChild(eye);
       return { el: eye, pupil: pupil, x: x + 20, y: y + 20 };
     }
 
@@ -132,7 +133,7 @@
     }
 
     function init() {
-      container.innerHTML = '';
+      main.replaceChildren();
       eyes.length = 0;
       for (let i = 0; i < 30; i++) {
         eyes.push(createEye());
@@ -146,10 +147,14 @@
       updateGaze(lastMouseX, lastMouseY);
     });
 
+    window.addEventListener('resize', init);
+
     document.addEventListener('click', (e) => {
-      if (!e.target.closest('.eye')) {
-        init();
-      }
+      if (!e.target.closest('a')) init();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
     });
 
     init();

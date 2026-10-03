@@ -25,14 +25,13 @@ https://en.wikipedia.org/wiki/Dilbert
 
     html,
     body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
       width: 100%;
       height: 100%;
       background-color: var(--bg);
       overflow: hidden;
-      font-family: serif;
-      display: flex;
-      align-items: center;
-      justify-content: center;
     }
 
     main {
@@ -82,6 +81,9 @@ https://en.wikipedia.org/wiki/Dilbert
     const CANVAS_BG = getComputedStyle(document.documentElement).getPropertyValue('--bg');
     const SEGMENTS_PER_FRAME = 1;
 
+    let points = [];
+    let drawing = 0;
+
     // The line width needs to look good on all screen widths.
     // Linearly interpolate the line width between two reference points:
     //   screen width 960 (canvas ~864) -> lineWidth 22
@@ -100,8 +102,6 @@ https://en.wikipedia.org/wiki/Dilbert
       ctx.fillStyle = CANVAS_BG;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
-
-    let points = [];
 
     function hilbert(order) {
       const n = 1 << order;
@@ -129,7 +129,7 @@ https://en.wikipedia.org/wiki/Dilbert
       return { pts, n };
     }
 
-    function generate() {
+    function init() {
       const order = 5;
       const { pts, n } = hilbert(order);
       const margin = 30;
@@ -139,7 +139,6 @@ https://en.wikipedia.org/wiki/Dilbert
       fillOverlay();
     }
 
-    let drawing = 0;
     function draw() {
       if (drawing < points.length - 1) {
         const target = Math.min(points.length - 1, drawing + SEGMENTS_PER_FRAME);
@@ -168,10 +167,19 @@ https://en.wikipedia.org/wiki/Dilbert
       canvas.width = s;
       canvas.height = s;
       computeLineWidth();
-      generate();
+      init();
     }
 
     window.addEventListener('resize', resize);
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
     resize();
     draw();
 

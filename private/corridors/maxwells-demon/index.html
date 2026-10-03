@@ -12,8 +12,8 @@
       --colour-cold: #0088ff;
     }
 
-    body,
-    html {
+    html,
+    body {
       margin: 0;
       padding: 0;
       width: 100%;
@@ -473,11 +473,11 @@
       element.href = LAB.pageRandomiser.nextOne();
     });
 
-    window.onresize = () => {
+    window.addEventListener('resize', () => {
       width = window.innerWidth;
       height = window.innerHeight;
       updateBoundaries();
-    };
+    });
 
     function updateBoundaries() {
       wallX = width / 2;

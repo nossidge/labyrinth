@@ -16,21 +16,22 @@
       box-sizing: border-box;
     }
 
-    body,
-    html {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      background-color: var(--bg-color);
-      overflow: hidden;
-      font-family: monospace;
+    html,
+    body {
       display: flex;
       justify-content: center;
       align-items: center;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-color);
+      font-family: monospace;
+      overflow: hidden;
+      touch-action: none;
     }
 
-    #grid-container {
+    main {
       display: grid;
       width: fit-content;
       height: fit-content;
@@ -39,18 +40,18 @@
 
     .tilde-cell {
       display: flex;
+      position: relative;
       justify-content: center;
       align-items: center;
-      text-decoration: none;
+      width: var(--cell-w);
+      height: var(--cell-h);
       color: var(--tilde-color);
       font-size: var(--font-size, 24px);
       font-weight: bold;
+      text-decoration: none;
       transition: color 0.1s ease;
-      position: relative;
       user-select: none;
       -webkit-user-drag: none;
-      width: var(--cell-w);
-      height: var(--cell-h);
     }
 
     .tilde-cell span {
@@ -83,9 +84,9 @@
       left: 0;
       width: 100%;
       height: 100%;
-      pointer-events: none;
       background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48ZmlsdGVyIGlkPSJuIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iMC42NSIgbnVtT2N0YXZlcz0iMyIgc3RpdGNoVGlsZXM9InN0aXRjaCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbHRlcj0idXJsKCNuKSIvPjwvc3ZnPg==');
       opacity: 0.05;
+      pointer-events: none;
       z-index: 1000;
     }
   </style>
@@ -93,35 +94,84 @@
 
 <body>
   <div class="grain"></div>
-  <div id="grid-container"></div>
+  <main id="main"></main>
 
   <script src="../../common/labyrinth.js"></script>
   <script>
     const LAB = new Labyrinth('tilde-ripples');
 
-    const GRID_WIDTH = 40;
-    const GRID_HEIGHT = 25;
+    const main = document.getElementById('main');
 
     // Limits for responsive scaling
     const MAX_CELL_SIZE = 40;
     const MIN_CELL_SIZE = 8;
+    const TARGET_CELL_SIZE = 32;
 
     const HIGHLIGHT_SCALE_FACTOR = 3.5;
     const RIPPLE_DECAY_RATE = 0.015;
     const RIPPLE_SPREAD_DELAY = 80;
+    const HOLD_RIPPLE_INTERVAL = 150;
+    const HOLD_DELAY = 250;
 
-    const gridContainer = document.getElementById('grid-container');
-    let strengths = new Float32Array(GRID_WIDTH * GRID_HEIGHT);
+    // Max grid (landscape screens) and min grid (portrait screens)
+    const GRID_WIDTH = 40;
+    const GRID_HEIGHT = 25;
+    const MIN_GRID_WIDTH = 8;
+    const MIN_GRID_HEIGHT = 5;
+
+    let gridW = GRID_WIDTH;
+    let gridH = GRID_HEIGHT;
+    let strengths = new Float32Array(gridW * gridH);
+
     const elements = [];
+    let cellSize = MIN_CELL_SIZE;
 
-    // Initialise grid
-    function initGrid() {
-      gridContainer.innerHTML = '';
+    function computeLayout() {
+      const isPortrait = window.innerHeight > window.innerWidth;
+
+      // Less margin on portrait
+      const margin = isPortrait ? 0.05 : 0.15;
+
+      const availableW = window.innerWidth * (1 - margin * 2);
+      const availableH = window.innerHeight * (1 - margin * 2);
+
+      // Fit the grid's aspect to the screen's aspect
+      const cols = Math.min(
+        GRID_WIDTH,
+        Math.max(MIN_GRID_WIDTH, Math.round(availableW / TARGET_CELL_SIZE))
+      );
+      const rows = Math.min(
+        GRID_HEIGHT,
+        Math.max(MIN_GRID_HEIGHT, Math.round(availableH / TARGET_CELL_SIZE))
+      );
+
+      // Keep the cells square, don't let them get microscopic
+      let cell = Math.min(availableW / cols, availableH / rows, MAX_CELL_SIZE);
+      cell = Math.max(cell, MIN_CELL_SIZE);
+
+      return { cols, rows, cell };
+    }
+
+    function resize() {
+      const layout = computeLayout();
+
+      if (layout.cols !== gridW || layout.rows !== gridH) {
+        gridW = layout.cols;
+        gridH = layout.rows;
+        init(layout.cell);
+        return;
+      }
+
+      applyCellSize(layout.cell);
+    }
+
+    function init(cell) {
+      main.replaceChildren();
       elements.length = 0;
-      strengths = new Float32Array(GRID_WIDTH * GRID_HEIGHT);
+      strengths = new Float32Array(gridW * gridH);
 
-      for (let y = 0; y < GRID_HEIGHT; y++) {
-        for (let x = 0; x < GRID_WIDTH; x++) {
+      for (let y = 0; y < gridH; y++) {
+        for (let x = 0; x < gridW; x++) {
           const a = document.createElement('a');
           a.className = 'tilde-cell';
           a.href = LAB.pageRandomiser.nextOne();
@@ -134,62 +184,37 @@
             triggerRipple(x, y, 1);
           });
 
-          a.addEventListener('click', (e) => {
-            triggerRipple(x, y, 1.5);
-          });
-
-          gridContainer.appendChild(a);
+          main.appendChild(a);
           elements.push(span);
         }
       }
-      updateLayout();
+      applyCellSize(cell);
     }
 
-    function updateLayout() {
-      const isPortrait = window.innerHeight > window.innerWidth;
+    function applyCellSize(size) {
+      cellSize = size;
 
-      // Calculate margins: less margin on portrait
-      const horizontalMargin = isPortrait ? 0.05 : 0.15;
-      const verticalMargin = isPortrait ? 0.05 : 0.15;
+      main.style.gridTemplateColumns = `repeat(${gridW}, ${size}px)`;
+      main.style.gridTemplateRows = `repeat(${gridH}, ${size}px)`;
 
-      const availableW = window.innerWidth * (1 - horizontalMargin * 2);
-      const availableH = window.innerHeight * (1 - verticalMargin * 2);
-
-      // We want to keep the cells square, or at least consistent
-      let cellSize = Math.min(
-        availableW / GRID_WIDTH,
-        availableH / GRID_HEIGHT,
-        MAX_CELL_SIZE
-      );
-
-      // Don't let it get microscopic
-      cellSize = Math.max(cellSize, MIN_CELL_SIZE);
-
-      const cellW = cellSize;
-      const cellH = cellSize;
-      const fontSize = cellSize * 0.96;
-
-      gridContainer.style.gridTemplateColumns = `repeat(${GRID_WIDTH}, ${cellW}px)`;
-      gridContainer.style.gridTemplateRows = `repeat(${GRID_HEIGHT}, ${cellH}px)`;
-
-      gridContainer.style.setProperty('--cell-w', `${cellW}px`);
-      gridContainer.style.setProperty('--cell-h', `${cellH}px`);
-      gridContainer.style.setProperty('--font-size', `${fontSize}px`);
+      main.style.setProperty('--cell-w', `${size}px`);
+      main.style.setProperty('--cell-h', `${size}px`);
+      main.style.setProperty('--font-size', `${size * 0.96}px`);
     }
 
     function triggerRipple(x, y, strength = 1) {
-      if (x < 0 || x >= GRID_WIDTH || y < 0 || y >= GRID_HEIGHT) return;
+      if (x < 0 || x >= gridW || y < 0 || y >= gridH) return;
 
-      const index = y * GRID_WIDTH + x;
+      const index = y * gridW + x;
       if (strengths[index] < strength) {
         strengths[index] = strength;
 
-        // Spread to Moore neighborhood cells
+        // Spread to Moore neighbourhood cells
         setTimeout(() => {
           const nextStrength = strength * 0.75;
           if (nextStrength < 0.1) return;
 
-          // 8-neighbor expansion
+          // 8-neighbour expansion
           for (let dy = -1; dy <= 1; dy++) {
             for (let dx = -1; dx <= 1; dx++) {
               if (dx === 0 && dy === 0) continue;
@@ -200,27 +225,107 @@
       }
     }
 
-    function update() {
+    function tick() {
       for (let i = 0; i < strengths.length; i++) {
         if (strengths[i] > 0) {
-          // Decaying strength
           strengths[i] -= RIPPLE_DECAY_RATE;
           if (strengths[i] < 0) strengths[i] = 0;
 
-          // Update CSS variable for scale
           const scale = 1 + (HIGHLIGHT_SCALE_FACTOR - 1) * strengths[i];
           elements[i].style.setProperty('--scale', scale);
         }
       }
-      requestAnimationFrame(update);
+      requestAnimationFrame(tick);
     }
 
-    initGrid();
-    window.addEventListener('resize', updateLayout);
-    requestAnimationFrame(update);
-
-    // Prevent default drag behavior on the tildes
+    // Prevent default drag behaviour on the tildes
     document.addEventListener('dragstart', (e) => e.preventDefault());
+
+    // Touch stuff: hold to ripple, tap to navigate
+    let holdTimer = null;
+    let holdInterval = null;
+    let lastPoint = null;
+    let lastCellKey = null;
+    let wasHold = false;
+    let suppressClick = false;
+
+    function gridPosFromClient(clientX, clientY) {
+      const rect = main.getBoundingClientRect();
+      const x = Math.floor((clientX - rect.left) / cellSize);
+      const y = Math.floor((clientY - rect.top) / cellSize);
+      return {
+        x: Math.max(0, Math.min(gridW - 1, x)),
+        y: Math.max(0, Math.min(gridH - 1, y))
+      };
+    }
+
+    function rippleAt(clientX, clientY) {
+      const p = gridPosFromClient(clientX, clientY);
+      lastPoint = p;
+      lastCellKey = p.x + ',' + p.y;
+      triggerRipple(p.x, p.y, 1);
+    }
+
+    function clearHold() {
+      if (holdTimer) {
+        clearTimeout(holdTimer);
+        holdTimer = null;
+      }
+      if (holdInterval) {
+        clearInterval(holdInterval);
+        holdInterval = null;
+      }
+    }
+
+    main.addEventListener('touchstart', (e) => {
+      const t = e.touches[0];
+      if (!t) return;
+      rippleAt(t.clientX, t.clientY);
+      holdTimer = setTimeout(() => {
+        wasHold = true;
+        holdInterval = setInterval(() => {
+          if (lastPoint) triggerRipple(lastPoint.x, lastPoint.y, 1);
+        }, HOLD_RIPPLE_INTERVAL);
+      }, HOLD_DELAY);
+    }, { passive: true });
+
+    main.addEventListener('touchmove', (e) => {
+      const t = e.touches[0];
+      if (!t) return;
+      const p = gridPosFromClient(t.clientX, t.clientY);
+      const key = p.x + ',' + p.y;
+      if (key !== lastCellKey) {
+        lastPoint = p;
+        lastCellKey = key;
+        triggerRipple(p.x, p.y, 1);
+      }
+    }, { passive: true });
+
+    function endTouch(e) {
+      clearHold();
+      if (wasHold) {
+        wasHold = false;
+        suppressClick = true;
+        e.preventDefault();
+      }
+    }
+    main.addEventListener('touchend', endTouch, { passive: false });
+    main.addEventListener('touchcancel', endTouch, { passive: false });
+
+    // Block navigation if the previous touch was a hold
+    main.addEventListener('click', (e) => {
+      if (suppressClick) {
+        suppressClick = false;
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    }, true);
+
+    window.addEventListener('resize', resize);
+
+    requestAnimationFrame(tick);
+
+    resize();
 
   </script>
 </body>

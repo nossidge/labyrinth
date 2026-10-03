@@ -8,27 +8,27 @@
   <title>don't ever let me go</title>
   <style>
     body {
+      display: flex;
       margin: 0;
       padding: 30px;
+      min-height: 100vh;
+      box-sizing: border-box;
       background: #f4ecd8;
       color: #1a1a1a;
       font-family: serif;
-      min-height: 100vh;
-      box-sizing: border-box;
-      display: flex;
       align-items: center;
       justify-content: center;
       overflow-x: hidden;
     }
 
-    #main {
+    main {
+      width: 100%;
+      max-width: 900px;
+      margin: 0 auto;
       font-size: 36px;
       line-height: 1.05;
       text-align: justify;
       text-justify: inter-character;
-      width: 100%;
-      max-width: 900px;
-      margin: 0 auto;
       word-spacing: 2px;
     }
 
@@ -57,29 +57,43 @@
   <script>
     const LAB = new Labyrinth('dominoes');
 
-    // Unicode domino tiles run from U+1F031 to U+1F093
-    // 0x1F062 looks bad though (too dark) so skip it
-    const dominoes = [];
-    for (let cp = 0x1F031; cp <= 0x1F093; cp++) {
-      if (cp == 0x1F062) continue;
-      dominoes.push(String.fromCodePoint(cp));
-    }
-
     const main = document.getElementById('main');
     const total = 350;
-    for (let i = 0; i < total; i++) {
-      const char = LAB.sample(dominoes);
-      let tile;
-      if (LAB.chance(0.18)) {
-        tile = document.createElement('a');
-        tile.href = LAB.pageRandomiser.nextOne();
-      } else {
-        tile = document.createElement('span');
-      }
-      tile.className = 'tile';
-      tile.textContent = char;
-      main.appendChild(tile);
+
+    // Unicode domino tiles run from U+1F031 to U+1F093
+    // 0x1F062 looks bad though (too dark) so skip it
+    const dominoGlyphs = [];
+    for (let cp = 0x1F031; cp <= 0x1F093; cp++) {
+      if (cp == 0x1F062) continue;
+      dominoGlyphs.push(String.fromCodePoint(cp));
     }
+
+    function init() {
+      main.replaceChildren();
+      for (let i = 0; i < total; i++) {
+        const char = LAB.sample(dominoGlyphs);
+        let tile;
+        if (LAB.chance(0.18)) {
+          tile = document.createElement('a');
+          tile.href = LAB.pageRandomiser.nextOne();
+        } else {
+          tile = document.createElement('span');
+        }
+        tile.className = 'tile';
+        tile.textContent = char;
+        main.appendChild(tile);
+      }
+    }
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    init();
 
   </script>
 </body>

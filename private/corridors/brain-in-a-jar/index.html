@@ -9,38 +9,38 @@
 
   <style>
     body {
+      display: flex;
       margin: 0;
       padding: 0;
-      background: linear-gradient(to bottom, #1a1a2e, #0f3460);
       height: 100vh;
+      background: linear-gradient(to bottom, #1a1a2e, #0f3460);
+      font-family: Arial, sans-serif;
       overflow: hidden;
-      display: flex;
       justify-content: center;
       align-items: center;
-      font-family: Arial, sans-serif;
       user-select: none;
     }
 
     #container {
       position: relative;
+      display: flex;
       width: 100%;
       height: 100%;
-      display: flex;
       justify-content: center;
       align-items: center;
     }
 
     #jar-link {
       position: relative;
-      font-size: clamp(200px, 40vw, 500px);
       display: flex;
+      margin: 60px 0;
+      filter: drop-shadow(0 20px 60px rgba(0, 0, 0, 0.5));
+      font-size: clamp(200px, 40vw, 500px);
       justify-content: center;
       align-items: center;
       cursor: pointer;
       text-decoration: none;
       transition: transform 0.3s ease;
-      filter: drop-shadow(0 20px 60px rgba(0, 0, 0, 0.5));
-      margin: 60px 0;
     }
 
     #jar-link:hover {
@@ -54,13 +54,13 @@
 
     #brain {
       position: absolute;
+      filter: drop-shadow(0 5px 15px rgba(255, 100, 150, 0.4));
       font-size: clamp(100px, 20vw, 250px);
       top: 60%;
       left: 50%;
       transform: translate(-50%, -50%);
       z-index: 2;
       animation: bob 3s ease-in-out infinite;
-      filter: drop-shadow(0 5px 15px rgba(255, 100, 150, 0.4));
     }
 
     @keyframes bob {
@@ -140,7 +140,7 @@
     const jarLink = document.getElementById('jar-link');
     const bubbleContainer = document.getElementById('bubble-container');
 
-    // Percentage of container width to spread left/right from center (0.45 = ±45% from center)
+    // Percentage of container width to spread left/right from centre (0.45 = ±45% from centre)
     const BUBBLE_SPAWN_WIDTH_PERCENT = 0.45;
     // Percentage down from top where bubbles spawn (0.84 = 84% down)
     const BUBBLE_SPAWN_Y_PERCENT = 0.84;
@@ -151,6 +151,19 @@
     // Padding as percentage of container height from bottom (where bubbles spawn)
     const BUBBLE_PADDING_PERCENT_BOTTOM = 0.08;
 
+    const DESIGN_FONT_SIZE = 500;
+    let scale = 1;
+
+    function resize() {
+      const fontSize = parseFloat(window.getComputedStyle(jarLink).fontSize);
+      const newScale = fontSize ? Math.min(fontSize / DESIGN_FONT_SIZE, 1) : 1;
+      if (newScale !== scale) {
+        scale = newScale;
+        // Only remove the old bubbles if the scale has actually changed
+        bubbleContainer.replaceChildren();
+      }
+    }
+
     // Create floating bubbles
     function createBubble() {
       const containerRect = bubbleContainer.getBoundingClientRect();
@@ -160,16 +173,16 @@
       const bubble = document.createElement('div');
       bubble.className = 'bubble';
 
-      // Bubble size
-      const bubbleSize = LAB.rand(10, 18);
+      // Bubble size, scaled proportionally as the jar emoji shrinks
+      const bubbleSize = LAB.rand(10, 18) * scale;
       const duration = LAB.rand(5, 12);
-      const drift = LAB.rand(-50, 50); // horizontal drift
+      const drift = LAB.rand(-50, 50) * scale; // horizontal drift
 
       // Randomise z-index: 50% chance to be in front, 50% chance to be behind
       const isFront = LAB.chance(0.5);
       bubble.classList.add(isFront ? 'front' : 'behind');
 
-      // Spawn position: center of container, spread left/right based on percentage
+      // Spawn position: centre of container, spread left/right based on percentage
       const spawnXPercent = 0.5 + LAB.rand(-0.5, 0.5) * BUBBLE_SPAWN_WIDTH_PERCENT;
       const spawnYPercent = BUBBLE_SPAWN_Y_PERCENT;
 
@@ -193,7 +206,7 @@
       bubble.style.setProperty('--float-distance', distancePixels + 'px');
       bubble.style.left = (clampedXPercent * 100) + '%';
       bubble.style.top = (clampedYPercent * 100) + '%';
-      bubble.style.transform = 'translate(-50%, -50%)'; // Center the bubble on its position
+      bubble.style.transform = 'translate(-50%, -50%)'; // Centre the bubble on its position
       bubble.style.animationDelay = LAB.rand(0, 2) + 's';
 
       bubbleContainer.appendChild(bubble);
@@ -204,16 +217,10 @@
       }, (duration + 2) * 1000);
     }
 
-    // Handle hover effects on jar
-    jarLink.addEventListener('mouseenter', () => {
-      jarLink.classList.add('hovered');
-    });
+    window.addEventListener('resize', resize);
 
-    jarLink.addEventListener('mouseleave', () => {
-      jarLink.classList.remove('hovered');
-    });
+    resize();
 
-    // Spawn bubbles continuously
     setInterval(createBubble, 400);
 
   </script>

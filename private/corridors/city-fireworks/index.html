@@ -10,8 +10,8 @@
     :root {
       --night-sky: #01010b;
       --sky-bottom: #1a1b3a;
-      --building-color: #000000;
-      --window-color: #111100;
+      --building-colour: #000000;
+      --window-colour: #111100;
       --window-on: #ffeeaa;
     }
 
@@ -27,8 +27,8 @@
       pointer-events: none;
     }
 
-    body,
-    html {
+    html,
+    body {
       margin: 0;
       padding: 0;
       width: 100%;
@@ -61,7 +61,7 @@
     }
 
     .building {
-      background-color: var(--building-color);
+      background-color: var(--building-colour);
       position: relative;
       margin-right: 2px;
       pointer-events: auto;
@@ -70,7 +70,7 @@
       flex-wrap: wrap;
       align-content: flex-start;
       padding: 8px 4px;
-      border-top: 1px solid #111;
+      border-top: 1px solid #111111;
     }
 
     .building.tower::after {
@@ -90,14 +90,14 @@
       left: 50%;
       width: 2px;
       height: 30px;
-      background: #222;
+      background: #222222;
     }
 
     .window {
       width: 4px;
       height: 6px;
       margin: 3px;
-      background-color: var(--window-color);
+      background-color: var(--window-colour);
       transition: background-color 0.5s;
     }
 
@@ -138,12 +138,22 @@
     const ctx = canvas.getContext('2d');
     const cityContainer = document.getElementById('city-container');
 
-    let width, height;
+    // Maximum number of firework dots allowed on screen at once
+    const MAX_FIREWORKS = 1200;
+
+    const COLOURS_POOL = [
+      '#0000ff', '#00ff00', '#00ffff', '#ff0000',
+      '#ff00ff', '#ffaa00', '#ffff00', '#ffffff',
+    ];
+    const coloursRandomiser = new LAB.CyclicRandomiser(COLOURS_POOL);
+
+    let winW, winH;
+    let particles = [];
 
     // City generation
     function generateCity() {
       cityContainer.innerHTML = '';
-      const buildingCount = Math.floor(width / 40);
+      const buildingCount = Math.floor(winW / 40);
       for (let i = 0; i < buildingCount; i++) {
         const building = document.createElement('a');
         building.className = 'building';
@@ -184,25 +194,54 @@
     }
     setTimeout(flickerWindows, 200);
 
+    function hexToRgb(hex) {
+      const h = hex.replace('#', '');
+      return [
+        parseInt(h.substring(0, 2), 16),
+        parseInt(h.substring(2, 4), 16),
+        parseInt(h.substring(4, 6), 16)
+      ];
+    }
+
     // Firework particle class
     class Particle {
-      constructor(x, y, color, velocity) {
+      constructor(x, y, colour, velocity) {
         this.x = x;
         this.y = y;
-        this.color = color;
+        this.colour = colour;
         this.velocity = velocity;
         this.friction = 0.95;
         this.gravity = 0.05;
         this.opacity = 1;
         this.life = LAB.rand(100, 150);
+        this.trail = [];
+        this.trailLength = 20;
       }
 
       draw() {
         ctx.save();
+        const len = this.trail.length;
+        if (len > 1) {
+          const [r, g, b] = hexToRgb(this.colour);
+          const first = this.trail[0];
+          const gradient = ctx.createLinearGradient(first.x, first.y, this.x, this.y);
+          gradient.addColorStop(0, `rgba(${r},${g},${b},0)`);
+          gradient.addColorStop(1, `rgba(${r},${g},${b},${this.opacity})`);
+          ctx.strokeStyle = gradient;
+          ctx.lineWidth = 1.5;
+          ctx.lineCap = 'round';
+          ctx.lineJoin = 'round';
+          ctx.beginPath();
+          ctx.moveTo(first.x, first.y);
+          for (let i = 1; i < len; i++) ctx.lineTo(this.trail[i].x, this.trail[i].y);
+          ctx.lineTo(this.x, this.y);
+          ctx.stroke();
+        }
+        // The head dot keeps the crackle
         ctx.globalAlpha = this.opacity;
         ctx.beginPath();
         ctx.arc(this.x, this.y, 1.5, 0, Math.PI * 2);
-        ctx.fillStyle = this.color;
+        ctx.fillStyle = this.colour;
         ctx.fill();
         ctx.restore();
       }
@@ -214,20 +253,22 @@
         this.x += this.velocity.x;
         this.y += this.velocity.y;
         this.opacity -= 1 / this.life;
+        this.trail.push({ x: this.x, y: this.y });
+        if (this.trail.length > this.trailLength) this.trail.shift();
       }
     }
 
-    let particles = [];
-    const colours = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff', '#ffffff', '#ffaa00'];
-
     function createFirework(x, y) {
-      const particleCount = LAB.rand(60, 120);
-      const color = colours[LAB.randIndex(colours)];
+      let particleCount = LAB.rand(60, 120);
+      const room = MAX_FIREWORKS - particles.length;
+      if (room <= 0) return;
+      if (particleCount > room) particleCount = room;
+      const colour = coloursRandomiser.nextOne();
       const type = LAB.rand(0, 1);
 
       // Flash effect
       const flash = document.getElementById('flash-overlay');
-      flash.style.backgroundColor = color;
+      flash.style.backgroundColor = colour;
       flash.style.opacity = '0.04';
       setTimeout(() => { flash.style.opacity = '0'; }, 100);
 
@@ -251,53 +292,60 @@
           vy = LAB.rand(-6, 6);
         }
 
-        particles.push(new Particle(x, y, color, { x: vx, y: vy }));
+        particles.push(new Particle(x, y, colour, { x: vx, y: vy }));
       }
     }
 
-    function animate() {
-      // The translucent color gives a trail effect
-      ctx.fillStyle = 'rgba(1, 1, 11, 0.1)';
-      ctx.fillRect(0, 0, width, height);
+    function tick() {
+      ctx.clearRect(0, 0, winW, winH);
 
-      particles.forEach((p, index) => {
+      particles.forEach(p => {
         if (p.opacity > 0) {
           p.update();
           p.draw();
-        } else {
-          particles.splice(index, 1);
         }
       });
+      particles = particles.filter(p => p.opacity > 0);
 
-      requestAnimationFrame(animate);
+      requestAnimationFrame(tick);
     }
 
     // Launch random fireworks
     function launchAutoFirework() {
-      const x = LAB.rand(0, width);
-      const y = LAB.rand(0, height * 0.6); // Top part of screen
-      createFirework(x, y);
-
-      const nextInterval = LAB.rand(500, 2500);
-      setTimeout(launchAutoFirework, nextInterval);
+      if (!document.hidden) {
+        const x = LAB.rand(0, winW);
+        const y = LAB.rand(0, winH * 0.6); // Top part of screen
+        createFirework(x, y);
+      }
     }
+
+    // Clear fireworks when the tab is hidden so nothing bursts on return
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) particles = [];
+    });
 
     // On resize, regenerate the city, but not the fireworks
     function resize() {
-      width = canvas.width = window.innerWidth;
-      height = canvas.height = window.innerHeight;
+      winW = canvas.width = window.innerWidth;
+      winH = canvas.height = window.innerHeight;
       generateCity();
     }
     window.addEventListener('resize', resize);
 
     // Launch on click anywhere on canvas
-    canvas.onclick = (e) => {
-      createFirework(e.clientX, e.clientY);
-    };
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) {
+        createFirework(e.clientX, e.clientY);
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, launchAutoFirework);
+    });
 
     resize();
-    animate();
-    setTimeout(launchAutoFirework, 1000);
+    tick();
+    setInterval(launchAutoFirework, 2000);
 
   </script>
 </body>

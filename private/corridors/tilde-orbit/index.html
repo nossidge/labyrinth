@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="M25">
+  <title>~ orbit ~</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body,
+    html {
+      width: 100%;
+      height: 100%;
+      background-color: #000000;
+      overflow: hidden;
+    }
+
+    canvas {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    #links {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    #links a {
+      position: absolute;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 36px;
+      height: 36px;
+      text-decoration: none;
+      color: rgba(255, 255, 255, 0.2);
+      font-family: serif;
+      font-size: 28px;
+      pointer-events: auto;
+      border-radius: 50%;
+      transition: color 0.2s ease, text-shadow 0.2s ease, transform 0.2s ease;
+    }
+
+    #links a:hover {
+      color: #ffffff;
+      text-shadow: 0 0 12px #ffffff;
+      transform: scale(1.5);
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="canvas"></canvas>
+  <div id="links"></div>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('tilde-orbit');
+
+    const links = document.getElementById('links');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    const RING_COUNT = 6;
+
+    let drawRingPaths = false;
+    let winW, winH;
+    let rings = [];
+
+    function resize() {
+      winW = canvas.width = window.innerWidth;
+      winH = canvas.height = window.innerHeight;
+    }
+
+    function init() {
+      links.replaceChildren();
+      rings = [];
+
+      for (let r = 0; r < RING_COUNT; r++) {
+        const orbCount = 6 + r * 3;
+        const radius = 50 + r * 55;
+        const speed = (0.003 + r * 0.001) * (r % 2 === 0 ? 1 : -1);
+        const ring = { radius, speed, orbs: [] };
+
+        for (let o = 0; o < orbCount; o++) {
+          const angle = (Math.PI * 2 / orbCount) * o;
+          ring.orbs.push({ angle });
+
+          // Create link element
+          const a = document.createElement('a');
+          a.href = LAB.pageRandomiser.nextOne();
+          a.textContent = '~';
+          links.appendChild(a);
+        }
+
+        rings.push(ring);
+      }
+    }
+
+    function draw() {
+      ctx.globalCompositeOperation = 'darken';
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.06)';
+      ctx.fillRect(0, 0, winW, winH);
+      ctx.globalCompositeOperation = 'source-over';
+
+      const cx = winW / 2;
+      const cy = winH / 2;
+
+      let linkIdx = 0;
+      rings.forEach(ring => {
+
+        // Draw outer ring path
+        if (drawRingPaths) {
+          ctx.strokeStyle = 'rgba(255, 122, 214, 0.03)';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.arc(cx, cy, ring.radius, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+
+        ring.orbs.forEach(orb => {
+          orb.angle += ring.speed;
+
+          const x = cx + Math.cos(orb.angle) * ring.radius;
+          const y = cy + Math.sin(orb.angle) * ring.radius;
+
+          // Draw connecting line to centre
+          ctx.strokeStyle = 'rgba(255, 122, 214, 0.015)';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(cx, cy);
+          ctx.lineTo(x, y);
+          ctx.stroke();
+
+          // Update link position
+          const linkEl = links.children[linkIdx];
+          linkEl.style.left = (x - 18) + 'px';
+          linkEl.style.top = (y - 18) + 'px';
+          linkIdx++;
+        });
+      });
+
+      requestAnimationFrame(draw);
+    }
+
+    window.addEventListener('resize', resize);
+
+    resize();
+    init();
+    draw();
+
+    // Dev mode for those who know the secret key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === '`' || e.key === '~') drawRingPaths = !drawRingPaths;
+    });
+
+  </script>
+</body>
+
+</html>

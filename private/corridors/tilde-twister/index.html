@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Franco Zephyrelli">
+  <title>~ twister ~</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      background: #07060c;
+      color: #d5cfff;
+      font-family: "Courier New", monospace;
+      overflow: hidden;
+    }
+
+    main {
+      position: fixed;
+      inset: 0;
+    }
+
+    .glyph {
+      position: absolute;
+      top: 0;
+      left: 0;
+      font-size: 24px;
+      color: rgba(213, 207, 255, 0.55);
+      text-decoration: none;
+      transition: color 0.35s ease, text-shadow 0.35s ease;
+      will-change: transform;
+      user-select: none;
+    }
+
+    a.glyph {
+      color: #ff7ad6;
+      font-weight: bold;
+      text-shadow: 0 0 6px #ff7ad6;
+    }
+
+    a.glyph:hover {
+      color: #ffffff;
+      text-shadow: 0 0 18px #ffffff, 0 0 28px #ff7ad6;
+    }
+
+    #link {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      font-size: 46px;
+      color: #ff7ad6;
+      font-weight: bold;
+      text-decoration: none;
+      text-shadow: 0 0 10px #ff7ad6, 0 0 18px #ff7ad6;
+      transform-origin: center center;
+      will-change: transform;
+      user-select: none;
+      z-index: 5;
+      transition: color 0.35s ease, text-shadow 0.35s ease;
+    }
+
+    #link:hover {
+      color: #ffffff;
+      text-shadow: 0 0 18px #ffffff, 0 0 28px #ff7ad6, 0 0 40px #ff7ad6;
+    }
+
+    #vignette {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at center, transparent 30%, rgba(0, 0, 0, 0.85) 100%),
+        repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.18) 0 1px, transparent 1px 3px);
+      z-index: 10;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="vignette"></div>
+  <main id="main">
+    <a id="link" href="../index.html">~</a>
+  </main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('tilde-twister');
+
+    const main = document.getElementById('main');
+    const link = document.getElementById('link');
+
+    const COUNT = 240;
+    const particles = [];
+    let centreAngle = 0;
+    let winW, winH;
+
+    function resize() {
+      winW = window.innerWidth;
+      winH = window.innerHeight;
+    }
+
+    function makeParticle(linked) {
+      const isLink = linked || LAB.chance(0.06);
+      const el = document.createElement(isLink ? 'a' : 'span');
+      el.className = 'glyph';
+      el.textContent = '~';
+      el.style.fontSize = LAB.rand(14, 38) + 'px';
+      if (isLink) {
+        el.href = LAB.pageRandomiser.nextOne();
+      }
+      main.appendChild(el);
+
+      return {
+        element: el,
+        radius: LAB.rand(20, Math.min(winW, winH) * 0.55),
+        angle: LAB.rand(0, Math.PI * 2),
+        speed: LAB.rand(0.002, 0.012) * (LAB.chance(0.5) ? 1 : -1),
+        wobble: LAB.rand(0, Math.PI * 2),
+        wobbleSpeed: LAB.rand(0.01, 0.04),
+      };
+    }
+
+    function init() {
+      for (let i = 0; i < COUNT; i++) {
+        particles.push(makeParticle());
+      }
+    }
+
+    function tick() {
+      const cx = winW / 2;
+      const cy = winH / 2;
+
+      for (const p of particles) {
+        p.angle += p.speed;
+        p.wobble += p.wobbleSpeed;
+        const r = p.radius + Math.sin(p.wobble) * 14;
+        const x = cx + Math.cos(p.angle) * r;
+        const y = cy + Math.sin(p.angle) * r;
+        const rot = (p.angle * 180) / Math.PI;
+        p.element.style.transform = `translate3d(${x}px, ${y}px, 0) rotate(${rot}deg)`;
+      }
+
+      centreAngle -= 0.04;
+      const centreRot = (centreAngle * 180) / Math.PI;
+      link.style.transform = `translate(-50%, -50%) rotate(${centreRot}deg)`;
+
+      requestAnimationFrame(tick);
+    }
+
+    window.addEventListener('resize', resize);
+
+    resize();
+    init();
+    tick();
+
+  </script>
+</body>
+
+</html>

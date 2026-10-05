@@ -2023,3 +2023,10 @@ corridors:
     tags: [abstract, mobile, tilde]
     visual_description: >-
       Six concentric rings of ~ characters orbit the centre of a black screen, each ring spinning at a different speed in alternating clockwise and anticlockwise directions. Faint pink lines radiate from the centre out to each ~, and a gentle fading trail softens their motion. Each ~ is a clickable link to a random corridor, glowing bright white on hover.
+  - id: tilde-twister
+    title: Tilde Twister
+    created: 2026-10-05 17:36
+    links: dynamic
+    tags: [abstract, crt, mobile, tilde]
+    visual_description: >-
+      A vortex of 240 ~ characters swirling around the centre of a near-black screen. Each glyph spins at a different speed in a clockwise or anticlockwise direction, wobbling slightly in and out of its orbital radius as it goes. A large glowing ~ sits at the centre of the screen, rotating slowly in place. The centre ~ and roughly 6% of the particles are clickable links to random corridors that glow bright white on hover.

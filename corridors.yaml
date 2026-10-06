@@ -2030,3 +2030,10 @@ corridors:
     tags: [abstract, crt, mobile, tilde]
     visual_description: >-
       A vortex of 240 ~ characters swirling around the centre of a near-black screen. Each glyph spins at a different speed in a clockwise or anticlockwise direction, wobbling slightly in and out of its orbital radius as it goes. A large glowing ~ sits at the centre of the screen, rotating slowly in place. The centre ~ and roughly 6% of the particles are clickable links to random corridors that glow bright white on hover.
+  - id: tilde-glitch
+    title: Tilde Glitch
+    created: 2026-10-06 16:45
+    links: dynamic
+    tags: [abstract, mobile, parallax, tilde, vendor]
+    visual_description: >-
+      A field of purple tilde characters orbit slowly across a black void. Moving the mouse toward the centre of the screen intensifies the effect: a large glowing tilde swells in the middle, random tilde.town usernames flicker into and out of view, and the frame tears into horizontally-shifted glitch slices. A warning screen lets the visitor opt in to the glitch effect before the page starts. Clicking or pressing any key exits to a random corridor.

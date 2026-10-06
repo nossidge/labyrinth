@@ -3,5 +3,6 @@ tmp/*
 
 # Compiled/output files
 private/common/labyrinth.js
+private/common/tilde-town-users.js
 private/index.html
 public/*

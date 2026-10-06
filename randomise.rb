@@ -89,6 +89,11 @@ def generate_dir_files(dir_path)
   File.write(js_path, js_content)
   puts "Generated #{js_path}"
 
+  # 1b. Copy common/tilde-town-users.js
+  townies_path = File.join(dir_path, 'common', 'tilde-town-users.js')
+  FileUtils.cp('template/tilde-town-users.js', townies_path)
+  puts "Copied #{townies_path}"
+
   old_js_path = File.join(dir_path, 'common', 'labyrinthPages.js')
   if File.exist?(old_js_path)
     FileUtils.rm_f(old_js_path)

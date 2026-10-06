@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="The Twelve Year Glitch">
+  <title>~ glitch ~</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      background-color: #000000;
+      font-family: monospace;
+    }
+
+    canvas {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    #big-tilde {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      color: #e0b0ff;
+      text-shadow: 0 0 10px #e0b0ff;
+      font-size: 12px;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 10;
+      transform: translate(-50%, -50%);
+    }
+
+    .glitch-name {
+      position: fixed;
+      padding: 8px 14px;
+      background-color: #000000;
+      color: #e0b0ff;
+      border-radius: 12px;
+      font-size: 12px;
+      white-space: nowrap;
+      text-decoration: none;
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.5);
+      transition: transform 300ms ease-out, opacity 300ms ease-out;
+      z-index: 20;
+    }
+
+    .glitch-name:hover {
+      text-decoration: underline;
+    }
+
+    #warning {
+      position: fixed;
+      top: 0;
+      left: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      height: 100%;
+      padding: 0 20px 0;
+      background-color: #000000;
+      color: #e0b0ff;
+      text-align: center;
+      z-index: 100;
+    }
+
+    #warning h1 {
+      margin-bottom: 1.5rem;
+      font-size: 1.8rem;
+      font-weight: normal;
+    }
+
+    #warning p {
+      max-width: 500px;
+      margin-bottom: 2rem;
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+
+    #warning label {
+      margin-bottom: 2rem;
+      font-size: 1rem;
+    }
+
+    #start {
+      padding: 0.6rem 1.8rem;
+      background-color: #663399;
+      color: #ffffff;
+      border: none;
+      font-family: monospace;
+      font-size: 1rem;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="canvas"></canvas>
+  <div id="big-tilde">~</div>
+
+  <div id="warning">
+    <h1>
+      ! Glitch Effect Warning !
+    </h1>
+    <p>
+      This page includes flickering visual effects that may cause discomfort
+      or trigger seizures for people with photosensitive epilepsy.
+    </p>
+    <label for="glitch-check">
+      <input type="checkbox" id="glitch-check" />
+      Enable Glitch Effect
+    </label>
+    <button id="start">
+      Continue
+    </button>
+  </div>
+
+  <script src="../../common/tilde-town-users.js"></script>
+  <script src="../../common/labyrinth.js"></script>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.177.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.177.0/examples/jsm/"
+      }
+    }
+  </script>
+  <script type="module">
+    import * as THREE from 'three';
+    import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+    import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+    import { GlitchPass } from 'three/addons/postprocessing/GlitchPass.js';
+
+    const LAB = new Labyrinth('tilde-glitch');
+
+    const canvas = document.getElementById('canvas');
+    const warning = document.getElementById('warning');
+    const startButton = document.getElementById('start');
+    const glitchCheck = document.getElementById('glitch-check');
+    const bigTilde = document.getElementById('big-tilde');
+
+    const TILDE_COUNT = 600;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.z = 50;
+
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+
+    const ambientLight = new THREE.AmbientLight(0x8888ff, 1.5);
+    scene.add(ambientLight);
+
+    function createTilde() {
+      const tile = document.createElement('canvas');
+      tile.width = 64;
+      tile.height = 64;
+      const ctx = tile.getContext('2d');
+      ctx.font = '48px monospace';
+      ctx.fillStyle = '#663399';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('~', 32, 32);
+
+      const texture = new THREE.CanvasTexture(tile);
+      const material = new THREE.SpriteMaterial({ map: texture, transparent: true });
+      const sprite = new THREE.Sprite(material);
+      sprite.scale.set(2, 2, 1);
+      return sprite;
+    }
+
+    const tildes = [];
+    for (let i = 0; i < TILDE_COUNT; i++) {
+      const sprite = createTilde();
+      scene.add(sprite);
+      tildes.push({
+        sprite,
+        angle: LAB.rand(0, Math.PI * 2),
+        radius: LAB.rand(20, 50),
+        speed: LAB.rand(0.001, 0.003),
+        axis: new THREE.Vector3(
+          LAB.rand(-0.5, 0.5),
+          LAB.rand(-0.5, 0.5),
+          LAB.rand(-0.5, 0.5)
+        ).normalize()
+      });
+    }
+
+    const composer = new EffectComposer(renderer);
+    composer.addPass(new RenderPass(scene, camera));
+
+    const glitchPass = new GlitchPass();
+    glitchPass.goWild = true;
+    glitchPass.enabled = false;
+    composer.addPass(glitchPass);
+
+    let glitchOptIn = false;
+    let mouseMoved = false;
+    let glitchStartTime = null;
+
+    const mouse = new THREE.Vector2(0, 0);
+    const CENTER = new THREE.Vector2(0, 0);
+    const raycaster = new THREE.Raycaster();
+    const targetPoint = new THREE.Vector3();
+
+    const nameRandomiser = new CyclicRandomiser(tildeTownUsers);
+
+    function handleMove(x, y) {
+      mouseMoved = true;
+      mouse.x = (x / window.innerWidth) * 2 - 1;
+      mouse.y = -(y / window.innerHeight) * 2 + 1;
+    }
+
+    window.addEventListener('mousemove', (e) => handleMove(e.clientX, e.clientY));
+    window.addEventListener('touchmove', (e) => {
+      const touch = e.touches[0];
+      if (touch) handleMove(touch.clientX, touch.clientY);
+    }, { passive: true });
+
+    function spawnName() {
+      const name = document.createElement('a');
+      name.className = 'glitch-name';
+      name.href = LAB.pageRandomiser.nextOne();
+      name.textContent = nameRandomiser.nextOne();
+      name.style.left = `${LAB.rand(0, window.innerWidth)}px`;
+      name.style.top = `${LAB.rand(0, window.innerHeight)}px`;
+      document.body.appendChild(name);
+
+      requestAnimationFrame(() => {
+        name.style.opacity = '1';
+        name.style.transform = 'translate(-50%, -50%) scale(1)';
+      });
+
+      const life = LAB.rand(2000, 4000);
+      setTimeout(() => {
+        name.style.opacity = '0';
+        name.style.transform = 'translate(-50%, -50%) scale(0.5)';
+        setTimeout(() => name.remove(), 300);
+      }, life);
+    }
+
+    function killNames() {
+      document.querySelectorAll('.glitch-name').forEach((name) => {
+        if (name.dataset.dying) return;
+        name.dataset.dying = '1';
+        name.style.opacity = '0';
+        name.style.transform = 'translate(-50%, -50%) scale(0.5)';
+        setTimeout(() => name.remove(), 750);
+      });
+    }
+
+    function mouseIntensity() {
+      const dist = mouse.distanceTo(CENTER);
+      const t = Math.max(0, 1 - dist / 0.6);
+      return t * t;
+    }
+
+    function timeIntensity(time) {
+      if (glitchStartTime === null) glitchStartTime = time;
+      return Math.min((time - glitchStartTime) / 10000, 1);
+    }
+
+    function animate(time) {
+      requestAnimationFrame(animate);
+
+      raycaster.setFromCamera(mouse, camera);
+      const dir = raycaster.ray.direction.clone().normalize();
+      targetPoint.copy(camera.position).add(dir.multiplyScalar(30));
+
+      tildes.forEach((t) => {
+        t.angle += t.speed;
+        const orbitPos = new THREE.Vector3(
+          Math.cos(t.angle) * t.radius,
+          Math.sin(t.angle) * t.radius,
+          Math.sin(t.angle * 0.5) * t.radius
+        ).applyAxisAngle(t.axis, t.angle * 0.5);
+        t.sprite.position.lerpVectors(orbitPos, targetPoint, 0.15);
+      });
+
+      composer.render();
+
+      if (!mouseMoved) return;
+
+      const intensity = mouseIntensity() * timeIntensity(time);
+
+      glitchPass.enabled = glitchOptIn && LAB.chance(intensity);
+
+      const fontSizeUnit = window.innerWidth < window.innerHeight ? 'vh' : 'vw';
+      const fontSize = THREE.MathUtils.lerp(0, 80, intensity ** 1.9);
+      bigTilde.style.fontSize = `${fontSize}${fontSizeUnit}`;
+      bigTilde.style.opacity = intensity.toFixed(2);
+      bigTilde.style.transform = `translate(-50%, -50%) rotate(${time * 0.001}rad)`;
+
+      if (LAB.chance(THREE.MathUtils.lerp(0.01, 0.9, intensity ** 2.5))) {
+        spawnName();
+      }
+
+      if (intensity === 0) {
+        killNames();
+      }
+    }
+
+    function goto() {
+      window.location.href = LAB.pageRandomiser.nextOne();
+    }
+
+    startButton.addEventListener('click', () => {
+      glitchOptIn = glitchCheck.checked;
+      warning.remove();
+
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('a, button')) goto();
+      });
+
+      document.addEventListener('keydown', (e) => {
+        LAB.handleKeydown(e, goto);
+      });
+
+      animate(performance.now());
+    });
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      composer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+  </script>
+</body>
+
+</html>

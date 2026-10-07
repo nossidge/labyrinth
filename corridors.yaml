@@ -2037,3 +2037,10 @@ corridors:
     tags: [abstract, mobile, parallax, tilde, vendor]
     visual_description: >-
       A field of purple tilde characters orbit slowly across a black void. Moving the mouse toward the centre of the screen intensifies the effect: a large glowing tilde swells in the middle, random tilde.town usernames flicker into and out of view, and the frame tears into horizontally-shifted glitch slices. A warning screen lets the visitor opt in to the glitch effect before the page starts. Clicking or pressing any key exits to a random corridor.
+  - id: tilde-letters
+    title: Tilde Letters
+    created: 2026-10-07 12:31
+    links: dynamic
+    tags: [crt, mobile, text, tilde]
+    visual_description: >-
+      A single tilde.town username, in pale purple monospace type on a black background, is displayed in the centre of the screen. Every few seconds it transitions to another username chosen to share letters with the previous one: the shared letters flash white, grow larger, and slide to their new positions while the remaining letters fade out and new ones fade in from black. Each displayed name is a clickable link to a random corridor.

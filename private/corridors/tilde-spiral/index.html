@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="at forty thousand miles an hour">
+  <title>~ spiral ~</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      background: #000000;
+      font-family: "Courier New", Courier, monospace;
+      font-size: min(1.8vw, 1.8vh);
+      font-weight: bold;
+      overflow: hidden;
+    }
+
+    main {
+      position: fixed;
+      inset: 0;
+    }
+
+    .username {
+      position: absolute;
+      left: 0;
+      top: 0;
+      color: #e0b0ff;
+      text-shadow: 0 0 6px #663399;
+      white-space: nowrap;
+      text-decoration: none;
+      user-select: none;
+      transition: color .15s, text-shadow .15s;
+    }
+
+    .username:hover,
+    .username:focus {
+      color: #ffffff;
+      text-shadow: 0 0 10px #ffffff;
+      z-index: 10;
+      outline: none;
+    }
+
+    .crt-scanlines {
+      position: fixed;
+      inset: 0;
+      background:
+        repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0 1px, transparent 1px 3px),
+        radial-gradient(circle at 50% 50%, transparent 55%, rgba(0, 0, 0, 0.55));
+      pointer-events: none;
+      z-index: 100;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="crt-scanlines"></div>
+  <main id="main"></main>
+
+  <script src="../../common/tilde-town-users.js"></script>
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('tilde-spiral');
+
+    const main = document.getElementById('main');
+
+    const ROTATION_SPEED = 0.003;
+    const USER_COUNT = 180;
+
+    let users = [];
+    let elements = [];
+    let angleStep = 0;
+    let angleOffset = LAB.rand(0, Math.PI * 2);
+
+    function pickUsers() {
+      users = LAB.shuffle(tildeTownUsers)
+        .slice(0, USER_COUNT)
+        .sort((a, b) => a.length - b.length);
+      angleStep = (Math.PI * 2 * LAB.rand(3, 6)) / users.length;
+    }
+
+    function init() {
+      pickUsers();
+      main.replaceChildren();
+      elements = users.map((name) => {
+        const a = document.createElement('a');
+        a.href = LAB.pageRandomiser.nextOne();
+        a.className = 'username';
+        a.textContent = name;
+        main.appendChild(a);
+        return a;
+      });
+    }
+
+    function draw() {
+      const cx = window.innerWidth / 2;
+      const cy = window.innerHeight / 2;
+      const radiusStep = Math.min(window.innerWidth, window.innerHeight) / (2 * users.length);
+      angleOffset += ROTATION_SPEED;
+      for (let i = 0; i < users.length; i++) {
+        const angle = i * angleStep + angleOffset;
+        const radius = i * radiusStep;
+        const x = cx + radius * Math.cos(angle);
+        const y = cy + radius * Math.sin(angle);
+        elements[i].style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%)`;
+      }
+      requestAnimationFrame(draw);
+    }
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    init();
+    requestAnimationFrame(draw);
+
+  </script>
+</body>
+
+</html>

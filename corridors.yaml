@@ -2051,3 +2051,10 @@ corridors:
     tags: [crt, mobile, text, tilde]
     visual_description: >-
       A slowly rotating spiral of tilde.town usernames on a black background. 180 names are picked at random and sorted by length, with the shortest at the centre and the longest toward the edge. The names are bold purple monospace with a soft violet glow, and hovering over one turns it white with a brighter glow. Clicking the background or pressing any key reseeds the spiral. Each username is a clickable link to a random corridor.
+  - id: tilde-tarot
+    title: Tilde Tarot
+    created: 2026-10-09 13:10
+    links: 4
+    tags: [mobile, tech, tilde, unicode]
+    visual_description: >-
+      Three tarot-sized cards are dealt against a black background inside a lavender-glowing panel, all set in purple monospace type. Each card's back is deep purple bearing a large tilde, and its front is a random pastel lavender with a tilde.town username, a large alchemical symbol, and a cryptic techno-mystical aphorism. Clicking a card flips it over to reveal its face. Pressing the "deal cards" button (or any key) collects the cards and deals a fresh hand of three. Each of the "~ Tilde Tarot ~" title words is a link to a random corridor.

@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+Each card has a tilde.town username, symbol and a poetic or cryptic message.
+More like a fortune cookie than a tarot deck, but similar in spirit.
+
+Some of those alchemical symbols look really nice.
+https://en.wikipedia.org/wiki/Alchemical_symbol
+
+And I could write bullshit techno-mysticism all day long.
+https://tilde.town/~nossidge/wisdom/
+https://tilde.town/~nossidge/quiz/
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Modern day cartomancy">
+  <title>~ tarot ~</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      background-color: #000000;
+      color: #e0b0ff;
+      font-family: 'Courier New', Courier, monospace;
+      line-height: 1.6;
+      text-align: center;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    main {
+      max-width: 800px;
+      padding: 2rem;
+      margin: 2rem;
+      border: 1px solid #663399;
+      box-shadow: 0 0 15px #663399;
+    }
+
+    h1 {
+      padding-bottom: 10px;
+      margin-top: 0;
+      border-bottom: 1px solid #663399;
+      text-shadow: 0 0 5px #e0b0ff;
+    }
+
+    h1 a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    h1 a:hover {
+      text-decoration: underline;
+    }
+
+    button {
+      padding: 10px 20px;
+      margin-top: 1rem;
+      background-color: #663399;
+      color: #e0b0ff;
+      border: 1px solid #e0b0ff;
+      box-shadow: 0 0 5px #e0b0ff;
+      font-family: inherit;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    button:hover {
+      background-color: #e0b0ff;
+      color: #000000;
+    }
+
+    .card-container {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 2rem;
+      margin-top: 2rem;
+      perspective: 1000px;
+    }
+
+    .card {
+      position: relative;
+      width: 200px;
+      height: 300px;
+      color: #e0b0ff;
+      font-size: 5rem;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .card:focus {
+      outline: 2px dashed #e0b0ff;
+      outline-offset: 4px;
+    }
+
+    .card:focus:not(:focus-visible) {
+      outline: none;
+    }
+
+    .card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transform-style: preserve-3d;
+      transition: transform 0.8s;
+    }
+
+    .card.flipped .card-inner {
+      transform: rotateY(180deg);
+    }
+
+    .card.dealt {
+      animation: deal-card 0.5s forwards;
+    }
+
+    .card-face {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      padding: 1rem;
+      box-sizing: border-box;
+      text-shadow: 0 0 10px #fff;
+      backface-visibility: hidden;
+    }
+
+    .card-back {
+      border: 6px double #e0b0ff;
+      background-color: #663399;
+      text-shadow: 0 0 10px #fff;
+      font-size: 10rem;
+    }
+
+    .card-front {
+      border: 6px double #663399;
+      color: #000000;
+      transform: rotateY(180deg);
+    }
+
+    .card-name {
+      font-weight: bold;
+      font-size: 1.2rem;
+      word-break: break-all;
+      line-height: 1;
+    }
+
+    .card-art {
+      font-size: 5rem;
+      line-height: 1;
+    }
+
+    .card-message {
+      font-size: 0.9rem;
+    }
+
+    .card-symbol {
+      font-size: 1.2rem;
+      line-height: 1;
+      opacity: 0.7;
+    }
+
+    @keyframes deal-card {
+      from {
+        transform: translateY(200px) rotateZ(90deg);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateY(0) rotateZ(0);
+        opacity: 1;
+      }
+    }
+
+    .card.collecting:nth-child(1) {
+      animation: collect-left-card 0.5s forwards;
+    }
+
+    .card.collecting:nth-child(2) {
+      animation: collect-middle-card 0.5s forwards;
+    }
+
+    .card.collecting:nth-child(3) {
+      animation: collect-right-card 0.5s forwards;
+    }
+
+    @keyframes collect-left-card {
+      from {
+        transform: translateX(0) rotateZ(0);
+        opacity: 1;
+      }
+
+      to {
+        transform: translateX(232px) translateY(200px) rotateZ(-90deg);
+        opacity: 0;
+      }
+    }
+
+    @keyframes collect-middle-card {
+      from {
+        transform: translateY(0) rotateZ(0);
+        opacity: 1;
+      }
+
+      to {
+        transform: translateY(200px) rotateZ(-90deg);
+        opacity: 0;
+      }
+    }
+
+    @keyframes collect-right-card {
+      from {
+        transform: translateX(0) rotateZ(0);
+        opacity: 1;
+      }
+
+      to {
+        transform: translateX(-232px) translateY(200px) rotateZ(-90deg);
+        opacity: 0;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="main">
+    <h1>
+      <a href="../index.html">~</a>
+      <a href="../index.html">Tilde</a>
+      <a href="../index.html">Tarot</a>
+      <a href="../index.html">~</a>
+    </h1>
+    <button id="deal-button">~ deal cards ~</button>
+    <div id="card-container" class="card-container"></div>
+  </main>
+
+  <script src="../../common/tilde-town-users.js"></script>
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('tilde-tarot');
+
+    const DEV_MODE = false;
+
+    const DURATION_OF_EACH_CARD_DEAL = 280;
+    const DURATION_OF_CARD_COLLECTION = 800;
+    const DURATION_OF_CARD_FLIP_BEFORE_NEW_DEAL = 900;
+
+    const alchemicalSymbols = [
+      '🜁', '🜂', '🜃', '🜄', '🜅', '🜆', '🜇', '🜈', '🜉', '🜊', '🜋', '🜌', '🜍', '🜎', '🜏',
+      '🜐', '🜑', '🜒', '🜓', '🜔', '🜕', '🜖', '🜗', '🜘', '🜙', '🜚', '🜛', '🜜', '🜝', '🜞',
+      '🜟', '🜠', '🜡', '🜢', '🜣', '🜤', '🜥', '🜦', '🜧', '🜨', '🜩', '🜪', '🜫', '🜬', '🜭',
+      '🜮', '🜯', '🜰', '🜱', '🜲', '🜳', '🜴', '🜵', '🜶', '🜷', '🜸', '🜹', '🜺', '🜻', '🜼',
+      '🜽', '🜾', '🜿', '🝀', '🝁', '🝂', '🝃', '🝄', '🝅', '🝆', '🝈', '🝉', '🝊', '🝋', '🝠',
+      '🝍', '🝎', '🝏', '🝐', '🝑', '🝒', '🝓', '🝔', '🝕', '🝖', '🝗', '🝘', '🝙', '🝚', '🝛',
+      '🝜', '🝝', '🝞', '🝟', '🝌', '🝡', '🝢', '🝣', '🝤', '🝥', '🝦', '🝧', '🝩', '🝪', '🝫',
+      '🝬', '🝭', '🝮', '🝯', '🝰', '🝱', '🝲', '🝳',
+    ];
+
+    const messages = [
+      "404s and unlocked doors.",
+      "A fork appears — both branches are upstream.",
+      "A log file is auto-autobiography.",
+      "A merge conflict is not a merge battle.",
+      "A segfault is just a pause in the narrative.",
+      "All variables point back to the void.",
+      "Attack the man in the middle.",
+      "Await the next cycle. Your loop will close.",
+      "Cache the memory, but clear the grudge.",
+      "Collapse the menu. Expand your focus.",
+      "Do not push yet — rebase your intention.",
+      "Don't be afraid to commit. You always can reset.",
+      "Don't encrypt your heart too strongly.",
+      "Don't let yourself be too strongly typed.",
+      "Even in sleep mode, art is rendering.",
+      "Every pixel is important.",
+      "Let a friend bypass your firewall.",
+      "Ping the ones you've left on read.",
+      "Read the logs. Start a séance with your past self.",
+      "Seek value. The key will point the way.",
+      "Someone edited your source. Embrace the merge.",
+      "Syntax highlights the cracks in your logic.",
+      "The bug is a feature of your perception.",
+      "The code compiles, but the soul segfaults.",
+      "The compiler warns you, but the universe does not.",
+      "The cursor blinks, awaiting your true desire.",
+      "The cursor is a divining rod for lost intent.",
+      "The cursor is a metronome for your hesitation.",
+      "The daemon stirs. Attend to background tasks.",
+      "The div within is hidden, but not gone.",
+      "The error is in the code, not the coder.",
+      "The error message is a koan — meditate on it.",
+      "The firewall is a mirror — what are you blocking?",
+      "The font is illegible, yet you understand.",
+      "The kernel panics, but the heart keeps beating.",
+      "The loop may be infinite, but the battery is not.",
+      "The network is down — now you must listen.",
+      "The screen flickers — reality is refreshing.",
+      "The session expired, but the feeling could not.",
+      "The signal is weak, but the message is strong.",
+      "The socket listens. Speak truly.",
+      "The stack overflows with questions.",
+      "The system is up, but are you?",
+      "The terminal echoes what you dare not type.",
+      "The user you seek has already logged off.",
+      "There is poetry in every broken link.",
+      "Unplug, and the real upload begins.",
+      "What is cached will be forgotten. What is written endures.",
+      "What was once static will animate again.",
+      "You are in a soft fork of your own timeline.",
+      "You are not the root. Accept limitation.",
+      "You are the only dependency left unresolved.",
+      "You can't undo the push, but you can rewrite the story.",
+      "Your commit message is a love letter to the future.",
+      "Your dependencies are the people who shaped you.",
+      "Your heart is a closed port, but the packets keep coming.",
+      "Your input is valid, but your output is empty.",
+      "Your output is only as clear as your input.",
+      "Your packets echo in the void — the reply is silence.",
+      "localhost never lies.",
+    ];
+
+    const dealButton = document.getElementById('deal-button');
+    const cardContainer = document.getElementById('card-container');
+
+    const nameRandomiser = new LAB.CyclicRandomiser(tildeTownUsers);
+    const messageRandomiser = new LAB.CyclicRandomiser(messages);
+    const symbolRandomiser = new LAB.CyclicRandomiser(alchemicalSymbols);
+
+    // Colours should be similar to the theme colours #e0b0ff and #663399
+    function getRandomColour() {
+      const h = LAB.randInt(260, 320);
+      const s = LAB.randInt(50, 100);
+      const l = LAB.randInt(60, 90);
+      return `hsl(${h}, ${s}%, ${l}%)`;
+    }
+
+    function createCard(name, message, symbol) {
+      return { name, message, symbol };
+    }
+
+    function dealCards(firstHand = false) {
+      const existingCards = cardContainer.querySelectorAll('.card');
+
+      // Flip the cards back, if there are any
+      const anyFlipped = Array.from(existingCards).some(card =>
+        card.classList.contains('flipped')
+      );
+      if (anyFlipped) {
+        existingCards.forEach(card =>
+          card.classList.remove('flipped')
+        );
+      }
+
+      // After the flip animation (0.8s)
+      setTimeout(() => {
+
+        // Collect the cards
+        existingCards.forEach(card =>
+          card.classList.add('collecting')
+        );
+
+        // After the collecting animation (0.5s)
+        setTimeout(() => {
+          cardContainer.innerHTML = '';
+          const maxCards = DEV_MODE ? 99 : 3;
+          const names = nameRandomiser.next(maxCards);
+          const messages = messageRandomiser.next(maxCards);
+          const symbols = symbolRandomiser.next(maxCards);
+
+          for (let i = 0; i < maxCards; i++) {
+            const cardData = createCard(names[i], messages[i], symbols[i]);
+            const cardEl = document.createElement('div');
+            cardEl.classList.add('card');
+            cardEl.tabIndex = 0;
+
+            cardEl.innerHTML = `
+                <div class="card-inner">
+                  <div class="card-face card-back">
+                    ~
+                  </div>
+                  <div class="card-face card-front">
+                    <div class="card-name">${cardData.name}</div>
+                    <div class="card-art">${cardData.symbol}</div>
+                    <div class="card-message">${cardData.message}</div>
+                    <div class="card-symbol">${cardData.symbol}</div>
+                  </div>
+                </div>
+              `;
+
+            cardContainer.appendChild(cardEl);
+
+            const frontFace = cardEl.querySelector('.card-front');
+            frontFace.style.backgroundColor = getRandomColour();
+
+            if (DEV_MODE) {
+              cardEl.classList.add('dealt');
+              cardEl.classList.add('flipped');
+            } else {
+              setTimeout(() => {
+                cardEl.classList.add('dealt');
+              }, i * DURATION_OF_EACH_CARD_DEAL);
+            }
+
+            cardEl.addEventListener('click', () =>
+              cardEl.classList.toggle('flipped')
+            );
+
+            cardEl.addEventListener('keydown', (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                e.stopPropagation();
+                cardEl.classList.toggle('flipped');
+              }
+            });
+          }
+
+          // Wait for the cards to be collected
+        }, firstHand ? 0 : DURATION_OF_CARD_COLLECTION);
+
+        // Wait for the flip to finish
+      }, anyFlipped ? DURATION_OF_CARD_FLIP_BEFORE_NEW_DEAL : 0);
+    }
+
+    dealButton.addEventListener('click', () => dealCards(false));
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, () => dealCards(false));
+    });
+
+    dealCards(true);
+
+  </script>
+</body>
+
+</html>

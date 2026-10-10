@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+A little lo-fi animation of a stick figure fishing off a pier.
+The fish are named after tilde.town users.
+It's just a canvas animation using monospace text to simulate an ASCII art style.
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="fishing for friends">
+  <title>~ pier ~</title>
+  <style>
+    html,
+    body {
+      overflow: hidden;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      margin: 0;
+      height: 100vh;
+      background-color: #000000;
+      color: #e0b0ff;
+      font-family: "Courier New", Courier, monospace;
+      line-height: 1.6;
+    }
+
+    main {
+      position: relative;
+      border: 1px solid #663399;
+      box-shadow: 0 0 15px #663399;
+    }
+
+    canvas {
+      display: block;
+      background-color: #000000;
+    }
+
+    #message-log {
+      position: absolute;
+      top: 0px;
+      left: 0;
+      width: 100%;
+      height: 200px;
+      padding-top: 50px;
+      text-align: center;
+      pointer-events: none;
+      z-index: 20;
+      overflow: hidden;
+    }
+
+    .log-entry {
+      display: inline-block;
+      margin-bottom: 5px;
+      color: #e0b0ff;
+      text-shadow:
+        -1px -1px 0 #000000,
+        0 -1px 0 #000000,
+        1px -1px 0 #000000,
+        -1px 0 0 #000000,
+        1px 0 0 #000000,
+        -1px 1px 0 #000000,
+        0 1px 0 #000000,
+        1px 1px 0 #000000,
+        0 0 4px #e0b0ff;
+      font-size: 16px;
+      text-decoration: none;
+      pointer-events: auto;
+      animation: fadeUp 6s forwards;
+    }
+
+    .log-entry:hover {
+      color: #ffffff;
+      text-shadow:
+        -1px -1px 0 #000000,
+        0 -1px 0 #000000,
+        1px -1px 0 #000000,
+        -1px 0 0 #000000,
+        1px 0 0 #000000,
+        -1px 1px 0 #000000,
+        0 1px 0 #000000,
+        1px 1px 0 #000000,
+        0 0 6px #ffffff;
+    }
+
+    .log-entry span.log-name {
+      color: #ffffff;
+      text-shadow:
+        -1px -1px 0 #000000,
+        0 -1px 0 #000000,
+        1px -1px 0 #000000,
+        -1px 0 0 #000000,
+        1px 0 0 #000000,
+        -1px 1px 0 #000000,
+        0 1px 0 #000000,
+        1px 1px 0 #000000,
+        0 0 5px #ffffff;
+    }
+
+    .canvas-link {
+      position: absolute;
+      z-index: 10;
+      text-decoration: none;
+    }
+
+    /* Useful for debugging, but comment this out in prod */
+    /*
+    .canvas-link:hover {
+      background: rgba(224, 176, 255, 0.12);
+    }
+    */
+
+    @keyframes fadeUp {
+      0% {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      10% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      90% {
+        opacity: 1;
+      }
+
+      100% {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <div id="message-log"></div>
+    <a id="man-link" class="canvas-link"></a>
+    <a id="bucket-link" class="canvas-link"></a>
+    <canvas id="fishing-canvas"></canvas>
+  </main>
+
+  <script src="../../common/tilde-town-users.js"></script>
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('tilde-pier');
+
+    const main = document.querySelector('main');
+    const canvas = document.getElementById('fishing-canvas');
+    const ctx = canvas.getContext('2d');
+
+    const cfg = {
+      width: 800,
+      height: 500,
+      fontSize: 18,
+      fontFamily: "'Courier New', Courier, monospace",
+      primaryColor: '#e0b0ff',
+      secondaryColor: '#663399',
+      waterLevel: 350,
+      pierHeight: 300,
+      pierStart: 0,
+      pierEnd: 300,
+    };
+
+    canvas.width = cfg.width;
+    canvas.height = cfg.height;
+    ctx.font = `${cfg.fontSize}px ${cfg.fontFamily}`;
+
+    const STATE = {
+      IDLE: 'idle',
+      BITE: 'bite',
+      REELING: 'reeling',
+      CATCHING: 'catching',
+    };
+
+    let state = STATE.IDLE;
+    let timer = 0;
+    let nextBiteTime = LAB.randInt(100, 300);
+    let fish = null;
+    let bucket = [];
+
+    const assets = {
+      man: {
+        idle: [
+          "       ",
+          "   O",
+          "  /|\\",
+          "  / \\",
+        ],
+        bite: [
+          "       ",
+          "    O",
+          "   /|\\",
+          "   / \\",
+        ],
+        reeling: [
+          "       ",
+          "  \\O/",
+          "   |",
+          "  / \\",
+        ]
+      },
+      bucket: [
+        "        ",
+        "        ",
+        " \\____/ "
+      ],
+      smallFish: "><>"
+    };
+
+    const manPos = { x: 200, y: cfg.pierHeight - 65 };
+    const bucketPos = { x: 100, y: cfg.pierHeight - 50 };
+
+    function placeCanvasLink(id, pos, lines, cols) {
+      const el = document.getElementById(id);
+      el.href = LAB.pageRandomiser.nextOne();
+      el.style.left = (pos.x - 4) + 'px';
+      el.style.top = (pos.y - cfg.fontSize) + 'px';
+      el.style.width = (cols * 11) + 'px';
+      el.style.height = (lines * cfg.fontSize + 8) + 'px';
+    }
+
+    placeCanvasLink('man-link', manPos, 5, 9);
+    placeCanvasLink('bucket-link', bucketPos, 4, 9);
+
+    const bgFishList = [];
+    for (let i = 0; i < 5; i++) {
+      bgFishList.push({
+        x: LAB.randInt(0, cfg.width),
+        y: LAB.randInt(cfg.waterLevel + 20, cfg.height - 20),
+        vx: (Math.random() * 0.5 + 0.2) * (LAB.chance(0.5) ? 1 : -1)
+      });
+    }
+
+    class Cloud {
+      static cloudArt = [
+        [
+          "   .--.   ",
+          " .(    ). ",
+          "(___.__)  "
+        ], [
+          "     ._   ",
+          "   .(  ). ",
+          "  (_.__)  "
+        ], [
+          "   .--.   ",
+          " .(    ). ",
+          " (  .__)  "
+        ],
+      ];
+
+      constructor() {
+        this.x = LAB.randInt(0, cfg.width);
+        this.y = LAB.randInt(20, 100);
+        this.#randomiseProps();
+      }
+
+      update() {
+        this.x += this.vx;
+        if (this.x > cfg.width + 50) {
+          this.x = -50;
+          this.#randomiseProps();
+        }
+      }
+
+      draw() {
+        drawArt(this.art, this.x, this.y, '#9966cc');
+      }
+
+      #randomiseProps() {
+        this.vx = Math.random() * 0.2 + 0.05;
+
+        const r = LAB.randInt(1, Cloud.cloudArt.length);
+        this.art = Cloud.cloudArt[r - 1];
+
+        this.y = LAB.randInt(20, 120);
+      }
+    }
+
+    const clouds = [];
+    for (let i = 0; i < 3; i++) clouds.push(new Cloud());
+
+    class Seagull {
+      constructor(type) {
+        this.type = type;
+        this.#randomiseX();
+        this.#randomiseAllButX();
+      }
+
+      update() {
+        this.x += this.vx;
+        this.flapTimer++;
+        const flightOverLeft = (this.x < -20);
+        const flightOverRight = (this.x > cfg.width + 20);
+        if (flightOverLeft) this.x = cfg.width + 20;
+        if (flightOverRight) this.x = -20;
+        if (flightOverLeft || flightOverRight) this.#randomiseAllButX();
+      }
+
+      draw() {
+        const art = (this.type === 'close')
+          ? ((Math.floor(this.flapTimer / this.flapSpeed) % 2 === 0) ? '\\_/' : '/ \\')
+          : ((Math.floor(this.flapTimer / this.flapSpeed) % 2 === 0) ? 'm' : '^');
+        ctx.fillText(art, this.x, this.y);
+      }
+
+      #randomiseX() {
+        this.x = LAB.randInt(0, cfg.width);
+      }
+
+      #randomiseAllButX() {
+        this.#randomiseVX();
+        this.#randomiseY();
+        this.#randomiseFlapTimer();
+        this.#randomiseFlapSpeed();
+      }
+
+      #randomiseVX() {
+        if (this.type === 'close') {
+          this.vx = (Math.random() * 0.5 + 0.5) * (LAB.chance(0.5) ? 1 : -1);
+        } else {
+          this.vx = (Math.random() * 0.2 + 0.2) * (LAB.chance(0.5) ? 1 : -1);
+        }
+      }
+
+      #randomiseY() {
+        if (this.type === 'close') {
+          this.y = LAB.randInt(20, 170);
+        } else {
+          this.y = LAB.randInt(10, 120);
+        }
+      }
+
+      #randomiseFlapTimer() {
+        this.flapTimer = LAB.randInt(0, 100);
+      }
+
+      #randomiseFlapSpeed() {
+        if (this.type === 'close') {
+          this.flapSpeed = 15;
+        } else {
+          this.flapSpeed = 30;
+        }
+      }
+    }
+
+    const seagulls = [];
+    for (let i = 0; i < 3; i++) seagulls.push(new Seagull('close'));
+    for (let i = 0; i < 5; i++) seagulls.push(new Seagull('far'));
+    const rodTip = {
+      idle: { x: manPos.x + 66, y: manPos.y + 10 },
+      bite: { x: manPos.x + 94, y: manPos.y + 50 },
+      reeling: { x: manPos.x + 26, y: manPos.y - 10 }
+    };
+    const handPos = {
+      idle: { x: manPos.x + 52, y: manPos.y + 40 },
+      bite: { x: manPos.x + 66, y: manPos.y + 40 },
+      reeling: { x: manPos.x + 52, y: manPos.y + 8 }
+    };
+    const lineEndIdle = { x: manPos.x + 300, y: cfg.waterLevel + 20 };
+
+    const nameRandomiser = new LAB.CyclicRandomiser(tildeTownUsers);
+
+    function drawText(text, x, y, color = cfg.primaryColor) {
+      ctx.fillStyle = color;
+      ctx.fillText(text, x, y);
+    }
+
+    function drawArt(lines, x, y, color = cfg.primaryColor) {
+      ctx.fillStyle = color;
+      lines.forEach((line, i) => {
+        ctx.fillText(line, x, y + (i * cfg.fontSize));
+      });
+    }
+
+    function drawPier() {
+      ctx.fillStyle = cfg.secondaryColor;
+      for (let x = cfg.pierStart; x < cfg.pierEnd; x += 10) {
+        drawText('=', x, cfg.pierHeight, cfg.secondaryColor);
+      }
+      for (let x = cfg.pierStart + 20; x < cfg.pierEnd; x += 60) {
+        for (let y = cfg.pierHeight + 10; y < cfg.height; y += 15) {
+          drawText('|', x, y, cfg.secondaryColor);
+          drawText('|', x + 10, y, cfg.secondaryColor);
+        }
+      }
+    }
+
+    function drawWater() {
+      const time = Date.now() / 500;
+      ctx.fillStyle = '#663399';
+      for (let y = cfg.waterLevel; y < cfg.height; y += 20) {
+        let offset = Math.sin(time + y) * 10;
+        let row = '';
+        for (let i = 0; i < 80; i++) row += '~';
+        ctx.fillText(row, -20 + offset, y);
+      }
+    }
+
+    // Actually, I think this is a bit too messy.
+    // Let's just return early from the function.
+    // Maybe I can make it prettier some day.
+    function drawSky() {
+      return;
+
+      clouds.forEach(cloud => {
+        cloud.update();
+        cloud.draw();
+      });
+
+      ctx.fillStyle = '#9966cc';
+      seagulls.forEach(gull => {
+        gull.update();
+        gull.draw();
+      });
+    }
+
+    function drawBgFish() {
+      ctx.fillStyle = '#9966cc';
+      bgFishList.forEach(fish => {
+        fish.x += fish.vx;
+        if (fish.x > cfg.width + 20) fish.x = -20;
+        if (fish.x < -20) fish.x = cfg.width + 20;
+
+        const drawnArt = fish.vx > 0 ? '><>' : '<><';
+        ctx.fillText(drawnArt, fish.x, fish.y);
+      });
+    }
+
+    function drawRodAndLine() {
+      let tip = rodTip.idle;
+      let end = lineEndIdle;
+      let color = cfg.primaryColor;
+
+      if (state === STATE.BITE) {
+        tip = rodTip.bite;
+        const struggleX = Math.sin(timer * 0.5) * 3;
+        const struggleY = Math.abs(Math.sin(timer * 0.8)) * 5;
+        end = { x: lineEndIdle.x + struggleX, y: lineEndIdle.y + struggleY };
+      } else if (state === STATE.REELING || state === STATE.CATCHING) {
+        tip = rodTip.reeling;
+        if (fish) {
+          end = { x: fish.x, y: fish.y };
+        } else {
+          end = rodTip.reeling;
+        }
+      }
+
+      let hand;
+      if (state === STATE.BITE) {
+        hand = handPos.bite;
+      } else if (state === STATE.REELING || state === STATE.CATCHING) {
+        hand = handPos.reeling;
+      } else {
+        hand = handPos.idle;
+      }
+
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(hand.x, hand.y);
+      ctx.lineTo(tip.x, tip.y);
+      ctx.stroke();
+
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(tip.x, tip.y);
+
+      if (state === STATE.IDLE) {
+        ctx.quadraticCurveTo(tip.x, end.y, end.x, end.y);
+      } else {
+        ctx.lineTo(end.x, end.y);
+      }
+      ctx.stroke();
+
+      if (!fish) {
+        drawText('J', end.x - 4, end.y + 7, '#ffffff');
+        if (state === STATE.IDLE || state === STATE.BITE) {
+          let size = (Math.sin(Date.now() / 300) + 1) * 5;
+          ctx.strokeStyle = cfg.secondaryColor;
+          ctx.beginPath();
+          ctx.ellipse(end.x, end.y + 5, size, size / 2, 0, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      }
+    }
+
+    function logCatch(name) {
+      const log = document.getElementById('message-log');
+      log.replaceChildren();
+
+      const len = name.length;
+      let comment;
+      if (len <= 6) comment = "It's small, but it has plenty of fight!";
+      else if (len <= 10) comment = "It's a solid catch!";
+      else if (len <= 14) comment = "It's a lunker!";
+      else comment = "It's so heavy, it almost knocks you over!";
+
+      // 8, 11, 18 start with a vowel sound
+      const article = (len === 8 || len === 11 || len === 18) ? 'an' : 'a';
+
+      const entry = document.createElement('a');
+      entry.className = 'log-entry';
+      entry.href = LAB.pageRandomiser.nextOne();
+      entry.innerHTML = `You caught ${article} ${len}-inch <span class="log-name">${name}</span> fish!<br>${comment}`;
+      log.appendChild(entry);
+
+      setTimeout(() => {
+        if (entry.parentNode) entry.parentNode.removeChild(entry);
+      }, 6000);
+    }
+
+    function update() {
+      ctx.clearRect(0, 0, cfg.width, cfg.height);
+
+      drawSky();
+      drawWater();
+      drawBgFish();
+      drawPier();
+
+      drawArt(assets.bucket, bucketPos.x, bucketPos.y);
+
+      if (bucket.length > 0) {
+        drawText(bucket.length.toString(), bucketPos.x + 25, bucketPos.y + 35, '#ffffff');
+      }
+
+      if (state === STATE.IDLE) {
+        timer++;
+        if (timer > nextBiteTime) {
+          state = STATE.BITE;
+          timer = 0;
+          nextBiteTime = LAB.randInt(80, 120);
+        }
+        drawArt(assets.man.idle, manPos.x, manPos.y);
+
+      } else if (state === STATE.BITE) {
+        timer++;
+        drawArt(assets.man.bite, manPos.x, manPos.y);
+
+        if (timer > nextBiteTime) {
+          state = STATE.REELING;
+          timer = 0;
+
+          const name = nameRandomiser.nextOne();
+          fish = {
+            name: name,
+            x: lineEndIdle.x,
+            y: lineEndIdle.y,
+            vx: -LAB.randInt(4, 8),
+            vy: -LAB.randInt(10, 16),
+            rot: 0
+          };
+        }
+
+      } else if (state === STATE.REELING) {
+        drawArt(assets.man.reeling, manPos.x, manPos.y);
+
+        fish.x += fish.vx;
+        fish.y += fish.vy;
+        fish.vy += 0.4;
+        fish.rot += 0.1;
+
+        ctx.save();
+        ctx.translate(fish.x, fish.y);
+        ctx.rotate(Math.atan2(fish.vy, fish.vx));
+        drawText('>' + fish.name + '>', 0, 0, '#ffffff');
+        ctx.restore();
+
+        const landedInBucket = (fish.y > bucketPos.y && fish.x < bucketPos.x + 10 && fish.x > bucketPos.x);
+        const missedTheBucket = (fish.y > cfg.height);
+
+        if (landedInBucket) {
+          bucket.push(fish.name);
+          logCatch(fish.name);
+        }
+
+        if (landedInBucket || missedTheBucket) {
+          fish = null;
+          state = STATE.IDLE;
+          nextBiteTime = LAB.randInt(200, 1000);
+        }
+      }
+
+      drawRodAndLine();
+
+      requestAnimationFrame(update);
+    }
+
+    function triggerBite() {
+      if (state !== STATE.IDLE) return;
+      state = STATE.BITE;
+      timer = 0;
+      nextBiteTime = LAB.randInt(80, 120);
+    }
+
+    function resize() {
+      const scale = Math.min(
+        window.innerWidth / main.offsetWidth,
+        window.innerHeight / main.offsetHeight,
+        1
+      );
+      main.style.transform = `scale(${scale})`;
+    }
+
+    window.addEventListener('resize', resize);
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) triggerBite();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, triggerBite);
+    });
+
+    resize();
+    update();
+
+  </script>
+</body>
+
+</html>

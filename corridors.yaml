@@ -2065,3 +2065,10 @@ corridors:
     tags: [mobile, nature, tilde, unicode]
     visual_description: >-
       A lo-fi canvas animation of an ASCII-art stick figure fishing off a pier. The pier is built from '=' and '|' characters, the water from drifting rows of '~', and small '><>' fish swim by. Every so often there's a bite, and a fish named after a tilde.town user is reeled in and flung toward the bucket, its name appearing in a fading message log. The figure, the bucket, and each caught name are clickable links to a random corridor.
+  - id: tilde-pet
+    title: Tilde Pet
+    created: 2026-10-11 14:40
+    links: dynamic
+    tags: [game, tilde, unicode]
+    visual_description: >-
+      A hungry, hungry pet rendered as glowing ASCII art in pale purple on a black background. A circle of onlookers - small stick figures in random pastel colours, each bearing a tilde.town username - drifts in to gather around the pet, occasionally emitting lines of chatter in little floating dialogue bubbles. Clicking the "feed" button makes the pet swallow one random onlooker; after eating enough it evolves, announced in a modal, from a fish into a cat and then into a ravenous tilde-beast. If the onlookers run out the pet eats you instead, growing to fill the screen and ending the game. Each onlooker is a clickable link to a random corridor, and the final "YOU!" link to a random corridor.

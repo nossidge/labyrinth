@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+A Tamagotchi-style 'game' where you nurture a pet by feeding it.
+It does the Pokemon thing where it evolves into a more advanced form after a bit.
+This is kind of like one of those incremental games, but it only takes a minute or two to play.
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="A hungry hungry pet that you can feed with your friends">
+  <title>~ pet ~</title>
+  <style>
+    body {
+      display: flex;
+      min-height: 100vh;
+      margin: 0;
+      background-color: #000000;
+      color: #e0b0ff;
+      font-family: 'Courier New', Courier, monospace;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    #pet-container {
+      position: relative;
+      margin-top: 200px;
+      text-align: center;
+    }
+
+    #pet {
+      color: #e0b0ff;
+      text-shadow: 0 0 8px #e0b0ff;
+      font-size: 24px;
+      line-height: 1;
+      white-space: pre;
+      transition: transform 0.2s ease-in-out;
+    }
+
+    #pet.happy {
+      transform: scale(1.05);
+    }
+
+    #stats-container {
+      margin-top: 20px;
+      font-size: 16px;
+      text-align: center;
+    }
+
+    #stats-eaten {
+      visibility: hidden;
+    }
+
+    button {
+      padding: 10px 20px;
+      margin-top: 20px;
+      background-color: #663399;
+      color: #e0b0ff;
+      border: 1px solid #e0b0ff;
+      box-shadow: 0 0 10px #663399;
+      font-family: inherit;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #e0b0ff;
+      color: #000000;
+    }
+
+    button.cooldown {
+      background: linear-gradient(to right, #552288 50%, #000000 50%);
+      background-size: 200% 100%;
+      animation: fill-up 4000ms linear forwards;
+      pointer-events: none;
+    }
+
+    @keyframes fill-up {
+      from {
+        background-position: 100% 0;
+      }
+
+      to {
+        background-position: 0 0;
+      }
+    }
+
+    .pet-dialogue {
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      color: #e0b0ff;
+      text-shadow:
+        1px 1px 2px #663399,
+        0 0 2em #e0b0ff,
+        0 0 0.4em #e0b0ff;
+      white-space: nowrap;
+      font-size: 26px;
+      transform: translateX(-50%);
+      animation: float-up 3s ease-out forwards;
+      opacity: 0;
+    }
+
+    @keyframes float-up {
+      0% {
+        transform: translate(-50%, 0);
+        opacity: 1;
+      }
+
+      100% {
+        transform: translate(-50%, -150px);
+        opacity: 0;
+      }
+    }
+
+    @keyframes person-float-up {
+      0% {
+        transform: translate(-50%, -50%) rotate(-90deg) translateY(0px);
+        opacity: 1;
+      }
+
+      100% {
+        transform: translate(-50%, -50%) rotate(-90deg) translateY(-80px);
+        opacity: 0;
+      }
+    }
+
+    .person-dialogue {
+      position: absolute;
+      left: -20px;
+      top: 50%;
+      color: #e0b0ff;
+      white-space: nowrap;
+      animation: person-float-up 5s ease-out forwards;
+      opacity: 0;
+    }
+
+    .person-wrapper {
+      position: absolute;
+      transform: rotate(90deg);
+      transition: opacity 2s ease-out, left 2s ease-out, top 2s ease-out;
+    }
+
+    .person {
+      display: block;
+      margin: 1em 0;
+      text-decoration: none;
+      font-family: monospace;
+      font-size: 18px;
+      white-space: pre;
+      transition: all 1s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .person:hover {
+      color: #e0b0ff !important;
+      text-shadow: 0 0 8px #e0b0ff;
+      z-index: 10;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .person-wrapper:hover {
+      z-index: 10;
+    }
+
+    .person-wrapper::after {
+      content: attr(data-name);
+      position: absolute;
+      left: -20px;
+      top: 50%;
+      transform: translate(-50%, -50%) rotate(-90deg);
+      color: #ffffff;
+      text-shadow: 0 0 8px #e0b0ff;
+      white-space: nowrap;
+      font-size: 14px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .person-wrapper:hover::after {
+      opacity: 1;
+    }
+
+    .person.feeding {
+      /* 630 = 720 - 90 */
+      transform: translate(var(--translateX, 0), var(--translateY, 0)) scale(0) rotate(630deg);
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.8);
+      z-index: 2;
+      overflow: auto;
+      animation: fadeIn 0.5s;
+    }
+
+    .modal-content {
+      margin: 10% auto auto auto;
+      padding: 20px;
+      width: 80%;
+      max-width: 600px;
+      background-color: #000000;
+      border: 1px solid #e0b0ff;
+      text-align: center;
+      font-size: 20px;
+    }
+
+    .end-game-you {
+      color: #e0b0ff;
+      text-shadow:
+        1px 1px 2px #663399,
+        0 0 2em #e0b0ff,
+        0 0 0.4em #e0b0ff;
+      font-size: 30px;
+      font-weight: bold;
+      text-decoration: none;
+    }
+
+    .evolution-display {
+      display: flex;
+      margin-bottom: 20px;
+      text-align: center;
+      justify-content: space-around;
+      align-items: center;
+    }
+
+    .evolution-art {
+      white-space: pre;
+      font-size: 26px;
+    }
+
+    .evolution-pet {
+      text-shadow:
+        1px 1px 2px #663399,
+        0 0 2em #e0b0ff,
+        0 0 0.4em #e0b0ff;
+      text-align: center;
+    }
+
+    .evolution-name {
+      color: #e0b0ff;
+      text-shadow:
+        1px 1px 2px #663399,
+        0 0 2em #e0b0ff,
+        0 0 0.4em #e0b0ff;
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes fadeOut {
+      from {
+        opacity: 1;
+      }
+
+      to {
+        opacity: 0;
+      }
+    }
+
+    .fade-out {
+      animation: fadeOut 1s forwards;
+    }
+
+    .pet-eats-player {
+      animation: pet-eats-player-1 2s ease-in-out forwards, pet-eats-player-2 1s 2s ease-in-out forwards;
+    }
+
+    @keyframes pet-eats-player-1 {
+      from {
+        transform: scale(1);
+      }
+
+      to {
+        transform: scale(2);
+      }
+    }
+
+    @keyframes pet-eats-player-2 {
+      from {
+        transform: scale(2);
+      }
+
+      to {
+        transform: scale(100);
+      }
+    }
+
+    #end-game-overlay {
+      position: fixed;
+      display: none;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #000;
+      z-index: 1;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="pet-container">
+    <pre id="pet"></pre>
+  </div>
+
+  <div id="stats-container">
+    <div id="stats-onlookers">onlookers: 0</div>
+    <div id="stats-eaten">eaten: 0</div>
+  </div>
+
+  <button id="feed-button">~ feed ~</button>
+
+  <div class="modal" id="evolution-modal">
+    <div class="modal-content">
+      <p>What? Your pet is evolving!</p>
+      <div class="evolution-display">
+        <div class="evolution-pet">
+          <pre id="evolution-from" class="evolution-art"></pre>
+          <p id="evolution-from-name" class="evolution-name"></p>
+        </div>
+        <p>evolved into</p>
+        <div class="evolution-pet">
+          <pre id="evolution-to" class="evolution-art"></pre>
+          <p id="evolution-to-name" class="evolution-name"></p>
+        </div>
+      </div>
+      <button id="evolution-okay-button">~ okay ~</button>
+    </div>
+  </div>
+
+  <div class="modal" id="end-game-modal">
+    <div class="modal-content">
+      <p>The pet had no one else to eat,</p>
+      <p>so it ate</p>
+      <a class="end-game-you" href="../index.html">YOU!</a>
+    </div>
+  </div>
+
+  <div id="end-game-overlay"></div>
+
+  <script src="../../common/tilde-town-users.js"></script>
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('tilde-pet');
+
+    const feedButton = document.getElementById('feed-button');
+    const petContainer = document.getElementById('pet-container');
+    const pet = document.getElementById('pet');
+    const evolutionModal = document.getElementById('evolution-modal');
+    const evolutionFrom = document.getElementById('evolution-from');
+    const evolutionTo = document.getElementById('evolution-to');
+    const evolutionOkayButton = document.getElementById('evolution-okay-button');
+    const statsContainer = document.getElementById('stats-container');
+    const endGameModal = document.getElementById('end-game-modal');
+    const endGameOverlay = document.getElementById('end-game-overlay');
+    const statsEaten = document.getElementById('stats-eaten');
+
+    const EVOLUTION_STEP_1 = 10;
+    const EVOLUTION_STEP_2 = 20;
+    const FEED_COOLDOWN = 4000;
+    const DIALOGUE_COOLDOWN = 5555;
+    const NEW_PERSON_COOLDOWN = 12000;
+    const INITIAL_ONLOOKERS = 15;
+    const MAX_ONLOOKERS = 20;
+    const MIN_ANGLE_DIFFERENCE = Math.PI / 32;
+
+    const pets = [
+      {
+        name: 'fish',
+        art: [
+          ['><(((º>'],
+          ['><(((°>'],
+          ['><(((O>'],
+          ['><(((->'],
+        ],
+        dialogue: [
+          "A beautiful little fish!",
+          "Can you pet a fish?",
+          "Does anyone know what it eats?",
+          "Fish are friends!",
+          "Fish are my favourite mammal.",
+          "I just want to hold him for a second.",
+          "I think it winked at me.",
+          "Is it getting bigger?",
+          "Look at his little face.",
+          "That's a lot of teeth...",
+          "This is the best fish I've ever seen.",
+          "What time is feeding time?",
+        ],
+      }, {
+        name: 'cat',
+        art: [
+          [
+            String.raw` /\_/\ `,
+            String.raw`( o.o )`,
+            String.raw` > ^ < `,
+          ],
+          [
+            String.raw` /\_/\ `,
+            String.raw`( ^.^ )`,
+            String.raw` > ^ < `,
+          ],
+          [
+            String.raw` /\_/\ `,
+            String.raw`( O.O )`,
+            String.raw` > ^ < `,
+          ],
+          [
+            String.raw` /\_/\ `,
+            String.raw`( -.- )`,
+            String.raw` > ^ < `,
+          ],
+        ],
+        dialogue: [
+          "Cats are my favourite fish.",
+          "Good kitty. Good kitty. Please be a good kitty.",
+          "Has anyone seen {DEAD_USER}?",
+          "I just counted, and there's fewer of us...",
+          "I still think it's very cute.",
+          "I'm going to stand behind someone taller.",
+          "It was a fish earlier. I'm not making this up.",
+          "It's still cute!",
+          "Such a pretty all-devouring monster!",
+          "Was that a purr or a growl?",
+          "Where's {DEAD_USER}? They were just here.",
+        ],
+      }, {
+        name: 'tilde-beast',
+        art: [
+          [
+            String.raw` ^   ^ `,
+            String.raw`( ~_~ )`,
+            String.raw`( (o) )`,
+            String.raw`~(~~~)~`,
+            String.raw`  ~ ~  `,
+            String.raw` ~   ~ `,
+          ],
+          [
+            String.raw` ^   ^ `,
+            String.raw`( ^_^ )`,
+            String.raw`( (o) )`,
+            String.raw`~(~~~)~`,
+            String.raw`  ~ ~  `,
+            String.raw` ~   ~ `,
+          ],
+          [
+            String.raw` ^   ^ `,
+            String.raw`( o_o )`,
+            String.raw`( (o) )`,
+            String.raw`~(~~~)~`,
+            String.raw`  ~ ~  `,
+            String.raw` ~   ~ `,
+          ],
+          [
+            String.raw` ^   ^ `,
+            String.raw`( -_- )`,
+            String.raw`( (o) )`,
+            String.raw`~(~~~)~`,
+            String.raw`  ~ ~  `,
+            String.raw` ~   ~ `,
+          ],
+        ],
+        dialogue: [
+          "Don't panic. Don't panic!!!",
+          "How many of us are left?",
+          "I doubt it would eat MY face.",
+          "I hope I taste nice.",
+          "I knew I should have stayed home today.",
+          "I miss {DEAD_USER}.",
+          "I should've left when it was a fish.",
+          "I'm hypnotised by its beautiful eyes.",
+          "Nope. Nope. Nope. Nope.",
+          "Run. RUN. Which way? Any way.",
+          "So majestic. So ravenous.",
+          "Tell my family I loved them.",
+          "This is fine. Everything's fine.",
+          "We need a decoy. Any volunteers?",
+          "We really ought to be running, surely?",
+          "Why are we all still standing here?",
+        ],
+      },
+    ];
+
+    const peopleFigures = [
+      String.raw`o-|-<`,
+      String.raw`o-\-<`,
+      String.raw`o-/-<`,
+      String.raw`o-[-<`,
+      String.raw`o-]-<`,
+      String.raw`o-+-<`,
+      String.raw`o-<-<`,
+    ];
+
+    const nameRandomiser = new LAB.CyclicRandomiser(tildeTownUsers);
+    const figureRandomiser = new LAB.CyclicRandomiser(peopleFigures);
+    let dialogueRandomiser = new LAB.CyclicRandomiser(pets[0].dialogue);
+
+    const personAngles = []
+    let currentPetIndex = 0;
+    let currentArtIndex = 0;
+
+    const statistics = {
+      endGame: false,
+      onlookers: 0,
+      eaten: 0,
+    }
+
+    const DEAD_USER = [];
+
+    // Colours should be similar to the theme colours #e0b0ff and #663399
+    function getRandomColour() {
+      const h = LAB.randInt(260, 320);
+      const s = LAB.randInt(50, 100);
+      const l = LAB.randInt(60, 90);
+      return `hsl(${h}, ${s}%, ${l}%)`;
+    }
+
+    function updateStats() {
+      const statsOnlookers = document.getElementById('stats-onlookers');
+      statsOnlookers.textContent = `onlookers: ${statistics.onlookers}`;
+
+      if (statistics.eaten > 0) {
+        statsEaten.style.visibility = `visible`;
+        statsEaten.textContent = `eaten: ${statistics.eaten}`;
+      }
+    }
+
+    function displayPet() {
+      pet.textContent = pets[currentPetIndex].art[currentArtIndex].join("\n");
+    }
+
+    function setPet(index) {
+      if (currentPetIndex === index) return;
+      currentPetIndex = index;
+      dialogueRandomiser = new LAB.CyclicRandomiser(pets[index].dialogue);
+    }
+
+    function addPerson() {
+      if (statistics.endGame) return;
+      if (statistics.onlookers >= MAX_ONLOOKERS) return;
+
+      const radius = 220;
+      const centerX = petContainer.offsetWidth / 2;
+      const centerY = petContainer.offsetHeight / 2;
+
+      // We store the angles of all previously drawn people to make sure they don't overlap
+      let angle;
+      let isTooClose;
+      let attempts = 0;
+
+      // Prevent infinite loops
+      const maxAttempts = 50;
+
+      do {
+        angle = LAB.rand(5 * Math.PI / 6, 13 * Math.PI / 6);
+        isTooClose = personAngles.some(existingAngle => {
+          const diff = Math.abs(angle - existingAngle);
+          return Math.min(diff, 2 * Math.PI - diff) < MIN_ANGLE_DIFFERENCE;
+        })
+        attempts++;
+      } while (isTooClose && attempts < maxAttempts)
+
+      // This shouldn't happen, since MAX_ONLOOKERS is 20 and MIN_ANGLE_DIFFERENCE is div 32
+      // Still I figured I'd best add it, in case I ever change these values
+      if (isTooClose) {
+        console.log(`Could not find a suitable angle for a new person after ${maxAttempts} attempts.`);
+
+        // Fallback to a random angle to ensure a person is still added
+        angle = LAB.rand(5 * Math.PI / 6, 13 * Math.PI / 6);
+      }
+
+      personAngles.push(angle);
+
+      const x = centerX + radius * Math.cos(angle) - 20;
+      const y = centerY + radius * Math.sin(angle) - 40;
+
+      // Start further out, then move inward
+      const startRadius = radius + 100;
+      const startX = centerX + startRadius * Math.cos(angle) - 20;
+      const startY = centerY + startRadius * Math.sin(angle) - 40;
+
+      const wrapper = document.createElement('div');
+      wrapper.className = 'person-wrapper';
+      wrapper.dataset.angle = angle;
+      wrapper.dataset.name = nameRandomiser.nextOne();
+      wrapper.style.left = `${startX}px`;
+      wrapper.style.top = `${startY}px`;
+      wrapper.style.opacity = 0;
+
+      const person = document.createElement('a');
+      person.className = 'person';
+      person.href = LAB.pageRandomiser.nextOne();
+      person.textContent = figureRandomiser.nextOne();
+      person.style.color = getRandomColour();
+
+      wrapper.appendChild(person);
+      petContainer.appendChild(wrapper);
+
+      // Trigger the transition
+      setTimeout(() => {
+        wrapper.style.left = `${x}px`;
+        wrapper.style.top = `${y}px`;
+        wrapper.style.opacity = 1;
+      }, 100)
+
+      statistics.onlookers++;
+      updateStats();
+    }
+
+    feedButton.addEventListener('click', () => {
+      if (feedButton.classList.contains('cooldown')) return;
+
+      if (statistics.onlookers === 0) {
+        endGame();
+        return;
+      }
+
+      const peopleElements = document.querySelectorAll('.person');
+      if (peopleElements.length === 0) return;
+
+      feedButton.classList.add('cooldown');
+      setTimeout(() => {
+        feedButton.classList.remove('cooldown');
+      }, FEED_COOLDOWN)
+
+      const personToFeed = LAB.sample(peopleElements);
+      const wrapper = personToFeed.parentElement;
+
+      const angleToRemove = parseFloat(wrapper.dataset.angle);
+      const indexToRemove = personAngles.indexOf(angleToRemove);
+      if (indexToRemove > -1) {
+        personAngles.splice(indexToRemove, 1);
+      }
+
+      const petCenterX = petContainer.offsetWidth / 2;
+      const petCenterY = petContainer.offsetHeight / 2;
+
+      const personX = wrapper.offsetLeft + wrapper.offsetWidth / 2;
+      const personY = wrapper.offsetTop + wrapper.offsetHeight / 2;
+
+      const dx = petCenterX - personX;
+      const dy = petCenterY - personY;
+
+      // The wrapper is rotated 90deg, so the translation for the child must be swapped
+      const translateX = dy;
+      const translateY = -dx;
+
+      personToFeed.style.setProperty('--translateX', `${translateX}px`);
+      personToFeed.style.setProperty('--translateY', `${translateY}px`);
+      personToFeed.classList.add('feeding');
+
+      setTimeout(() => {
+        wrapper.remove();
+      }, 1000)
+
+      statistics.eaten++;
+      statistics.onlookers--;
+      updateStats();
+
+      const previousPetIndex = currentPetIndex;
+
+      // Set the pet evolution based on people eaten
+      if (statistics.eaten < EVOLUTION_STEP_1) {
+        setPet(0);
+      } else if (statistics.eaten < EVOLUTION_STEP_2) {
+        setPet(1);
+      } else {
+        setPet(2);
+      }
+
+      if (currentPetIndex > previousPetIndex) {
+        showEvolutionModal(previousPetIndex, currentPetIndex);
+      } else {
+        pet.classList.add('happy');
+        setTimeout(() => pet.classList.remove('happy'), 200);
+
+        currentArtIndex = (currentArtIndex + 1) % pets[currentPetIndex].art.length;
+        displayPet();
+      }
+
+      const petName = pets[currentPetIndex].name;
+      const userName = wrapper.dataset.name;
+      DEAD_USER.push(userName);
+      const petDialogue = document.createElement('div');
+      petDialogue.textContent = `${userName} was eaten by the ${petName}`;
+      petDialogue.classList.add('pet-dialogue');
+      petContainer.appendChild(petDialogue);
+
+      setTimeout(() => {
+        petDialogue.remove();
+      }, 3000)
+    })
+
+    function showEvolutionModal(fromIndex, toIndex) {
+      evolutionFrom.textContent = pets[fromIndex].art[0].join('\n');
+      evolutionTo.textContent = pets[toIndex].art[0].join('\n');
+      document.getElementById('evolution-from-name').textContent = pets[fromIndex].name;
+      document.getElementById('evolution-to-name').textContent = pets[toIndex].name;
+      evolutionModal.style.display = 'block';
+
+      evolutionOkayButton.onclick = () => {
+        evolutionModal.style.display = 'none';
+        currentArtIndex = 0;
+        displayPet();
+      }
+    }
+
+    function endGame() {
+      statistics.endGame = true;
+      statsContainer.classList.add('fade-out');
+      feedButton.classList.add('fade-out');
+
+      setTimeout(() => {
+        petContainer.classList.add('pet-eats-player');
+      }, 1000)
+
+      setTimeout(() => {
+        endGameOverlay.style.display = 'block';
+        endGameOverlay.classList.add('fade-in');
+        endGameModal.style.display = 'block';
+      }, 4000)
+    }
+
+    function showPersonDialogue() {
+      if (statistics.endGame) return;
+
+      const peopleElements = document.querySelectorAll('.person-wrapper');
+      if (peopleElements.length === 0) return;
+
+      let dialogue = dialogueRandomiser.nextOne();
+      if (dialogue.includes('{DEAD_USER}')) {
+        if (DEAD_USER.length > 0) {
+          dialogue = dialogue.replace('{DEAD_USER}', LAB.sample(DEAD_USER));
+        } else {
+          let attempts = 0;
+          const maxAttempts = 10;
+          while (dialogue.includes('{DEAD_USER}') && attempts < maxAttempts) {
+            dialogue = dialogueRandomiser.nextOne();
+            attempts++;
+          }
+        }
+      }
+
+      const personDialogue = document.createElement('div');
+      personDialogue.textContent = dialogue;
+      personDialogue.classList.add('person-dialogue');
+
+      const personWrapper = LAB.sample(peopleElements);
+      personWrapper.appendChild(personDialogue);
+
+      setTimeout(() => {
+        personDialogue.remove();
+      }, 5000)
+    }
+
+    function init() {
+      document.querySelectorAll('.person-wrapper, .person-dialogue, .pet-dialogue').forEach(el => el.remove());
+      personAngles.length = 0;
+      setPet(0);
+      currentArtIndex = 0;
+      statistics.endGame = false;
+      statistics.onlookers = 0;
+      statistics.eaten = 0;
+      DEAD_USER.length = 0;
+      petContainer.classList.remove('pet-eats-player');
+      statsContainer.classList.remove('fade-out');
+      feedButton.classList.remove('fade-out');
+      endGameOverlay.style.display = 'none';
+      endGameModal.style.display = 'none';
+      evolutionModal.style.display = 'none';
+
+      displayPet();
+      updateStats();
+
+      for (let i = 0; i < INITIAL_ONLOOKERS; i++) {
+        setTimeout(() => addPerson(), i * 300);
+      }
+    }
+
+    init();
+
+    // Show a dialogue every so often
+    setInterval(showPersonDialogue, DIALOGUE_COOLDOWN);
+
+    // Create a new onlooker every so often
+    setInterval(addPerson, NEW_PERSON_COOLDOWN);
+
+  </script>
+</body>
+
+</html>

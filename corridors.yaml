@@ -2072,3 +2072,10 @@ corridors:
     tags: [game, tilde, unicode]
     visual_description: >-
       A hungry, hungry pet rendered as glowing ASCII art in pale purple on a black background. A circle of onlookers - small stick figures in random pastel colours, each bearing a tilde.town username - drifts in to gather around the pet, occasionally emitting lines of chatter in little floating dialogue bubbles. Clicking the "feed" button makes the pet swallow one random onlooker; after eating enough it evolves, announced in a modal, from a fish into a cat and then into a ravenous tilde-beast. If the onlookers run out the pet eats you instead, growing to fill the screen and ending the game. Each onlooker is a clickable link to a random corridor, and the final "YOU!" link to a random corridor.
+  - id: tilde-flock
+    title: Tilde Flock
+    created: 2026-10-12 16:01
+    links: 80
+    tags: [abstract, mobile, tilde]
+    visual_description: >-
+      A flock of tilde (~) characters drift across a cream background like a murmuration of seagulls. Each bird is steered by a simple boids-style update (cohesion toward a shared target, a speed cap, and a touch of random jitter) and rotates to face its direction of travel. Clicking anywhere on the page sets a new target point, and the whole swarm gradually wheels around to converge on it. Hovering any bird turns it deep red. Every tilde bird is a clickable link to a random corridor.

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Waka Flocka Seagulls">
+  <title>~ murmuration ~</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      background: #f4f1e6;
+      color: #2b2417;
+      font-family: Georgia, serif;
+      overflow: hidden;
+      cursor: crosshair;
+    }
+
+    main {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      touch-action: none;
+    }
+
+    .bird {
+      position: absolute;
+      display: flex;
+      width: 48px;
+      height: 48px;
+      color: #2b2417;
+      border-radius: 50%;
+      text-decoration: none;
+      font-size: 30px;
+      font-weight: bold;
+      justify-content: center;
+      align-items: center;
+      transition: color 0.15s;
+      will-change: transform;
+    }
+
+    .bird:hover {
+      color: #c4002a;
+      z-index: 10;
+    }
+  </style>
+</head>
+
+<body>
+  <main id="main"></main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('tilde-flock');
+
+    const main = document.getElementById('main');
+    const birds = [];
+
+    const COUNT = 80;
+    const JITTER = 0.15;
+    const SPEED_MAX = 2.5;
+
+    // Create a bunch of tilde-bird elements
+    for (let i = 0; i < COUNT; i++) {
+      const a = document.createElement('a');
+      a.className = 'bird';
+      a.innerText = '~';
+      a.href = LAB.pageRandomiser.nextOne();
+      main.appendChild(a);
+
+      birds.push({
+        el: a,
+        x: LAB.rand(0, window.innerWidth),
+        y: LAB.rand(0, window.innerHeight),
+        vx: LAB.rand(-1, 1),
+        vy: LAB.rand(-1, 1),
+      });
+    }
+
+    // This is the point all the tilde-birds migrate towards
+    let target = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+    document.addEventListener('click', e => {
+      target = { x: e.clientX, y: e.clientY };
+    });
+
+    function tick() {
+      for (const b of birds) {
+        // Cohesion toward target
+        const dx = target.x - b.x;
+        const dy = target.y - b.y;
+        const dist = Math.hypot(dx, dy) || 1;
+        b.vx += (dx / dist) * 0.04;
+        b.vy += (dy / dist) * 0.04;
+
+        // Random jitter
+        b.vx += LAB.rand(-JITTER, JITTER);
+        b.vy += LAB.rand(-JITTER, JITTER);
+
+        // Speed cap
+        const sp = Math.hypot(b.vx, b.vy);
+        if (sp > SPEED_MAX) {
+          b.vx = (b.vx / sp) * SPEED_MAX;
+          b.vy = (b.vy / sp) * SPEED_MAX;
+        }
+
+        b.x += b.vx;
+        b.y += b.vy;
+
+        const rot = Math.atan2(b.vy, b.vx) * 180 / Math.PI;
+        b.el.style.transform = `translate(${b.x}px, ${b.y}px) rotate(${rot}deg)`;
+      }
+      requestAnimationFrame(tick);
+    }
+
+    tick();
+
+  </script>
+</body>
+
+</html>

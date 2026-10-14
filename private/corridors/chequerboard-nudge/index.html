@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Know what I mean, know what I mean?">
+  <title>Say no more</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      display: flex;
+      min-height: 100vh;
+      background-color: #000000;
+      color: #ffffff;
+      font-family: monospace;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    main {
+      display: grid;
+      width: min(600px, 90vmin);
+      aspect-ratio: 1 / 1;
+      overflow: hidden;
+      grid-template-columns: repeat(11, 1fr);
+      grid-template-rows: repeat(11, 1fr);
+    }
+
+    .check-tile {
+      display: flex;
+      width: 100%;
+      height: 100%;
+      color: inherit;
+      font-size: 18px;
+      font-weight: bold;
+      text-decoration: none;
+      justify-content: center;
+      align-items: center;
+      transition: transform 0.1s ease;
+    }
+
+    .check-tile.black {
+      background-color: #000000;
+      color: #ffffff;
+    }
+
+    .check-tile.white {
+      background-color: #ffffff;
+      color: #000000;
+    }
+
+    .check-tile:hover {
+      background-color: #ff0055 !important;
+      color: #ffffff !important;
+      box-shadow: 0 0 14px #ff0055;
+      transform: scale(1.1);
+      z-index: 10;
+    }
+
+    .tile-col,
+    .tile-row {
+      width: 100%;
+      height: 100%;
+    }
+
+    .tile-col.odd {
+      animation: nudge-col 6s ease-in-out infinite;
+    }
+
+    .tile-row.odd {
+      animation: nudge-row 6s ease-in-out infinite;
+    }
+
+    @keyframes nudge-col {
+
+      0%,
+      12%,
+      50%,
+      62%,
+      100% {
+        transform: translateY(0);
+      }
+
+      6% {
+        transform: translateY(-34%);
+      }
+
+      56% {
+        transform: translateY(34%);
+      }
+    }
+
+    @keyframes nudge-row {
+
+      0%,
+      25%,
+      37%,
+      75%,
+      87%,
+      100% {
+        transform: translateX(0);
+      }
+
+      31% {
+        transform: translateX(34%);
+      }
+
+      81% {
+        transform: translateX(-34%);
+      }
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.4) 50%);
+      background-size: 100% 2px;
+      pointer-events: none;
+      z-index: 100;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+  <main id="main"></main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('chequerboard-nudge');
+
+    const main = document.getElementById('main');
+    const cols = 11;
+    const rows = 11;
+    const symbols = ['■', '□', '▲', '△', '◆', '◇'];
+
+    function init() {
+      main.replaceChildren();
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const col = document.createElement('div');
+          const row = document.createElement('div');
+          const tile = document.createElement('a');
+
+          tile.href = LAB.pageRandomiser.nextOne();
+          tile.innerText = LAB.sample(symbols);
+
+          const isWhite = (r + c) % 2 !== 0;
+          tile.className = `check-tile ${isWhite ? 'white' : 'black'}`;
+
+          col.className = c % 2 === 0 ? 'tile-col odd' : 'tile-col';
+          row.className = r % 2 === 0 ? 'tile-row odd' : 'tile-row';
+
+          row.appendChild(tile);
+          col.appendChild(row);
+          main.appendChild(col);
+        }
+      }
+    }
+
+    function shuffleSymbols() {
+      const tiles = main.querySelectorAll('.check-tile');
+      tiles.forEach((tile, _i) => {
+        tile.innerText = LAB.sample(symbols);
+      });
+    }
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) shuffleSymbols();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, shuffleSymbols);
+    });
+
+    init();
+
+  </script>
+</body>
+
+</html>

@@ -2086,3 +2086,10 @@ corridors:
     tags: [emoji, major, pop, tech, tilde]
     visual_description: >-
       A digital altar to the dead web. A large glowing monitor emoji hovers above rows of flickering candle flames against a black background, lit in pale purple and deep violet. Stick-figure pilgrims named after tilde.town users shuffle in from the edges of the screen, bow before the shrine, drop emoji offerings - floppy disks, CD-ROMs, cassette tapes and such - onto the ground, then turn and leave. A scrolling eulogy log at the top of the screen records each rite (e.g. "pilgrim [name] left 💾 in memory of MySpace"). A "pay respects" button opens a modal where you choose an offering (from a handful of randomised emoji, or typed in) and a defunct site (randomised, or typed in), then join the procession as a pilgrim yourself. Each pilgrim and each dropped offering is a clickable link to a random corridor.
+  - id: chequerboard-nudge
+    title: Chequerboard Nudge
+    created: 2026-10-14 16:51
+    links: 121
+    tags: [abstract, crt, mobile, unicode]
+    visual_description: >-
+      A black-and-white checkerboard grid of 11x11 squares on a black background, each square with a random unicode symbol from '■□▲△◆◇'. The odd rows and columns nudge slowly in and out of phase. Hovering over a square turns it bright pink with a soft glow. Clicking the background or pressing any key reshuffles the symbols. Every square is a clickable link to a random corridor.

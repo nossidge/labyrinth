@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Scotch Game">
+  <title>1.e4 e5 2.Nf3 Nc6 3.d4</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      display: flex;
+      min-height: 100vh;
+      background-color: #000000;
+      font-size: 7vmin;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    main {
+      display: grid;
+      width: min(600px, 90vmin);
+      aspect-ratio: 1 / 1;
+      border: 2px solid #ffffff;
+      grid-template-columns: repeat(8, 12.5%);
+      grid-template-rows: repeat(8, 12.5%);
+    }
+
+    .board-tile {
+      display: flex;
+      color: inherit;
+      text-decoration: none;
+      justify-content: center;
+      align-items: center;
+      transition: transform 0.1s ease;
+    }
+
+    .board-tile.black {
+      background-color: #777777;
+    }
+
+    .board-tile.white {
+      background-color: #bbbbbb;
+    }
+
+    .board-tile.piece-black {
+      color: #000000;
+    }
+
+    .board-tile.piece-white {
+      color: #ffffff;
+    }
+
+    .board-tile:hover,
+    .board-tile:focus {
+      background-color: #ff0055 !important;
+      box-shadow: 0 0 14px #ff0055;
+      outline: none;
+      transform: scale(1.1);
+      z-index: 10;
+    }
+
+    .shudder {
+      transform: translate(2px, -2px);
+    }
+
+    .floater {
+      position: fixed;
+      z-index: 200;
+      pointer-events: none;
+      transition: transform 0.3s ease;
+    }
+
+    .floater.piece-black {
+      color: #000000;
+    }
+
+    .floater.piece-white {
+      color: #ffffff;
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.4) 50%);
+      background-size: 100% 2px;
+      pointer-events: none;
+      z-index: 100;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+  <main id="main"></main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('chessboard-shudder');
+
+    const main = document.getElementById('main');
+    const cols = 8;
+    const rows = 8;
+    const layout = [
+      ['♜', '♞', '♝', '♛', '♚', '♝', '♞', '♜'],
+      ['♟', '♟', '♟', '♟', '♟', '♟', '♟', '♟'],
+      [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+      [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+      [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+      [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+      ['♟', '♟', '♟', '♟', '♟', '♟', '♟', '♟'],
+      ['♜', '♞', '♝', '♛', '♚', '♝', '♞', '♜'],
+    ];
+
+    const scotch = [
+      {
+        square: 'e4',
+        move: { from: 'e2', to: 'e4', piece: '♟', side: 'piece-white' },
+        reply: { from: 'e7', to: 'e5', piece: '♟', side: 'piece-black' },
+      }, {
+        square: 'f3',
+        move: { from: 'g1', to: 'f3', piece: '♞', side: 'piece-white' },
+        reply: { from: 'b8', to: 'c6', piece: '♞', side: 'piece-black' },
+      }, {
+        square: 'd4',
+        move: { from: 'd2', to: 'd4', piece: '♟', side: 'piece-white' },
+        reply: null,
+      }
+    ];
+    let scotchStage = 0;
+    let scotchBusy = false;
+
+    function init() {
+      main.replaceChildren();
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const tile = document.createElement('a');
+          tile.href = LAB.pageRandomiser.nextOne();
+          const isWhite = (r + c) % 2 === 0;
+          const piece = layout[r][c];
+          tile.dataset.square = 'abcdefgh'[c] + (8 - r);
+          tile.className = `board-tile ${isWhite ? 'white' : 'black'}`;
+          tile.innerText = piece;
+          if (r < 2) {
+            tile.classList.add('piece-black');
+          } else if (r > 5) {
+            tile.classList.add('piece-white');
+          }
+          main.appendChild(tile);
+        }
+      }
+    }
+
+    function tileAt(square) {
+      const col = square.charCodeAt(0) - 97;
+      const row = 8 - Number(square[1]);
+      return main.children[row * cols + col];
+    }
+
+    function animateMove(move, done) {
+      const fromTile = tileAt(move.from);
+      const toTile = tileAt(move.to);
+      const fromRect = fromTile.getBoundingClientRect();
+      const toRect = toTile.getBoundingClientRect();
+      const fromX = fromRect.left + fromRect.width / 2;
+      const fromY = fromRect.top + fromRect.height / 2;
+      const dx = toRect.left + toRect.width / 2 - fromX;
+      const dy = toRect.top + toRect.height / 2 - fromY;
+
+      const floater = document.createElement('span');
+      floater.className = `floater ${move.side}`;
+      floater.textContent = move.piece;
+      floater.style.left = `${fromX}px`;
+      floater.style.top = `${fromY}px`;
+      floater.style.transform = 'translate(-50%, -50%)';
+      document.body.appendChild(floater);
+      fromTile.innerText = '';
+
+      let finished = false;
+      function finish() {
+        if (finished) return;
+        finished = true;
+        floater.remove();
+        toTile.innerText = move.piece;
+        toTile.classList.add(move.side);
+        done();
+      }
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          floater.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+        });
+      });
+      floater.addEventListener('transitionend', finish, { once: true });
+      setTimeout(finish, 600);
+    }
+
+    function shudder() {
+      const tiles = document.querySelectorAll('.board-tile');
+      tiles.forEach(tile => {
+        if (LAB.chance(0.08)) {
+          tile.classList.add('shudder');
+          setTimeout(() => tile.classList.remove('shudder'), 120);
+        }
+      });
+      setTimeout(shudder, 150);
+    }
+
+    main.addEventListener('click', (e) => {
+      const tile = e.target.closest('.board-tile');
+      if (!tile) return;
+      if (scotchBusy) {
+        e.preventDefault();
+        return;
+      }
+      const step = scotch[scotchStage];
+      if (step && tile.dataset.square === step.square) {
+        e.preventDefault();
+        e.target.blur();
+        scotchBusy = true;
+        animateMove(step.move, () => {
+          scotchStage++;
+          if (step.reply) {
+            setTimeout(() => {
+              animateMove(step.reply, () => scotchBusy = false);
+            }, 400);
+          } else {
+            scotchBusy = false;
+            setTimeout(() => location.assign(LAB.goto()), 400);
+          }
+        });
+      } else {
+        scotchStage = 0;
+      }
+    });
+
+    init();
+    shudder();
+
+  </script>
+</body>
+
+</html>

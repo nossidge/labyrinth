@@ -2093,3 +2093,10 @@ corridors:
     tags: [abstract, crt, mobile, unicode]
     visual_description: >-
       A black-and-white checkerboard grid of 11x11 squares on a black background, each square with a random unicode symbol from '■□▲△◆◇'. The odd rows and columns nudge slowly in and out of phase. Hovering over a square turns it bright pink with a soft glow. Clicking the background or pressing any key reshuffles the symbols. Every square is a clickable link to a random corridor.
+  - id: chessboard-shudder
+    title: Chessboard Shudder
+    created: 2026-10-15 15:00
+    links: 64
+    tags: [crt, mobile, secret, unicode]
+    visual_description: >-
+      An 8x8 chessboard of checkered grey and light-grey tiles centred on a black background, with unicode pieces occupying the two ranks at either end, black on top and white at the bottom. Tiles occasionally shudder out of position for a moment. Hovering over a tile flashes it bright pink with a glow and makes it grow slightly. Every tile is a clickable link to a random corridor.

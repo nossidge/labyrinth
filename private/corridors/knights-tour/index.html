@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+Warnsdorff's rule: always jump to the square with fewest onward moves
+https://en.wikipedia.org/wiki/Knight's_tour#Warnsdorff's_rule
+
+This doesn't have a 100% chance of success.
+The algorithm is only approximate.
+But it works more often than not.
+
+I made `chessboard-shudder` yesterday, and this page builds upon that.
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="follow your feet">
+  <title>A Knight's Tale</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      display: flex;
+      min-height: 100vh;
+      background-color: #000000;
+      font-size: 7vmin;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    main {
+      position: relative;
+      display: grid;
+      width: min(600px, 90vmin);
+      border: 2px solid #ffffff;
+      aspect-ratio: 1 / 1;
+      grid-template-columns: repeat(8, 12.5%);
+      grid-template-rows: repeat(8, 12.5%);
+      transition: border-color 0.4s ease, box-shadow 0.4s ease;
+    }
+
+    .board-tile {
+      position: relative;
+      display: flex;
+      color: inherit;
+      text-decoration: none;
+      justify-content: center;
+      align-items: center;
+      transition: transform 0.1s ease;
+    }
+
+    .board-tile.black {
+      background-color: #777777;
+    }
+
+    .board-tile.white {
+      background-color: #bbbbbb;
+    }
+
+    .board-tile:hover,
+    .board-tile:focus {
+      background-color: #ff0055 !important;
+      box-shadow: 0 0 14px #ff0055;
+      outline: none;
+      transform: scale(1.1);
+      z-index: 10;
+    }
+
+    .move-number {
+      position: absolute;
+      color: rgba(0, 0, 0, 0.55);
+      font-family: monospace;
+      font-size: 0.28em;
+      right: 6%;
+      bottom: 6%;
+      pointer-events: none;
+    }
+
+    #knight {
+      position: absolute;
+      display: flex;
+      width: 12.5%;
+      height: 12.5%;
+      top: 0;
+      left: 0;
+      justify-content: center;
+      align-items: center;
+      pointer-events: none;
+      z-index: 50;
+      transition: transform 0.3s ease;
+    }
+
+    .knight-glyph {
+      color: #140c04;
+      text-shadow: 0 0 6px rgba(255, 240, 200, 0.6);
+    }
+
+    main.complete {
+      border-color: #ff0055;
+      box-shadow: 0 0 30px #ff0055;
+    }
+
+    main.complete .knight-glyph {
+      animation: triumph 0.8s ease-in-out infinite;
+    }
+
+    @keyframes triumph {
+
+      0%,
+      100% {
+        transform: scale(1);
+      }
+
+      50% {
+        transform: scale(1.25);
+      }
+    }
+
+    .shudder {
+      transform: translate(2px, -2px);
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      width: 100vw;
+      height: 100vh;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.4) 50%);
+      background-size: 100% 2px;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      z-index: 100;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+  <main id="main"></main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('knights-tour');
+
+    const main = document.getElementById('main');
+    const cols = 8;
+    const rows = 8;
+    const JUMPS = [
+      [1, 2], [2, 1], [2, -1], [1, -2],
+      [-1, -2], [-2, -1], [-2, 1], [-1, 2],
+    ];
+
+    let squares = [];
+    let visited = [];
+    let knightEl;
+    let position;
+    let moveCount;
+
+    function buildBoard() {
+      main.replaceChildren();
+      squares = [];
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const tile = document.createElement('a');
+          tile.href = LAB.pageRandomiser.nextOne();
+          const isWhite = (r + c) % 2 === 0;
+          tile.dataset.square = 'abcdefgh'[c] + (8 - r);
+          tile.className = `board-tile ${isWhite ? 'white' : 'black'}`;
+          const number = document.createElement('span');
+          number.className = 'move-number';
+          tile.appendChild(number);
+          main.appendChild(tile);
+          squares.push(tile);
+        }
+      }
+
+      knightEl = document.createElement('div');
+      knightEl.id = 'knight';
+      const glyph = document.createElement('span');
+      glyph.className = 'knight-glyph';
+      glyph.textContent = '♞';
+      knightEl.appendChild(glyph);
+      main.appendChild(knightEl);
+    }
+
+    function squareAt(x, y) {
+      return squares[y * cols + x];
+    }
+
+    function positionKnight(x, y) {
+      knightEl.style.transform = `translate(${x * 100}%, ${y * 100}%)`;
+    }
+
+    function startTour() {
+      main.classList.remove('complete');
+      visited = new Array(rows * cols).fill(false);
+      moveCount = 0;
+      squares.forEach(square => {
+        square.style.boxShadow = '';
+        square.querySelector('.move-number').textContent = '';
+        square.href = LAB.pageRandomiser.nextOne();
+      });
+      position = { x: LAB.randInt(0, cols - 1), y: LAB.randInt(0, rows - 1) };
+      landOn(position.x, position.y);
+      setTimeout(step, 600);
+    }
+
+    function landOn(x, y) {
+      visited[y * cols + x] = true;
+      moveCount++;
+      const square = squareAt(x, y);
+      const alpha = 0.12 + 0.6 * (moveCount / (rows * cols));
+      square.style.boxShadow = `inset 0 0 0 99vmax rgba(255, 0, 85, ${alpha})`;
+      square.querySelector('.move-number').textContent = moveCount;
+      positionKnight(x, y);
+    }
+
+    function movesFrom(x, y) {
+      return JUMPS
+        .map(([dx, dy]) => ({ x: x + dx, y: y + dy }))
+        .filter(m => m.x >= 0 && m.x < cols && m.y >= 0 && m.y < rows && !visited[m.y * cols + m.x]);
+    }
+
+    function step() {
+      const options = movesFrom(position.x, position.y);
+
+      if (options.length === 0) {
+        if (moveCount === rows * cols) main.classList.add('complete');
+        setTimeout(startTour, moveCount === rows * cols ? 3000 : 1500);
+        return;
+      }
+
+      const scored = options.map(m => ({ ...m, onward: movesFrom(m.x, m.y).length }));
+      const fewest = Math.min(...scored.map(m => m.onward));
+      const best = scored.filter(m => m.onward === fewest);
+      position = LAB.sample(best);
+      landOn(position.x, position.y);
+      setTimeout(step, 420);
+    }
+
+    function shudder() {
+      const tiles = document.querySelectorAll('.board-tile');
+      tiles.forEach(tile => {
+        if (LAB.chance(0.08)) {
+          tile.classList.add('shudder');
+          setTimeout(() => tile.classList.remove('shudder'), 120);
+        }
+      });
+      setTimeout(shudder, 150);
+    }
+
+    buildBoard();
+    startTour();
+    shudder();
+
+  </script>
+</body>
+
+</html>

@@ -2100,3 +2100,10 @@ corridors:
     tags: [crt, mobile, secret, unicode]
     visual_description: >-
       An 8x8 chessboard of checkered grey and light-grey tiles centred on a black background, with unicode pieces occupying the two ranks at either end, black on top and white at the bottom. Tiles occasionally shudder out of position for a moment. Hovering over a tile flashes it bright pink with a glow and makes it grow slightly. Every tile is a clickable link to a random corridor.
+  - id: knights-tour
+    title: Knights Tour
+    created: 2026-10-16 12:46
+    links: 64
+    tags: [crt, maths, mobile, unicode]
+    visual_description: >-
+      An 8x8 chessboard of alternating dark-grey and light-grey tiles centred on a black background, with a unicode knight gliding across the squares. The knight performs a knight's tour, hopping from square to square and turning each visited tile magenta, leaving a small move number in its corner as it goes. It always jumps to the square with the fewest onward moves, so it usually manages to visit all 64 squares before the board glows pink and a fresh tour begins. Tiles occasionally shudder out of position. Hovering over a tile flashes it bright pink with a glow and makes it grow slightly. Every tile is a clickable link to a random corridor.

@@ -2107,3 +2107,10 @@ corridors:
     tags: [crt, maths, mobile, unicode]
     visual_description: >-
       An 8x8 chessboard of alternating dark-grey and light-grey tiles centred on a black background, with a unicode knight gliding across the squares. The knight performs a knight's tour, hopping from square to square and turning each visited tile magenta, leaving a small move number in its corner as it goes. It always jumps to the square with the fewest onward moves, so it usually manages to visit all 64 squares before the board glows pink and a fresh tour begins. Tiles occasionally shudder out of position. Hovering over a tile flashes it bright pink with a glow and makes it grow slightly. Every tile is a clickable link to a random corridor.
+  - id: cymatics
+    title: Cymatics
+    created: 2026-10-17 17:17
+    links: 1
+    tags: [crt, major, maths, mobile, science]
+    visual_description: >-
+      A full-screen cymatic pattern rendered as small sandy squares on a dark brown background. The dots gather along the nodal lines of a vibration mode defined by a pair of angular and radial frequencies, as if sand had settled on a vibrating plate. The pattern slowly crossfades to a new random mode, with the current mode pair shown in the page title. Due to the complex calculations, the code attempts to render using WebGL, defaulting back to the 2D canvas context only if the GPU is unavailable. Pressing any key jumps straight to a fresh pair. The whole canvas is a single clickable link to a random corridor.

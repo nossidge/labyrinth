@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+For this I first wrote the Canvas 2D logic like I normally would. But it used a whole bunch of CPU,
+way more than I had anticipated. So then I experimented with using WebGL. This works really well
+on my computer, but I was a bit worried about other people's browsers not being able to handle it.
+So I've got some fallback logic here that should choose WebGL for most people and do a fall back to
+just the normal Canvas 2D if that fails. This was the first WebGL project I did and I think this is
+a pretty good way of doing it going forwards.
+
+When the page first loads, pick a renderer, either WebGL (GPU) or Canvas 2D (CPU). Both renderers
+use the same interface, so the page logic shouldn't care about which one is actually running.
+- renderer.name                   'webgl' | 'canvas2d'
+- renderer.resize(winW, winH)     called on setup and window resize event
+- renderer.setModes(modeA, modeB) called when the mode pair being crossfaded has changed
+- renderer.draw(blend, t)         paint one frame
+
+Some stuff I learned:
+- A canvas can only ever have 1 kind of context. Once getContext('webgl') has been called,
+  getContext('2d') on the same element returns null. So every fallback has to use a brand-new
+  <canvas> element. That's why we use `let canvas =` instead of `const canvas =`.
+- `failIfMajorPerformanceCaveat` makes the browser refuse WebGL when it would be software-rendered.
+  The 2D code will be faster than software-rendered WebGL, so we should prefer it in that case.
+- WebGL contexts can be lost at runtime if something bad happens (GPU reset, driver crash, too many
+  contexts). So we handle that by swapping to the 2D renderer.
+- Where JS's `Math.atan2` returns 0, WebGL's `atan(0,0)` is undefined. So we have to account for
+  that, using a ternary: `float theta = (r > 0.0) ? atan(d.y, d.x) : 0.0;`
+- We can help the default 2D renderer out by doing some lower level pre-computation of the colour
+  values. That should save some CPU cycles.
+
+Dev stuff:
+- Add "?renderer=2d" to the URL to force the fallback so it can be tested.
+
+Stuff I used as reference:
+- https://webglfundamentals.org/webgl/lessons/webgl-shaders-and-glsl.html
+- https://webglfundamentals.org/webgl/lessons/webgl-boilerplate.html
+
+Also see `chladni-figures`
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Simple Cymatic met a piematic, going to the fair">
+  <title>Sandy Denny</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body,
+    html {
+      width: 100%;
+      height: 100%;
+      background-color: #1a1815;
+      overflow: hidden;
+    }
+
+    canvas {
+      display: block;
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0.12) 50%);
+      background-size: 100% 3px;
+      pointer-events: none;
+      z-index: 10;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+
+  <a href="../index.html">
+    <canvas id="canvas"></canvas>
+  </a>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('cymatics');
+
+    let canvas = document.getElementById('canvas');
+
+    // n and m are the angular and radial frequency
+    function randomNM() {
+      return {
+        n: Math.floor(Math.random() * 9) + 1,
+        m: Math.floor(Math.random() * 9) + 1,
+      };
+    }
+
+    // Crossfade between two patterns
+    // So "end of A..B is at B, start of B..newA is at B"
+    let modeA = randomNM();
+    let modeB = randomNM();
+
+    // When blend == 0 then 100% modeA
+    // When blend == 1 then 100% modeB
+    let blend = 0;
+    let blendDir = 1;
+    const BLEND_SPEED = 0.003;
+
+    // Size in screen pixels of each sand block
+    const CELL_SIZE = 2;
+
+    // Threshold for when an empty node becomes visible
+    // Make it bigger to have more lighter areas than dark
+    const NODE_THRESHOLD = 0.15;
+
+    // Screen dimensions
+    let winW, winH;
+
+    // One of the 2 renderers declared below (named 'webgl' or 'canvas2d')
+    let renderer = null;
+
+    // Tick animation stuff
+    let holdTimer = null;
+    let t = 0;
+
+    // Returns a renderer, or null if WebGL isn't usable on this canvas.
+    // Might leave a WebGL context attached to `cv` either way, which is why
+    // the caller must swap in a new canvas before trying anything else.
+    function createWebGLRenderer(cv) {
+      const srcVertex = `
+        attribute vec2 aPos;
+        void main() {
+          gl_Position = vec4(aPos, 0.0, 1.0);
+        }
+      `;
+
+      // Warning: This is my first ever use of WebGL and shaders.
+      // So I'm not sure if what I'm doing here is the best way to go about it.
+      // It does all seem to work though, but I'm sure it could be better.
+      const srcFragment = `
+        #ifdef GL_FRAGMENT_PRECISION_HIGH
+          precision highp float;
+        #else
+          precision mediump float;
+        #endif
+
+        const float PI = 3.14159265358979;
+
+        uniform vec2  uRes;     // canvas size in pixels
+        uniform vec2  uModeA;   // (n, m) of mode A
+        uniform vec2  uModeB;   // (n, m) of mode B
+        uniform float uBlend;   // 0..1 crossfade
+        uniform float uTime;    // time
+        uniform float uCell;    // block size in pixels
+
+        float chladniValue(vec2 p, float n, float m, float t) {
+          vec2 c = uRes * 0.5;
+          vec2 d = (p - c) / min(uRes.x, uRes.y) * 2.0;
+          float r = length(d);
+          // atan(0,0) is undefined in GLSL (JS's Math.atan2 returns 0)
+          float theta = (r > 0.0) ? atan(d.y, d.x) : 0.0;
+
+          float term1 = cos(n * theta) * cos(PI * r * m);
+          float term2 = sin(m * theta) * sin(PI * r * (n + 1.0));
+          float term3 = cos((n + m) * theta) * sin(PI * r * 0.5);
+
+          return term1 + term2 * 0.6 + term3 * 0.3 + sin(t * 0.5) * 0.1;
+        }
+
+        void main() {
+          // gl_FragCoord's origin is bottom-left.
+          // Flip to top-left, then snap to the top-left corner of this pixel's block.
+          vec2 px = vec2(gl_FragCoord.x, uRes.y - gl_FragCoord.y);
+          vec2 p  = floor(px / uCell) * uCell;
+
+          float val = mix(chladniValue(p, uModeA.x, uModeA.y, uTime),
+                          chladniValue(p, uModeB.x, uModeB.y, uTime),
+                          uBlend);
+          float absVal = abs(val);
+
+          if (absVal < ${NODE_THRESHOLD}) {
+            // Premultiplied alpha, as WebGL canvases expect by default.
+            float a = 200.0 / 255.0;
+            gl_FragColor = vec4(vec3(212.0, 197.0, 160.0) / 255.0 * a, a);
+          } else {
+            float depth = min(1.0, absVal * 0.5);
+            gl_FragColor = vec4(vec3(42.0 - depth * 20.0,
+                                    37.0 - depth * 18.0,
+                                    32.0 - depth * 15.0) / 255.0, 1.0);
+          }
+        }
+      `;
+
+      const gl = cv.getContext('webgl', {
+        failIfMajorPerformanceCaveat: true,
+        antialias: false, // Don't need these,
+        depth: false,     // as we only draw one
+        stencil: false,   // flat full-screen pass
+      });
+      if (!gl) return null;
+
+      function compile(type, src) {
+        const shader = gl.createShader(type);
+        gl.shaderSource(shader, src);
+        gl.compileShader(shader);
+        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+          throw new Error(gl.getShaderInfoLog(shader));
+        }
+        return shader;
+      }
+
+      const program = gl.createProgram();
+      gl.attachShader(program, compile(gl.VERTEX_SHADER, srcVertex));
+      gl.attachShader(program, compile(gl.FRAGMENT_SHADER, srcFragment));
+      gl.linkProgram(program);
+      if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+        throw new Error(gl.getProgramInfoLog(program));
+      }
+      gl.useProgram(program);
+
+      // One big triangle that covers the viewport
+      gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+      const aPos = gl.getAttribLocation(program, 'aPos');
+      gl.enableVertexAttribArray(aPos);
+      gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
+
+      const uRes = gl.getUniformLocation(program, 'uRes');
+      const uModeA = gl.getUniformLocation(program, 'uModeA');
+      const uModeB = gl.getUniformLocation(program, 'uModeB');
+      const uBlend = gl.getUniformLocation(program, 'uBlend');
+      const uTime = gl.getUniformLocation(program, 'uTime');
+      const uCell = gl.getUniformLocation(program, 'uCell');
+
+      return {
+        name: 'webgl',
+
+        resize(w, h) {
+          cv.width = w;
+          cv.height = h;
+          gl.viewport(0, 0, w, h);
+          gl.uniform2f(uRes, w, h);
+          gl.uniform1f(uCell, CELL_SIZE);
+        },
+
+        setModes(a, b) {
+          gl.uniform2f(uModeA, a.n, a.m);
+          gl.uniform2f(uModeB, b.n, b.m);
+        },
+
+        draw(blend, t) {
+          gl.uniform1f(uBlend, blend);
+          gl.uniform1f(uTime, t);
+          gl.drawArrays(gl.TRIANGLES, 0, 3);
+        },
+
+        // Lets the page react if the GPU context is lost at runtime
+        onContextLost(callback) {
+          cv.addEventListener('webglcontextlost', (e) => {
+            e.preventDefault();
+            callback();
+          });
+        },
+      };
+    }
+
+    // Returns a renderer
+    function createCanvas2DRenderer(cv) {
+      // Do some possibly overkill pre-computation here:
+      // - nodePixel => One 32-bit word instead of four byte stores.
+      // - bgLookup  => A lookup table instead of per-pixel colour maths.
+
+      // Packed 0xAABBGGRR, which is the byte order R,G,B,A on little-endian machines.
+      // ">>> 0" is used to convert the 32-bit signed integer to unsigned.
+      const nodePixel = ((200 << 24) | (160 << 16) | (197 << 8) | 212) >>> 0;
+
+      // Background colour lookup table, indexed by quantised depth.
+      const bgSteps = 64;
+      const bgLookup = new Uint32Array(bgSteps);
+      for (let i = 0; i < bgSteps; i++) {
+        const depth = i / (bgSteps - 1);
+        bgLookup[i] = ((255 << 24) |
+          (Math.floor(32 - depth * 15) << 16) |
+          (Math.floor(37 - depth * 18) << 8) |
+          Math.floor(42 - depth * 20)) >>> 0;
+      }
+
+      const ctx = cv.getContext('2d');
+      if (!ctx) throw new Error('Canvas 2D unavailable');
+
+      // Grid of CELL_SIZE blocks.
+      // If CELL_SIZE > 1, CSS scales the canvas up.
+      let gw = 0, gh = 0;
+      let img = null, px32 = null;
+
+      // Geometry depends only on window size, so compute r and theta once per resize.
+      let rGrid = null, thetaGrid = null;
+
+      // Each mode's value field is constant in time (only a scalar offset changes).
+      // So cache it and only recompute when the mode changes.
+      let curA = null, curB = null;
+      let fieldA = null, fieldB = null;
+
+      function sameMode(a, b) {
+        return !!a && !!b && a.n === b.n && a.m === b.m;
+      }
+
+      function buildGeometry(w, h) {
+        rGrid = new Float32Array(gw * gh);
+        thetaGrid = new Float32Array(gw * gh);
+        const s = Math.min(w, h);
+        for (let gy = 0, i = 0; gy < gh; gy++) {
+          for (let gx = 0; gx < gw; gx++, i++) {
+            // Sample at the block's top-left corner in window pixels.
+            const dx = (gx * CELL_SIZE - w / 2) / s * 2;
+            const dy = (gy * CELL_SIZE - h / 2) / s * 2;
+            rGrid[i] = Math.sqrt(dx * dx + dy * dy);
+            thetaGrid[i] = Math.atan2(dy, dx);
+          }
+        }
+      }
+
+      function computeField(mode) {
+        const f = new Float32Array(gw * gh);
+        const { n, m } = mode;
+        for (let i = 0; i < f.length; i++) {
+          const r = rGrid[i], th = thetaGrid[i];
+          f[i] = Math.cos(n * th) * Math.cos(Math.PI * r * m)
+            + Math.sin(m * th) * Math.sin(Math.PI * r * (n + 1)) * 0.6
+            + Math.cos((n + m) * th) * Math.sin(Math.PI * r * 0.5) * 0.3;
+        }
+        return f;
+      }
+
+      return {
+        name: 'canvas2d',
+
+        resize(w, h) {
+          gw = Math.ceil(w / CELL_SIZE);
+          gh = Math.ceil(h / CELL_SIZE);
+          cv.width = gw;
+          cv.height = gh;
+
+          // Show the small canvas at its blocky full size.
+          cv.style.width = gw * CELL_SIZE + 'px';
+          cv.style.height = gh * CELL_SIZE + 'px';
+          cv.style.imageRendering = 'pixelated';
+
+          img = ctx.createImageData(gw, gh);
+          px32 = new Uint32Array(img.data.buffer);
+
+          buildGeometry(w, h);
+          if (curA && curB) {
+            fieldA = computeField(curA);
+            fieldB = computeField(curB);
+          }
+        },
+
+        setModes(a, b) {
+          // When a transition finishes, the new A is the old B.
+          // So we can reuse its field rather than recomputing it.
+          const oldA = curA, oldB = curB, oldFA = fieldA, oldFB = fieldB;
+          const pick = (mode) =>
+            sameMode(mode, oldA) ? oldFA :
+              sameMode(mode, oldB) ? oldFB :
+                computeField(mode);
+          fieldA = pick(a);
+          fieldB = pick(b);
+          curA = a;
+          curB = b;
+        },
+
+        draw(blend, t) {
+          const off = Math.sin(t * 0.5) * 0.1;
+          const wa = 1 - blend, wb = blend;
+          const maxIdx = bgSteps - 1;
+          const scale = 0.5 * maxIdx;
+
+          for (let i = 0; i < px32.length; i++) {
+            let v = fieldA[i] * wa + fieldB[i] * wb + off;
+            if (v < 0) v = -v;
+            if (v < NODE_THRESHOLD) {
+              px32[i] = nodePixel;
+            } else {
+              const idx = (v * scale) | 0;
+              px32[i] = bgLookup[idx > maxIdx ? maxIdx : idx];
+            }
+          }
+          ctx.putImageData(img, 0, 0);
+        },
+      };
+    }
+
+    // Replace the <canvas> element with a fresh one.
+    // Needed because an element that has had one context type can never get a different one.
+    function freshCanvas() {
+      const replacement = document.createElement('canvas');
+      replacement.id = 'canvas';
+      canvas.replaceWith(replacement);
+      canvas = replacement;
+      return canvas;
+    }
+
+    // Initialise a renderer on the current canvas with the current state.
+    function activate(r) {
+      renderer = r;
+      renderer.resize(winW, winH);
+      renderer.setModes(modeA, modeB);
+      updateTitle();
+    }
+
+    function useCanvas2D(reason) {
+      console.info(`Using Canvas 2D renderer (${reason})`);
+      activate(createCanvas2DRenderer(freshCanvas()));
+    }
+
+    function chooseRenderer() {
+      const forced2D = new URLSearchParams(location.search).get('renderer') === '2d';
+      if (forced2D) return useCanvas2D('forced by ?renderer=2d');
+
+      try {
+        const gl = createWebGLRenderer(canvas);
+        if (gl) {
+          gl.onContextLost(() => useCanvas2D('WebGL context lost'));
+          return activate(gl);
+        }
+        useCanvas2D('WebGL unavailable or software-rendered');
+      } catch (err) {
+        // e.g. shader failed to compile on this driver
+        console.warn('WebGL setup failed:', err);
+        useCanvas2D('WebGL setup error');
+      }
+    }
+
+    function resize() {
+      winW = window.innerWidth;
+      winH = window.innerHeight;
+      if (renderer) renderer.resize(winW, winH);
+    }
+
+    function updateTitle() {
+      document.title = `mode ${modeA.n},${modeA.m} → ${modeB.n},${modeB.m}`;
+    }
+
+    function tick() {
+      t += 0.02;
+
+      blend += BLEND_SPEED * blendDir;
+      if (blend >= 1 && blendDir !== 0) {
+        blend = 1;
+        blendDir = 0;
+        holdTimer = setTimeout(() => {
+          holdTimer = null;
+          modeA = modeB;
+          modeB = randomNM();
+          blend = 0;
+          blendDir = 1;
+          renderer.setModes(modeA, modeB);
+          updateTitle();
+        }, 2000);
+      }
+
+      renderer.draw(blend, t);
+      requestAnimationFrame(tick);
+    }
+
+    function randomMode() {
+      // Cancel any pending hold-then-advance so it can't mess up the new modes.
+      if (holdTimer !== null) {
+        clearTimeout(holdTimer);
+        holdTimer = null;
+      }
+      modeA = randomNM();
+      modeB = randomNM();
+      blend = 0;
+      blendDir = 1;
+      renderer.setModes(modeA, modeB);
+      updateTitle();
+    }
+
+    window.addEventListener('resize', resize);
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, randomMode);
+    });
+
+    resize();
+
+    chooseRenderer();
+    console.log(`Renderer: ${renderer.name}`);
+
+    tick();
+
+  </script>
+</body>
+
+</html>

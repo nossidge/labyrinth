@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Here's the church, here's the stipple">
+  <title>Dorothy Matrix</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      background: #fafaf5;
+      overflow: hidden;
+      cursor: none;
+    }
+
+    #link {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.08) 50%);
+      background-size: 100% 2px;
+      pointer-events: none;
+      z-index: 100;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+  <a id="link" href="../index.html">
+    <canvas id="canvas"></canvas>
+  </a>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('stipple-fade');
+
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const staticCanvas = document.createElement('canvas');
+    const sctx = staticCanvas.getContext('2d');
+
+    const FADE_RADIUS = 220;
+    const DOT_SIZE = 1.5;
+    const STEP = 5;
+
+    let cols = 0, rows = 0;
+    let dotX = null, dotY = null;
+    let mouseX = -1000, mouseY = -1000;
+
+    function buildDots() {
+      cols = Math.floor((canvas.width - 1) / STEP) + 1;
+      rows = Math.floor((canvas.height - 1) / STEP) + 1;
+      dotX = new Float32Array(cols * rows);
+      dotY = new Float32Array(cols * rows);
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const i = r * cols + c;
+          dotX[i] = c * STEP + LAB.rand(-5, 5); // Offset by a bit
+          dotY[i] = r * STEP + LAB.rand(-5, 5); // to make it uneven
+        }
+      }
+
+      staticCanvas.width = canvas.width;
+      staticCanvas.height = canvas.height;
+      sctx.fillStyle = '#fafaf5';
+      sctx.fillRect(0, 0, canvas.width, canvas.height);
+      sctx.globalAlpha = 0.8;
+      sctx.fillStyle = '#1a1a1a';
+      for (let i = 0; i < dotX.length; i++) {
+        sctx.fillRect(dotX[i], dotY[i], DOT_SIZE, DOT_SIZE);
+      }
+      sctx.globalAlpha = 1;
+    }
+
+    // This was buggering up my CPU when I rendered the whole scene.
+    // So what we do now is to only redraw the dots near the mouse.
+    function render() {
+      ctx.drawImage(staticCanvas, 0, 0);
+
+      if (mouseX < -FADE_RADIUS || mouseY < -FADE_RADIUS) return;
+      if (mouseX > canvas.width + FADE_RADIUS || mouseY > canvas.height + FADE_RADIUS) return;
+
+      const c0 = Math.max(0, Math.floor((mouseX - FADE_RADIUS) / STEP) - 1);
+      const c1 = Math.min(cols - 1, Math.ceil((mouseX + FADE_RADIUS) / STEP) + 1);
+      const r0 = Math.max(0, Math.floor((mouseY - FADE_RADIUS) / STEP) - 1);
+      const r1 = Math.min(rows - 1, Math.ceil((mouseY + FADE_RADIUS) / STEP) + 1);
+
+      ctx.fillStyle = '#1a1a1a';
+      for (let r = r0; r <= r1; r++) {
+        for (let c = c0; c <= c1; c++) {
+          const i = r * cols + c;
+          const x = dotX[i];
+          const y = dotY[i];
+          const dx = x - mouseX;
+          const dy = y - mouseY;
+          const d2 = dx * dx + dy * dy;
+
+          // Only care about dots close to the mouse position
+          if (d2 >= FADE_RADIUS * FADE_RADIUS) continue;
+
+          // Clear the static copy of the dot, then redraw it faded
+          ctx.clearRect(x - 0.5, y - 0.5, DOT_SIZE + 1, DOT_SIZE + 1);
+          const alpha = Math.sqrt(d2) / FADE_RADIUS;
+          if (alpha < 0.05) continue;
+
+          ctx.globalAlpha = alpha * 0.8;
+          ctx.fillRect(x, y, DOT_SIZE, DOT_SIZE);
+        }
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    // The scene only changes when the mouse moves or on resize
+    let needsRender = false;
+    function requestRender() {
+      if (needsRender) return;
+      needsRender = true;
+      requestAnimationFrame(function () {
+        needsRender = false;
+        render();
+      });
+    }
+
+    function init() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      buildDots();
+      requestRender();
+    }
+
+    // Add some mobile stuff to allow touch drags
+    let touchStartX = 0, touchStartY = 0;
+    let dragged = false;
+
+    canvas.addEventListener('touchstart', function (e) {
+      const t = e.touches[0];
+      mouseX = t.clientX;
+      mouseY = t.clientY;
+      touchStartX = t.clientX;
+      touchStartY = t.clientY;
+      dragged = false;
+      requestRender();
+    });
+
+    canvas.addEventListener('touchmove', function (e) {
+      const t = e.touches[0];
+      const dx = t.clientX - touchStartX;
+      const dy = t.clientY - touchStartY;
+      if (!dragged && dx * dx + dy * dy > 100) dragged = true;
+      mouseX = t.clientX;
+      mouseY = t.clientY;
+      requestRender();
+    });
+
+    canvas.addEventListener('mousemove', function (e) {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+      requestRender();
+    });
+
+    window.addEventListener('resize', init);
+
+    init();
+
+  </script>
+</body>
+
+</html>

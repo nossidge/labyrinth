@@ -2114,3 +2114,10 @@ corridors:
     tags: [crt, major, maths, mobile, science]
     visual_description: >-
       A full-screen cymatic pattern rendered as small sandy squares on a dark brown background. The dots gather along the nodal lines of a vibration mode defined by a pair of angular and radial frequencies, as if sand had settled on a vibrating plate. The pattern slowly crossfades to a new random mode, with the current mode pair shown in the page title. Due to the complex calculations, the code attempts to render using WebGL, defaulting back to the 2D canvas context only if the GPU is unavailable. Pressing any key jumps straight to a fresh pair. The whole canvas is a single clickable link to a random corridor.
+  - id: stipple-fade
+    title: Stipple Fade
+    created: 2026-10-18 17:57
+    links: 1
+    tags: [abstract, crt, mobile]
+    visual_description: >-
+      A dense grid of small dark dots fills an off-white background, each dot offset slightly from its regular position for an organic, hand-stippled texture. Moving the mouse (or dragging a finger) makes the dots within a soft radius around the cursor fade almost to nothing, leaving a moving clearing that recovers as the cursor moves on. The entire page is a single clickable link to a random corridor.

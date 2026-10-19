@@ -2121,3 +2121,10 @@ corridors:
     tags: [abstract, crt, mobile]
     visual_description: >-
       A dense grid of small dark dots fills an off-white background, each dot offset slightly from its regular position for an organic, hand-stippled texture. Moving the mouse (or dragging a finger) makes the dots within a soft radius around the cursor fade almost to nothing, leaving a moving clearing that recovers as the cursor moves on. The entire page is a single clickable link to a random corridor.
+  - id: magnetism
+    title: Magnetism
+    created: 2026-10-19 16:38
+    links: dynamic
+    tags: [mobile, science]
+    visual_description: >-
+      A full-screen simulation of a magnetic field. Three to five bar magnets, each one half red and half blue, drift and rotate across a cream background, bouncing off the edges. A fine grid of short iron-filing needles aligns with the combined field of all the magnets, growing darker and denser near each pole. Moving the mouse adds a weak attracting pole that bends the field lines toward the cursor, and hovering over a magnet highlights it with a thick outline. Pressing any key flips the polarity of every magnet, and clicking the background regenerates the field with a fresh set of magnets. Each magnet is a clickable link to a random corridor.

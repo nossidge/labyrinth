@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Fucking Magnets, How Do They Work?">
+  <title>Save Ferrous</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      background: #f4f1ea;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    canvas {
+      position: fixed;
+      display: block;
+      top: 0;
+      left: 0;
+    }
+
+    .magnet {
+      position: fixed;
+      display: block;
+      top: 0;
+      left: 0;
+      border-radius: 4px;
+      z-index: 10;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="canvas"></canvas>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('magnetism');
+
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d', { alpha: false });
+
+    const COLOUR_BACK = '#f4f1ea';
+    const COLOUR_POLE = [58, 58, 58];
+    const COLOUR_NORTH = '#c0392b';
+    const COLOUR_SOUTH = '#2c5aa0';
+    const ALPHA_BUCKETS = 16;
+    const MAG_WIDTH = 96;
+    const MAG_HEIGHT = 24;
+
+    let winW, winH;
+    let spacing, needleLength;
+    let cols, rows;
+    let magnets = [];
+    let mouse = { x: -1, y: -1 };
+    let hovered = -1;
+    let lastTime = 0;
+
+    function resize() {
+      winW = canvas.width = window.innerWidth;
+      winH = canvas.height = window.innerHeight;
+      spacing = Math.max(15, Math.sqrt(winW * winH / 5000));
+      cols = Math.ceil(winW / spacing) + 1;
+      rows = Math.ceil(winH / spacing) + 1;
+      needleLength = spacing - 6;
+    }
+
+    function init() {
+      magnets.forEach(m => m.anchor.remove());
+      magnets = [];
+      hovered = -1;
+
+      const count = LAB.randInt(3, 5);
+      for (let i = 0; i < count; i++) {
+        const anchor = document.createElement('a');
+        anchor.className = 'magnet';
+        anchor.href = LAB.pageRandomiser.nextOne();
+        anchor.style.width = MAG_WIDTH + 'px';
+        anchor.style.height = MAG_HEIGHT + 'px';
+        anchor.addEventListener('mouseenter', () => { hovered = i; });
+        anchor.addEventListener('mouseleave', () => { if (hovered === i) hovered = -1; });
+        document.body.appendChild(anchor);
+
+        magnets.push({
+          x: LAB.rand(winW * 0.2, winW * 0.8),
+          y: LAB.rand(winH * 0.2, winH * 0.8),
+          vx: LAB.randNegToPos(14, 6),
+          vy: LAB.randNegToPos(14, 6),
+          angle: LAB.rand(0, Math.PI * 2),
+          spin: LAB.randNegToPos(0.25, 0.06),
+          polarity: 1,
+          anchor: anchor
+        });
+      }
+    }
+
+    function getPoles() {
+      const array = [];
+      for (const m of magnets) {
+        const dx = Math.cos(m.angle) * MAG_WIDTH * 0.4;
+        const dy = Math.sin(m.angle) * MAG_WIDTH * 0.4;
+        array.push({ x: m.x + dx, y: m.y + dy, q: m.polarity });
+        array.push({ x: m.x - dx, y: m.y - dy, q: -m.polarity });
+      }
+      if (mouse.x >= 0 && hovered < 0) {
+        array.push({ x: mouse.x, y: mouse.y, q: 0.6 });
+      }
+      return array;
+    }
+
+    function update(dt) {
+      for (const m of magnets) {
+        m.x += m.vx * dt;
+        m.y += m.vy * dt;
+        m.angle += m.spin * dt;
+
+        const margin = MAG_WIDTH * 0.6;
+        if (m.x < margin) { m.x = margin; m.vx = Math.abs(m.vx); }
+        if (m.x > winW - margin) { m.x = winW - margin; m.vx = -Math.abs(m.vx); }
+        if (m.y < margin) { m.y = margin; m.vy = Math.abs(m.vy); }
+        if (m.y > winH - margin) { m.y = winH - margin; m.vy = -Math.abs(m.vy); }
+
+        m.anchor.style.transform =
+          `translate(${m.x - MAG_WIDTH / 2}px, ${m.y - MAG_HEIGHT / 2}px) rotate(${m.angle}rad)`;
+      }
+    }
+
+    function draw() {
+      ctx.fillStyle = COLOUR_BACK;
+      ctx.fillRect(0, 0, winW, winH);
+
+      const bodies = magnets.map(m => ({
+        x: m.x, y: m.y, cos: Math.cos(m.angle), sin: Math.sin(m.angle)
+      }));
+      ctx.lineCap = 'butt';
+      ctx.lineWidth = 1.4;
+
+      const poles = getPoles();
+      const paths = Array.from({ length: ALPHA_BUCKETS }, () => new Path2D());
+
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const x = c * spacing + (r % 2) * spacing * 0.5;
+          const y = r * spacing;
+
+          let bx = 0, by = 0;
+          for (const pole of poles) {
+            const dx = x - pole.x;
+            const dy = y - pole.y;
+            const d2 = dx * dx + dy * dy + 40;
+            bx += pole.q * dx / d2;
+            by += pole.q * dy / d2;
+          }
+
+          const strength = Math.sqrt(bx * bx + by * by);
+          const alpha = Math.min(0.85, 0.15 + strength * 150);
+          const ang = Math.atan2(by, bx);
+          const hx = Math.cos(ang) * needleLength / 2;
+          const hy = Math.sin(ang) * needleLength / 2;
+
+          const b = Math.round((alpha - 0.15) / 0.7 * (ALPHA_BUCKETS - 1));
+          paths[b].moveTo(x - hx, y - hy);
+          paths[b].lineTo(x + hx, y + hy);
+        }
+      }
+
+      // To save CPU, we group the alpha values into a number of buckets.
+      // This is so that we don't have to run `ctx.stroke` thousands of times.
+      // Instead of once per iron filing, just the ALPHA_BUCKETS count value.
+      for (let bucket = 0; bucket < ALPHA_BUCKETS; bucket++) {
+        const alpha = 0.15 + bucket / (ALPHA_BUCKETS - 1) * 0.7;
+        const pole = COLOUR_POLE;
+        ctx.strokeStyle = `rgba(${pole[0]}, ${pole[1]}, ${pole[2]}, ${alpha})`;
+        ctx.stroke(paths[bucket]);
+      }
+
+      for (let i = 0; i < magnets.length; i++) {
+        const m = magnets[i];
+        ctx.save();
+        ctx.translate(m.x, m.y);
+        ctx.rotate(m.angle);
+
+        const halfW = MAG_WIDTH / 2;
+        const halfH = MAG_HEIGHT / 2;
+        ctx.fillStyle = m.polarity > 0 ? COLOUR_SOUTH : COLOUR_NORTH;
+        ctx.fillRect(-halfW, -halfH, halfW, MAG_HEIGHT);
+        ctx.fillStyle = m.polarity > 0 ? COLOUR_NORTH : COLOUR_SOUTH;
+        ctx.fillRect(0, -halfH, halfW, MAG_HEIGHT);
+
+        ctx.lineWidth = i === hovered ? 4 : 2;
+        ctx.strokeStyle = i === hovered ? '#f4f1ea' : '#2a2a2e';
+        ctx.strokeRect(-halfW, -halfH, MAG_WIDTH, MAG_HEIGHT);
+        if (i === hovered) {
+          ctx.lineWidth = 1.5;
+          ctx.strokeStyle = '#2a2a2e';
+          ctx.strokeRect(-halfW - 3, -halfH - 3, MAG_WIDTH + 6, MAG_HEIGHT + 6);
+        }
+        ctx.restore();
+      }
+    }
+
+    function tick(now) {
+      const dt = lastTime ? Math.min((now - lastTime) / 1000, 0.05) : 0;
+      lastTime = now;
+      update(dt);
+      draw();
+      requestAnimationFrame(tick);
+    }
+
+    function flip() {
+      for (const m of magnets) m.polarity *= -1;
+    }
+
+    window.addEventListener('mousemove', (e) => {
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+    });
+
+    document.addEventListener('mouseleave', () => {
+      mouse.x = -1;
+      mouse.y = -1;
+    });
+
+    window.addEventListener('resize', resize);
+    window.addEventListener('keydown', (e) => LAB.handleKeydown(e, flip));
+    canvas.addEventListener('click', init);
+
+    resize();
+    init();
+    tick();
+
+  </script>
+</body>
+
+</html>

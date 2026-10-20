@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="although eye know that you care">
+  <title>00000100</title>
+  <style>
+    :root {
+      --bg: #040814;
+      --bit-one: #00f0ff;
+      --bit-zero: #1a334e;
+      --bit-link: #ff0077;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body,
+    html {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background-color: var(--bg);
+      font-family: monospace;
+      overflow: hidden;
+    }
+
+    main {
+      display: grid;
+      padding: 10px;
+    }
+
+    .bit-cell {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 14px;
+      font-weight: bold;
+      user-select: none;
+      transition: color 0.15s, background 0.15s;
+    }
+
+    /* Embiggen to remove dead space between cells for mouse */
+    .bit-cell::before {
+      position: absolute;
+      inset: -1px;
+      content: '';
+    }
+
+    .bit-cell.one {
+      color: var(--bit-one);
+    }
+
+    .bit-cell.zero {
+      color: var(--bit-zero);
+    }
+
+    .bit-cell:hover {
+      background-color: var(--bit-one);
+      color: var(--bg);
+    }
+
+    .bit-cell.gone {
+      color: var(--bg);
+    }
+
+    .bit-link {
+      position: relative;
+      color: var(--bit-link);
+      font-weight: bold;
+      text-decoration: none;
+      animation: pulse-bit 0.8s infinite alternate;
+    }
+
+    .bit-link:hover {
+      background-color: var(--bit-link);
+      color: #ffffff;
+      box-shadow: 0 0 10px var(--bit-link);
+    }
+
+    @keyframes pulse-bit {
+      0% {
+        opacity: 0.5;
+      }
+
+      100% {
+        opacity: 1;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main id="main"></main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('binary-lattice');
+
+    const main = document.getElementById('main');
+
+    const CELL_SIZE = 24;
+    const MAX_COLS = 30;
+    const MAX_ROWS = 20;
+    const MARGIN = 10;
+
+    let COLS = MAX_COLS;
+    let ROWS = MAX_ROWS;
+
+    function computeGrid() {
+      const availableW = window.innerWidth - MARGIN * 2;
+      const availableH = window.innerHeight - MARGIN * 2;
+      return {
+        cols: Math.min(MAX_COLS, Math.max(1, Math.floor(availableW / CELL_SIZE))),
+        rows: Math.min(MAX_ROWS, Math.max(1, Math.floor(availableH / CELL_SIZE))),
+      };
+    }
+
+    function setGridSize(cols, rows) {
+      main.style.gridTemplateColumns = `repeat(${cols}, ${CELL_SIZE}px)`;
+      main.style.gridTemplateRows = `repeat(${rows}, ${CELL_SIZE}px)`;
+    }
+
+    function init() {
+      const grid = computeGrid();
+      COLS = grid.cols;
+      ROWS = grid.rows;
+
+      setGridSize(COLS, ROWS);
+
+      main.replaceChildren();
+
+      for (let row = 0; row < ROWS; row++) {
+        for (let col = 0; col < COLS; col++) {
+          let cell;
+          if (LAB.chance(0.04)) {
+            cell = document.createElement('a');
+            cell.className = 'bit-cell bit-link';
+            cell.innerText = '~';
+            cell.href = LAB.pageRandomiser.nextOne();
+          } else {
+            cell = document.createElement('div');
+            const val = LAB.chance(0.5) ? 1 : 0;
+            cell.className = `bit-cell ${val === 1 ? 'one' : 'zero'}`;
+            cell.innerText = val;
+          }
+          cell.dataset.row = row;
+          cell.dataset.col = col;
+          main.appendChild(cell);
+        }
+      }
+    }
+
+    // Trim (or regenerate) the outer rows and columns, keeping the visible grid
+    function resizeTo(newCols, newRows) {
+      if (newCols === COLS && newRows === ROWS) return;
+
+      if (newCols > COLS || newRows > ROWS) {
+        init();
+        return;
+      }
+
+      for (const el of Array.from(main.children)) {
+        if (Number(el.dataset.col) >= newCols || Number(el.dataset.row) >= newRows) {
+          el.remove();
+        }
+      }
+
+      COLS = newCols;
+      ROWS = newRows;
+      setGridSize(COLS, ROWS);
+
+      checkZeroLines();
+    }
+
+    // If a row or column is entirely zero (ignoring bit-link cells), hide it
+    function checkZeroLines() {
+      for (let row = 0; row < ROWS; row++) {
+        let allZero = true;
+        for (let col = 0; col < COLS; col++) {
+          const el = main.children[row * COLS + col];
+          if (!el.classList.contains('bit-link')) {
+            if (el.innerText !== '0') {
+              allZero = false;
+              break;
+            }
+          }
+        }
+        if (allZero) {
+          for (let col = 0; col < COLS; col++) {
+            main.children[row * COLS + col].classList.add('gone');
+          }
+        }
+      }
+
+      for (let col = 0; col < COLS; col++) {
+        let allZero = true;
+        for (let row = 0; row < ROWS; row++) {
+          const el = main.children[row * COLS + col];
+          if (!el.classList.contains('bit-link')) {
+            if (el.innerText !== '0') {
+              allZero = false;
+              break;
+            }
+          }
+        }
+        if (allZero) {
+          for (let row = 0; row < ROWS; row++) {
+            main.children[row * COLS + col].classList.add('gone');
+          }
+        }
+      }
+
+      // If there are no more visible cells
+      const allGone = Array.from(main.children).every(child => child.classList.contains('gone'));
+      if (allGone && main.children.length > 0) {
+        setTimeout(() => location.assign(LAB.goto()), 400);
+      }
+    }
+
+    // Flip the bits of all cells in the given row and column
+    function flipCross(row, col) {
+      const cells = document.querySelectorAll('.bit-cell:not(.bit-link):not(.gone)');
+      cells.forEach(cell => {
+        if (cell.dataset.row === row || cell.dataset.col === col) {
+          const currentVal = cell.innerText;
+          const newVal = currentVal === '1' ? '0' : '1';
+          cell.innerText = newVal;
+          cell.className = `bit-cell ${newVal === '1' ? 'one' : 'zero'}`;
+        }
+      });
+
+      checkZeroLines();
+    }
+
+    // When the user clicks a cell, flip the bits of all the cells in the same row and column
+    document.addEventListener('click', (e) => {
+      if (e.target.classList.contains('bit-cell') && !e.target.classList.contains('bit-link')) {
+        flipCross(e.target.dataset.row, e.target.dataset.col);
+      }
+    });
+
+    // When a key is pressed, pick a random cell and simulate a click on it
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, () => {
+        const cells = Array.from(document.querySelectorAll('.bit-cell:not(.bit-link):not(.gone)'));
+        if (cells.length === 0) return;
+        const cell = LAB.sample(cells);
+        flipCross(cell.dataset.row, cell.dataset.col);
+      });
+    });
+
+    window.addEventListener('resize', () => {
+      const grid = computeGrid();
+      resizeTo(grid.cols, grid.rows);
+    });
+
+    init();
+
+  </script>
+</body>
+
+</html>

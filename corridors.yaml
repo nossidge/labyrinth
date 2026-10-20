@@ -2128,3 +2128,10 @@ corridors:
     tags: [mobile, science]
     visual_description: >-
       A full-screen simulation of a magnetic field. Three to five bar magnets, each one half red and half blue, drift and rotate across a cream background, bouncing off the edges. A fine grid of short iron-filing needles aligns with the combined field of all the magnets, growing darker and denser near each pole. Moving the mouse adds a weak attracting pole that bends the field lines toward the cursor, and hovering over a magnet highlights it with a thick outline. Pressing any key flips the polarity of every magnet, and clicking the background regenerates the field with a fresh set of magnets. Each magnet is a clickable link to a random corridor.
+  - id: binary-lattice
+    title: Binary Lattice
+    created: 2026-10-20 15:05
+    links: dynamic
+    tags: [abstract, mobile, secret, unicode]
+    visual_description: >-
+      A grid of monospace binary digits on a black background. The ones glow bright cyan and the zeros are dark blue. Clicking a digit flips every digit in its row and column. A few cells feature magenta tildes that link to a random corridor. Pressing any key regenerates the grid with fresh random digits.

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+https://en.wikipedia.org/wiki/Chuckle_Brothers
+
+Source for the face images:
+https://celebrity-facemasks.com/products/barry-chuckle-celebrity-face-mask.html
+https://celebrity-facemasks.com/products/paul-chuckle-celebrity-face-mask.html
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description"
+    content="Now here I go again / I see the ChuckleVision / I keep my chuckles to myself">
+  <title>Oh dear, oh dear!</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg-colour: #39a1ae;
+      --image-width: 430px;
+      --image-height: 608px;
+      --cols: 3;
+      --rows: 5;
+    }
+
+    html,
+    body {
+      overflow: hidden;
+    }
+
+    body {
+      display: flex;
+      height: 100dvh;
+      background-color: var(--bg-colour);
+      font-weight: bold;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+    }
+
+    main {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      flex: none;
+      transform-origin: center;
+    }
+
+    #grid {
+      display: grid;
+      width: var(--image-width);
+      height: var(--image-height);
+      grid-template-columns: repeat(var(--cols), 1fr);
+      grid-template-rows: repeat(var(--rows), 1fr);
+      touch-action: none;
+    }
+
+    .tile {
+      width: 100%;
+      height: 100%;
+      background-size: var(--image-width) var(--image-height);
+      background-repeat: no-repeat;
+    }
+
+    .label {
+      display: flex;
+      width: 140px;
+      height: var(--image-height);
+      align-items: center;
+      justify-content: center;
+    }
+
+    .label span {
+      display: inline-block;
+      font-size: 140px;
+      line-height: 1;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    #label-me span {
+      color: #39a1ae;
+      transform: rotate(-90deg) translateY(16px);
+    }
+
+    #label-you span {
+      color: #f09026;
+      transform: rotate(90deg) translateY(16px);
+    }
+
+    .label,
+    #grid {
+      flex: none;
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <div class="label" id="label-me"><span>To Me</span></div>
+    <div id="grid"></div>
+    <div class="label" id="label-you"><span>To You</span></div>
+  </main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('chuckle-brothers');
+
+    const main = document.querySelector('main');
+    const grid = document.getElementById('grid');
+    const labelMe = document.getElementById('label-me');
+    const labelYou = document.getElementById('label-you');
+
+    const CSS_STYLE = getComputedStyle(document.documentElement);
+    const COLS = Number(CSS_STYLE.getPropertyValue('--cols'));
+    const ROWS = Number(CSS_STYLE.getPropertyValue('--rows'));
+
+    const FACE_ME = 'paul-face.webp';
+    const FACE_YOU = 'barry-face.webp';
+    const BG_ME = [0xf0, 0x90, 0x26];
+    const BG_YOU = [0x39, 0xa1, 0xae];
+    const IMAGE_WIDTH = 430;
+    const IMAGE_HEIGHT = 608;
+    const EDGE_PADDING_X = 0;
+    const EDGE_PADDING_Y = 10;
+
+    const tileW = IMAGE_WIDTH / COLS;
+    const tileH = IMAGE_HEIGHT / ROWS;
+    const tiles = [];
+
+    // Scale according to the viewport size, for mobile devices
+    function resize() {
+      const scale = Math.min(
+        (window.innerWidth - EDGE_PADDING_X * 2) / main.offsetWidth,
+        (window.innerHeight - EDGE_PADDING_Y * 2) / main.offsetHeight,
+        1
+      );
+      main.style.transform = `scale(${scale})`;
+    }
+
+    function colourBlend(a, b, fraction) {
+      return a.map((v, i) => Math.round(v + (b[i] - v) * fraction));
+    }
+
+    function setFace(tile, isYou) {
+      tile.style.backgroundImage = `url('${isYou ? FACE_YOU : FACE_ME}')`;
+      tile.dataset.face = isYou ? 'you' : 'me';
+    }
+
+    function updateLabels() {
+      const total = tiles.length;
+      const youCount = tiles.reduce((sum, t) => sum + (t.dataset.face === 'you'), 0);
+      const fraction = youCount / total;
+      labelMe.style.opacity = (total - youCount) / total;
+      labelYou.style.opacity = fraction;
+      const bg = colourBlend(BG_ME, BG_YOU, fraction);
+      document.body.style.backgroundColor = `rgb(${bg[0]}, ${bg[1]}, ${bg[2]})`;
+    }
+
+    function toggle(tile) {
+      setFace(tile, tile.dataset.face !== 'you');
+      updateLabels();
+    }
+
+    function init() {
+      for (let row = 0; row < ROWS; row++) {
+        for (let col = 0; col < COLS; col++) {
+          const tile = document.createElement('a');
+          tile.className = 'tile';
+          tile.href = LAB.pageRandomiser.nextOne();
+          tile.style.backgroundPosition = `${-col * tileW}px ${-row * tileH}px`;
+          setFace(tile, false);
+
+          // Mouse only; touch is handled by the grid-level listeners below
+          tile.addEventListener('pointerenter', (e) => {
+            if (e.pointerType === 'mouse') toggle(tile);
+          });
+
+          grid.appendChild(tile);
+          tiles.push(tile);
+        }
+      }
+    }
+
+    // Jumble the jigsaw tiles
+    function jumble() {
+      for (const tile of tiles) {
+        setFace(tile, Math.random() < 0.5);
+      }
+      const youCount = tiles.reduce((sum, t) => sum + (t.dataset.face === 'you'), 0);
+      if (youCount === 0 || youCount === tiles.length) {
+        setFace(tiles[0], youCount === 0);
+      }
+      updateLabels();
+    }
+
+    // Event listeners to make finger swiping work on mobile
+    let lastTouchTile = null;
+    let dragged = false;
+
+    function tileAt(x, y) {
+      const el = document.elementFromPoint(x, y);
+      return el && el.classList.contains('tile') ? el : null;
+    }
+
+    grid.addEventListener('pointerdown', (e) => {
+      if (e.pointerType === 'mouse') return;
+      lastTouchTile = null;
+      dragged = false;
+    });
+
+    grid.addEventListener('pointermove', (e) => {
+      if (e.pointerType === 'mouse') return;
+      const tile = tileAt(e.clientX, e.clientY);
+      if (tile && tile !== lastTouchTile) {
+        lastTouchTile = tile;
+        dragged = true;
+        toggle(tile);
+      }
+    });
+
+    // After a mobile finger swipe, don't let the release count as a click
+    document.addEventListener('click', (e) => {
+      if (dragged) {
+        e.preventDefault();
+        e.stopPropagation();
+        dragged = false;
+      }
+    }, true);
+
+    // Normal event listeners
+    window.addEventListener('resize', resize);
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) jumble();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, jumble);
+    });
+
+    init();
+    resize();
+    jumble();
+
+  </script>
+</body>
+
+</html>

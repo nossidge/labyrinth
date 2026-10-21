@@ -2135,3 +2135,10 @@ corridors:
     tags: [abstract, mobile, secret, unicode]
     visual_description: >-
       A grid of monospace binary digits on a black background. The ones glow bright cyan and the zeros are dark blue. Clicking a digit flips every digit in its row and column. A few cells feature magenta tildes that link to a random corridor. Pressing any key regenerates the grid with fresh random digits.
+  - id: chuckle-brothers
+    title: Chuckle Brothers
+    created: 2026-10-21 17:26
+    links: 15
+    tags: [humour, images, mobile, pop]
+    visual_description: >-
+      A jigsaw of the two Chuckle Brothers' faces, split into a 3x5 grid of tiles. Each tile shows a slice of either Barry's or Paul's face, and hovering over a tile switches it to the other face. The background blends between teal and orange to match the current mix, and vertical "To Me" and "To You" labels on either side fade in and out according to the proportion of each brother. Clicking the background or pressing a key shuffles the tiles, and on touch devices a finger swipe toggles them. Each tile is a clickable link to a random corridor.

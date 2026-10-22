@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="say guy right now">
+  <title>Seigaiha</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      background: #1c2740;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    canvas {
+      position: fixed;
+      display: block;
+      top: 0;
+      left: 0;
+    }
+
+    #hover-link {
+      position: fixed;
+      display: none;
+      z-index: 10;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="canvas"></canvas>
+  <a id="hover-link" href="../index.html"></a>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('seigaiha');
+
+    const hoverLink = document.getElementById('hover-link');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d', { alpha: false });
+
+    const RADIUS = 46;
+    const ROW_H = RADIUS * 0.5;
+    const ARCS = [1, 0.8, 0.6, 0.4, 0.2];
+    const BOB = 3.5;
+
+    const COLOUR_BACKGROUND = '#1c2740';
+    const COLOUR_WAVE_FILL = ['#223760', '#1e3156', '#26406b'];
+    const COLOUR_WAVE_STROKE = '#e6dcc3';
+    const COLOUR_HOVER_FILL = '#c8452f';
+    const COLOUR_HOVER_STROKE = '#f1d38a';
+    const waveSprites = COLOUR_WAVE_FILL.map(c => makeSprite(c, COLOUR_WAVE_STROKE));
+    const hoverSprite = makeSprite(COLOUR_HOVER_FILL, COLOUR_HOVER_STROKE);
+
+    let winW, winH;
+    let rows = [];
+    let mouse = { x: -1, y: -1 };
+    let hovered = null;
+
+    // To save CPU, pre-render each scale once.
+    // There's only four distinct types (three blue waves plus the hovered one).
+    // So draw each into an offscreen canvas at startup and use drawImage per scale.
+    function makeSprite(fill, line) {
+      const size = RADIUS * 2 + 4;
+      const canvas = document.createElement('canvas');
+      canvas.width = canvas.height = size;
+
+      const context = canvas.getContext('2d');
+      const mid = size / 2;
+
+      context.beginPath();
+      context.arc(mid, mid, RADIUS, 0, Math.PI * 2);
+      context.fillStyle = fill;
+      context.fill();
+      context.strokeStyle = line;
+      context.lineWidth = 2;
+
+      for (const arc of ARCS) {
+        context.beginPath();
+        context.arc(mid, mid, RADIUS * arc, 0, Math.PI * 2);
+        context.stroke();
+      }
+
+      return canvas;
+    }
+
+    function resize() {
+      winW = canvas.width = window.innerWidth;
+      winH = canvas.height = window.innerHeight;
+      init();
+    }
+
+    function init() {
+      rows = [];
+      const rowCount = Math.ceil(winH / ROW_H) + 3;
+      const colCount = Math.ceil(winW / (2 * RADIUS)) + 2;
+      for (let row = 0; row < rowCount; row++) {
+        const scales = [];
+        const shift = (row % 2) * RADIUS;
+        for (let col = 0; col < colCount; col++) {
+          scales.push({
+            row: row,
+            col: col,
+            baseX: col * 2 * RADIUS - RADIUS + shift,
+            baseY: row * ROW_H - RADIUS,
+            x: 0,
+            y: 0,
+            url: LAB.pageRandomiser.nextOne(),
+          });
+        }
+        rows.push({ colour: COLOUR_WAVE_FILL[row % COLOUR_WAVE_FILL.length], scales: scales });
+      }
+    }
+
+    function findHovered() {
+      if (mouse.x < 0) return null;
+      // Lower rows are rendered in front, so search from the bottom up
+      for (let row = rows.length - 1; row >= 0; row--) {
+        for (const s of rows[row].scales) {
+          const dx = mouse.x - s.x;
+          const dy = mouse.y - s.y;
+          if (dx * dx + dy * dy <= RADIUS * RADIUS) return s;
+        }
+      }
+      return null;
+    }
+
+    function tick(now) {
+      const t = now * 0.001;
+
+      for (const row of rows) {
+        for (const s of row.scales) {
+          s.x = s.baseX;
+          s.y = s.baseY + BOB * Math.sin(t * 1.1 - s.row * 0.7 + s.col * 0.45);
+        }
+      }
+
+      hovered = findHovered();
+
+      ctx.fillStyle = COLOUR_BACKGROUND;
+      ctx.fillRect(0, 0, winW, winH);
+
+      for (const row of rows) {
+        for (const s of row.scales) {
+          const half = RADIUS + 2;
+          const sprite = (s === hovered) ? hoverSprite : waveSprites[s.row % 3];
+          ctx.drawImage(sprite, s.x - half, s.y - half);
+        }
+      }
+
+      if (hovered) {
+        // Only the top half of a scale shows, so that should be the link
+        hoverLink.href = hovered.url;
+        hoverLink.style.left = (hovered.x - RADIUS) + 'px';
+        hoverLink.style.top = (hovered.y - RADIUS) + 'px';
+        hoverLink.style.width = (RADIUS * 2) + 'px';
+        hoverLink.style.height = RADIUS + 'px';
+        hoverLink.style.display = 'block';
+      } else {
+        hoverLink.style.display = 'none';
+      }
+
+      requestAnimationFrame(tick);
+    }
+
+    window.addEventListener('mousemove', (e) => {
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+    });
+
+    document.addEventListener('mouseleave', () => {
+      mouse.x = -1;
+      mouse.y = -1;
+    });
+
+    window.addEventListener('resize', resize);
+
+    resize();
+    tick();
+
+  </script>
+</body>
+
+</html>

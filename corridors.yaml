@@ -2142,3 +2142,10 @@ corridors:
     tags: [humour, images, mobile, pop]
     visual_description: >-
       A jigsaw of the two Chuckle Brothers' faces, split into a 3x5 grid of tiles. Each tile shows a slice of either Barry's or Paul's face, and hovering over a tile switches it to the other face. The background blends between teal and orange to match the current mix, and vertical "To Me" and "To You" labels on either side fade in and out according to the proportion of each brother. Clicking the background or pressing a key shuffles the tiles, and on touch devices a finger swipe toggles them. Each tile is a clickable link to a random corridor.
+  - id: seigaiha
+    title: Seigaiha
+    created: 2026-10-22 14:59
+    links: dynamic
+    tags: [art, mobile]
+    visual_description: >-
+      A full-screen arrangement of the traditional Japanese seigaiha pattern: overlapping rows of concentric semicircles in shades of deep blue with cream ring lines on a dark navy background. The waves bob gently up and down in a slow sine motion. Hovering over a wave turns it golden. Each wave is a clickable link to a random corridor.

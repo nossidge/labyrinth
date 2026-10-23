@@ -2149,3 +2149,10 @@ corridors:
     tags: [art, mobile]
     visual_description: >-
       A full-screen arrangement of the traditional Japanese seigaiha pattern: overlapping rows of concentric semicircles in shades of deep blue with cream ring lines on a dark navy background. The waves bob gently up and down in a slow sine motion. Hovering over a wave turns it golden. Each wave is a clickable link to a random corridor.
+  - id: ishihara
+    title: Ishihara
+    created: 2026-10-23 12:12
+    links: dynamic
+    tags: [mobile, science, tilde]
+    visual_description: >-
+      A circular plate filled with densely packed dots of varying sizes against a cream background. The dots cycle through colour-blind test style palettes: olive greens with terracotta, warm ochres with olive, mauves with teal, and greys with dusty reds. Clicking the background or pressing a key regenerates the plate with a new palette and dot layout. A "hidden" tilde shape is formed by a subset of the dots in a contrasting foreground colour, plainly visable unless the user is colourblind. Each of those tilde dots is a clickable link to a random corridor and is outlined on hover.

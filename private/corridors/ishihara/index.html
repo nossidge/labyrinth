@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+https://en.wikipedia.org/wiki/Ishihara_test
+
+This one took a bit of work.
+My first attempt at random circle packing was completely rubbish.
+This one's a bit more complicated, but it works way better.
+If you just try to get some uniform random placement, it gets inefficient as the space fills up.
+Once dots are scattered around, open space between existing circles are rarely hit by chance.
+So what I do instead is do a second pass, not just one.
+One loop just randomly finds areas of the canvas.
+And then the second one finds areas that are close to existing placed dots.
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="You're the light when I close my eyes">
+  <title>Ishihara</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background-color: #f4ead6;
+      color: #5a4a38;
+      user-select: none;
+    }
+
+    main {
+      width: 82vmin;
+      height: 82vmin;
+      max-width: 92vw;
+      max-height: 70vh;
+    }
+
+    @media (max-height: 600px) {
+      main {
+        max-height: 92vw;
+      }
+    }
+
+    main svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .foreground:hover circle {
+      stroke: #3a2a1a;
+      stroke-width: 1.5;
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <svg id="svg" viewBox="0 0 600 600"></svg>
+  </main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('ishihara');
+
+    const svg = document.getElementById('svg');
+
+    // This is hard-coded, from the SVG viewBox
+    const PLATE_RADIUS = 300;
+    const CX = 300;
+    const CY = 300;
+
+    const PALETTES_POOL = [
+      {
+        background: ['#8aa05a', '#a3b36b', '#6e8446', '#b9c48a', '#93a865'],
+        foreground: ['#c9694a', '#d98a4e', '#b85c3f', '#e0a05f'],
+      }, {
+        background: ['#c98a52', '#d9a468', '#b87840', '#e0b884', '#cc9a5c'],
+        foreground: ['#8a9a4a', '#a0ae5c', '#788a3c', '#b0bc72'],
+      }, {
+        background: ['#9a8a9c', '#b0a2b2', '#847488', '#c4b8c6', '#a696aa'],
+        foreground: ['#5a9a8a', '#6cae9c', '#4a8878', '#84bcac'],
+      }, {
+        background: ['#b0b0a8', '#c4c4bc', '#9a9a92', '#d6d6cc', '#a8a8a0'],
+        foreground: ['#c05a6a', '#d4707e', '#aa4a58', '#e08a96'],
+      },
+    ];
+    const palettesRandomiser = new LAB.CyclicRandomiser(PALETTES_POOL);
+
+    // Try to squish dots into a big circle
+    // Big dots are placed first, so small dots fill the leftover gaps
+    // This is done by shrinking the cap value each loop
+    // 1. Pick a random spot
+    // 2. Measure distance to the nearest neighbour or edge
+    // 3. Grow the dot until it touches something
+    function packDots() {
+      const output = [];
+
+      const minR = 2               // Smallest dot
+      const maxR = 11              // Largest dot
+      const gap = 1.2              // Space between dots
+      const passes = 10            // Number of size "sweeps" from maxR down to minR
+      const attemptsPerPass = 100  // Random-position attempts per pass
+      const tangentTries = 10      // Per existing dot, per pass: tries at spots touching that dot
+      const sizeVariety = 0.5      // In each pass, dot radius lands in [cap*sizeVariety, cap]
+
+      // Spatial hash so each check only looks at nearby dots (not all of them)
+      const cell = 2 * maxR + gap;
+      const cols = Math.ceil((2 * PLATE_RADIUS) / cell) + 1;
+      const grid = new Map();
+      const key = (i, j) => i * cols + j;
+      const cellOf = (v, origin) => Math.floor((v - origin + PLATE_RADIUS) / cell);
+
+      // The largest radius that fits at the (x, y) coordinate without overlapping anything
+      function roomAt(x, y) {
+        let room = PLATE_RADIUS - Math.hypot(x - CX, y - CY); // distance to plate edge
+        if (room < minR) return room;
+        const ci = cellOf(x, CX), cj = cellOf(y, CY);
+        for (let i = ci - 1; i <= ci + 1; i++) {
+          for (let j = cj - 1; j <= cj + 1; j++) {
+            const bucket = grid.get(key(i, j));
+            if (!bucket) continue;
+            for (const d of bucket) {
+              const free = Math.hypot(d.x - x, d.y - y) - d.r - gap;
+              if (free < room) {
+                room = free;
+                if (room < minR) return room; // early out, save some compute
+              }
+            }
+          }
+        }
+        return room;
+      }
+
+      function add(x, y, r) {
+        const dot = { x, y, r };
+        output.push(dot);
+        const k = key(cellOf(x, CX), cellOf(y, CY));
+        if (!grid.has(k)) grid.set(k, []);
+        grid.get(k).push(dot);
+      }
+
+      for (let p = 0; p < passes; p++) {
+        // Cap sweeps from maxR down to minR
+        const cap = maxR - (maxR - minR) * (p / (passes - 1));
+        const floor = Math.max(minR, cap * sizeVariety);
+
+        // Try to place a dot at (x, y)
+        const tryPlace = (x, y) => {
+          const room = roomAt(x, y);
+          if (room < floor) return;
+          // Grow so that it touches a neighbour but doesn't pass the cap
+          // Shrink it a little by a random amound to keep it varied
+          add(x, y, Math.min(room, cap * LAB.rand(0.85, 1.0)));
+        };
+
+        // Random positions in the wide open spaces
+        // (Room to make her big mistakes)
+        for (let a = 0; a < attemptsPerPass; a++) {
+          const angle = LAB.rand(0, Math.PI * 2);
+          const dist = Math.sqrt(LAB.rand(0, 1)) * PLATE_RADIUS;
+          tryPlace(CX + dist * Math.cos(angle), CY + dist * Math.sin(angle));
+        }
+
+        // Tangent positions as a ring around each existing dot
+        // These gaps between the dots are small targets, but they'll always be next to a dot
+        for (let i = 0; i < output.length; i++) {
+          const dot = output[i];
+          for (let t = 0; t < tangentTries; t++) {
+            const rt = LAB.rand(floor, cap);
+            const ang = LAB.rand(0, Math.PI * 2);
+            const off = dot.r + gap + rt;
+            tryPlace(dot.x + off * Math.cos(ang), dot.y + off * Math.sin(ang));
+          }
+        }
+      }
+      return output;
+    }
+
+    // Is this point inside the hidden tilde?
+    // This uses curves to approximate the shape of a tilde
+    function inTilde(x, y) {
+      const degrees = 10;
+      const rad = degrees * Math.PI / 180;
+      const cos = Math.cos(rad);
+      const sin = Math.sin(rad);
+
+      // Rotate coordinates around center (CX, CY) anticlockwise
+      const dx0 = x - CX;
+      const dy0 = y - CY;
+      const dx = dx0 * cos - dy0 * sin;
+      const dy = dx0 * sin + dy0 * cos;
+
+      if (Math.abs(dx) > 195) return false;
+      const curve = 55 * Math.sin(dx * Math.PI / 195);
+      return Math.abs(dy - curve) < 36;
+    }
+
+    function init() {
+      svg.replaceChildren();
+
+      const palette = palettesRandomiser.nextOne();
+      const dots = packDots();
+
+      dots.forEach(dot => {
+        const circle = LAB.svgElement('circle', {
+          cx: dot.x.toFixed(1),
+          cy: dot.y.toFixed(1),
+          r: dot.r.toFixed(1),
+        });
+
+        if (inTilde(dot.x, dot.y)) {
+          circle.setAttribute('fill', LAB.sample(palette.foreground));
+          const link = LAB.svgElement('a', {
+            class: 'foreground',
+            'xlink:href': LAB.pageRandomiser.nextOne()
+          });
+          link.appendChild(circle);
+          svg.appendChild(link);
+
+        } else {
+          circle.setAttribute('fill', LAB.sample(palette.background));
+          svg.appendChild(circle);
+        }
+      });
+    }
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    init();
+
+  </script>
+</body>
+
+</html>

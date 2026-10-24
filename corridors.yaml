@@ -2156,3 +2156,10 @@ corridors:
     tags: [mobile, science, tilde]
     visual_description: >-
       A circular plate filled with densely packed dots of varying sizes against a cream background. The dots cycle through colour-blind test style palettes: olive greens with terracotta, warm ochres with olive, mauves with teal, and greys with dusty reds. Clicking the background or pressing a key regenerates the plate with a new palette and dot layout. A "hidden" tilde shape is formed by a subset of the dots in a contrasting foreground colour, plainly visable unless the user is colourblind. Each of those tilde dots is a clickable link to a random corridor and is outlined on hover.
+  - id: karesansui
+    title: Karesansui
+    created: 2026-10-24 12:31
+    links: dynamic
+    tags: [mobile, nature, skeuomorphic]
+    visual_description: >-
+      A Japanese dry garden (karesansui) on a tan sand background. Long straight rake lines run across the whole garden, turning into concentric rings around each of the grey stones, which are given random organic shapes and a slight tilt. Clicking the sand adds a stone sized to fit the space around it, and pressing a key adds one at a random spot. Each stone is a clickable link to a random corridor.

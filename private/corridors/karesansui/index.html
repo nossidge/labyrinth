@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+https://en.wikipedia.org/wiki/Japanese_dry_garden
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="The Rake's Progress">
+  <title>Karesansui</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body,
+    html {
+      width: 100%;
+      height: 100%;
+      background-color: #d9cba6;
+      overflow: hidden;
+    }
+
+    body.full {
+      cursor: not-allowed;
+    }
+
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    .stone {
+      --tilt: 0deg;
+      position: absolute;
+      display: block;
+      background: radial-gradient(circle at 35% 30%, #6b6b66, #3a3a38 70%);
+      box-shadow: 3px 5px 10px rgba(60, 45, 20, 0.45);
+      transform: rotate(var(--tilt));
+      transition: transform 0.4s ease, box-shadow 0.4s ease;
+      z-index: 10;
+    }
+
+    .stone:hover {
+      box-shadow: 5px 9px 18px rgba(60, 45, 20, 0.6);
+      transform: rotate(var(--tilt)) scale(1.12);
+    }
+
+    #vignette {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(ellipse at center, transparent 55%, rgba(120, 90, 40, 0.28) 100%);
+      pointer-events: none;
+      z-index: 20;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="vignette"></div>
+  <canvas id="canvas"></canvas>
+  <div id="stones"></div>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('karesansui');
+
+    const stonesDiv = document.getElementById('stones');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    // How far the rake rings reach from a stone's centre, as a multiple of its radius.
+    // Used both for drawing the rings and for keeping stones' ring zones apart.
+    const RING_REACH = 3.2;
+    const MAX_STONES = 18;
+    const GROOVE = 9;
+    let stones = [];
+
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      // These are the long straightish baseline rake strokes
+      ctx.lineWidth = 1.5;
+      for (let y = 0; y < canvas.height + GROOVE; y += GROOVE) {
+        ctx.strokeStyle = (y / GROOVE) % 2 === 0
+          ? 'rgba(120, 100, 55, 0.35)'
+          : 'rgba(255, 245, 215, 0.45)';
+        ctx.beginPath();
+        for (let x = 0; x <= canvas.width; x += 12) {
+          const wobble = Math.sin(x * 0.01 + y) * 1.5;
+          if (x === 0) {
+            ctx.moveTo(x, y + wobble);
+          } else {
+            ctx.lineTo(x, y + wobble);
+          }
+        }
+        ctx.stroke();
+      }
+
+      // Around each stone, add a rake of sand in a circle
+      stones.forEach(stone => {
+        const reach = stone.r * RING_REACH;
+
+        // Make a filled smooth sand circle around the stone
+        ctx.fillStyle = '#d9cba6';
+        ctx.beginPath();
+        ctx.arc(stone.x, stone.y, reach, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Then draw a bunch of rake circles round it
+        for (let r = reach; r > stone.r * 0.7; r -= GROOVE) {
+          ctx.strokeStyle = (Math.round(r / GROOVE)) % 2 === 0
+            ? 'rgba(120, 100, 55, 0.4)'
+            : 'rgba(255, 245, 215, 0.5)';
+          ctx.beginPath();
+          ctx.arc(stone.x, stone.y, r, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+
+        ctx.restore();
+      });
+    }
+
+    function randomBorderRadius() {
+      const p = () => LAB.randInt(40, 60) + '%';
+      return `${p()} ${p()} ${p()} ${p()} / ${p()} ${p()} ${p()} ${p()}`;
+    }
+
+    function newStone(x, y, r) {
+      return {
+        x, y, r,
+        borderRadius: randomBorderRadius(),
+        tilt: LAB.rand(-15, 15) + 'deg',
+      };
+    }
+
+    function makeStoneEl(stone) {
+      const el = document.createElement('a');
+      el.href = LAB.pageRandomiser.nextOne();
+      el.className = 'stone';
+      el.style.width = (stone.r * 2) + 'px';
+      el.style.height = (stone.r * 1.7) + 'px';
+      el.style.left = (stone.x - stone.r) + 'px';
+      el.style.top = (stone.y - stone.r * 0.85) + 'px';
+      el.style.borderRadius = stone.borderRadius;
+      el.style.setProperty('--tilt', stone.tilt);
+      return el;
+    }
+
+    // Figure out the biggest radius a stone can have without overlapping others.
+    // So that the rings don't over-rake each other.
+    function maxRadiusAt(x, y) {
+      let maxFit = Infinity;
+      for (const other of stones) {
+        const d = Math.hypot(other.x - x, other.y - y);
+        maxFit = Math.min(maxFit, d / RING_REACH - other.r);
+      }
+      return maxFit;
+    }
+
+    function randomStone() {
+      for (let attempt = 0; attempt < 200; attempt++) {
+        const x = LAB.rand(48, window.innerWidth - 48);
+        const y = LAB.rand(48, window.innerHeight - 48);
+        const maxFit = maxRadiusAt(x, y);
+        if (maxFit < 22) continue; // too close to another stone
+        return newStone(x, y, Math.min(48, maxFit));
+      }
+      return null;
+    }
+
+    // Toggle the "garden is full" state
+    function updateFullState() {
+      document.body.classList.toggle('full', stones.length >= MAX_STONES);
+    }
+
+    function placeStone(stone) {
+      stones.push(stone);
+      resize();
+      stonesDiv.appendChild(makeStoneEl(stone));
+      updateFullState();
+    }
+
+    function init() {
+      stones = [];
+      stonesDiv.replaceChildren();
+      const count = LAB.randInt(3, 5);
+      for (let i = 0; i < count; i++) {
+        const stone = randomStone();
+        if (stone) {
+          stones.push(stone);
+          stonesDiv.appendChild(makeStoneEl(stone));
+        }
+      }
+      resize();
+      updateFullState();
+    }
+
+    window.addEventListener('resize', resize);
+
+    // Click the sand to add a new stone.
+    // Might not work if there's a stone to near the cursor location.
+    // When the garden is full, any click regenerates it.
+    document.body.addEventListener('click', (e) => {
+      if (e.target.closest('a')) return;
+      if (stones.length >= MAX_STONES) {
+        e.preventDefault();
+        init();
+        return;
+      }
+      const maxFit = maxRadiusAt(e.clientX, e.clientY);
+      if (maxFit < 18) return; // too close to another stone
+      placeStone(newStone(e.clientX, e.clientY, Math.min(42, maxFit)));
+    });
+
+    // Press a key to place a stone at a random location
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, () => {
+        if (stones.length >= MAX_STONES) return;
+        const stone = randomStone();
+        if (stone) placeStone(stone);
+      });
+    });
+
+    init();
+
+  </script>
+</body>
+
+</html>

@@ -2163,3 +2163,10 @@ corridors:
     tags: [mobile, nature, skeuomorphic]
     visual_description: >-
       A Japanese dry garden (karesansui) on a tan sand background. Long straight rake lines run across the whole garden, turning into concentric rings around each of the grey stones, which are given random organic shapes and a slight tilt. Clicking the sand adds a stone sized to fit the space around it, and pressing a key adds one at a random spot. Each stone is a clickable link to a random corridor.
+  - id: batomorphic-sun
+    title: Batomorphic Sun
+    created: 2026-10-25 15:40
+    links: dynamic
+    tags: [abstract, mobile]
+    visual_description: >-
+      A proc-gen remix of the flag of North Macedonia. A circle sun is drawn in the middle, and rays of colour are drawn from the centre to the edges, painted in alternating colours from a randomly selected two-colour palette. The whole thing rotates slowly. Pressing any key regenerates the sun with a new palette, ray count, and rotation speed. Each ray and the central circle are clickable links to random corridors.

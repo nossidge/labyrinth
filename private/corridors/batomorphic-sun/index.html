@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+The flag of North Macedonia:
+https://en.wikipedia.org/wiki/North_Macedonia
+
+The taxon of ray fishes:
+https://en.wikipedia.org/wiki/Batomorphi
+
+So "Batomorphic Sun" is a sun characterised by rays.
+Look, I'm not saying all my puns are good word play.
+I'm just saying I do try to put a bit of thought in.
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Charles Davies">
+  <title>Batomorphic Sun</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body,
+    html {
+      width: 100%;
+      height: 100%;
+      background-color: #000000;
+      overflow: hidden;
+    }
+
+    #svg {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    .ray,
+    .circle .fill {
+      transition: filter 0.2s ease;
+    }
+
+    .ray:hover,
+    .circle:hover .fill {
+      filter: brightness(1.5);
+    }
+  </style>
+</head>
+
+<body>
+  <svg id="svg"></svg>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('batomorphic-sun');
+
+    const svg = document.getElementById('svg');
+
+    const PALETTES = [
+      ['#e63946', '#f1faee'],
+      ['#ffd23f', '#1b3a4b'],
+      ['#ff5e78', '#2b1b3d'],
+      ['#06d6a0', '#073b4c'],
+      ['#f77f00', '#003049'],
+      ['#e0aaff', '#10002b'],
+      ['#ffffff', '#111111'],
+    ];
+
+    let group = null;
+    let rotation = 0;
+    let spinSpeed = 0;
+    let previousTime = 0;
+
+    function init() {
+      svg.replaceChildren();
+      const winW = window.innerWidth;
+      const winH = window.innerHeight;
+      svg.setAttribute('viewBox', `0 0 ${winW} ${winH}`);
+
+      const cx = winW / 2;
+      const cy = winH / 2;
+      const radius = Math.hypot(winW, winH);
+      const rayCount = LAB.sample([16, 20, 24, 32]);
+      const palette = LAB.sample(PALETTES);
+      spinSpeed = LAB.randNegToPos(12, 3);
+
+      group = LAB.svgElement('g', {}, svg);
+      group.style.transformOrigin = `${cx}px ${cy}px`;
+
+      // Draw the rays
+      for (let i = 0; i < rayCount; i++) {
+        const a0 = (i / rayCount) * Math.PI * 2;
+        const a1 = ((i + 1) / rayCount) * Math.PI * 2;
+
+        const anchor = LAB.svgElement('a', {
+          'xlink:href': LAB.pageRandomiser.nextOne(),
+        }, group);
+
+        LAB.svgElement('path', {
+          class: 'ray',
+          d: [
+            `M ${cx} ${cy}`,
+            `L ${cx + Math.cos(a0) * radius} ${cy + Math.sin(a0) * radius}`,
+            `L ${cx + Math.cos(a1) * radius} ${cy + Math.sin(a1) * radius}`,
+            'Z',
+          ].join(' '),
+          fill: palette[i % 2],
+        }, anchor);
+      }
+
+      // Draw a circle in the centre
+      const anchor = LAB.svgElement('a', {
+        'xlink:href': LAB.pageRandomiser.nextOne(),
+      }, group);
+
+      const circleGroup = LAB.svgElement('g', {
+        class: 'circle',
+      }, anchor);
+
+      LAB.svgElement('circle', {
+        class: 'fill',
+        cx: cx, cy: cy, r: 47,
+        fill: palette[0],
+      }, circleGroup);
+
+      LAB.svgElement('circle', {
+        cx: cx, cy: cy, r: 50,
+        fill: 'none',
+        stroke: palette[1],
+        'stroke-width': 6,
+      }, circleGroup);
+    }
+
+    function tick(now) {
+      const dt = Math.min(0.1, (now - previousTime) / 1000);
+      previousTime = now;
+
+      rotation += spinSpeed * dt;
+      if (group) {
+        group.style.transform = `rotate(${rotation}deg)`;
+      }
+
+      requestAnimationFrame(tick);
+    }
+
+    window.addEventListener('resize', init);
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    init();
+    requestAnimationFrame(tick);
+
+  </script>
+</body>
+
+</html>

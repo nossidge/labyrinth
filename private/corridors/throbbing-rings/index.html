@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Rob Throb">
+  <title>Throbbing Gristle</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body,
+    html {
+      width: 100%;
+      height: 100%;
+      background-color: #060608;
+      overflow: hidden;
+    }
+
+    main {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .ring {
+      position: absolute;
+      display: block;
+      border-radius: 50%;
+      border-style: solid;
+      border-color: rgba(180, 180, 200, 0.4);
+      top: 50%;
+      left: 50%;
+      text-decoration: none;
+      cursor: pointer;
+      transition: border-width 0.3s, border-style 0.3s;
+    }
+
+    .ring:hover {
+      border-style: solid;
+      border-width: 12px;
+      z-index: 100;
+    }
+
+    .border-dashed {
+      border-style: dashed;
+    }
+
+    .border-dotted {
+      border-style: dotted;
+    }
+
+    .border-double {
+      border-style: double;
+    }
+
+    .border-solid {
+      border-style: solid;
+    }
+
+    .border-thick {
+      border-style: solid;
+      border-width: 2px;
+    }
+  </style>
+</head>
+
+<body>
+  <main id="main"></main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('throbbing-rings');
+
+    const main = document.getElementById('main');
+
+    const BORDER_CLASSES = [
+      'border-dashed',
+      'border-dotted',
+      'border-double',
+      'border-solid',
+      'border-thick',
+    ];
+
+    const RING_COUNT = 9;
+    const BASE_RADIUS = 40;
+    const RADIUS_STEP = 36;
+    const rings = [];
+
+    function init() {
+      main.replaceChildren();
+      rings.length = 0;
+
+      for (let i = 0; i < RING_COUNT; i++) {
+        const ring = document.createElement('a');
+        ring.href = LAB.pageRandomiser.nextOne();
+        ring.className = 'ring ' + LAB.sample(BORDER_CLASSES);
+        ring.style.width = '0px';
+        ring.style.height = '0px';
+        ring.style.zIndex = -i;
+        main.appendChild(ring);
+
+        rings.push({
+          el: ring,
+          baseRadius: BASE_RADIUS + i * RADIUS_STEP,
+          frequency: LAB.rand(0.3, 2.0),
+          phase: LAB.rand(0, Math.PI * 2),
+          amplitude: LAB.rand(8, 25),
+          hue: LAB.rand(200, 320),
+        });
+      }
+    }
+
+    function tick(time) {
+      const t = time * 0.001;
+
+      for (const ring of rings) {
+        const pulse = Math.sin(t * ring.frequency + ring.phase);
+        const radius = ring.baseRadius + pulse * ring.amplitude;
+        const size = radius * 2;
+
+        ring.el.style.width = size + 'px';
+        ring.el.style.height = size + 'px';
+        ring.el.style.marginLeft = (-radius) + 'px';
+        ring.el.style.marginTop = (-radius) + 'px';
+
+        const alpha = 0.2 + (pulse + 1) * 0.15;
+        ring.el.style.borderColor = `hsla(${ring.hue}, 60%, 60%, ${alpha})`;
+
+        if (pulse > 0.85) {
+          ring.el.style.borderColor = `hsla(${ring.hue}, 80%, 80%, 0.8)`;
+        }
+      }
+
+      requestAnimationFrame(tick);
+    }
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    init();
+    tick();
+
+  </script>
+</body>
+
+</html>

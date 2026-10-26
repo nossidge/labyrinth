@@ -2170,3 +2170,10 @@ corridors:
     tags: [abstract, mobile]
     visual_description: >-
       A proc-gen remix of the flag of North Macedonia. A circle sun is drawn in the middle, and rays of colour are drawn from the centre to the edges, painted in alternating colours from a randomly selected two-colour palette. The whole thing rotates slowly. Pressing any key regenerates the sun with a new palette, ray count, and rotation speed. Each ray and the central circle are clickable links to random corridors.
+  - id: throbbing-rings
+    title: Throbbing Rings
+    created: 2026-10-26 22:34
+    links: 9
+    tags: [abstract, mobile]
+    visual_description: >-
+      Nine concentric rings centred on a black background, each with a randomly chosen border style (dashed, dotted, double, solid, or thick) and a hue from blue to violet. The rings pulse in and out at their own frequencies and phases, brightening as they swell. Hovering over a ring thickens its border. Clicking the background or pressing any key regenerates the rings. Every ring is a clickable link to a random corridor.

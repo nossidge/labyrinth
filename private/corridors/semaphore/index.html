@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+https://en.wikipedia.org/wiki/Flag_semaphore
+https://en.wikipedia.org/wiki/File:Semaphore_Signals_A-Z.jpg
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Wigwag the dog">
+  <title>Help</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: linear-gradient(#a8c4d4 0%, #c8d8e0 50%, #7a9a6b 50%, #5f7d52 100%);
+      overflow-x: hidden;
+    }
+
+    main {
+      display: flex;
+      gap: 1.75em;
+      font-size: min(16px, calc((100vw - 12px) / 60.25));
+    }
+
+    .signaler {
+      position: relative;
+      display: block;
+      width: 6em;
+      height: 11.875em;
+      text-decoration: none;
+    }
+
+    .head {
+      position: absolute;
+      top: 1.75em;
+      left: 50%;
+      width: 1.375em;
+      height: 1.375em;
+      margin-left: -0.6875em;
+      background: #333333;
+      border-radius: 50%;
+    }
+
+    .torso {
+      position: absolute;
+      top: 3.25em;
+      left: 50%;
+      width: 0.625em;
+      height: 3.375em;
+      margin-left: -0.3125em;
+      background: #333333;
+    }
+
+    .legs {
+      position: absolute;
+      top: 6.375em;
+      left: 50%;
+      width: 1.875em;
+      height: 3.75em;
+      margin-left: -0.9375em;
+      background: #333333;
+      clip-path: polygon(36.7% 0, 63.3% 0, 100% 100%, 80% 100%, 50% 0, 20% 100%, 0% 100%);
+    }
+
+    .arm {
+      position: absolute;
+      top: 3.5em;
+      left: 50%;
+      width: 0.375em;
+      height: 2.75em;
+      margin-left: -0.1875em;
+      background: #333333;
+      transform-origin: 50% 0.25em;
+      transition: transform 0.9s ease-in-out;
+    }
+
+    .flag {
+      position: absolute;
+      bottom: -1.25em;
+      left: -0.5em;
+      width: 1.375em;
+      height: 1.375em;
+      background: linear-gradient(135deg, #d8342a 50%, #f0c23a 50%);
+      border: 1px solid #333333;
+    }
+
+    .signaler:hover .head {
+      background: #d8342a;
+    }
+  </style>
+</head>
+
+<body>
+  <main id="main"></main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('semaphore');
+
+    const main = document.getElementById('main');
+
+    // Arm angles per letter: [left, right]
+    const ALPHABET = {
+      A: [0, -45], B: [0, -90], C: [0, -135], D: [0, -180],
+      E: [-135, 0], F: [-90, 0], G: [-45, 0], H: [45, -90],
+      I: [45, -135], J: [-90, -180], K: [-180, -45], L: [-135, -45],
+      M: [-90, -45], N: [-45, -45], O: [135, -90], P: [-180, -90],
+      Q: [-135, -90], R: [-90, -90], S: [-45, -90], T: [-180, -135],
+      U: [-135, -135], V: [-45, -180], W: [-90, 135], X: [-45, 135],
+      Y: [-90, -135], Z: [-90, 45], ' ': [0, 0],
+    };
+
+    const PHRASES = [
+      'SYMBOLIC',
+      'ALPHABET',
+    ];
+
+    const SIGNALER_COUNT = PHRASES[0].length;
+    const signalers = [];
+    let phraseIndex = 0;
+
+    function init() {
+      main.replaceChildren();
+      signalers.length = 0;
+
+      for (let i = 0; i < SIGNALER_COUNT; i++) {
+        const figure = document.createElement('a');
+        figure.href = LAB.pageRandomiser.nextOne();
+        figure.className = 'signaler';
+        figure.innerHTML = `
+          <span class="head"></span>
+          <span class="torso"></span>
+          <span class="legs"></span>
+          <span class="arm arm-left"><span class="flag"></span></span>
+          <span class="arm arm-right"><span class="flag"></span></span>
+        `;
+        main.appendChild(figure);
+
+        signalers.push({
+          left: figure.querySelector('.arm-left'),
+          right: figure.querySelector('.arm-right'),
+        });
+      }
+    }
+
+    function signalLetter(signaler, letter) {
+      const pose = ALPHABET[letter] || ALPHABET[' '];
+      // If the rotation is positive, it goes to the viewer's left.
+      // So the right arm needs to be negated.
+      signaler.left.style.transform = 'rotate(' + pose[0] + 'deg)';
+      signaler.right.style.transform = 'rotate(' + (-pose[1]) + 'deg)';
+    }
+
+    function tick() {
+      const phrase = PHRASES[phraseIndex % PHRASES.length].padEnd(SIGNALER_COUNT, ' ');
+      signalers.forEach((signaler, i) => signalLetter(signaler, phrase[i]));
+      phraseIndex += 1;
+      setTimeout(tick, 4000);
+    }
+
+    init();
+    tick();
+
+  </script>
+</body>
+
+</html>

@@ -2177,3 +2177,10 @@ corridors:
     tags: [abstract, mobile]
     visual_description: >-
       Nine concentric rings centred on a black background, each with a randomly chosen border style (dashed, dotted, double, solid, or thick) and a hue from blue to violet. The rings pulse in and out at their own frequencies and phases, brightening as they swell. Hovering over a ring thickens its border. Clicking the background or pressing any key regenerates the rings. Every ring is a clickable link to a random corridor.
+  - id: semaphore
+    title: Semaphore
+    created: 2026-10-27 16:40
+    links: 8
+    tags: [mobile, skeuomorphic]
+    visual_description: >-
+      A row of stick figures stands on a simple sky-and-grass horizon. Each figure holds a small flag in each hand and periodically raises and lowers its arms into flag semaphore positions, spelling out words in sequence. Each figure is a clickable link to a random corridor.

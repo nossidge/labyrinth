@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+https://en.wikipedia.org/wiki/Meander_(art)
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="What's a Greek urn? About 5 drachma an hour!">
+  <title>meander</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body,
+    html {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      height: 100%;
+      background-color: #1b1410;
+      overflow: hidden;
+    }
+
+    main {
+      display: grid;
+      gap: 10px;
+    }
+
+    .tile {
+      display: block;
+      background-color: #241a13;
+      border: 1px solid #3a2b1e;
+    }
+
+    .tile:hover {
+      background-color: #c96f2e;
+    }
+
+    .tile:hover .key {
+      stroke: #1b1410;
+    }
+
+    .tile.lit {
+      background-color: #f0c07a;
+      border-color: #f0c07a;
+    }
+
+    .tile.lit .key {
+      stroke: #1b1410;
+    }
+
+    .key {
+      fill: none;
+      stroke: #c96f2e;
+      stroke-width: 8;
+      stroke-linecap: square;
+      animation: draw 2s ease-out forwards;
+    }
+
+    @keyframes draw {
+      from {
+        stroke-dashoffset: var(--path-length);
+      }
+
+      to {
+        stroke-dashoffset: 0;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main id="main"></main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('greek-key');
+
+    const main = document.getElementById('main');
+
+    const SPIRAL_POINTS = [
+      [8, 92], [92, 92], [92, 8], [24, 8],
+      [24, 76], [76, 76], [76, 24], [40, 24],
+      [40, 60], [60, 60], [60, 40],
+    ];
+
+    const ROTATION_TO_DIRECTION = {
+      0: 'left',
+      90: 'up',
+      180: 'right',
+      270: 'down',
+    };
+
+    function spiralLength() {
+      let length = 0;
+      for (let i = 1; i < SPIRAL_POINTS.length; i++) {
+        length += Math.abs(SPIRAL_POINTS[i][0] - SPIRAL_POINTS[i - 1][0]);
+        length += Math.abs(SPIRAL_POINTS[i][1] - SPIRAL_POINTS[i - 1][1]);
+      }
+      return length;
+    }
+
+    const PATH_LENGTH = spiralLength();
+
+    let tiles = [];
+    let directions = [];
+    let progress = 0;
+
+    function init() {
+      main.replaceChildren();
+      tiles = [];
+      directions = [];
+      progress = 0;
+
+      const tileSize = 110;
+      const cols = Math.max(2, Math.floor((window.innerWidth - 40) / (tileSize + 10)));
+      const rows = Math.max(2, Math.floor((window.innerHeight - 40) / (tileSize + 10)));
+      main.style.gridTemplateColumns = `repeat(${cols}, ${tileSize}px)`;
+
+      for (let i = 0; i < cols * rows; i++) {
+        const tile = document.createElement('a');
+        tile.className = 'tile';
+        tile.href = LAB.pageRandomiser.nextOne();
+        tile.style.width = tileSize + 'px';
+        tile.style.height = tileSize + 'px';
+
+        const svg = LAB.svgElement('svg', {
+          width: tileSize - 2,
+          height: tileSize - 2,
+          viewBox: '0 0 100 100',
+        }, tile);
+
+        // Rotate each tile by some right angle
+        const rotation = LAB.sample([0, 90, 180, 270]);
+
+        const path = LAB.svgElement('polyline', {
+          points: SPIRAL_POINTS.map(p => p.join(',')).join(' '),
+          class: 'key',
+          transform: `rotate(${rotation} 50 50)`,
+        }, svg);
+
+        // Each animation needs to be staggered across the cells
+        path.style.setProperty('--path-length', PATH_LENGTH);
+        path.style.strokeDasharray = PATH_LENGTH;
+        path.style.strokeDashoffset = PATH_LENGTH;
+        path.style.animationDelay = (i * 0.06).toFixed(2) + 's';
+
+        tiles.push(tile);
+        directions.push(ROTATION_TO_DIRECTION[rotation]);
+        main.appendChild(tile);
+      }
+    }
+
+    // Arrow keys, WASD keys, HJKL keys
+    const KEY_LEFT = new Set(['ArrowLeft', 'h', 'a']);
+    const KEY_RIGHT = new Set(['ArrowRight', 'l', 'd']);
+    const KEY_UP = new Set(['ArrowUp', 'k', 'w']);
+    const KEY_DOWN = new Set(['ArrowDown', 'j', 's']);
+
+    function keyDirection(e) {
+      if (KEY_UP.has(e.key)) return 'up';
+      if (KEY_DOWN.has(e.key)) return 'down';
+      if (KEY_LEFT.has(e.key)) return 'left';
+      if (KEY_RIGHT.has(e.key)) return 'right';
+      return null;
+    }
+
+    function checkDirection(direction) {
+      if (progress >= tiles.length) return; // already solved
+
+      if (direction === directions[progress]) {
+        tiles[progress].classList.add('lit');
+        progress++;
+        if (progress === tiles.length) {
+          setTimeout(() => location.assign(LAB.goto()), 800);
+        }
+      } else {
+        // If they press the wrong key, reset the sequence
+        progress = 0;
+        tiles.forEach(t => t.classList.remove('lit'));
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, () => {
+        const direction = keyDirection(e);
+        if (direction) {
+          e.preventDefault();
+          checkDirection(direction);
+        } else {
+          init();
+        }
+      });
+    });
+
+    window.addEventListener('resize', init);
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    init();
+
+  </script>
+</body>
+
+</html>

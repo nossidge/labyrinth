@@ -2184,3 +2184,10 @@ corridors:
     tags: [mobile, skeuomorphic]
     visual_description: >-
       A row of stick figures stands on a simple sky-and-grass horizon. Each figure holds a small flag in each hand and periodically raises and lowers its arms into flag semaphore positions, spelling out words in sequence. Each figure is a clickable link to a random corridor.
+  - id: greek-key
+    title: Greek Key
+    created: 2026-10-28 16:20
+    links: dynamic
+    tags: [abstract, mobile]
+    visual_description: >-
+      A full-screen grid of Greek key meanders, square spiral shapes in orange on dark brown tiles against a black background. Each meander is rotated by a random multiple of 90 degrees, and the lines draw themselves on with a staggered animation across the grid. Hovering over a tile highlights it, and clicking the background regenerates the grid with new rotations. Every meander is a clickable link to a random corridor.

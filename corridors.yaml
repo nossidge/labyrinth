@@ -2191,3 +2191,10 @@ corridors:
     tags: [abstract, mobile]
     visual_description: >-
       A full-screen grid of Greek key meanders, square spiral shapes in orange on dark brown tiles against a black background. Each meander is rotated by a random multiple of 90 degrees, and the lines draw themselves on with a staggered animation across the grid. Hovering over a tile highlights it, and clicking the background regenerates the grid with new rotations. Every meander is a clickable link to a random corridor.
+  - id: wine-dark-sea
+    title: Wine Dark Sea
+    created: 2026-10-29 15:15
+    links: 1
+    tags: [abstract, mobile, unicode]
+    visual_description: >-
+      Full-screen rows of wave glyphs (~, ≈, ∿, 〜, ⌇) in deep wine-red on a near-black background. Each row is driven by two overlapping sine waves, and the combined height of the swell picks which glyph each character gets, so the rows ripple like a dark sea with slow crests and troughs. A radial vignette darkens the edges of the screen. Pressing a key regenerates the sea with new random phases and speeds. Each row is a clickable link to a random corridor.

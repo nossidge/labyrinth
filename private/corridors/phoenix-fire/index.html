@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Conchita Best">
+  <title>Ashes to Ashes</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      background: #0a0200;
+      overflow: hidden;
+    }
+
+    #main {
+      position: fixed;
+      display: flex;
+      width: 100vw;
+      height: 100vh;
+      top: 0;
+      left: 0;
+      justify-content: space-between;
+    }
+
+    .col {
+      background: linear-gradient(to top, #5a0d00 0%, #b81c00 25%, #ff5a00 55%, #ffb300 80%, #fff4c0 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      filter: drop-shadow(0 0 4px rgba(255, 90, 0, 0.6));
+      font-family: monospace;
+      white-space: pre;
+      line-height: 1.05;
+      text-align: center;
+      text-decoration: none;
+      transition: filter 0.2s ease;
+    }
+
+    .col:hover {
+      filter: drop-shadow(0 0 9px rgba(255, 200, 60, 0.95));
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      width: 100vw;
+      height: 100vh;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%);
+      background-size: 100% 2px;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      z-index: 100;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+  <main id="main"></main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('phoenix-fire');
+
+    const main = document.getElementById('main');
+    const glyphs = '^*.:`\'~+xX0o#@%&';
+    const fontSize = 18;
+    let columns = [];
+
+    function init() {
+      main.replaceChildren();
+      const colCount = Math.max(8, Math.floor(window.innerWidth / fontSize));
+      const rowCount = Math.ceil(window.innerHeight / (fontSize * 1.05)) + 2;
+      columns.length = 0;
+
+      for (let c = 0; c < colCount; c++) {
+        const a = document.createElement('a');
+        a.className = 'col';
+        a.href = LAB.pageRandomiser.nextOne();
+        a.style.fontSize = fontSize + 'px';
+
+        const chars = [];
+        for (let r = 0; r < rowCount; r++) chars.push(LAB.sample(glyphs));
+        a.textContent = chars.join('\n');
+        main.appendChild(a);
+
+        const col = {
+          el: a,
+          chars,
+          rows: rowCount,
+          speed: LAB.rand(0.4, 1.4),
+          acc: 0,
+        };
+        columns.push(col);
+      }
+    }
+
+    function tick() {
+      for (const col of columns) {
+        col.acc += col.speed;
+        if (col.acc < 1) continue;
+        col.acc = 0;
+
+        // Remove the top and add one at the bottom, so text scrolls upwards
+        col.chars.shift();
+        col.chars.push(LAB.sample(glyphs));
+
+        // Change a random interior glyph
+        if (LAB.chance(0.5)) {
+          col.chars[LAB.randInt(0, col.rows - 1)] = LAB.sample(glyphs);
+        }
+
+        col.el.textContent = col.chars.join('\n');
+      }
+    }
+
+    window.addEventListener('resize', init);
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    init();
+    LAB.handleTickWithFPS(tick, 30);
+
+  </script>
+</body>
+
+</html>

@@ -2198,3 +2198,10 @@ corridors:
     tags: [abstract, mobile, unicode]
     visual_description: >-
       Full-screen rows of wave glyphs (~, ≈, ∿, 〜, ⌇) in deep wine-red on a near-black background. Each row is driven by two overlapping sine waves, and the combined height of the swell picks which glyph each character gets, so the rows ripple like a dark sea with slow crests and troughs. A radial vignette darkens the edges of the screen. Pressing a key regenerates the sea with new random phases and speeds. Each row is a clickable link to a random corridor.
+  - id: phoenix-fire
+    title: Phoenix Fire
+    created: 2026-10-30 16:00
+    links: dynamic
+    tags: [abstract, crt, mobile]
+    visual_description: >-
+      Vertical columns of random glyphs (carets, asterisks, periods, tildes, plus signs, x's, o's, hashes, at signs, percents and ampersands) scroll slowly upward across a black background, like embers rising from a fire. Each column is rendered in monospace type with a fire gradient, dark red at the bottom brightening through orange to pale cream at the top, with a warm glow that strengthens on hover. Clicking the background or pressing a key regenerates the columns. Each column is a clickable link to a random corridor.

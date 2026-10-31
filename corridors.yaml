@@ -2205,3 +2205,10 @@ corridors:
     tags: [abstract, crt, mobile]
     visual_description: >-
       Vertical columns of random glyphs (carets, asterisks, periods, tildes, plus signs, x's, o's, hashes, at signs, percents and ampersands) scroll slowly upward across a black background, like embers rising from a fire. Each column is rendered in monospace type with a fire gradient, dark red at the bottom brightening through orange to pale cream at the top, with a warm glow that strengthens on hover. Clicking the background or pressing a key regenerates the columns. Each column is a clickable link to a random corridor.
+  - id: steiner-chain
+    title: Steiner Chain
+    created: 2026-10-31 17:21
+    links: dynamic
+    tags: [maths, mobile]
+    visual_description: >-
+      A Steiner chain: a ring of circles, each one tangent to its two neighbours and to a shared inner and outer circle, drawn in muted earthy colours on a beige background. The chain rotates slowly and is pushed off-centre by a circle inversion whose centre follows the mouse, or wanders in a lazy figure of eight when the mouse is left alone. Hovering over a circle darkens it. Clicking the background or pressing any key rebuilds the chain with a random number of circles. Each circle is a clickable link to a random corridor.

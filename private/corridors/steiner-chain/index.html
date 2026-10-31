@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+A Steiner chain: a ring of circles, each tangent to its two neighbours and to
+an inner and outer circle. Built concentric, then pushed off-centre with a
+circle inversion whose centre follows the mouse.
+
+https://en.wikipedia.org/wiki/Steiner_chain
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="A chain of circles that closes on itself">
+  <title>Steiner Chain</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    canvas {
+      position: fixed;
+      display: block;
+      top: 0;
+      left: 0;
+    }
+
+    .link {
+      position: fixed;
+      display: block;
+      border-radius: 50%;
+      z-index: 10;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="canvas"></canvas>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('steiner-chain');
+
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d', { alpha: false });
+
+    const COLOUR_BACK = '#cdc2aa';
+    const COLOUR_CIRC = '#d2c2a1';
+    const COLOUR_FORE = '#2b2a33';
+    const PALETTE = ['#c96a4a', '#d9a441', '#5b7f95', '#7f9c6d', '#8d6a9f', '#c6857b', '#b8b26a'];
+
+    let winW, winH;
+    let circleCount, innerR, chainD, chainRho;
+    let circles = [];
+    let angle = LAB.rand(0, Math.PI * 2);
+    let spin = LAB.randNegToPos(0.35, 0.2);
+    let target = { x: 0, y: 0 };
+    let centre = { x: 0, y: 0 };
+    let hovered = -1;
+    let lastMouseMove = -Infinity;
+    let lastTime = 0;
+
+    function resize() {
+      winW = canvas.width = window.innerWidth;
+      winH = canvas.height = window.innerHeight;
+    }
+
+    // Concentric chain of circleCount equal circles between radius innerR and 1
+    function init() {
+      const prevCircleCount = circleCount;
+      do {
+        circleCount = LAB.randInt(5, 12);
+      } while (circleCount === prevCircleCount);
+
+      spin = LAB.randNegToPos(0.35, 0.2);
+      const sine = Math.sin(Math.PI / circleCount);
+      innerR = (1 - sine) / (1 + sine);
+      chainD = (1 + innerR) / 2;
+      chainRho = (1 - innerR) / 2;
+
+      circles.forEach(c => c.anchor.remove());
+      circles = [];
+      hovered = -1;
+
+      const colours = LAB.shuffle(PALETTE);
+      for (let i = 0; i < circleCount; i++) {
+        const anchor = document.createElement('a');
+        anchor.className = 'link';
+        anchor.href = LAB.pageRandomiser.nextOne();
+        anchor.addEventListener('mouseenter', () => { hovered = i; });
+        anchor.addEventListener('mouseleave', () => { if (hovered === i) hovered = -1; });
+        document.body.appendChild(anchor);
+        circles.push({ colour: colours[i % colours.length], anchor: anchor });
+      }
+    }
+
+    // Invert a circle through the unit circle centred on the point P
+    function invert(cx, cy, r, p) {
+      const dx = cx - p.x;
+      const dy = cy - p.y;
+      const denom = dx * dx + dy * dy - r * r;
+      return {
+        x: p.x + dx / denom,
+        y: p.y + dy / denom,
+        r: Math.abs(r / denom)
+      };
+    }
+
+    function drawCircle(c, fill, stroke, lineWidth) {
+      ctx.beginPath();
+      ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
+      if (fill) {
+        ctx.fillStyle = fill;
+        ctx.fill();
+      }
+      if (stroke) {
+        ctx.lineWidth = lineWidth;
+        ctx.strokeStyle = stroke;
+        ctx.stroke();
+      }
+    }
+
+    function tick(now) {
+      const dt = lastTime ? Math.min((now - lastTime) / 1000, 0.05) : 0;
+      lastTime = now;
+      angle += spin * dt;
+
+      // Animation for when the user isn't moving their mouse on the page.
+      // Just wander around in a slow figure of eight.
+      if (now - lastMouseMove > 3000) {
+        const t = now * 0.00025;
+        target.x = Math.sin(t) * 0.7;
+        target.y = Math.sin(t * 2) * 0.45;
+      }
+      centre.x += (target.x - centre.x) * 0.04;
+      centre.y += (target.y - centre.y) * 0.04;
+
+      // Inversion centre should really stay strictly inside the inner circle.
+      // It doesn't actually work 100% though, but I kind of like the glitchy effect.
+      // If a user has a large screen and moves the mouse to the edge, it goes weird.
+      // There are ways I could force this to always work, but that's no fun.
+      const p = { x: centre.x * innerR * 0.6, y: centre.y * innerR * 0.6 };
+
+      const big = invert(0, 0, innerR, p);
+      const small = invert(0, 0, 1, p);
+      const fitR = Math.min(winW, winH) * 0.44;
+      const scale = fitR / big.r;
+
+      const toScreen = (c) => ({
+        x: winW / 2 + (c.x - big.x) * scale,
+        y: winH / 2 + (c.y - big.y) * scale,
+        r: c.r * scale,
+      });
+
+      ctx.fillStyle = COLOUR_BACK;
+      ctx.fillRect(0, 0, winW, winH);
+
+      drawCircle(toScreen(big), COLOUR_CIRC, COLOUR_FORE, 2);
+      drawCircle(toScreen(small), COLOUR_FORE, null, 0);
+
+      for (let i = 0; i < circleCount; i++) {
+        const a = angle + (i / circleCount) * Math.PI * 2;
+        const image = invert(Math.cos(a) * chainD, Math.sin(a) * chainD, chainRho, p);
+        const c = toScreen(image);
+        const circle = circles[i];
+
+        if (i === hovered) {
+          drawCircle(c, COLOUR_FORE, COLOUR_FORE, 2);
+        } else {
+          drawCircle(c, circle.colour, COLOUR_FORE, 2);
+        }
+
+        const style = circle.anchor.style;
+        style.left = (c.x - c.r) + 'px';
+        style.top = (c.y - c.r) + 'px';
+        style.width = (c.r * 2) + 'px';
+        style.height = (c.r * 2) + 'px';
+      }
+
+      requestAnimationFrame(tick);
+    }
+
+    window.addEventListener('mousemove', (e) => {
+      lastMouseMove = performance.now();
+      target.x = (e.clientX / winW) * 2 - 1;
+      target.y = (e.clientY / winH) * 2 - 1;
+    });
+
+    window.addEventListener('resize', resize);
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    resize();
+    init();
+    tick();
+
+  </script>
+</body>
+
+</html>

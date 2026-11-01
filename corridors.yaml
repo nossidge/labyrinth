@@ -2212,3 +2212,10 @@ corridors:
     tags: [maths, mobile]
     visual_description: >-
       A Steiner chain: a ring of circles, each one tangent to its two neighbours and to a shared inner and outer circle, drawn in muted earthy colours on a beige background. The chain rotates slowly and is pushed off-centre by a circle inversion whose centre follows the mouse, or wanders in a lazy figure of eight when the mouse is left alone. Hovering over a circle darkens it. Clicking the background or pressing any key rebuilds the chain with a random number of circles. Each circle is a clickable link to a random corridor.
+  - id: hyperbolic-tiling
+    title: Hyperbolic Tiling
+    created: 2026-11-01 14:49
+    links: dynamic
+    tags: [maths, mobile]
+    visual_description: >-
+      A regular tiling of the hyperbolic plane seen through the Poincaré disc. A single polygon is reflected across its own edges, over and over, filling the disc with tiles that shrink toward the rim, coloured in muted pastels by how deep their reflection lies. The plane slowly rotates and drifts automatically, and moving the mouse slides the plane further. The larger tiles are clickable links to random corridors, and clicking the background or pressing any key regenerates the tiling with a new polygon shape and colour palette.

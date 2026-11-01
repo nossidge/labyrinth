@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+A tiling of the hyperbolic plane in the Poincaré disc.
+https://en.wikipedia.org/wiki/Poincar%C3%A9_disk_model
+
+Like in `cymatics`, this page got the better of my CPU.
+I was able to get it running fine with a few tweaks, but the code kinda got away from me a bit.
+I put in a bunch of comments so future-me can figure out what's happening.
+But it's still quite messy to read.
+Serves me right for trying to do all this fancy maths stuff.
+Does look pretty though.
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Are you the leaf, the blossom or the hyperbole?">
+  <title>hyperbolic needle</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      background: #14141c;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    canvas {
+      position: fixed;
+      display: block;
+      top: 0;
+      left: 0;
+    }
+
+    .link {
+      position: fixed;
+      display: none;
+      border-radius: 50%;
+      z-index: 10;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="canvas"></canvas>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('hyperbolic-tiling');
+
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d', { alpha: false });
+
+    const COLOUR_BG = '#14141c';
+    const COLOUR_STROKE = '#1c1a22';
+    const COLOUR_HOVER = '#fff7e6';
+    const PALETTE = [
+      ['#e8e0cc', '#c8b585', '#8a9878'],
+      ['#dde3ec', '#98a8c4', '#5f7094'],
+      ['#efdcc6', '#d39c7c', '#9a5f4e'],
+      ['#e0e7dc', '#a6c4a4', '#628f78'],
+      ['#ece4ea', '#c2a3bd', '#7f6389'],
+    ];
+    const paletteRandomiser = new LAB.CyclicRandomiser(PALETTE);
+
+    // {p, q}: p-sided tiles, q meeting at every corner
+    // https://en.wikipedia.org/wiki/Schl%C3%A4fli_symbol
+    const SHAPES = [[3, 7], [3, 8], [4, 5], [4, 6], [5, 4], [5, 5], [6, 4], [7, 3], [8, 3]];
+    const shapesRandomiser = new LAB.CyclicRandomiser(SHAPES);
+
+    // Stop reflecting once tiles are this small (where "1.0" is the disc radius)
+    const MIN_TILE_SIZE = 0.005;
+    const MAX_TILE_COUNT = 5000; // Just in case!
+
+    // Max DOM anchor tags, and a pixel max so we don't draw tiny links
+    const MAX_LINKS = 60;
+    const MIN_LINK_PX = 11;
+
+    let winW, winH, radius, cx, cy;
+    let p, q;
+    let tiles = [];
+    let colours = paletteRandomiser.nextOne();
+    let anchors = [];
+    let theta = 0;
+    let spin = 0;
+    let shift = { x: 0, y: 0 };
+    let target = { x: 0, y: 0 };
+    let mouse = { x: -1e9, y: -1e9 };
+    let lastMouseMove = -Infinity;
+    let lastTime = 0;
+    let vdx, vdy, vsx, vsy;
+    const TMP = { x: 0, y: 0 };
+
+    // Create these elements once, then reuse them
+    for (let i = 0; i < MAX_LINKS; i++) {
+      const anchor = document.createElement('a');
+      anchor.className = 'link';
+      document.body.appendChild(anchor);
+      anchors.push(anchor);
+    }
+
+    function resize() {
+      winW = canvas.width = window.innerWidth;
+      winH = canvas.height = window.innerHeight;
+      radius = Math.min(winW, winH) * 0.46;
+      cx = winW / 2;
+      cy = winH / 2;
+    }
+
+    // The circle through a and b that meets the unit circle at right angles
+    function geodesic(a, b) {
+      const ra = a.x * a.x + a.y * a.y + 1;
+      const rb = b.x * b.x + b.y * b.y + 1;
+      const det = 2 * (a.x * b.y - a.y * b.x);
+      if (Math.abs(det) < 1e-7) {
+        const len = Math.hypot(b.x - a.x, b.y - a.y) || 1;
+        return { line: true, dx: (b.x - a.x) / len, dy: (b.y - a.y) / len };
+      }
+      const x = (ra * b.y - a.y * rb) / det;
+      const y = (a.x * rb - b.x * ra) / det;
+      return { line: false, x: x, y: y, r: Math.sqrt(x * x + y * y - 1) };
+    }
+
+    // Hyperbolic reflection: inversion in the geodesic circle
+    function reflect(pt, g) {
+      if (g.line) {
+        const d = pt.x * g.dx + pt.y * g.dy;
+        return { x: 2 * d * g.dx - pt.x, y: 2 * d * g.dy - pt.y };
+      }
+      const dx = pt.x - g.x;
+      const dy = pt.y - g.y;
+      const k = (g.r * g.r) / (dx * dx + dy * dy);
+      return { x: g.x + dx * k, y: g.y + dy * k };
+    }
+
+    function tileSize(tile) {
+      let s = 0;
+      for (const v of tile.v) s = Math.max(s, Math.hypot(v.x - tile.c.x, v.y - tile.c.y));
+      return s;
+    }
+
+    function init() {
+      [p, q] = shapesRandomiser.nextOne();
+      colours = paletteRandomiser.nextOne();
+      spin = LAB.randNegToPos(0.1, 0.03);
+
+      // Right-angled triangle (centre, edge midpoint, vertex) with angles pi/p, pi/2, pi/q
+      const coshD = 1 / (Math.tan(Math.PI / p) * Math.tan(Math.PI / q));
+      const r = Math.sqrt((coshD - 1) / (coshD + 1));
+      const verts = [];
+      for (let i = 0; i < p; i++) {
+        const a = (i / p) * Math.PI * 2;
+        verts.push({ x: r * Math.cos(a), y: r * Math.sin(a) });
+      }
+
+      const first = { c: { x: 0, y: 0 }, v: verts, depth: 0 };
+      first.r0 = tileSize(first);
+      first.k0 = 1 - (first.c.x ** 2 + first.c.y ** 2);
+      tiles = [first];
+      const seen = new Set(['0,0']);
+      const queue = [first];
+      const key = (pt) => Math.round(pt.x * 1e5) + ',' + Math.round(pt.y * 1e5);
+
+      while (queue.length && tiles.length < MAX_TILE_COUNT) {
+        const t = queue.shift();
+        for (let i = 0; i < p; i++) {
+          const g = geodesic(t.v[i], t.v[(i + 1) % p]);
+          const c = reflect(t.c, g);
+          const k = key(c);
+          if (seen.has(k)) continue;
+          seen.add(k);
+          const nt = { c: c, v: t.v.map(v => reflect(v, g)), depth: t.depth + 1 };
+          nt.r0 = tileSize(nt);
+          nt.k0 = 1 - (nt.c.x ** 2 + nt.c.y ** 2);
+          tiles.push(nt);
+          if (nt.r0 > MIN_TILE_SIZE) queue.push(nt);
+        }
+      }
+
+      // Scratch space for the per-frame transforms (p is fixed for this tiling)
+      // Better to have one reuseable array each, than creating a new one every frame
+      vdx = new Float64Array(p);
+      vdy = new Float64Array(p);
+      vsx = new Float64Array(p);
+      vsy = new Float64Array(p);
+    }
+
+    // Slide the plane so `shift` is at the centre, then turn it by theta
+    // https://en.wikipedia.org/wiki/M%C3%B6bius_transformation
+    // ct, st, shx, shy don't change within a frame, so they're computed once per tick
+    function mobiusPt(zx, zy, ct, st, shx, shy, out) {
+      // Hyperbolic translation
+      // I hope this makes sense without using complex numbers
+      const nx = zx - shx;
+      const ny = zy - shy;
+      const dx = 1 - (shx * zx + shy * zy);
+      const dy = shy * zx - shx * zy;
+      const dd = dx * dx + dy * dy;
+      const rx = (nx * dx + ny * dy) / dd;
+      const ry = (ny * dx - nx * dy) / dd;
+      // Rotation by θ
+      out.x = rx * ct - ry * st;
+      out.y = rx * st + ry * ct;
+      return out;
+    }
+
+    // Continue `path` along the geodesic from (ax,ay) to (bx,by)
+    // (Ax,Ay), (Bx,By) are the screen positions of those endpoints
+    function edgeArc(ax, ay, bx, by, Ax, Ay, Bx, By, path) {
+      const ra = ax * ax + ay * ay + 1;
+      const rb = bx * bx + by * by + 1;
+      const det = 2 * (ax * by - ay * bx);
+      if (Math.abs(det) < 1e-7) {
+        path.lineTo(Bx, By);
+        return;
+      }
+      const g0x = (ra * by - ay * rb) / det;
+      const g0y = (ax * rb - bx * ra) / det;
+      const gx = cx + g0x * radius;
+      const gy = cy + g0y * radius;
+      const gr = Math.sqrt(g0x * g0x + g0y * g0y - 1) * radius;
+      const a0 = Math.atan2(Ay - gy, Ax - gx);
+      const a1 = Math.atan2(By - gy, Bx - gx);
+      let d = a1 - a0;
+      while (d > Math.PI) d -= Math.PI * 2;
+      while (d < -Math.PI) d += Math.PI * 2;
+      path.arc(gx, gy, gr, a0, a1, d < 0);
+    }
+
+    function tick(now) {
+      const dt = lastTime ? Math.min((now - lastTime) / 1000, 0.05) : 0;
+      lastTime = now;
+      theta += spin * dt;
+
+      if (now - lastMouseMove > 3000) {
+        const t = now * 0.0002;
+        target.x = Math.sin(t) * 0.3;
+        target.y = Math.sin(t * 1.7 + 1) * 0.3;
+      }
+      shift.x += (target.x - shift.x) * 0.05;
+      shift.y += (target.y - shift.y) * 0.05;
+
+      ctx.fillStyle = COLOUR_BG;
+      ctx.fillRect(0, 0, winW, winH);
+      ctx.fillStyle = COLOUR_STROKE;
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Calculate these per-frame constants just the once
+      const ct = Math.cos(theta);
+      const st = Math.sin(theta);
+      const shx = shift.x;
+      const shy = shift.y;
+      const nColours = colours.length;
+      const cosP = Math.cos(Math.PI / p) * 0.9;
+
+      // Add the current tile's outline to a path (straight or geodesic edges)
+      function shapeTo(path, size) {
+        path.moveTo(vsx[0], vsy[0]);
+        if (size < 5) {
+          for (let i = 1; i < p; i++) path.lineTo(vsx[i], vsy[i]);
+        } else {
+          for (let i = 0; i < p; i++) {
+            const j = (i + 1) % p;
+            edgeArc(vdx[i], vdy[i], vdx[j], vdy[j], vsx[i], vsy[i], vsx[j], vsy[j], path);
+          }
+        }
+        path.closePath();
+      }
+
+      // Draw each stroke and fill per palette colour
+      // This should save some CPU vs drawing each tile
+      const fillPaths = [];
+      for (let i = 0; i < nColours; i++) fillPaths.push(new Path2D());
+      const strokeThin = new Path2D();
+      const strokeBold = new Path2D();
+      const links = [];
+      let hoverPath = null;
+      let hovered = null;
+
+      for (const tile of tiles) {
+        // Transform only the centre and estimate the size from it
+        mobiusPt(tile.c.x, tile.c.y, ct, st, shx, shy, TMP);
+        const dcx = TMP.x, dcy = TMP.y;
+        const w2 = dcx * dcx + dcy * dcy;
+        const est = tile.r0 * radius * (1 - w2) / tile.k0;
+        // So we can save some compute but not drawing tiles near the edge of the disc
+        if (est < 0.8) continue;
+
+        const scx = cx + dcx * radius;
+        const scy = cy + dcy * radius;
+
+        for (let i = 0; i < p; i++) {
+          const z = tile.v[i];
+          mobiusPt(z.x, z.y, ct, st, shx, shy, TMP);
+          vdx[i] = TMP.x;
+          vdy[i] = TMP.y;
+          vsx[i] = cx + vdx[i] * radius;
+          vsy[i] = cy + vdy[i] * radius;
+        }
+
+        let size = 0;
+        for (let i = 0; i < p; i++) {
+          const d = Math.hypot(vsx[i] - scx, vsy[i] - scy);
+          if (d > size) size = d;
+        }
+
+        tile.scx = scx;
+        tile.scy = scy;
+        tile.size = size;
+        const inR = size * cosP;
+        let isHover = false;
+        if (inR >= MIN_LINK_PX) {
+          links.push(tile);
+          if (Math.hypot(mouse.x - scx, mouse.y - scy) < inR) {
+            hovered = tile;
+            isHover = true;
+          }
+        }
+
+        const path = isHover ? (hoverPath || (hoverPath = new Path2D()))
+          : fillPaths[tile.depth % nColours];
+        shapeTo(path, size);
+        if (size >= 3 && !isHover) shapeTo(size > 30 ? strokeBold : strokeThin, size);
+      }
+
+      // One fill() per colour, one stroke() per width
+      for (let i = 0; i < nColours; i++) {
+        ctx.fillStyle = colours[i];
+        ctx.fill(fillPaths[i]);
+      }
+      ctx.strokeStyle = COLOUR_STROKE;
+      ctx.lineWidth = 1;
+      ctx.stroke(strokeThin);
+      ctx.lineWidth = 1.5;
+      ctx.stroke(strokeBold);
+
+      // The hovered tile
+      if (hoverPath) {
+        ctx.fillStyle = COLOUR_HOVER;
+        ctx.fill(hoverPath);
+        if (hovered.size >= 3) {
+          ctx.strokeStyle = COLOUR_STROKE;
+          ctx.lineWidth = hovered.size > 30 ? 1.5 : 1;
+          ctx.stroke(hoverPath);
+        }
+      }
+
+      // Weave a circle round him once
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius + 1.5, 0, Math.PI * 2);
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = colours[1];
+      ctx.stroke();
+
+      // The biggest tiles on the page are clickable
+      links.sort((a, b) => b.size - a.size);
+      for (let i = 0; i < anchors.length; i++) {
+        const anchor = anchors[i];
+        const tile = links[i];
+        if (!tile) {
+          anchor.style.display = 'none';
+          continue;
+        }
+        if (!tile.url) tile.url = LAB.pageRandomiser.nextOne();
+        if (anchor.dataset.url !== tile.url) {
+          anchor.dataset.url = tile.url;
+          anchor.href = tile.url;
+        }
+        const r = tile.size * cosP;
+        anchor.style.display = 'block';
+        anchor.style.left = (tile.scx - r) + 'px';
+        anchor.style.top = (tile.scy - r) + 'px';
+        anchor.style.width = (r * 2) + 'px';
+        anchor.style.height = (r * 2) + 'px';
+      }
+    }
+
+    window.addEventListener('mousemove', (e) => {
+      lastMouseMove = performance.now();
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+      let tx = ((e.clientX - cx) / radius) * 0.5;
+      let ty = ((e.clientY - cy) / radius) * 0.5;
+      const mag = Math.hypot(tx, ty);
+      if (mag > 0.6) {
+        tx *= 0.6 / mag;
+        ty *= 0.6 / mag;
+      }
+      target.x = tx;
+      target.y = ty;
+    });
+
+    window.addEventListener('resize', resize);
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    resize();
+    init();
+    LAB.handleTickWithFPS(tick, 30);
+
+  </script>
+</body>
+
+</html>

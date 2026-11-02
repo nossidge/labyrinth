@@ -2219,3 +2219,10 @@ corridors:
     tags: [maths, mobile]
     visual_description: >-
       A regular tiling of the hyperbolic plane seen through the Poincaré disc. A single polygon is reflected across its own edges, over and over, filling the disc with tiles that shrink toward the rim, coloured in muted pastels by how deep their reflection lies. The plane slowly rotates and drifts automatically, and moving the mouse slides the plane further. The larger tiles are clickable links to random corridors, and clicking the background or pressing any key regenerates the tiling with a new polygon shape and colour palette.
+  - id: tree-rings
+    title: Tree Rings
+    created: 2026-11-02 14:49
+    links: 80
+    tags: [mobile, nature]
+    visual_description: >-
+      A cross-section of a tree trunk. Concentric rings grow outward from the centre, each with a slightly wobbly organic shape. A new ring is added every couple of seconds as the view zooms out to keep the whole tree in frame. Clicking adds a new ring to the tree, and pressing any key adds a new ring. Each ring is a clickable link to a random corridor.

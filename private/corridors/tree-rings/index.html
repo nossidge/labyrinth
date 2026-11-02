@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Are you the leaf, the blossom or the bole?">
+  <title>Dendrochronology</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      background: #221c17;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    canvas {
+      display: block;
+      position: fixed;
+      top: 0;
+      left: 0;
+    }
+
+    #hover-link {
+      position: fixed;
+      display: none;
+      width: 24px;
+      height: 24px;
+      margin: -12px 0 0 -12px;
+      z-index: 10;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="canvas"></canvas>
+  <a id="hover-link" href="../index.html"></a>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('tree-rings');
+
+    const hoverLink = document.getElementById('hover-link');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    const COLOUR_BACKGROUND = '#221c17';
+    const COLOUR_BARK = '#2e2016';
+    const COLOUR_BORDER = 'rgba(90, 55, 30, 0.7)';
+    const COLOUR_HOVER = 'rgba(255, 210, 140, 0.55)';
+    const ROUNDNESS_STEPS = 180;
+    const HARMONICS = 6;
+    const GROW_EVERY = 2200;
+    const GROW_TIME = 1600;
+    const MAX_RINGS = 80;
+
+    let winW, winH;
+    let rings = [];
+    let amplitudes, phases;
+    let lastWidth;
+    let scale = 1;
+    let lastGrow = 0;
+    let mouse = { x: -1, y: -1 };
+    let hovered = -1;
+
+    function resize() {
+      winW = canvas.width = window.innerWidth;
+      winH = canvas.height = window.innerHeight;
+    }
+
+    function init() {
+      rings = [];
+      amplitudes = [];
+      phases = [];
+      for (let k = 0; k < HARMONICS; k++) {
+        amplitudes.push(0);
+        phases.push(LAB.rand(0, Math.PI * 2));
+      }
+      lastWidth = 1;
+      lastGrow = performance.now();
+      addRing(0);
+      rings[0].progress = 1;
+      scale = fitScale();
+    }
+
+    // Each ring needs to be only ever so slightly different from the previous
+    function addRing(now) {
+      const w = Math.max(0.35, lastWidth * 0.55 + LAB.rand(0.2, 1.3) * 0.45);
+      lastWidth = w;
+      const base = (rings.length ? rings[rings.length - 1].base : 0) + w;
+
+      // Make sure that the ring can't ever cross over the one inside it
+      const limit = (0.5 * w / base) / HARMONICS;
+      for (let k = 0; k < HARMONICS; k++) {
+        amplitudes[k] += LAB.rand(-limit, limit);
+        const cap = 0.12 / (k + 1);
+        amplitudes[k] = Math.max(-cap, Math.min(cap, amplitudes[k]));
+        phases[k] += LAB.rand(-limit, limit) * 2;
+      }
+
+      const radii = new Float32Array(ROUNDNESS_STEPS);
+      for (let s = 0; s < ROUNDNESS_STEPS; s++) {
+        const theta = (s / ROUNDNESS_STEPS) * Math.PI * 2;
+        let wobble = 0;
+        for (let k = 0; k < HARMONICS; k++) {
+          wobble += amplitudes[k] * Math.cos((k + 1) * theta + phases[k]);
+        }
+        radii[s] = base * (1 + wobble);
+      }
+
+      rings.push({
+        base: base,
+        radii: radii,
+        light: LAB.rand(0.55, 0.72),
+        sat: LAB.rand(0.32, 0.48),
+        born: now,
+        progress: 0,
+        url: LAB.pageRandomiser.nextOne(),
+      });
+    }
+
+    function fitScale() {
+      const outer = rings[rings.length - 1].base * 1.15;
+      return (Math.min(winW, winH) * 0.46) / outer;
+    }
+
+    // Animate the ring from the old ring's boundary to the new ring's final size
+    function ringRadius(i, s) {
+      const ring = rings[i];
+      const full = ring.radii[s];
+      if (ring.progress >= 1) return full;
+      const from = i > 0 ? rings[i - 1].radii[s] : 0;
+      const ease = 1 - Math.pow(1 - ring.progress, 3);
+      return from + (full - from) * ease;
+    }
+
+    function tracePath(i, cx, cy) {
+      for (let s = 0; s <= ROUNDNESS_STEPS; s++) {
+        const idx = s % ROUNDNESS_STEPS;
+        const theta = (idx / ROUNDNESS_STEPS) * Math.PI * 2;
+        const r = ringRadius(i, idx) * scale;
+        const x = cx + Math.cos(theta) * r;
+        const y = cy + Math.sin(theta) * r;
+        if (s === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+    }
+
+    function findHovered(cx, cy) {
+      if (mouse.x < 0) return -1;
+      const dx = mouse.x - cx;
+      const dy = mouse.y - cy;
+      const r = Math.sqrt(dx * dx + dy * dy) / scale;
+      let theta = Math.atan2(dy, dx);
+      if (theta < 0) theta += Math.PI * 2;
+      const s = Math.round((theta / (Math.PI * 2)) * ROUNDNESS_STEPS) % ROUNDNESS_STEPS;
+      for (let i = 0; i < rings.length; i++) {
+        if (r < ringRadius(i, s)) return i;
+      }
+      return -1;
+    }
+
+    function draw(cx, cy) {
+      ctx.fillStyle = COLOUR_BACKGROUND;
+      ctx.fillRect(0, 0, winW, winH);
+
+      // Bark around the outside
+      const outer = rings.length - 1;
+      ctx.beginPath();
+      tracePath(outer, cx, cy);
+      ctx.lineWidth = Math.max(6, rings[outer].base * 0.09 * scale);
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = COLOUR_BARK;
+      ctx.stroke();
+
+      // Rings, outermost first so each inner one paints on top
+      for (let i = outer; i >= 0; i--) {
+        const ring = rings[i];
+        ctx.beginPath();
+        tracePath(i, cx, cy);
+        ctx.fillStyle = `hsl(28, ${ring.sat * 100}%, ${ring.light * 100}%)`;
+        ctx.fill();
+        ctx.lineWidth = 1.2;
+        ctx.strokeStyle = COLOUR_BORDER;
+        ctx.stroke();
+      }
+
+      if (hovered >= 0) {
+        ctx.beginPath();
+        tracePath(hovered, cx, cy);
+        if (hovered > 0) tracePath(hovered - 1, cx, cy);
+        ctx.fillStyle = COLOUR_HOVER;
+        ctx.fill('evenodd');
+      }
+    }
+
+    function tick(now) {
+      if (rings.length < MAX_RINGS && now - lastGrow > GROW_EVERY) {
+        lastGrow = now;
+        addRing(now);
+      }
+
+      for (const ring of rings) {
+        if (ring.progress < 1) {
+          ring.progress = Math.min(1, (now - ring.born) / GROW_TIME);
+        }
+      }
+
+      scale += (fitScale() - scale) * 0.03;
+
+      const cx = winW / 2;
+      const cy = winH / 2;
+      hovered = findHovered(cx, cy);
+      draw(cx, cy);
+
+      if (hovered >= 0) {
+        hoverLink.href = rings[hovered].url;
+        hoverLink.style.left = mouse.x + 'px';
+        hoverLink.style.top = mouse.y + 'px';
+        hoverLink.style.display = 'block';
+      } else {
+        hoverLink.style.display = 'none';
+      }
+
+      requestAnimationFrame(tick);
+    }
+
+    function tryAddRing() {
+      if (rings.length < MAX_RINGS) {
+        lastGrow = performance.now();
+        addRing(lastGrow);
+      }
+    }
+
+    window.addEventListener('mousemove', (e) => {
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+    });
+
+    document.addEventListener('mouseleave', () => {
+      mouse.x = -1;
+      mouse.y = -1;
+    });
+
+    window.addEventListener('resize', resize);
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) tryAddRing();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, tryAddRing);
+    });
+
+    resize();
+    init();
+    requestAnimationFrame(tick);
+
+  </script>
+</body>
+
+</html>

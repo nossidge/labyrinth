@@ -2226,3 +2226,10 @@ corridors:
     tags: [mobile, nature]
     visual_description: >-
       A cross-section of a tree trunk. Concentric rings grow outward from the centre, each with a slightly wobbly organic shape. A new ring is added every couple of seconds as the view zooms out to keep the whole tree in frame. Clicking adds a new ring to the tree, and pressing any key adds a new ring. Each ring is a clickable link to a random corridor.
+  - id: slipstream-colour
+    title: Slipstream Colour
+    created: 2026-11-03 00:28
+    links: 1
+    tags: [abstract, mobile]
+    visual_description: >-
+      Hundreds of particles drift along a noise flow field, drawing thin winding trails across a dark navy canvas before fading away. Moving the mouse stirs the field and spawns fresh trails along the cursor. Pressing a key changes the palette between ultramarine, saffron, and moss, and reseeds the field with a new pattern. The whole page is a single clickable link to a random corridor.

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Ribb-on / Ribb-off">
+  <title>squig-ribbon (1999)</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      background: #130b25;
+      overflow: hidden;
+    }
+
+    svg {
+      width: 100vw;
+      height: 100vh;
+    }
+
+    .ribbon {
+      fill: none;
+      stroke-width: 6;
+      opacity: .8;
+    }
+
+    .ribbon:hover {
+      stroke-width: 7;
+      opacity: 1;
+    }
+  </style>
+</head>
+
+<body>
+  <a href="../index.html">
+    <svg id="svg" viewBox="0 0 1000 700" preserveAspectRatio="none"></svg>
+  </a>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('squiggle-ribbons');
+
+    const svg = document.getElementById('svg');
+
+    const colours = ['#ff3864', '#24d6c8', '#ffd34d', '#8a6cff'];
+
+    for (let i = 0; i < 28; i++) {
+      const a = LAB.svgElement('a');
+      a.setAttribute('href', LAB.pageRandomiser.nextOne());
+
+      const path = LAB.svgElement('path');
+      let d = `M -50 ${i * 28}`;
+
+      // Cubic Bézier segments
+      for (let x = 0; x <= 1050; x += 70) {
+        const cp1 = `${x + 20} ${i * 28 + Math.sin(i + x / 90) * 120}`;
+        const cp2 = `${x + 45} ${i * 28 - Math.cos(i + x / 100) * 120}`;
+        const end = `${x + 70} ${i * 28}`;
+        d += ` C ${cp1}, ${cp2}, ${end}`;
+      }
+
+      path.setAttribute('d', d);
+      path.setAttribute('class', 'ribbon');
+      path.style.stroke = colours[i % colours.length];
+
+      a.appendChild(path);
+      svg.appendChild(a);
+    }
+
+  </script>
+</body>
+
+</html>

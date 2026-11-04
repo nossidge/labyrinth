@@ -2233,3 +2233,10 @@ corridors:
     tags: [abstract, mobile]
     visual_description: >-
       Hundreds of particles drift along a noise flow field, drawing thin winding trails across a dark navy canvas before fading away. Moving the mouse stirs the field and spawns fresh trails along the cursor. Pressing a key changes the palette between ultramarine, saffron, and moss, and reseeds the field with a new pattern. The whole page is a single clickable link to a random corridor.
+  - id: squiggle-ribbons
+    title: Squiggle Ribbons
+    created: 2026-11-04 12:34
+    links: 29
+    tags: [abstract, mobile]
+    visual_description: >-
+      Twenty-eight horizontal squiggly ribbons, each a smooth cubic Bézier wave, stretch across a dark purple background edge to edge. Each ribbon is pink, teal, gold, or violet. Hovering over a ribbon makes it thicker and fully opaque. Every ribbon is a clickable link to a random corridor.

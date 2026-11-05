@@ -2240,3 +2240,10 @@ corridors:
     tags: [abstract, mobile]
     visual_description: >-
       Twenty-eight horizontal squiggly ribbons, each a smooth cubic Bézier wave, stretch across a dark purple background edge to edge. Each ribbon is pink, teal, gold, or violet. Hovering over a ribbon makes it thicker and fully opaque. Every ribbon is a clickable link to a random corridor.
+  - id: deschottres
+    title: Deschottres
+    created: 2026-11-05 03:50
+    links: dynamic
+    tags: [abstract, art, mobile]
+    visual_description: >-
+      A remix of Georg Nees's "Schotter" and Vera Molnar's "(Des)Ordres". A grid of cells on a light beige background, each holding four concentric square outlines in deep blue. Around two or three random centres the squares grow disordered: they rotate and shift out of alignment, with the disorder fading out as the distance from each centre increases. Clicking the background or pressing any key regenerates the disorder centres. Hovering over a cell turns its squares red. Every cell is a clickable link to a random corridor.

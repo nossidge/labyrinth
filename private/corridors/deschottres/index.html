@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+A remix of two artworks:
+- Georg Nees, "Schotter", 1968
+- Vera Molnar, "(Des)Ordres", 1974
+
+See also my `schotter` and `square-pulse` pages
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Squarepusher">
+  <title>(D&eacute;s)schottres</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background-color: #dfdad4;
+      overflow: hidden;
+    }
+
+    svg {
+      width: min(94vw, 150vh);
+    }
+
+    rect {
+      fill: none;
+      stroke: #1c3fa0;
+      stroke-width: 1.4;
+      pointer-events: all;
+    }
+
+    a rect {
+      stroke-width: 1.8;
+    }
+
+    a:hover rect {
+      stroke: #c8102e;
+    }
+  </style>
+</head>
+
+<body>
+  <svg id="svg"></svg>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('deschottres');
+
+    const svg = document.getElementById('svg');
+
+    const SIZES = [62, 46, 31, 17];
+    const CELL_SIZE = 80;
+    const PADDING = 24;
+    const COLS = 14;
+    const ROWS = 9;
+
+    function init() {
+      svg.replaceChildren();
+      const viewBoxWidth = COLS * CELL_SIZE + PADDING * 2;
+      const viewBoxHeight = ROWS * CELL_SIZE + PADDING * 2;
+      svg.setAttribute('viewBox', `0 0 ${viewBoxWidth} ${viewBoxHeight}`);
+
+      // Make a few areas that the disorder is centred on
+      const clusters = [];
+      const clusterCount = LAB.randInt(2, 3);
+      for (let i = 0; i < clusterCount; i++) {
+        clusters.push({
+          col: LAB.rand(1, COLS - 2),
+          row: LAB.rand(1, ROWS - 2),
+          radius: LAB.rand(1.4, 2.6),
+        });
+      }
+
+      for (let row = 0; row < ROWS; row++) {
+        for (let col = 0; col < COLS; col++) {
+          const cx = PADDING + col * CELL_SIZE + CELL_SIZE / 2;
+          const cy = PADDING + row * CELL_SIZE + CELL_SIZE / 2;
+
+          // As the square cell is closer to the cluster, it becomes more disordered
+          let disorder = 0.04;
+          clusters.forEach(k => {
+            const dist = Math.hypot(col - k.col, row - k.row);
+            disorder = Math.max(disorder, Math.exp(-(dist * dist) / (2 * k.radius * k.radius)));
+          });
+
+          const group = LAB.svgElement('g');
+          SIZES.forEach(size => {
+            const rot = LAB.rand(-1, 1) * disorder * 32;
+            const dx = LAB.rand(-1, 1) * disorder * 8;
+            const dy = LAB.rand(-1, 1) * disorder * 8;
+            const rect = LAB.svgElement('rect');
+            rect.setAttribute('x', cx - size / 2 + dx);
+            rect.setAttribute('y', cy - size / 2 + dy);
+            rect.setAttribute('width', size);
+            rect.setAttribute('height', size);
+            rect.setAttribute('transform', `rotate(${rot} ${cx} ${cy})`);
+            group.appendChild(rect);
+          });
+
+          const a = LAB.svgElement('a');
+          a.setAttribute('href', LAB.pageRandomiser.nextOne());
+          a.appendChild(group);
+          svg.appendChild(a);
+        }
+      }
+    }
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    init();
+
+  </script>
+</body>
+
+</html>

@@ -2247,3 +2247,10 @@ corridors:
     tags: [abstract, art, mobile]
     visual_description: >-
       A remix of Georg Nees's "Schotter" and Vera Molnar's "(Des)Ordres". A grid of cells on a light beige background, each holding four concentric square outlines in deep blue. Around two or three random centres the squares grow disordered: they rotate and shift out of alignment, with the disorder fading out as the distance from each centre increases. Clicking the background or pressing any key regenerates the disorder centres. Hovering over a cell turns its squares red. Every cell is a clickable link to a random corridor.
+  - id: basalt-fields
+    title: Basalt Fields
+    created: 2026-11-06 15:22
+    links: dynamic
+    tags: [abstract, crt, mobile]
+    visual_description: >-
+      A full-screen field of randomised polygonal shapes, each with three to six sides and a higgledy-piggledy position and size, evoking the basalt pillars of the Giant's Causeway. The shapes sit on a black background in basalt greys. Hovering over a shape scales it up. Clicking the background or pressing any key regenerates the page. Each shape is a clickable link to a random corridor.

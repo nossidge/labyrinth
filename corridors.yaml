@@ -2254,3 +2254,10 @@ corridors:
     tags: [abstract, crt, mobile]
     visual_description: >-
       A full-screen field of randomised polygonal shapes, each with three to six sides and a higgledy-piggledy position and size, evoking the basalt pillars of the Giant's Causeway. The shapes sit on a black background in basalt greys. Hovering over a shape scales it up. Clicking the background or pressing any key regenerates the page. Each shape is a clickable link to a random corridor.
+  - id: contrapuntal-shards
+    title: Contrapuntal Shards
+    created: 2026-11-07 14:59
+    links: 48
+    tags: [abstract, crt, mobile, secret, unicode]
+    visual_description: >-
+      A jagged grid of dark quadrilateral shards on a near-black background. Each shard is a slightly rotated quadrilateral with randomly clipped corners, containing a single glyph drawn from Roman numerals (I, V, X, L, C, D, M) and unicode diamonds (◇, ◆, ❖). Roughly 40% of the shards carry a glitchy cyan border. Hovering over a shard glows it bright magenta with a white outline and scales it slightly; cyan-bordered shards glow cyan instead. Clicking the background or pressing a key regenerates the grid. Each shard is a clickable link to a random corridor.

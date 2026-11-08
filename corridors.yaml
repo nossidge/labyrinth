@@ -2261,3 +2261,10 @@ corridors:
     tags: [abstract, crt, mobile, secret, unicode]
     visual_description: >-
       A jagged grid of dark quadrilateral shards on a near-black background. Each shard is a slightly rotated quadrilateral with randomly clipped corners, containing a single glyph drawn from Roman numerals (I, V, X, L, C, D, M) and unicode diamonds (◇, ◆, ❖). Roughly 40% of the shards carry a glitchy cyan border. Hovering over a shard glows it bright magenta with a white outline and scales it slightly; cyan-bordered shards glow cyan instead. Clicking the background or pressing a key regenerates the grid. Each shard is a clickable link to a random corridor.
+  - id: little-face
+    title: Little Face
+    created: 2026-11-08 03:00
+    links: 1
+    tags: [mobile, unicode]
+    visual_description: >-
+      A cute little unicode fella: a small rounded square face centred on a slate blue-grey background, displaying a single unicode character (⸚) in a large black font. Hovering over the face scales it up to twice its size and swaps the character for a different one (⍨). The face is a single link to a random corridor.

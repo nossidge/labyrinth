@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="my god, it's full of something or other">
+  <title>Tycho Magnetic Anomaly</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(ellipse at center, #0b0a18 0%, #000000 60%);
+      font-family: monospace;
+      overflow: hidden;
+    }
+
+    #starfield {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .star {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      background: #ffffff;
+      border-radius: 50%;
+      opacity: 0.7;
+      animation: twinkle 3s infinite alternate ease-in-out;
+    }
+
+    @keyframes twinkle {
+      from {
+        opacity: 0.2;
+      }
+
+      to {
+        opacity: 0.9;
+      }
+    }
+
+    #monolith {
+      position: fixed;
+      display: grid;
+      top: 50%;
+      left: 50%;
+      /* (1 : 4 : 9 ratio, like in the book) */
+      width: 240px;
+      height: 540px;
+      margin: -270px 0 0 -120px;
+      padding: 8px;
+      background: linear-gradient(180deg, #050505 0%, #0a0a10 100%);
+      box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.06),
+        0 0 80px 20px rgba(60, 30, 120, 0.4),
+        inset 0 0 30px rgba(0, 0, 0, 0.9);
+      grid-template-columns: repeat(5, 1fr);
+      grid-template-rows: repeat(11, 1fr);
+      gap: 2px;
+      transform: perspective(800px) rotateY(-4deg) rotateX(2deg);
+    }
+
+    .cell {
+      display: flex;
+      color: rgba(180, 160, 220, 0.15);
+      font-size: 18px;
+      text-decoration: none;
+      justify-content: center;
+      align-items: center;
+      transition: color 0.3s, background 0.3s, text-shadow 0.3s, transform 0.3s;
+    }
+
+    a.cell {
+      color: rgba(255, 230, 120, 0.6);
+      text-shadow: 0 0 6px rgba(255, 200, 80, 0.4);
+    }
+
+    a.cell:hover {
+      color: #ffffff;
+      background: rgba(255, 230, 120, 0.2);
+      text-shadow: 0 0 10px #ffffff, 0 0 22px #ffce40;
+      transform: scale(1.4);
+      z-index: 10;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 0.05;
+      }
+
+      50% {
+        opacity: 0.6;
+      }
+    }
+
+    .pulse {
+      animation: pulse 4s infinite ease-in-out;
+    }
+
+    .cell.lit {
+      animation: none;
+      color: #ffffff;
+      background: rgba(130, 90, 255, 0.25);
+      text-shadow: 0 0 10px #ffffff, 0 0 24px rgba(150, 100, 255, 0.9);
+      z-index: 10;
+    }
+
+    /* Black cover, same shape as the monolith, over the top */
+    #monolith-cover {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      width: 240px;
+      height: 540px;
+      margin: -270px 0 0 -120px;
+      background: #000000;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 100;
+      transform: perspective(800px) rotateY(-4deg) rotateX(2deg);
+    }
+
+    #monolith-cover.vanish {
+      animation: coverFadeIn var(--cover-fade, 2500ms) ease forwards;
+    }
+
+    @keyframes coverFadeIn {
+      to {
+        opacity: 1;
+      }
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: linear-gradient(rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+      background-size: 100% 3px;
+      pointer-events: none;
+      z-index: 200;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+  <div id="starfield"></div>
+  <div id="monolith"></div>
+  <div id="monolith-cover"></div>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('space-monolith');
+
+    const starfield = document.getElementById('starfield');
+    const mono = document.getElementById('monolith');
+    const cover = document.getElementById('monolith-cover');
+
+    const glyphs = '▖▗▘▙▚▛▜▝▞▟◢◣◤◥◧◨◩◪◫▣▤▥▦▧▨▩◇◆'.split('');
+    const glyphRandomiser = new LAB.CyclicRandomiser(glyphs);
+
+    // Milliseconds sequence durations
+    const LIGHT_STAGGER_MS = 80;        // Delay between each symbol lighting up
+    const PAUSE_BEFORE_FADE_MS = 1000;  // Pause after the final symbol, before the fade
+    const COVER_FADE_MS = 4500;         // How long the cover fades in
+    const BLACK_HOLD_MS = 2500;         // How long to stay black before relocating
+
+    document.documentElement.style.setProperty('--cover-fade', COVER_FADE_MS + 'ms');
+
+    let sequenceProgress = 0;
+    let sequenceBusy = false;
+    let sequenceDone = false;
+
+    // Starfield
+    for (let i = 0; i < 160; i++) {
+      const s = document.createElement('div');
+      s.className = 'star';
+      s.style.left = LAB.rand(0, 100) + 'vw';
+      s.style.top = LAB.rand(0, 100) + 'vh';
+      s.style.animationDelay = `-${LAB.rand(0, 3)}s`;
+      starfield.appendChild(s);
+    }
+
+    const SEQUENCE_ROWS = [
+      { mask: '01110', letter: 'a' },
+      { mask: '01110', letter: 'a' },
+      { mask: '01010', letter: 'a' },
+      { mask: '00000', letter: null },
+      { mask: '01110', letter: 'c1' },
+      { mask: '01000', letter: 'c1' },
+      { mask: '01110', letter: 'c1' },
+      { mask: '00000', letter: null },
+      { mask: '01110', letter: 'c2' },
+      { mask: '01000', letter: 'c2' },
+      { mask: '01110', letter: 'c2' },
+    ];
+
+    // Monolith glyph grid
+    const rows = 11, cols = 5;
+    for (let i = 0; i < rows * cols; i++) {
+      const row = Math.floor(i / cols), col = i % cols;
+      const isLink = LAB.chance(0.18);
+      const el = document.createElement(isLink ? 'a' : 'div');
+      el.className = 'cell' + (LAB.chance(0.5) ? ' pulse' : '');
+      if (isLink) el.href = LAB.pageRandomiser.nextOne();
+      el.innerText = glyphRandomiser.nextOne();
+      el.style.animationDelay = `-${LAB.rand(0, 4)}s`;
+      if (SEQUENCE_ROWS[row].letter && SEQUENCE_ROWS[row].mask[col] === '1') {
+        el.classList.add('sequence', `sequence-${SEQUENCE_ROWS[row].letter}`);
+      }
+      mono.appendChild(el);
+    }
+
+    // Every so often, change the symbol in one of the non-link cells
+    const glyphShuffler = setInterval(() => {
+      const cells = mono.querySelectorAll('div.cell');
+      const cell = LAB.sample(cells);
+      if (cell) cell.innerText = glyphRandomiser.nextOne();
+    }, 120);
+
+    const SEQUENCE_ORDER = [
+      { key: 'a', cells: [] },
+      { key: 'c', cells: [] },
+      { key: 'c', cells: [] },
+    ];
+    mono.querySelectorAll('.sequence-a').forEach(c => SEQUENCE_ORDER[0].cells.push(c));
+    mono.querySelectorAll('.sequence-c1').forEach(c => SEQUENCE_ORDER[1].cells.push(c));
+    mono.querySelectorAll('.sequence-c2').forEach(c => SEQUENCE_ORDER[2].cells.push(c));
+
+    function clearLit() {
+      mono.querySelectorAll('.lit').forEach(c => c.classList.remove('lit'));
+    }
+
+    function lightGroup(group, onDone) {
+      sequenceBusy = true;
+      group.cells.forEach((cell, i) => {
+        setTimeout(() => {
+          cell.classList.add('lit');
+          if (i === group.cells.length - 1) {
+            sequenceBusy = false;
+            if (onDone) onDone();
+          }
+        }, i * LIGHT_STAGGER_MS);
+      });
+    }
+
+    function triggerVanish() {
+      sequenceDone = true;
+      clearInterval(glyphShuffler);
+      // Brief pause to let the completed A, C, C symbols light up
+      setTimeout(() => {
+        cover.classList.add('vanish');
+        // Once the fade is done, keep it on the fully black monolyth for a bit
+        setTimeout(() => location.assign(LAB.goto()), COVER_FADE_MS + BLACK_HOLD_MS);
+      }, PAUSE_BEFORE_FADE_MS);
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (sequenceDone || e.repeat) return;
+      LAB.handleKeydown(e, () => {
+        if (sequenceBusy) return;
+        const key = e.key.toLowerCase();
+        if (key === SEQUENCE_ORDER[sequenceProgress].key) {
+          const isLast = sequenceProgress === SEQUENCE_ORDER.length - 1;
+          lightGroup(SEQUENCE_ORDER[sequenceProgress], isLast ? triggerVanish : null);
+          sequenceProgress++;
+        } else {
+          sequenceProgress = 0;
+          clearLit();
+        }
+      });
+    });
+
+    document.addEventListener('click', (e) => {
+      if (sequenceDone) return;
+      if (!e.target.closest('a')) {
+        sequenceProgress = 0;
+        clearLit();
+      }
+    });
+
+  </script>
+</body>
+
+</html>

@@ -2268,3 +2268,10 @@ corridors:
     tags: [mobile, unicode]
     visual_description: >-
       A cute little unicode fella: a small rounded square face centred on a slate blue-grey background, displaying a single unicode character (⸚) in a large black font. Hovering over the face scales it up to twice its size and swaps the character for a different one (⍨). The face is a single link to a random corridor.
+  - id: space-monolith
+    title: Space Monolith
+    created: 2026-11-09 18:25
+    links: dynamic
+    tags: [crt, mobile, pop, secret, unicode]
+    visual_description: >-
+      A tall black monolith with a 1:4:9 aspect ratio floats in the centre of a twinkling starfield. Its face is a 5-wide by 11-tall grid of unicode block glyphs in dim purple, gently pulsing. Every so often a random glyph is swapped for a new one. Roughly 18% of the cells are clickable links to random corridors that glow bright gold on hover.

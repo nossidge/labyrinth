@@ -2275,3 +2275,10 @@ corridors:
     tags: [crt, mobile, pop, secret, unicode]
     visual_description: >-
       A tall black monolith with a 1:4:9 aspect ratio floats in the centre of a twinkling starfield. Its face is a 5-wide by 11-tall grid of unicode block glyphs in dim purple, gently pulsing. Every so often a random glyph is swapped for a new one. Roughly 18% of the cells are clickable links to random corridors that glow bright gold on hover.
+  - id: space-jam
+    title: Space Jam
+    created: 2026-11-10 19:30
+    links: 15
+    tags: [images, mobile, pop]
+    visual_description: >-
+      A faithful recreation of the legendary Space Jam 1996 promotional website, lifted wholesale from spacejam.com/1996. A starry black background tiles behind a constellation of "planet" GIF buttons arranged around the central Space Jam logo. Most of the original HTML is preserved untouched. Every planet icon and footer link is a clickable link to a random corridor in the labyrinth.

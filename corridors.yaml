@@ -2282,3 +2282,10 @@ corridors:
     tags: [images, mobile, pop]
     visual_description: >-
       A faithful recreation of the legendary Space Jam 1996 promotional website, lifted wholesale from spacejam.com/1996. A starry black background tiles behind a constellation of "planet" GIF buttons arranged around the central Space Jam logo. Most of the original HTML is preserved untouched. Every planet icon and footer link is a clickable link to a random corridor in the labyrinth.
+  - id: ufo-bars
+    title: Ufo Bars
+    created: 2026-11-11 12:50
+    links: dynamic
+    tags: [abstract, crt, mobile]
+    visual_description: >-
+      Forty horizontal bars stacked in a centred vertical column on a cream background. The bars' widths follow a bell-shaped profile, widest at the middle rows and narrowest at the top and bottom, to resemble the shape of a classic disc UFO. Each bar gently oscillates in width like an audio equaliser. Hovering over a bar makes it taller and turns it red. Each bar is a clickable link to a random corridor.

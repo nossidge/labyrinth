@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Jean Jacket">
+  <title>i want to believe</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      background-color: #d8d4c4;
+      overflow: hidden;
+    }
+
+    main {
+      position: relative;
+      display: flex;
+      width: 100vw;
+      height: 100vh;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .slab {
+      display: block;
+      position: relative;
+      height: 16px;
+      background-color: #111111;
+      border-radius: 4px;
+      text-decoration: none;
+      transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .slab::after {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg,
+          rgba(255, 255, 255, 0.14) 0%,
+          rgba(255, 255, 255, 0) 50%,
+          rgba(255, 255, 255, 0.14) 100%);
+      content: "";
+      pointer-events: none;
+    }
+
+    .slab:hover,
+    .slab:focus {
+      height: 48px;
+      background-color: #b21f1f;
+      outline: none;
+      z-index: 10;
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0.06) 50%);
+      background-size: 100% 3px;
+      pointer-events: none;
+      z-index: 100;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+  <main id="main"></main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('ufo-bars');
+
+    const main = document.getElementById('main');
+    const SLAB_COUNT = 40;
+    const slabs = [];
+
+    function init() {
+      main.replaceChildren();
+      slabs.length = 0;
+      for (let i = 0; i < SLAB_COUNT; i++) {
+        const a = document.createElement('a');
+        a.className = 'slab';
+        a.href = LAB.pageRandomiser.nextOne();
+        main.appendChild(a);
+        slabs.push(a);
+      }
+      setWidths();
+    }
+
+    function setWidths() {
+      const winW = window.innerWidth;
+      slabs.forEach((slab, i) => {
+        const t = i / SLAB_COUNT;
+        const profile = 0.18 + Math.abs(Math.sin(t * Math.PI)) * 0.7 + LAB.rand(-0.04, 0.04);
+        const px = Math.max(40, Math.min(winW * 0.92, winW * profile));
+        slab.baseWidth = px;
+        slab.style.width = px + 'px';
+      });
+    }
+
+    let counter = 0;
+    function tick() {
+      counter += 0.02;
+      slabs.forEach((slab, i) => {
+        const wobble = Math.sin(counter + i * 0.18) * 0.08;
+        slab.style.width = (slab.baseWidth * (1 + wobble)) + 'px';
+      });
+      requestAnimationFrame(tick);
+    }
+
+    window.addEventListener('resize', init);
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    init();
+    tick();
+
+  </script>
+</body>
+
+</html>

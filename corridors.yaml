@@ -2289,3 +2289,10 @@ corridors:
     tags: [abstract, crt, mobile]
     visual_description: >-
       Forty horizontal bars stacked in a centred vertical column on a cream background. The bars' widths follow a bell-shaped profile, widest at the middle rows and narrowest at the top and bottom, to resemble the shape of a classic disc UFO. Each bar gently oscillates in width like an audio equaliser. Hovering over a bar makes it taller and turns it red. Each bar is a clickable link to a random corridor.
+  - id: misty-mountains
+    title: Misty Mountains
+    created: 2026-11-12 17:56
+    links: 6
+    tags: [mobile, nature, parallax]
+    visual_description: >-
+      A full-screen SVG landscape of five overlapping mountain ridges in misty blue-grey tones, layered over a pale cream sky with a soft pale sun sitting behind the ridges. Each ridge is drawn as a wavy sine-curve silhouette and rendered with a gentle Gaussian blur that sharpens when hovered over. Moving the mouse shifts the ridges and the sun at different speeds for a parallax effect. Clicking the background or pressing any key regenerates the landscape with fresh ridge shapes. The sun and each ridge are clickable links to a random corridor.

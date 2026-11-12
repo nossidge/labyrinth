@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Moria Stuart">
+  <title>the hills where the spirits fly</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      background: #efeae0;
+      overflow: hidden;
+    }
+
+    svg {
+      display: block;
+      position: fixed;
+      top: 0;
+      left: 0;
+    }
+
+    svg path.ridge {
+      filter: url(#ridge-blur);
+      transition: filter 0.25s ease;
+    }
+
+    a:hover path.ridge {
+      filter: none;
+    }
+
+    svg circle.sun {
+      filter: url(#ridge-blur);
+      transition: filter 0.25s ease;
+    }
+
+    a:hover circle.sun {
+      filter: none;
+    }
+  </style>
+</head>
+
+<body>
+  <svg id="svg" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <filter id="ridge-blur">
+        <feGaussianBlur stdDeviation="2.5" />
+      </filter>
+    </defs>
+    <g id="sky"></g>
+    <g id="mountains"></g>
+  </svg>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('misty-mountains');
+
+    const svg = document.getElementById('svg');
+    const sky = document.getElementById('sky');
+    const mountains = document.getElementById('mountains');
+    const mountainColours = ['#c7ccd4', '#aeb4c0', '#8d95a5', '#6c7488', '#464e60'];
+
+    let winW, winH;
+    let layerEls = [];
+
+    function shade(hex, amt) {
+      const num = parseInt(hex.slice(1), 16);
+      let r = (num >> 16) & 255, g = (num >> 8) & 255, b = num & 255;
+      r = Math.max(0, Math.min(255, r + amt));
+      g = Math.max(0, Math.min(255, g + amt));
+      b = Math.max(0, Math.min(255, b + amt));
+      return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+    }
+
+    function ridgeD(i) {
+      const baseY = winH * (0.4 + 0.13 * i);
+      const amp = winH * (0.05 + 0.013 * i);
+      const freqA = 0.0028 + 0.0014 * i;
+      const freqB = 0.007 + 0.002 * i;
+      const phaseA = Math.random() * 6.28;
+      const phaseB = Math.random() * 6.28;
+      const bottom = winH + 12;
+      const step = Math.max(28, winW / 42);
+      let path = 'M -20 ' + bottom;
+      for (let x = -20; x <= winW + 20; x += step) {
+        const y = baseY + Math.sin(x * freqA + phaseA) * amp * 0.6 + Math.sin(x * freqB + phaseB) * amp * 0.4 + (Math.random() * 6 - 3);
+        path += ' L ' + x.toFixed(0) + ' ' + y.toFixed(1);
+      }
+      const yEnd = baseY + Math.sin((winW + 20) * freqA + phaseA) * amp * 0.6 + Math.sin((winW + 20) * freqB + phaseB) * amp * 0.4;
+      path += ' L ' + (winW + 20) + ' ' + yEnd.toFixed(1);
+      path += ' L ' + (winW + 20) + ' ' + bottom + ' Z';
+      return path;
+    }
+
+    function init() {
+      winW = window.innerWidth;
+      winH = window.innerHeight;
+      svg.setAttribute('width', winW);
+      svg.setAttribute('height', winH);
+      while (sky.firstChild) sky.removeChild(sky.firstChild);
+      while (mountains.firstChild) mountains.removeChild(mountains.firstChild);
+      layerEls.length = 0;
+
+      // Draw the sun behind the mountain
+      const sunUrl = LAB.pageRandomiser.nextOne();
+      const sunLink = LAB.svgElement('a', { 'href': sunUrl });
+      const sun = LAB.svgElement('circle', {
+        'cx': winW * (0.3 + Math.random() * 0.4),
+        'cy': winH * (0.22 + Math.random() * 0.12),
+        'r': Math.min(winW, winH) * 0.09,
+        'fill': '#e99c94',
+        'class': 'sun'
+      }, sunLink);
+      sky.appendChild(sunLink);
+
+      // Draw the mountains over each other
+      for (let i = 0; i < mountainColours.length; i++) {
+        const url = LAB.pageRandomiser.nextOne();
+        const a = LAB.svgElement('a', { 'href': url });
+        const path = LAB.svgElement('path', {
+          'd': ridgeD(i),
+          'fill': mountainColours[i],
+          'stroke': shade(mountainColours[i], -16),
+          'stroke-width': '1.5',
+          'class': 'ridge'
+        }, a);
+        mountains.appendChild(a);
+        layerEls.push({ a, path, depth: i });
+      }
+    }
+
+    // Move each element based on where the mouse is
+    svg.addEventListener('mousemove', e => {
+      const ox = (e.clientX - winW / 2) / winW;
+      const oy = (e.clientY - winH / 2) / winH;
+      for (const layer of layerEls) {
+        const moveFactor = (layer.depth + 1) * 7;
+        const dx = (-ox * moveFactor).toFixed(1);
+        const dy = (-oy * moveFactor * 0.4).toFixed(1);
+        layer.path.setAttribute('transform', `translate(${dx},${dy})`);
+      }
+      const sun = sky.querySelector('circle.sun');
+      if (sun) {
+        const dx = (ox * 14).toFixed(1);
+        const dy = (oy * 10).toFixed(1);
+        sun.setAttribute('transform', `translate(${dx},${dy})`);
+      }
+    });
+
+    window.addEventListener('resize', init);
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    init();
+
+  </script>
+</body>
+
+</html>

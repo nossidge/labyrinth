@@ -2296,3 +2296,10 @@ corridors:
     tags: [mobile, nature, parallax]
     visual_description: >-
       A full-screen SVG landscape of five overlapping mountain ridges in misty blue-grey tones, layered over a pale cream sky with a soft pale sun sitting behind the ridges. Each ridge is drawn as a wavy sine-curve silhouette and rendered with a gentle Gaussian blur that sharpens when hovered over. Moving the mouse shifts the ridges and the sun at different speeds for a parallax effect. Clicking the background or pressing any key regenerates the landscape with fresh ridge shapes. The sun and each ridge are clickable links to a random corridor.
+  - id: ascii-inkblot
+    title: ASCII Inkblot
+    created: 2026-11-13 18:10
+    links: dynamic
+    tags: [abstract, mobile, text]
+    visual_description: >-
+      A Rorschach-style inkblot rendered in monospace ASCII characters (@, #, &, %, $, 8, B, 0, *, +, =, o, O, ., ,, :, ;, ', ") in black on a cream background. It has denser characters clustered near the centre and sparser ones at the edges. Clicking the background or pressing any key regenerates the blot. A few of the characters are displayed in bold red; these are clickable links to random corridors.

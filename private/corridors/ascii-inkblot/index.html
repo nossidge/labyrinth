@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+See also `rorschach`
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="you're locked in here with me">
+  <title>Cheerful symmetry</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      display: flex;
+      width: 100%;
+      min-height: 100vh;
+      background: #e5dabb;
+      color: #0a0a0a;
+      font-family: "Courier New", monospace;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
+
+    pre#blot {
+      padding: 30px 0;
+      font-size: 18px;
+      line-height: 0.95;
+      letter-spacing: 1px;
+      text-align: center;
+      user-select: none;
+    }
+
+    pre#blot a {
+      color: #b30000;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    pre#blot a:hover,
+    pre#blot a:focus {
+      background: #b30000;
+      color: #f4f1e8;
+      outline: none;
+    }
+  </style>
+</head>
+
+<body>
+  <pre id="blot"></pre>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('ascii-inkblot');
+
+    const blot = document.getElementById('blot');
+
+    const dense = '@#&%$8B0';
+    const medium = '*+=oO';
+    const sparse = `.,:;'"`;
+
+    const charsW = 22;
+    const charsH = 26;
+    const centreX = charsW;
+    const centreY = charsH / 2;
+
+    function densityAt(x, y) {
+      const dx = (x - centreX) / (charsW * 0.85);
+      const dy = (y - centreY) / (charsH * 0.45);
+      let d = 1 - (dx * dx + dy * dy);
+
+      const blobs = [
+        [charsW * 0.3, charsH * 0.3, 0.18],
+        [charsW * 0.6, charsH * 0.7, 0.16],
+        [charsW * 0.85, charsH * 0.4, 0.14],
+        [charsW * 0.45, charsH * 0.95, 0.12],
+      ];
+
+      for (const [bx, by, br] of blobs) {
+        const ddx = (x - bx) / (charsW * br);
+        const ddy = (y - by) / (charsH * br);
+        d += Math.max(0, 1 - (ddx * ddx + ddy * ddy));
+      }
+
+      d += (Math.random() - 0.5) * 0.6;
+      return d;
+    }
+
+    function pickChar(d) {
+      if (d > 1.0) return dense[Math.floor(Math.random() * dense.length)];
+      if (d > 0.5) return medium[Math.floor(Math.random() * medium.length)];
+      if (d > 0.1) return sparse[Math.floor(Math.random() * sparse.length)];
+      return ' ';
+    }
+
+    function appendChar(character, link) {
+      if (link && character !== ' ') {
+        const a = document.createElement('a');
+        a.href = LAB.pageRandomiser.nextOne();
+        a.innerText = character;
+        blot.appendChild(a);
+      } else {
+        blot.appendChild(document.createTextNode(character));
+      }
+    }
+
+    function init() {
+      blot.replaceChildren();
+
+      for (let y = 0; y < charsH; y++) {
+        const halfChars = [];
+        const halfLinks = [];
+
+        for (let x = 0; x < charsW; x++) {
+          const d = densityAt(x, y);
+          halfChars.push(pickChar(d));
+          halfLinks.push(d > 0.7 && Math.random() < 0.04);
+        }
+
+        for (let x = 0; x < charsW; x++) appendChar(halfChars[x], halfLinks[x]);
+        for (let x = charsW - 2; x >= 0; x--) appendChar(halfChars[x], halfLinks[x]);
+
+        blot.appendChild(document.createTextNode('\n'));
+      }
+    }
+
+    window.addEventListener('resize', init);
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    init();
+
+  </script>
+</body>
+
+</html>

@@ -2303,3 +2303,10 @@ corridors:
     tags: [abstract, mobile, text]
     visual_description: >-
       A Rorschach-style inkblot rendered in monospace ASCII characters (@, #, &, %, $, 8, B, 0, *, +, =, o, O, ., ,, :, ;, ', ") in black on a cream background. It has denser characters clustered near the centre and sparser ones at the edges. Clicking the background or pressing any key regenerates the blot. A few of the characters are displayed in bold red; these are clickable links to random corridors.
+  - id: vitruvian-man
+    title: Vitruvian Man
+    created: 2026-11-14 00:19
+    links: dynamic
+    tags: [art, images, mobile, pop]
+    visual_description: >-
+      An image of Leonardo da Vinci's Vitruvian Man drawing, overlaid at the bottom with a single quoted answer to "What is a man?" chosen from a pool of famous definitions (a featherless biped, a meat popsicle, a thinking reed, a rope over an abyss, and the like). Clicking the page or pressing a key picks a new random quote. Each quote links to a random corridor.

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+Source image:
+https://en.wikipedia.org/wiki/File:Da_Vinci_Vitruve_Luc_Viatour.jpg
+
+ImageMagick command to reduce the file size:
+$ convert orig.jpg -resize 20% -quality 50 man.jpg
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Vitruvian Man">
+  <title>Vitruvian Man</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      background: #1a1a1a;
+      overflow: hidden;
+    }
+
+    main {
+      position: relative;
+      display: flex;
+      width: 100vw;
+      height: 100vh;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #image-wrapper {
+      position: relative;
+      display: flex;
+      width: 100%;
+      height: 100%;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #man-img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    #quote-overlay {
+      position: absolute;
+      padding: 0 10px;
+      text-align: center;
+      bottom: 8%;
+      left: 0;
+      right: 0;
+      z-index: 10;
+    }
+
+    #quote-link {
+      display: inline-block;
+      padding: 16px 24px;
+      color: #1a1a1a;
+      background: rgba(255, 255, 255, 0.7);
+      border: 1px solid #999999;
+      font-family: 'Times New Roman', Times, serif;
+      font-size: clamp(22px, 3.5vw, 36px);
+      font-style: italic;
+      text-decoration: none;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+    }
+
+    #quote-link:hover,
+    #quote-link:focus {
+      background: #ffffff;
+      border-color: #333333;
+    }
+  </style>
+</head>
+
+<body>
+  <main id="main">
+    <div id="image-wrapper">
+      <img id="man-img" src="man.jpg" alt="Vitruvian Man by Leonardo da Vinci">
+      <div id="quote-overlay">
+        <a id="quote-link" href="../index.html">
+          What is a man?
+        </a>
+      </div>
+    </div>
+  </main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('vitruvian-man');
+
+    const QUOTES_POOL = [
+      "A featherless biped",
+      "A meat popsicle",
+      "A miserable little pile of secrets",
+      "A rope over an abyss",
+      "A state-building animal",
+      "A thinking reed",
+      "A virus with shoes",
+      "A way for the cosmos to know itself",
+      "Quintessence of dust",
+      "Something the whole universe is doing",
+      "The naked ape",
+      "The place where the falling angel meets the rising ape",
+      "The soft machine",
+      "The storytelling animal",
+      "The third chimpanzee",
+    ];
+    const quoteRandomiser = new LAB.CyclicRandomiser(QUOTES_POOL);
+    const quoteLink = document.getElementById('quote-link');
+
+    function init() {
+      const quote = quoteRandomiser.nextOne();
+      const link = LAB.pageRandomiser.nextOne();
+      quoteLink.textContent = '"' + quote + '"';
+      quoteLink.setAttribute('href', link);
+    }
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    init();
+
+  </script>
+</body>
+
+</html>

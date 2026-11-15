@@ -2310,3 +2310,10 @@ corridors:
     tags: [art, images, mobile, pop]
     visual_description: >-
       An image of Leonardo da Vinci's Vitruvian Man drawing, overlaid at the bottom with a single quoted answer to "What is a man?" chosen from a pool of famous definitions (a featherless biped, a meat popsicle, a thinking reed, a rope over an abyss, and the like). Clicking the page or pressing a key picks a new random quote. Each quote links to a random corridor.
+  - id: lettrines
+    title: Lettrines
+    created: 2026-11-15 02:10
+    links: 25
+    tags: [images, mobile, secret]
+    visual_description: >-
+      A 5x5 grid of ornamental initial letters (lettrines) from a 16th-century decorative alphabet, each rendered as an image on a white background. Hovering over a letter turns it grey. Every letter is a clickable link to a random corridor.

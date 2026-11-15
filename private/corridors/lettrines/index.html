@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+https://en.wikipedia.org/wiki/Initial
+https://en.wikipedia.org/wiki/File:Ornamental_Alphabet_-_16th_Century.svg
+
+In order to make the images smaller for the web, I shrank them down.
+Here's the ImageMagick script I used:
+```sh
+mkdir -p initials
+for img in initials-orig/*.svg; do
+  filename="$(basename "$img" .svg)"
+  target="initials/${filename}.png"
+  convert "$img" \
+    -colors 16 \
+    -fuzz 10% -transparent white \
+    -strip \
+    -define png:compression-level=9 \
+    PNG8:"$target"
+done
+```
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="pangram">
+  <title>A Void</title>
+  <style>
+    :root {
+      --cols: 5;
+      --rows: 5;
+      --img-w: 128;
+      --img-h: 139;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+      background-color: #f5f0e8;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    main {
+      position: relative;
+      aspect-ratio: var(--img-w) / var(--img-h);
+      width: min(100vw, calc(100vh * var(--img-w) / var(--img-h)));
+      margin: 0 auto;
+    }
+
+    #image-grid {
+      display: grid;
+      width: 100%;
+      height: 100%;
+      grid-template-columns: repeat(var(--cols), 1fr);
+      grid-template-rows: repeat(var(--rows), 1fr);
+    }
+
+    #missing-letters {
+      position: absolute;
+      display: grid;
+      grid-template-columns: repeat(var(--cols), 1fr);
+      align-items: center;
+      justify-items: center;
+      inset: 0;
+      color: maroon;
+      text-shadow:
+        -2px -2px 0 black,
+        2px -2px 0 black,
+        -2px 2px 0 black,
+        2px 2px 0 black,
+        -3px 0px 0 black,
+        3px 0px 0 black,
+        0px -3px 0 black,
+        0px 3px 0 black;
+      font-family: 'Times New Roman', serif;
+      font-size: min(16vw, 17.5vh);
+      pointer-events: none;
+      user-select: none;
+    }
+
+    #missing-letters span {
+      opacity: 0;
+      transform: scale(0.85);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+
+    #missing-letters span.revealed {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    #image-grid img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    a:hover img {
+      filter: grayscale(100%);
+    }
+  </style>
+</head>
+
+<body>
+  <main id="main">
+    <div id="image-grid">
+      <a href="../index.html"><img src="initials/T.png"></a>
+      <a href="../index.html"><img src="initials/H.png"></a>
+      <a href="../index.html"><img src="initials/E.png"></a>
+      <a href="../index.html"><img src="initials/Q.png"></a>
+      <a href="../index.html"><img src="initials/U.png"></a>
+      <a href="../index.html"><img src="initials/I.png"></a>
+      <a href="../index.html"><img src="initials/C.png"></a>
+      <a href="../index.html"><img src="initials/K.png"></a>
+      <a href="../index.html"><img src="initials/B.png"></a>
+      <a href="../index.html"><img src="initials/R.png"></a>
+      <a href="../index.html"><img src="initials/N.png"></a>
+      <a href="../index.html"><img src="initials/F.png"></a>
+      <a href="../index.html"><img src="initials/U.png"></a>
+      <a href="../index.html"><img src="initials/M.png"></a>
+      <a href="../index.html"><img src="initials/P.png"></a>
+      <a href="../index.html"><img src="initials/S.png"></a>
+      <a href="../index.html"><img src="initials/V.png"></a>
+      <a href="../index.html"><img src="initials/E.png"></a>
+      <a href="../index.html"><img src="initials/R.png"></a>
+      <a href="../index.html"><img src="initials/A.png"></a>
+      <a href="../index.html"><img src="initials/L.png"></a>
+      <a href="../index.html"><img src="initials/A.png"></a>
+      <a href="../index.html"><img src="initials/Y.png"></a>
+      <a href="../index.html"><img src="initials/D.png"></a>
+      <a href="../index.html"><img src="initials/G.png"></a>
+    </div>
+
+    <div id="missing-letters" aria-hidden="true">
+      <span id="letter-J">J</span>
+      <span id="letter-O">O</span>
+      <span id="letter-W">W</span>
+      <span id="letter-X">X</span>
+      <span id="letter-Z">Z</span>
+    </div>
+  </main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('lettrines');
+
+    const missingLetters = ['J', 'O', 'W', 'X', 'Z'];
+    const letterSpans = {};
+    missingLetters.forEach((letter) => {
+      letterSpans[letter] = document.getElementById('letter-' + letter);
+    });
+    let solved = false;
+
+    window.addEventListener('keydown', (e) => {
+      if (solved) {
+        return;
+      }
+      LAB.handleKeydown(e, () => {
+        const letter = (e.key || '').toUpperCase();
+        const span = letterSpans[letter];
+        if (!span || span.classList.contains('revealed')) {
+          return;
+        }
+        span.classList.add('revealed');
+        if (missingLetters.every((l) => letterSpans[l].classList.contains('revealed'))) {
+          solved = true;
+          setTimeout(() => location.assign(LAB.goto()), 1400);
+        }
+      });
+    });
+
+  </script>
+</body>
+
+</html>

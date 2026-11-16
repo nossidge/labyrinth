@@ -2317,3 +2317,10 @@ corridors:
     tags: [images, mobile, secret]
     visual_description: >-
       A 5x5 grid of ornamental initial letters (lettrines) from a 16th-century decorative alphabet, each rendered as an image on a white background. Hovering over a letter turns it grey. Every letter is a clickable link to a random corridor.
+  - id: squircles
+    title: Squircles
+    created: 2026-11-16 16:37
+    links: 9
+    tags: [abstract, crt, maths, mobile]
+    visual_description: >-
+      A 3x3 grid of cells on a near-black background, each cell drawing neon nested superellipses (squircles). Each shape's exponent slowly oscillates, morphing it between a rounded square and a spiky star, while it rotates gently. Hovering over a cell regenerates it with a fresh random shape. Pressing keys 1-9 regenerates that specific cell, and any other key regenerates a random one. Each cell is a clickable link to a random corridor.

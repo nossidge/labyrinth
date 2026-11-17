@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+I came up with the grainstorm pun first.
+Not really to do with the planets, but I just needed some pretty glyphs.
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Grianstorm (2007) by Arctic Monkeys">
+  <title>grainstorm</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body,
+    html {
+      width: 100%;
+      height: 100%;
+      background-color: #0a0a0a;
+      overflow: hidden;
+    }
+
+    canvas {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    #links {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 10;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-content: center;
+      gap: 12px;
+      padding: 20%;
+    }
+
+    #links a {
+      display: inline-block;
+      color: rgba(255, 255, 255, 0.12);
+      text-decoration: none;
+      font-family: monospace;
+      font-size: 44px;
+      letter-spacing: 2px;
+      transition: color 0.3s ease, text-shadow 0.3s ease;
+    }
+
+    #links a:hover {
+      color: rgba(255, 255, 255, 0.9);
+      text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="canvas"></canvas>
+  <div id="links">
+    <a href="../index.html">☿</a>
+    <a href="../index.html">♀</a>
+    <a href="../index.html">♁</a>
+    <a href="../index.html">♂</a>
+    <a href="../index.html">♃</a>
+    <a href="../index.html">♄</a>
+    <a href="../index.html">♅</a>
+    <a href="../index.html">♆</a>
+  </div>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('grainstorm');
+
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    const MAX_GRAIN_COUNT = 6000;
+    const particles = [];
+
+    let winW, winH, grainCount;
+    let t = 0;
+
+    // Grain count scales with screen area:
+    // 2400 x 960 => 6000, 375 x 667 => 1000
+    const REF_LARGE = { area: 2400 * 960, count: MAX_GRAIN_COUNT };
+    const REF_SMALL = { area: 375 * 667, count: 1000 };
+
+    function calcGrainCount() {
+      const area = winW * winH;
+      const raw = REF_SMALL.count + (area - REF_SMALL.area) * (REF_LARGE.count - REF_SMALL.count) / (REF_LARGE.area - REF_SMALL.area);
+      return Math.max(200, Math.min(MAX_GRAIN_COUNT, Math.floor(raw)));
+    }
+
+    function resize() {
+      winW = canvas.width = window.innerWidth;
+      winH = canvas.height = window.innerHeight;
+      grainCount = calcGrainCount();
+      ctx.fillStyle = 'rgb(0, 0, 0)';
+      ctx.fillRect(0, 0, winW, winH);
+      particles.length = 0;
+      init();
+    }
+
+    function init() {
+      for (let i = 0; i < grainCount; i++) {
+        particles.push({
+          x: LAB.rand(0, winW),
+          y: LAB.rand(0, winH),
+          size: LAB.rand(0.5, 2.5),
+          brightness: LAB.rand(20, 80),
+          drift: LAB.rand(0.2, 1.0)
+        });
+      }
+    }
+
+    function tick() {
+      ctx.fillStyle = 'rgba(10, 10, 10, 0.3)';
+      ctx.fillRect(0, 0, winW, winH);
+
+      // Swirling wind pattern
+      particles.forEach(function (p) {
+        const angle = Math.sin(p.x * 0.003 + t * 0.01) * Math.cos(p.y * 0.002 + t * 0.008);
+        p.x += Math.cos(angle) * p.drift + Math.sin(t * 0.005) * 0.3;
+        p.y += Math.sin(angle) * p.drift * 0.6 + p.drift * 0.15;
+
+        // Wrap around
+        if (p.x < 0) p.x += winW;
+        if (p.x > winW) p.x -= winW;
+        if (p.y > winH) {
+          p.y = 0;
+          p.x = LAB.rand(0, winW);
+        }
+
+        // Brightness oscillation
+        const b = p.brightness + Math.sin(t * 0.03 + p.x * 0.01) * 20;
+
+        ctx.fillStyle = `rgba(${Math.floor(b)}, ${Math.floor(b)}, ${Math.floor(b * 0.9)}, 0.7)`;
+        ctx.fillRect(p.x, p.y, p.size, p.size);
+      });
+
+      t++;
+      requestAnimationFrame(tick);
+    }
+
+    window.addEventListener('resize', resize);
+
+    resize();
+    tick();
+
+  </script>
+</body>
+
+</html>

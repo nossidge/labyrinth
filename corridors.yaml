@@ -2324,3 +2324,10 @@ corridors:
     tags: [abstract, crt, maths, mobile]
     visual_description: >-
       A 3x3 grid of cells on a near-black background, each cell drawing neon nested superellipses (squircles). Each shape's exponent slowly oscillates, morphing it between a rounded square and a spiky star, while it rotates gently. Hovering over a cell regenerates it with a fresh random shape. Pressing keys 1-9 regenerates that specific cell, and any other key regenerates a random one. Each cell is a clickable link to a random corridor.
+  - id: grainstorm
+    title: Grainstorm
+    created: 2026-11-17 16:02
+    links: 8
+    tags: [abstract, mobile]
+    visual_description: >-
+      A cloud of thousands of particle grains drift across a black background, as if blown by wind. Eight planetary glyphs (☿ ♀ ♁ ♂ ♃ ♄ ♅ ♆) float in the centre of the page, each a clickable link to the corridors index that brightens on hover.

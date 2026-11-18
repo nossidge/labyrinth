@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Absolutely shattered, mate.">
+  <title>Shattered Planet</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body,
+    html {
+      display: flex;
+      width: 100%;
+      height: 100%;
+      background-color: #060606;
+      overflow: hidden;
+      justify-content: center;
+      align-items: center;
+    }
+
+    main {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    .fragment {
+      position: absolute;
+      display: block;
+      border-radius: 2px;
+      text-decoration: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .fragment:hover {
+      box-shadow: 0 0 8px currentColor;
+      opacity: 1 !important;
+    }
+  </style>
+</head>
+
+<body>
+  <main id="main"></main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('shattered-planet');
+
+    const main = document.getElementById('main');
+
+    const RING_COUNT = 14;
+    const RING_GAP = 30;
+
+    let frags;
+    let winCentreX = 0;
+    let winCentreY = 0;
+
+    function resize() {
+      winCentreX = window.innerWidth / 2;
+      winCentreY = window.innerHeight / 2;
+      init();
+    }
+
+    function init() {
+      main.replaceChildren();
+
+      for (let ring = 0; ring < RING_COUNT; ring++) {
+        const radius = (ring + 1) * RING_GAP;
+        const circumference = 2 * Math.PI * radius;
+
+        // The outer rings should have more fragment pieces
+        const pieceCount = Math.max(4, Math.floor(circumference / 18));
+        const decay = ring / RING_COUNT; // 0 at centre, 1 at edge
+
+        const hue = LAB.rand(0, 360);
+
+        for (let i = 0; i < pieceCount; i++) {
+          // Probability of a fragment existing decreases with ring
+          if (LAB.chance(decay * 0.65)) continue;
+
+          const angle = (i / pieceCount) * Math.PI * 2;
+          const jitter = LAB.rand(-0.03, 0.03);
+          const r = radius + LAB.rand(-5, 5);
+
+          const x = winCentreX + Math.cos(angle + jitter) * r;
+          const y = winCentreY + Math.sin(angle + jitter) * r;
+
+          // Fragment size decreases with distance
+          const size = LAB.rand(4, 10) * (1 - decay * 0.5);
+          const opacity = LAB.rand(0.6, 0.9) * (1 - decay * 0.2);
+
+          const frag = document.createElement('a');
+          frag.className = 'fragment';
+          frag.href = LAB.pageRandomiser.nextOne();
+          frag.style.left = (x - size / 2) + 'px';
+          frag.style.top = (y - size / 2) + 'px';
+          frag.style.width = size + 'px';
+          frag.style.height = size + 'px';
+          frag.style.backgroundColor = 'hsla(' + hue + ', 60%, 55%, ' + opacity + ')';
+          frag.style.color = 'hsl(' + hue + ', 60%, 55%)';
+          frag.style.transform = 'rotate(' + LAB.rand(-45, 45) + 'deg)';
+
+          main.appendChild(frag);
+        }
+      }
+
+      frags = document.querySelectorAll('.fragment');
+    }
+
+    // Slowly drift fragments
+    function tick() {
+      frags.forEach(f => {
+        if (LAB.chance(0.005)) {
+          const left = parseFloat(f.style.left);
+          const top = parseFloat(f.style.top);
+          f.style.left = (left + LAB.rand(-0.5, 0.5)) + 'px';
+          f.style.top = (top + LAB.rand(-0.5, 0.5)) + 'px';
+        }
+      });
+      requestAnimationFrame(tick);
+    }
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('a')) init();
+    });
+
+    window.addEventListener('resize', resize);
+
+    resize();
+    tick();
+
+  </script>
+</body>
+
+</html>

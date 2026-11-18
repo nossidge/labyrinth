@@ -2331,3 +2331,10 @@ corridors:
     tags: [abstract, mobile]
     visual_description: >-
       A cloud of thousands of particle grains drift across a black background, as if blown by wind. Eight planetary glyphs (☿ ♀ ♁ ♂ ♃ ♄ ♅ ♆) float in the centre of the page, each a clickable link to the corridors index that brightens on hover.
+  - id: shattered-planet
+    title: Shattered Planet
+    created: 2026-11-18 15:24
+    links: dynamic
+    tags: [abstract, mobile]
+    visual_description: >-
+      Concentric rings of small square fragments orbit the centre of a black screen, each rotated at a random angle and painted in a random colour. Outer rings have fewer, smaller, and dimmer fragments, so it looks like a shattered planet drifting apart. The fragments slowly drift across the screen over time. Hovering over a fragment makes it glow and brighten. Clicking the background or pressing any key regens the shards. Each fragment is a clickable link to a random corridor.

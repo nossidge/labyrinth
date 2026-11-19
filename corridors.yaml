@@ -2338,3 +2338,10 @@ corridors:
     tags: [abstract, mobile]
     visual_description: >-
       Concentric rings of small square fragments orbit the centre of a black screen, each rotated at a random angle and painted in a random colour. Outer rings have fewer, smaller, and dimmer fragments, so it looks like a shattered planet drifting apart. The fragments slowly drift across the screen over time. Hovering over a fragment makes it glow and brighten. Clicking the background or pressing any key regens the shards. Each fragment is a clickable link to a random corridor.
+  - id: forest-fire
+    title: Forest Fire
+    created: 2026-11-19 17:17
+    links: dynamic
+    tags: [crt, mobile, nature]
+    visual_description: >-
+      A forest-fire cellular automaton. Empty cells slowly regrow into trees, trees catch fire from burning neighbours or rare lightning strikes, and fires burn out to leave empty space behind, so the forest cycles through waves of growth and destruction. Hovering over a tree sets it alight. Every cell is a clickable link to a random corridor.

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+Pretty classic version of a forest-fire cellular automaton
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Smokey Robinson">
+  <title>It's my desire</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      background: #0a0603;
+      overflow: hidden;
+    }
+
+    main {
+      display: grid;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    .cell {
+      display: block;
+      text-decoration: none;
+      transition: background-color 0.35s ease, box-shadow 0.35s ease;
+    }
+
+    .cell:focus {
+      outline: none;
+    }
+
+    .cell.empty {
+      background-color: #140d08;
+    }
+
+    .cell.empty:focus {
+      background-color: #ffb030;
+      box-shadow: 0 0 12px #ff8800;
+    }
+
+    .cell.tree {
+      background-color: #24bc59;
+    }
+
+    .cell.tree:hover,
+    .cell.tree:focus {
+      background-color: #ffb030;
+      box-shadow: 0 0 12px #ff8800;
+      z-index: 5;
+    }
+
+    .cell.fire {
+      background-color: #ff5a00;
+      box-shadow: 0 0 14px #ff7b00, inset 0 0 8px #ffe27a;
+      z-index: 4;
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.18) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.04), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.04));
+      background-size: 100% 2px, 3px 100%;
+      pointer-events: none;
+      z-index: 100;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+  <main id="main"></main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('forest-fire');
+
+    const main = document.getElementById('main');
+
+    // empty -> tree  (regrowth, small chance)
+    // tree  -> fire  (if a neighbour burns, or rare lightning)
+    // fire  -> empty (always, next tick)
+    const EMPTY = 0, TREE = 1, FIRE = 2;
+
+    const CELL_SIZE = 26;
+    const LIGHTNING = 0.0004;
+    const GROW = 0.02;
+
+    let cols, rows, state, cells;
+
+    function init() {
+      cols = Math.ceil(window.innerWidth / CELL_SIZE);
+      rows = Math.ceil(window.innerHeight / CELL_SIZE);
+      main.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+      main.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+      main.replaceChildren();
+
+      state = new Uint8Array(cols * rows);
+      cells = [];
+
+      for (let i = 0; i < cols * rows; i++) {
+        state[i] = LAB.chance(0.55) ? TREE : EMPTY;
+        const a = document.createElement('a');
+        a.href = LAB.pageRandomiser.nextOne();
+        a.className = 'cell';
+
+        // Hover a tree to set fire to it
+        a.addEventListener('mouseenter', () => {
+          if (state[i] === TREE) {
+            state[i] = FIRE;
+            paint(i);
+          }
+        });
+
+        main.appendChild(a);
+        cells.push(a);
+      }
+      render();
+    }
+
+    function paint(i) {
+      let newClass;
+      switch (state[i]) {
+        case FIRE: newClass = 'fire'; break;
+        case TREE: newClass = 'tree'; break;
+        default: newClass = 'empty'; break;
+      }
+      cells[i].className = 'cell ' + newClass;
+    }
+
+    function render() {
+      for (let i = 0; i < state.length; i++) {
+        paint(i);
+      }
+    }
+
+    function neighbourBurning(x, y) {
+      for (let dy = -1; dy <= 1; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          if (dx === 0 && dy === 0) continue;
+          const nx = x + dx, ny = y + dy;
+          if (nx < 0 || nx >= cols || ny < 0 || ny >= rows) continue;
+          if (state[ny * cols + nx] === FIRE) return true;
+        }
+      }
+      return false;
+    }
+
+    function tick() {
+      const next = new Uint8Array(state.length);
+      for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+          const i = y * cols + x;
+          const s = state[i];
+          if (s === FIRE) {
+            next[i] = EMPTY;
+          } else if (s === TREE) {
+            next[i] = (neighbourBurning(x, y) || LAB.chance(LIGHTNING)) ? FIRE : TREE;
+          } else {
+            next[i] = LAB.chance(GROW) ? TREE : EMPTY;
+          }
+        }
+      }
+      state = next;
+      render();
+    }
+
+    window.addEventListener('resize', init);
+
+    init();
+    setInterval(tick, 320);
+
+  </script>
+</body>
+
+</html>

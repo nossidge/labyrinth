@@ -2345,3 +2345,10 @@ corridors:
     tags: [crt, mobile, nature]
     visual_description: >-
       A forest-fire cellular automaton. Empty cells slowly regrow into trees, trees catch fire from burning neighbours or rare lightning strikes, and fires burn out to leave empty space behind, so the forest cycles through waves of growth and destruction. Hovering over a tree sets it alight. Every cell is a clickable link to a random corridor.
+  - id: cafe-wall-illusion
+    title: Café Wall Illusion
+    created: 2026-11-20 15:57
+    links: dynamic
+    tags: [abstract, mobile]
+    visual_description: >-
+      A full-screen demonstration of the café wall optical illusion. Rows of alternating black and white tiles are laid out with thin gaps between them, and adjacent rows slide back and forth horizontally in opposite directions, each at its own random speed with a staggered delay. The motion makes the horizontal gap lines appear to bow and warp even though they remain perfectly straight. Hovering over a tile turns it the grey colour of the background. Every tile is a clickable link to a random corridor.

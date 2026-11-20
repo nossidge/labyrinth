@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+https://en.wikipedia.org/wiki/Caf%C3%A9_wall_illusion
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Illusions, Michael">
+  <title>Café wall illusion</title>
+  <style>
+    :root {
+      --tile-size: 56px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      background-color: #7d7d7d;
+      overflow: hidden;
+      overscroll-behavior: none;
+    }
+
+    main {
+      position: absolute;
+      display: flex;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      flex-direction: column;
+      justify-content: center;
+      gap: 5px;
+      overflow: hidden;
+    }
+
+    .row {
+      display: flex;
+      height: var(--tile-size);
+      margin-left: -84px;
+      flex: none;
+      animation-name: slide;
+      animation-timing-function: ease-in-out;
+      animation-iteration-count: infinite;
+      animation-direction: alternate;
+    }
+
+    .row.reverse {
+      animation-direction: alternate-reverse;
+    }
+
+    @keyframes slide {
+      from {
+        transform: translateX(-28px);
+      }
+
+      to {
+        transform: translateX(28px);
+      }
+    }
+
+    .tile {
+      display: block;
+      width: var(--tile-size);
+      height: 100%;
+      flex: none;
+      transition: background-color 0.2s ease;
+    }
+
+    .tile.dark {
+      background-color: #141414;
+    }
+
+    .tile.light {
+      background-color: #ececec;
+    }
+
+    .tile:hover {
+      background-color: #7d7d7d;
+    }
+  </style>
+</head>
+
+<body>
+  <main id="main"></main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('cafe-wall-illusion');
+
+    const main = document.getElementById('main');
+
+    const CSS_STYLE = getComputedStyle(document.documentElement);
+    const TILE_SIZE = parseInt(CSS_STYLE.getPropertyValue('--tile-size'));
+
+    function init() {
+      main.replaceChildren();
+      const cols = Math.ceil(window.innerWidth / TILE_SIZE) + 3;
+      const rows = Math.ceil(window.innerHeight / (TILE_SIZE + 5));
+
+      for (let row = 0; row < rows; row++) {
+        const rowEl = document.createElement('div');
+        rowEl.className = 'row';
+        if (row % 2 === 1) {
+          rowEl.classList.add('reverse');
+        }
+        rowEl.style.animationDuration = LAB.rand(6, 9).toFixed(2) + 's';
+        rowEl.style.animationDelay = (-row * 0.9).toFixed(2) + 's';
+
+        for (let col = 0; col < cols; col++) {
+          const tile = document.createElement('a');
+          tile.className = 'tile ' + (col % 2 === 0 ? 'dark' : 'light');
+          tile.href = LAB.pageRandomiser.nextOne();
+          rowEl.appendChild(tile);
+        }
+
+        main.appendChild(rowEl);
+      }
+    }
+
+    window.addEventListener('resize', init);
+
+    init();
+
+  </script>
+</body>
+
+</html>

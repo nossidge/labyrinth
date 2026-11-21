@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+https://en.wikipedia.org/wiki/Newton_fractal
+I've put a bunch of comments in this one, as there's so much maths!
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Figgy Neutron">
+  <title>If I have seen further...</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+    }
+
+    a#link {
+      display: block;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      image-rendering: pixelated;
+    }
+
+    #crt-scanlines {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 2;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.22) 50%);
+      background-size: 100% 2px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="crt-scanlines"></div>
+  <a id="link" href="../index.html">
+    <canvas id="canvas"></canvas>
+  </a>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('newton-fractal');
+
+    const link = document.getElementById('link');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    // How many units of the complex plane to show, vertically
+    // Use the same aspect ratio to get the horizontal view, so it's square
+    const VIEW_EXTENT = 2.4;
+
+    // Newton's method is abandoned after this many steps per pixel
+    const MAX_NEWTON_STEPS = 30;
+
+    // Possible degrees n of the polynomial z^n - 1 (i.e. how many roots of unity it has)
+    // A different one is picked every time init() is run.
+    const DEGREES_RANDOMISER = new LAB.CyclicRandomiser([3, 4, 5, 6, 7, 8, 9, 10]);
+
+    // We render at a nice and chunky lo-fi resolution and let CSS scale it up
+    const CANVAS_HEIGHT = 200;
+
+    // Canvas state, updated when the window is resized
+    let canvasWidth;
+    let imageData;
+    let pixels; // The raw RGBA byte buffer behind imageData
+
+    // Per-pixel results of running Newton's method. Computed on each init() call
+    // I probably could pass these by args, but global is fine...
+    let convergedRootIndex = []; // The root of unity (0..n-1) for each pixel
+    let newtonStepCount = [];    // How many Newton steps it took to get there
+    let degree;                  // The current n in z^n - 1
+    let hueShift = 0;            // Slowly rotating hue offset for the animation
+
+    // HSL to RGB conversion
+    function hslToRgb(h, s, l) {
+      const hFraction = h / 360;
+      const sFactor = s * Math.min(l, 1 - l);
+      const channel = (channelNumber) => {
+        const position = (channelNumber + hFraction * 12) % 12;
+        return Math.round(255 * (l - sFactor * Math.max(-1, Math.min(position - 3, 9 - position, 1))));
+      };
+      return [channel(0), channel(8), channel(4)];
+    }
+
+    function resize() {
+      const aspect = window.innerWidth / window.innerHeight;
+      canvasWidth = Math.round(CANVAS_HEIGHT * aspect);
+      canvas.width = canvasWidth;
+      canvas.height = CANVAS_HEIGHT;
+      imageData = ctx.createImageData(canvasWidth, CANVAS_HEIGHT);
+      pixels = imageData.data;
+      init();
+    }
+
+    function init() {
+      link.href = LAB.pageRandomiser.nextOne();
+
+      degree = DEGREES_RANDOMISER.nextOne();
+      convergedRootIndex = new Array(canvasWidth * CANVAS_HEIGHT);
+      newtonStepCount = new Array(canvasWidth * CANVAS_HEIGHT);
+
+      // The roots of (z^n - 1) are the nth roots of unity, evenly spaced around the circle
+      const roots = [];
+      for (let rootIndex = 0; rootIndex < degree; rootIndex++) {
+        roots.push([
+          Math.cos(2 * Math.PI * rootIndex / degree),
+          Math.sin(2 * Math.PI * rootIndex / degree)
+        ]);
+      }
+
+      for (let pixelY = 0; pixelY < CANVAS_HEIGHT; pixelY++) {
+        for (let pixelX = 0; pixelX < canvasWidth; pixelX++) {
+          // Map the pixel to a point in the complex plane, centred on the origin.
+          // Vertically the extent is fixed at VIEW_EXTENT; horizontally it is
+          // stretched by the aspect ratio so the plane looks square.
+          let zReal = (pixelX / canvasWidth - 0.5) * VIEW_EXTENT * (canvasWidth / CANVAS_HEIGHT);
+          let zImag = (pixelY / CANVAS_HEIGHT - 0.5) * VIEW_EXTENT;
+          let newtonSteps = 0;
+
+          for (; newtonSteps < MAX_NEWTON_STEPS; newtonSteps++) {
+            // f(z) = z^n - 1, f'(z) = n * z^(n-1)
+            // Newton's step: z -= f(z) / f'(z)
+
+            // Work out z^(n-1) by repeated complex multiplication
+            let powerReal = 1;
+            let powerImag = 0;
+            for (let exponent = 0; exponent < degree - 1; exponent++) {
+              const nextReal = powerReal * zReal - powerImag * zImag;
+              const nextImag = powerReal * zImag + powerImag * zReal;
+              powerReal = nextReal;
+              powerImag = nextImag;
+            }
+
+            // z^n = z^(n-1) * z
+            const zPowNReal = powerReal * zReal - powerImag * zImag;
+            const zPowNImag = powerReal * zImag + powerImag * zReal;
+
+            // f(z) = z^n - 1
+            const fReal = zPowNReal - 1;
+            const fImag = zPowNImag;
+
+            // f'(z) = n * z^(n-1)
+            const fPrimeReal = degree * powerReal;
+            const fPrimeImag = degree * powerImag;
+
+            // Complex division: f / f' = f * conj(f') / |f'|^2
+            const fPrimeMagnitudeSquared = fPrimeReal * fPrimeReal + fPrimeImag * fPrimeImag;
+
+            // Near z = 0 the derivative is zero, so Newton's step is undefined
+            if (fPrimeMagnitudeSquared < 1e-12) break;
+            zReal -= (fReal * fPrimeReal + fImag * fPrimeImag) / fPrimeMagnitudeSquared;
+            zImag -= (fImag * fPrimeReal - fReal * fPrimeImag) / fPrimeMagnitudeSquared;
+
+            // Check whether we've landed close enough to any of the roots
+            let converged = false;
+            for (let rootIndex = 0; rootIndex < roots.length; rootIndex++) {
+              const differenceReal = zReal - roots[rootIndex][0];
+              const differenceImag = zImag - roots[rootIndex][1];
+              if (differenceReal * differenceReal + differenceImag * differenceImag < 1e-6) {
+                const pixelIndex = pixelY * canvasWidth + pixelX;
+                convergedRootIndex[pixelIndex] = rootIndex;
+                converged = true;
+                break;
+              }
+            }
+            // Break out of Newton's method if we've converged
+            if (converged) break;
+          }
+
+          // If we never converged in MAX_NEWTON_STEPS fall back to root 0
+          const pixelIndex = pixelY * canvasWidth + pixelX;
+          if (convergedRootIndex[pixelIndex] === undefined) {
+            convergedRootIndex[pixelIndex] = 0;
+          }
+
+          // Record how far we actually got
+          newtonStepCount[pixelIndex] = newtonSteps;
+        }
+      }
+      paint();
+    }
+
+    function paint() {
+      for (let pixelIndex = 0; pixelIndex < canvasWidth * CANVAS_HEIGHT; pixelIndex++) {
+        // Split the hue wheel so that each root can have its own colour
+        const hue = (convergedRootIndex[pixelIndex] / degree) * 360 + hueShift;
+        // Darker if there are more Newton steps, and brighter if fewer
+        const lightness = Math.max(0.12, 0.72 - (newtonStepCount[pixelIndex] / MAX_NEWTON_STEPS) * 0.6);
+        const [red, green, blue] = hslToRgb(((hue % 360) + 360) % 360, 0.85, lightness);
+        const offset = pixelIndex * 4;
+        pixels[offset] = red;
+        pixels[offset + 1] = green;
+        pixels[offset + 2] = blue;
+        pixels[offset + 3] = 255; // Alpha is just 100% opaque
+      }
+      ctx.putImageData(imageData, 0, 0);
+    }
+
+    function tick() {
+      // Slowly rotate the hue wheel so the colours drift over time
+      hueShift = (hueShift + 0.6) % 360;
+      paint();
+      requestAnimationFrame(tick);
+    }
+
+    window.addEventListener('resize', resize);
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, init);
+    });
+
+    resize();
+    tick();
+
+  </script>
+</body>
+
+</html>

@@ -2352,3 +2352,10 @@ corridors:
     tags: [abstract, mobile]
     visual_description: >-
       A full-screen demonstration of the café wall optical illusion. Rows of alternating black and white tiles are laid out with thin gaps between them, and adjacent rows slide back and forth horizontally in opposite directions, each at its own random speed with a staggered delay. The motion makes the horizontal gap lines appear to bow and warp even though they remain perfectly straight. Hovering over a tile turns it the grey colour of the background. Every tile is a clickable link to a random corridor.
+  - id: newton-fractal
+    title: Newton Fractal
+    created: 2026-11-21 15:44
+    links: 1
+    tags: [crt, maths, mobile]
+    visual_description: >-
+      A full-screen Newton fractal of the roots of unity for the polynomial z^n - 1, rendered at a chunky lo-fi pixel resolution. Each region of the complex plane converges to one of the n roots, coloured by its position on the hue wheel and darkened by how many Newton steps it took to converge. A slowly rotating hue offset makes the colours drift over time. Pressing any key reseeds the fractal with a new degree n. The whole canvas is a single clickable link to a random corridor.

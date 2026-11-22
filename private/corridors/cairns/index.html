@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="may break my bones">
+  <title>stacks of stones</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      overscroll-behavior: none;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      touch-action: none;
+    }
+
+    body {
+      background: linear-gradient(#d9dfe1 0%, #ecebe4 54%, #d3ccba 54.2%, #c4bca6 100%);
+    }
+
+    .cairn {
+      position: absolute;
+      width: 0;
+      transform-origin: 50% 100%;
+    }
+
+    .shadow {
+      position: absolute;
+      background: radial-gradient(ellipse at center, rgba(40, 36, 30, 0.28), rgba(40, 36, 30, 0) 70%);
+      left: 50%;
+      bottom: -6px;
+      transform: translateX(-50%);
+    }
+
+    .stone {
+      position: absolute;
+      display: block;
+      box-shadow: inset -3px -4px 8px rgba(0, 0, 0, 0.18), inset 2px 3px 6px rgba(255, 255, 255, 0.35);
+      transform: translateX(-50%) rotate(var(--tilt));
+      transition: transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    .stone:hover {
+      transform: translateX(-50%) translateY(-5px) rotate(calc(var(--tilt) + 2deg));
+    }
+
+    .stone.wobble {
+      transform: translateX(calc(-50% + var(--drift))) rotate(calc(var(--tilt) + var(--wobble)));
+    }
+  </style>
+</head>
+
+<body>
+  <main id="main"></main>
+
+  <script src="../../common/labyrinth.js"></script>
+  <script>
+    const LAB = new Labyrinth('cairns');
+
+    const main = document.getElementById('main');
+
+    let cairns = [];
+
+    function borderRadius() {
+      const r = () => LAB.randInt(42, 58) + '%';
+      return `${r()} ${r()} ${r()} ${r()} / ${r()} ${r()} ${r()} ${r()}`;
+    }
+
+    function stoneColour() {
+      const h = LAB.sample([30, 40, 200, 210, 90]);
+      const s = LAB.randInt(4, 12);
+      const l = LAB.randInt(44, 66);
+      return {
+        light: `hsl(${h}, ${s}%, ${Math.min(90, l + 18)}%)`,
+        base: `hsl(${h}, ${s}%, ${l}%)`,
+        dark: `hsl(${h}, ${s + 4}%, ${l - 18}%)`
+      };
+    }
+
+    function createCairn(x, groundY, scale, depth) {
+      const cairn = document.createElement('div');
+      cairn.className = 'cairn';
+      cairn.style.left = x + 'px';
+      cairn.style.top = groundY + 'px';
+      cairn.style.zIndex = Math.round(depth * 100);
+
+      const stones = [];
+      const stoneCount = LAB.randInt(3, 7);
+      let baseWidth = LAB.rand(110, 150) * scale;
+      let bottom = 0;
+      let drift = 0;
+
+      for (let i = 0; i < stoneCount; i++) {
+        const w = baseWidth * Math.pow(0.82, i) * LAB.rand(0.92, 1.05);
+        const h = w * LAB.rand(0.42, 0.68);
+        drift += LAB.rand(-0.06, 0.06) * w;
+        const colour = stoneColour();
+        const stone = document.createElement('a');
+        stone.className = 'stone';
+        stone.href = LAB.pageRandomiser.nextOne();
+        stone.style.width = w + 'px';
+        stone.style.height = h + 'px';
+        stone.style.left = drift + 'px';
+        stone.style.bottom = bottom + 'px';
+        stone.style.borderRadius = borderRadius();
+        stone.style.zIndex = i + 1;
+        stone.style.setProperty('--tilt', LAB.rand(-4, 4) + 'deg');
+        stone.style.setProperty('--wobble', '0deg');
+        stone.style.setProperty('--drift', '0px');
+        stone.style.background = `radial-gradient(ellipse at 35% 28%, ${colour.light}, ${colour.base} 55%, ${colour.dark} 100%)`;
+        cairn.appendChild(stone);
+        stones.push(stone);
+        bottom += h - Math.min(6, h * 0.12);
+      }
+
+      const shadow = document.createElement('div');
+      shadow.className = 'shadow';
+      shadow.style.width = (baseWidth * 1.5) + 'px';
+      shadow.style.height = (baseWidth * 0.3) + 'px';
+      cairn.insertBefore(shadow, cairn.firstChild);
+
+      // Hovering a stone also alters the ones above it in the stack
+      stones.forEach((stone, i) => {
+        stone.addEventListener('mouseenter', () => {
+          for (let above = i + 1; above < stones.length; above++) {
+            const sign = (above - i) % 2 === 0 ? 1 : -1;
+            stones[above].style.setProperty('--wobble', (sign * LAB.rand(2, 5)) + 'deg');
+            stones[above].style.setProperty('--drift', (sign * LAB.rand(2, 6)) + 'px');
+            stones[above].classList.add('wobble');
+          }
+        });
+        stone.addEventListener('mouseleave', () => {
+          stones.forEach(s => s.classList.remove('wobble'));
+        });
+      });
+
+      main.appendChild(cairn);
+      cairns.push(cairn);
+    }
+
+    function randomCairnParams() {
+      const winW = window.innerWidth;
+      const winH = window.innerHeight;
+      const horizon = winH * 0.54;
+      const depth = LAB.rand(0, 1);
+      return {
+        x: LAB.rand(30, winW - 30),
+        groundY: horizon + 30 + depth * (winH - horizon),
+        scale: (0.45 + depth * 0.75) * Math.min(1, winH / 800),
+        depth
+      };
+    }
+
+    function init() {
+      main.replaceChildren();
+      cairns.length = 0;
+
+      const winW = window.innerWidth;
+      const winH = window.innerHeight;
+      const horizon = winH * 0.54;
+      const count = LAB.randInt(6, 8);
+      const slots = LAB.shuffle(LAB.integerRange(0, count - 1));
+
+      for (let i = 0; i < count; i++) {
+        // If a stone pile is further back, it should be higher up the landscape and smaller
+        const depth = LAB.rand(0, 1);
+        const groundY = horizon + 30 + depth * (winH - horizon - 60);
+        const scale = (0.45 + depth * 0.75) * Math.min(1, winH / 800);
+        const x = winW * ((slots[i] + LAB.rand(0.2, 0.8)) / count);
+        createCairn(x, groundY, scale, depth);
+      }
+    }
+
+    window.addEventListener('resize', init);
+
+    document.addEventListener('click', (e) => {
+      if (e.target.closest('a')) return;
+      const winH = window.innerHeight;
+      const horizon = winH * 0.54;
+      if (e.clientY < horizon) return; // sky: do nothing
+      const depth = Math.min(1, (e.clientY - horizon) / (winH - horizon));
+      const scale = (0.45 + depth * 0.75) * Math.min(1, winH / 800);
+      createCairn(e.clientX, e.clientY, scale, depth);
+    });
+
+    document.addEventListener('keydown', (e) => {
+      LAB.handleKeydown(e, () => {
+        const params = randomCairnParams();
+        createCairn(params.x, params.groundY, params.scale, params.depth);
+      });
+    });
+
+    init();
+
+  </script>
+</body>
+
+</html>

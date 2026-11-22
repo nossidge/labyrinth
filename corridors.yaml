@@ -2359,3 +2359,10 @@ corridors:
     tags: [crt, maths, mobile]
     visual_description: >-
       A full-screen Newton fractal of the roots of unity for the polynomial z^n - 1, rendered at a chunky lo-fi pixel resolution. Each region of the complex plane converges to one of the n roots, coloured by its position on the hue wheel and darkened by how many Newton steps it took to converge. A slowly rotating hue offset makes the colours drift over time. Pressing any key reseeds the fractal with a new degree n. The whole canvas is a single clickable link to a random corridor.
+  - id: cairns
+    title: Cairns
+    created: 2026-11-22 15:31
+    links: dynamic
+    tags: [mobile, nature]
+    visual_description: >-
+      A number of stacks of 6 to 8 balanced stones stand on a pale background, each stone a rounded organic shape in muted earthy tones of tan, khaki, grey and olive, set against a soft sky-and-ground gradient. Further cairns sit higher and smaller to suggest depth, and each casts a soft shadow at its base. Hovering over a stone makes the ones stacked above it wobble and drift. Clicking the ground adds a new cairn, and pressing any key adds one at a random spot. Each stone is a clickable link to a random corridor.
